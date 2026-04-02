@@ -1,0 +1,1664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Functional Group Explorer — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --sim-canvas-bg: #FAFBFC;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
+  }
+  .header-badge.hl { background: var(--hl-badge-bg); display: none; }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* ── Toggle ── */
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s; --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--toggle-on); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+  /* ── Layout ── */
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sim-top-row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .sim-card {
+    background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy); color: white; padding: 0.6rem 1rem;
+    font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  /* ── Palette ── */
+  .palette-panel { max-height: 600px; display: flex; flex-direction: column; position: sticky; top: 1rem; align-self: start; }
+  .palette-panel .sim-card-body { padding: 0.5rem; overflow-y: auto; flex: 1; }
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+  .palette-category {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); padding: 0.4rem 0.3rem 0.2rem; margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block; width: 100%; text-align: left; padding: 0.3rem 0.5rem; margin: 0.15rem 0; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .palette-item:hover { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .palette-item.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+  .palette-item.hl-grp { display: none; }
+  body.hl-active .palette-item.hl-grp { display: block; }
+  .palette-category.hl-cat { display: none; }
+  body.hl-active .palette-category.hl-cat { display: block; }
+  .preset-section { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+  .preset-section select {
+    width: 100%; padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.75rem; font-family: inherit; cursor: pointer;
+  }
+
+  /* ── Main Panel ── */
+  .main-panel { display: flex; flex-direction: column; gap: 1rem; align-self: start; }
+
+  /* ── Canvas ── */
+  #structCanvas { display: block; background: var(--sim-canvas-bg); border-radius: 4px; }
+
+  /* ── Info Panel ── */
+  .group-name { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.2rem; }
+  .group-formula { font-size: 0.9rem; font-family: 'Fira Code', monospace; color: var(--text-muted); margin-bottom: 0.5rem; }
+  .suffix-badge {
+    display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px;
+    font-size: 0.7rem; font-weight: 600; background: var(--teal-bg); color: var(--teal);
+    margin-left: 0.5rem;
+  }
+  .prefix-badge {
+    display: inline-block; padding: 0.15rem 0.5rem; border-radius: 999px;
+    font-size: 0.7rem; font-weight: 600; background: var(--blue-bg); color: var(--blue);
+    margin-left: 0.3rem;
+  }
+  .props-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 1.5rem;
+    margin: 0.5rem 0; font-size: 0.78rem;
+  }
+  .prop-label { color: var(--text-muted); font-weight: 600; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .prop-value { font-weight: 500; }
+  .examples-section { margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+  .examples-label { font-size: 0.72rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.3rem; }
+  .example-btn {
+    display: inline-block; padding: 0.2rem 0.5rem; margin: 0.15rem; border-radius: 6px;
+    font-size: 0.72rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s; font-family: 'Fira Code', monospace;
+  }
+  .example-btn:hover { background: var(--teal-bg); border-color: var(--teal); }
+  .example-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+
+  /* ── HL Spectroscopy Panel ── */
+  .hl-panel { display: none; }
+  body.hl-active .hl-panel { display: block; }
+  .spec-grid { display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 0.75rem; font-size: 0.78rem; }
+  .spec-label { font-weight: 700; color: var(--purple); font-size: 0.72rem; }
+  .spec-value { font-family: 'Fira Code', monospace; font-size: 0.75rem; }
+  .spec-na { font-size: 0.8rem; color: var(--text-muted); font-style: italic; padding: 0.5rem 0; }
+
+  /* ── Keyboard Hint ── */
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .palette-panel { max-height: 200px; position: static; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>Functional Group Explorer</h1>
+    <span class="subtitle">IB Chemistry — S3.2 Functional Groups</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">S3.2</span>
+    <span class="header-badge hl">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="sim-container">
+  <div class="sim-top-row">
+
+    <!-- Left: Functional Group Palette -->
+    <div class="palette-panel sim-card">
+      <div class="sim-card-header">Functional Groups</div>
+      <div class="sim-card-body">
+        <input type="text" class="palette-search" id="grpSearch" placeholder="Search groups...">
+        <div id="paletteList"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Main Panel -->
+    <div class="main-panel">
+      <!-- Structure Viewer -->
+      <div class="sim-card">
+        <div class="sim-card-header">Structure Viewer</div>
+        <div class="sim-card-body" style="padding: 0.5rem;">
+          <canvas id="structCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Group Info Card -->
+      <div class="sim-card">
+        <div class="sim-card-header">Group Details</div>
+        <div class="sim-card-body" id="infoPanel">
+          <div style="color: var(--text-muted); font-size: 0.85rem;">Select a functional group from the palette to explore.</div>
+        </div>
+      </div>
+
+      <!-- HL Spectroscopy Panel -->
+      <div class="hl-panel sim-card">
+        <div class="sim-card-header">Spectroscopy Data</div>
+        <div class="sim-card-body" id="specPanel">
+          <div class="spec-na">Select a functional group to view spectroscopy data.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="keyboard-hint">
+    <kbd>H</kbd> HL toggle &nbsp; <kbd>T</kbd> Teacher mode &nbsp;
+    <kbd>S</kbd> Spectroscopy &nbsp;
+    <kbd>&uarr;</kbd><kbd>&darr;</kbd> Prev/Next &nbsp;
+    <kbd>1</kbd>-<kbd>3</kbd> Example molecule &nbsp;
+    <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>Esc</kbd> Deselect
+  </div>
+</div>
+
+<!-- SimEngine Core -->
+<script src="../../3-Resources/SimEngine/SimEngine_Core.js"></script>
+
+<script>
+// roundRect polyfill for older browsers (Chromebooks, older iPads)
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    var tl = r[0] || 0, tr = r[1] || 0, br = r[2] || 0, bl = r[3] || 0;
+    this.beginPath();
+    this.moveTo(x + tl, y);
+    this.lineTo(x + w - tr, y);
+    this.quadraticCurveTo(x + w, y, x + w, y + tr);
+    this.lineTo(x + w, y + h - br);
+    this.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+    this.lineTo(x + bl, y + h);
+    this.quadraticCurveTo(x, y + h, x, y + h - bl);
+    this.lineTo(x, y + tl);
+    this.quadraticCurveTo(x, y, x + tl, y);
+    this.closePath();
+    return this;
+  };
+}
+
+(function() {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════
+  // Category highlight colors
+  // ═══════════════════════════════════════════════════
+  var CAT_COLORS = {
+    hydrocarbon: { fill: 'rgba(37,99,235,0.12)', stroke: '#2563EB' },
+    oxygen: { fill: 'rgba(220,38,38,0.12)', stroke: '#DC2626' },
+    nitrogen: { fill: 'rgba(124,58,237,0.12)', stroke: '#7C3AED' },
+    halogen: { fill: 'rgba(5,150,105,0.12)', stroke: '#059669' },
+    hl: { fill: 'rgba(124,58,237,0.12)', stroke: '#7C3AED' }
+  };
+
+  // ═══════════════════════════════════════════════════
+  // Categories
+  // ═══════════════════════════════════════════════════
+  var CATEGORIES = [
+    { key: 'hydrocarbon', label: 'Hydrocarbons' },
+    { key: 'oxygen', label: 'Oxygen-containing' },
+    { key: 'nitrogen', label: 'Nitrogen-containing' },
+    { key: 'halogen', label: 'Halogen-containing' },
+    { key: 'hl', label: 'HL Groups' }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // Functional Group Data (16 groups)
+  // Structure: atoms in normalized 0-1 coords, bonds as index pairs
+  // ═══════════════════════════════════════════════════
+  var GROUPS = [
+    // ── Hydrocarbons ──
+    {
+      id: 'alkane', name: 'Alkane', generalFormula: 'C\u2099H\u2082\u2099\u208A\u2082',
+      category: 'hydrocarbon', hlOnly: false, suffix: '-ane', prefix: '',
+      properties: {
+        polarity: 'Nonpolar',
+        hBonding: 'None',
+        solubility: 'Insoluble in water',
+        bpTrend: 'Low (LDF only)',
+        state: 'Gas/Liquid/Solid',
+        reactions: 'Combustion, substitution'
+      },
+      exampleMolecules: [
+        { name: 'Propane', formula: 'CH\u2083CH\u2082CH\u2083', id: 'propane' },
+        { name: 'Butane', formula: 'CH\u2083(CH\u2082)\u2082CH\u2083', id: 'butane' },
+        { name: 'Methane', formula: 'CH\u2084', id: 'methane' }
+      ],
+      structures: {
+        propane: {
+          atoms: [
+            { el: 'C', x: 0.2, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.5, y: 0.5, label: 'CH\u2082' },
+            { el: 'C', x: 0.8, y: 0.5, label: 'CH\u2083' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }],
+          highlightAtoms: [0, 1, 2]
+        },
+        butane: {
+          atoms: [
+            { el: 'C', x: 0.15, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.38, y: 0.5, label: 'CH\u2082' },
+            { el: 'C', x: 0.62, y: 0.5, label: 'CH\u2082' },
+            { el: 'C', x: 0.85, y: 0.5, label: 'CH\u2083' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }, { from: 2, to: 3, order: 1 }],
+          highlightAtoms: [0, 1, 2, 3]
+        },
+        methane: {
+          atoms: [
+            { el: 'C', x: 0.5, y: 0.5, label: 'CH\u2084' }
+          ],
+          bonds: [],
+          highlightAtoms: [0]
+        }
+      },
+      spectroscopy: { ir: '2850\u20132960 cm\u207B\u00B9 (C\u2013H stretch)', ms: 'Successive loss of 14 (CH\u2082)', nmr: '\u03B4 0.8\u20131.0 (CH\u2083), \u03B4 1.2\u20131.4 (CH\u2082)' }
+    },
+    {
+      id: 'alkene', name: 'Alkene', generalFormula: 'C\u2099H\u2082\u2099',
+      category: 'hydrocarbon', hlOnly: false, suffix: '-ene', prefix: '',
+      properties: {
+        polarity: 'Nonpolar (symmetrical)',
+        hBonding: 'None',
+        solubility: 'Insoluble in water',
+        bpTrend: 'Low (similar to alkanes)',
+        state: 'Gas/Liquid',
+        reactions: 'Addition (H\u2082, HX, X\u2082, H\u2082O)'
+      },
+      exampleMolecules: [
+        { name: 'Propene', formula: 'CH\u2083CH=CH\u2082', id: 'propene' },
+        { name: 'Ethene', formula: 'CH\u2082=CH\u2082', id: 'ethene' }
+      ],
+      structures: {
+        propene: {
+          atoms: [
+            { el: 'C', x: 0.2, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.5, y: 0.5, label: 'CH' },
+            { el: 'C', x: 0.8, y: 0.5, label: 'CH\u2082' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 }],
+          highlightAtoms: [1, 2]
+        },
+        ethene: {
+          atoms: [
+            { el: 'C', x: 0.35, y: 0.5, label: 'CH\u2082' },
+            { el: 'C', x: 0.65, y: 0.5, label: 'CH\u2082' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 2 }],
+          highlightAtoms: [0, 1]
+        }
+      },
+      spectroscopy: { ir: '1620\u20131680 cm\u207B\u00B9 (C=C stretch)', ms: 'M\u207A at even mass (C\u2099H\u2082\u2099)', nmr: '\u03B4 4.5\u20136.5 (vinyl H)' }
+    },
+    {
+      id: 'alkyne', name: 'Alkyne', generalFormula: 'C\u2099H\u2082\u2099\u208B\u2082',
+      category: 'hydrocarbon', hlOnly: false, suffix: '-yne', prefix: '',
+      properties: {
+        polarity: 'Slightly polar (terminal)',
+        hBonding: 'None',
+        solubility: 'Insoluble in water',
+        bpTrend: 'Low',
+        state: 'Gas/Liquid',
+        reactions: 'Addition (H\u2082, HX, X\u2082)'
+      },
+      exampleMolecules: [
+        { name: 'Propyne', formula: 'CH\u2083C\u2261CH', id: 'propyne' },
+        { name: 'Ethyne', formula: 'HC\u2261CH', id: 'ethyne' }
+      ],
+      structures: {
+        propyne: {
+          atoms: [
+            { el: 'C', x: 0.2, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.5, y: 0.5, label: 'C' },
+            { el: 'C', x: 0.8, y: 0.5, label: 'CH' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 3 }],
+          highlightAtoms: [1, 2]
+        },
+        ethyne: {
+          atoms: [
+            { el: 'C', x: 0.35, y: 0.5, label: 'CH' },
+            { el: 'C', x: 0.65, y: 0.5, label: 'CH' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 3 }],
+          highlightAtoms: [0, 1]
+        }
+      },
+      spectroscopy: { ir: '2100\u20132260 cm\u207B\u00B9 (C\u2261C), 3300 cm\u207B\u00B9 (\u2261C\u2013H)', ms: 'M\u207A at even mass', nmr: '\u03B4 1.8\u20132.5 (\u2261C\u2013H)' }
+    },
+    {
+      id: 'arene', name: 'Arene', generalFormula: 'C\u2086H\u2085R',
+      category: 'hydrocarbon', hlOnly: false, suffix: '-benzene', prefix: 'phenyl-',
+      properties: {
+        polarity: 'Nonpolar',
+        hBonding: 'None',
+        solubility: 'Insoluble in water',
+        bpTrend: 'Moderate (planar stacking)',
+        state: 'Liquid',
+        reactions: 'Electrophilic substitution'
+      },
+      exampleMolecules: [
+        { name: 'Methylbenzene', formula: 'C\u2086H\u2085CH\u2083', id: 'methylbenzene' },
+        { name: 'Benzene', formula: 'C\u2086H\u2086', id: 'benzene' }
+      ],
+      structures: {
+        methylbenzene: {
+          atoms: [
+            { el: 'C', x: 0.5, y: 0.2, label: '' },
+            { el: 'C', x: 0.67, y: 0.3, label: '' },
+            { el: 'C', x: 0.67, y: 0.5, label: '' },
+            { el: 'C', x: 0.5, y: 0.6, label: '' },
+            { el: 'C', x: 0.33, y: 0.5, label: '' },
+            { el: 'C', x: 0.33, y: 0.3, label: '' },
+            { el: 'C', x: 0.5, y: 0.05, label: 'CH\u2083' }
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 },
+            { from: 2, to: 3, order: 1 }, { from: 3, to: 4, order: 2 },
+            { from: 4, to: 5, order: 1 }, { from: 5, to: 0, order: 2 },
+            { from: 0, to: 6, order: 1 }
+          ],
+          highlightAtoms: [0, 1, 2, 3, 4, 5],
+          ring: true
+        },
+        benzene: {
+          atoms: [
+            { el: 'C', x: 0.5, y: 0.2, label: '' },
+            { el: 'C', x: 0.67, y: 0.3, label: '' },
+            { el: 'C', x: 0.67, y: 0.5, label: '' },
+            { el: 'C', x: 0.5, y: 0.6, label: '' },
+            { el: 'C', x: 0.33, y: 0.5, label: '' },
+            { el: 'C', x: 0.33, y: 0.3, label: '' }
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 },
+            { from: 2, to: 3, order: 1 }, { from: 3, to: 4, order: 2 },
+            { from: 4, to: 5, order: 1 }, { from: 5, to: 0, order: 2 }
+          ],
+          highlightAtoms: [0, 1, 2, 3, 4, 5],
+          ring: true
+        }
+      },
+      spectroscopy: { ir: '3030 cm\u207B\u00B9 (aromatic C\u2013H), 1450\u20131600 cm\u207B\u00B9 (C=C)', ms: 'm/z 77 (C\u2086H\u2085\u207A phenyl cation)', nmr: '\u03B4 6.5\u20138.0 (aromatic H)' }
+    },
+
+    // ── Oxygen-containing ──
+    {
+      id: 'alcohol', name: 'Alcohol', generalFormula: 'R\u2013OH',
+      category: 'oxygen', hlOnly: false, suffix: '-ol', prefix: 'hydroxy-',
+      properties: {
+        polarity: 'Polar',
+        hBonding: 'Donor + Acceptor',
+        solubility: 'Soluble (small R)',
+        bpTrend: 'High (H-bonding)',
+        state: 'Liquid',
+        reactions: 'Combustion, oxidation, esterification'
+      },
+      exampleMolecules: [
+        { name: 'Ethanol', formula: 'CH\u2083CH\u2082OH', id: 'ethanol' },
+        { name: 'Propan-1-ol', formula: 'CH\u2083CH\u2082CH\u2082OH', id: 'propanol' },
+        { name: 'Methanol', formula: 'CH\u2083OH', id: 'methanol' }
+      ],
+      structures: {
+        ethanol: {
+          atoms: [
+            { el: 'C', x: 0.25, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.5, y: 0.5, label: 'CH\u2082' },
+            { el: 'O', x: 0.75, y: 0.5, label: 'OH' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }],
+          highlightAtoms: [2]
+        },
+        propanol: {
+          atoms: [
+            { el: 'C', x: 0.15, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.35, y: 0.5, label: 'CH\u2082' },
+            { el: 'C', x: 0.58, y: 0.5, label: 'CH\u2082' },
+            { el: 'O', x: 0.8, y: 0.5, label: 'OH' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }, { from: 2, to: 3, order: 1 }],
+          highlightAtoms: [3]
+        },
+        methanol: {
+          atoms: [
+            { el: 'C', x: 0.35, y: 0.5, label: 'CH\u2083' },
+            { el: 'O', x: 0.65, y: 0.5, label: 'OH' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }],
+          highlightAtoms: [1]
+        }
+      },
+      spectroscopy: { ir: '3200\u20133600 cm\u207B\u00B9 (O\u2013H stretch, broad)', ms: 'Loss of 17 (OH) or 18 (H\u2082O)', nmr: '\u03B4 1.0\u20135.0 (O\u2013H, variable)' }
+    },
+    {
+      id: 'aldehyde', name: 'Aldehyde', generalFormula: 'R\u2013CHO',
+      category: 'oxygen', hlOnly: false, suffix: '-al', prefix: 'oxo-',
+      properties: {
+        polarity: 'Polar',
+        hBonding: 'Acceptor only',
+        solubility: 'Soluble (small R)',
+        bpTrend: 'Moderate',
+        state: 'Liquid',
+        reactions: 'Oxidation to acid, reduction, nucleophilic addition'
+      },
+      exampleMolecules: [
+        { name: 'Ethanal', formula: 'CH\u2083CHO', id: 'ethanal' },
+        { name: 'Propanal', formula: 'CH\u2083CH\u2082CHO', id: 'propanal' }
+      ],
+      structures: {
+        ethanal: {
+          atoms: [
+            { el: 'C', x: 0.25, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.55, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.55, y: 0.25, label: 'O' },
+            { el: 'H', x: 0.8, y: 0.5, label: 'H' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 }, { from: 1, to: 3, order: 1 }],
+          highlightAtoms: [1, 2, 3]
+        },
+        propanal: {
+          atoms: [
+            { el: 'C', x: 0.15, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.35, y: 0.5, label: 'CH\u2082' },
+            { el: 'C', x: 0.6, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.6, y: 0.25, label: 'O' },
+            { el: 'H', x: 0.82, y: 0.5, label: 'H' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }, { from: 2, to: 3, order: 2 }, { from: 2, to: 4, order: 1 }],
+          highlightAtoms: [2, 3, 4]
+        }
+      },
+      spectroscopy: { ir: '1720\u20131740 cm\u207B\u00B9 (C=O stretch), 2720 cm\u207B\u00B9 (C\u2013H of CHO)', ms: 'Loss of 29 (CHO)', nmr: '\u03B4 9.4\u201310.0 (aldehyde H)' }
+    },
+    {
+      id: 'ketone', name: 'Ketone', generalFormula: 'R\u2013CO\u2013R\'',
+      category: 'oxygen', hlOnly: false, suffix: '-one', prefix: 'oxo-',
+      properties: {
+        polarity: 'Polar',
+        hBonding: 'Acceptor only',
+        solubility: 'Soluble (small R)',
+        bpTrend: 'Moderate',
+        state: 'Liquid',
+        reactions: 'Reduction, nucleophilic addition'
+      },
+      exampleMolecules: [
+        { name: 'Propanone', formula: 'CH\u2083COCH\u2083', id: 'propanone' },
+        { name: 'Butanone', formula: 'CH\u2083COCH\u2082CH\u2083', id: 'butanone' }
+      ],
+      structures: {
+        propanone: {
+          atoms: [
+            { el: 'C', x: 0.2, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.5, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.5, y: 0.25, label: 'O' },
+            { el: 'C', x: 0.8, y: 0.5, label: 'CH\u2083' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 }, { from: 1, to: 3, order: 1 }],
+          highlightAtoms: [1, 2]
+        },
+        butanone: {
+          atoms: [
+            { el: 'C', x: 0.12, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.37, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.37, y: 0.25, label: 'O' },
+            { el: 'C', x: 0.62, y: 0.5, label: 'CH\u2082' },
+            { el: 'C', x: 0.87, y: 0.5, label: 'CH\u2083' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 }, { from: 1, to: 3, order: 1 }, { from: 3, to: 4, order: 1 }],
+          highlightAtoms: [1, 2]
+        }
+      },
+      spectroscopy: { ir: '1705\u20131725 cm\u207B\u00B9 (C=O stretch)', ms: 'Alpha cleavage beside C=O', nmr: 'No aldehyde peak; \u03B4 2.1\u20132.6 (CH next to C=O)' }
+    },
+    {
+      id: 'carboxylic_acid', name: 'Carboxylic Acid', generalFormula: 'R\u2013COOH',
+      category: 'oxygen', hlOnly: false, suffix: '-oic acid', prefix: '',
+      properties: {
+        polarity: 'Very polar',
+        hBonding: 'Donor + Acceptor (dimers)',
+        solubility: 'Soluble (small R)',
+        bpTrend: 'High (H-bond dimers)',
+        state: 'Liquid/Solid',
+        reactions: 'Neutralization, esterification, reduction'
+      },
+      exampleMolecules: [
+        { name: 'Ethanoic acid', formula: 'CH\u2083COOH', id: 'ethanoic' },
+        { name: 'Methanoic acid', formula: 'HCOOH', id: 'methanoic' }
+      ],
+      structures: {
+        ethanoic: {
+          atoms: [
+            { el: 'C', x: 0.2, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.5, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.5, y: 0.25, label: 'O' },
+            { el: 'O', x: 0.78, y: 0.5, label: 'O' },
+            { el: 'H', x: 0.78, y: 0.7, label: 'H' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 }, { from: 1, to: 3, order: 1 }, { from: 3, to: 4, order: 1 }],
+          highlightAtoms: [1, 2, 3, 4]
+        },
+        methanoic: {
+          atoms: [
+            { el: 'H', x: 0.15, y: 0.5, label: 'H' },
+            { el: 'C', x: 0.4, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.4, y: 0.25, label: 'O' },
+            { el: 'O', x: 0.68, y: 0.5, label: 'O' },
+            { el: 'H', x: 0.68, y: 0.7, label: 'H' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 }, { from: 1, to: 3, order: 1 }, { from: 3, to: 4, order: 1 }],
+          highlightAtoms: [1, 2, 3, 4]
+        }
+      },
+      spectroscopy: { ir: '2500\u20133300 cm\u207B\u00B9 (O\u2013H, very broad), 1700\u20131725 cm\u207B\u00B9 (C=O)', ms: 'Loss of 45 (COOH) or 17 (OH)', nmr: '\u03B4 10\u201312 (COOH, exchangeable)' }
+    },
+    {
+      id: 'ether', name: 'Ether', generalFormula: 'R\u2013O\u2013R\'',
+      category: 'oxygen', hlOnly: false, suffix: '', prefix: '-oxy-',
+      properties: {
+        polarity: 'Slightly polar',
+        hBonding: 'Acceptor only',
+        solubility: 'Slightly soluble',
+        bpTrend: 'Low (no H-bond donor)',
+        state: 'Liquid',
+        reactions: 'Relatively unreactive'
+      },
+      exampleMolecules: [
+        { name: 'Methoxyethane', formula: 'CH\u2083OCH\u2082CH\u2083', id: 'methoxyethane' },
+        { name: 'Dimethyl ether', formula: 'CH\u2083OCH\u2083', id: 'dme' }
+      ],
+      structures: {
+        methoxyethane: {
+          atoms: [
+            { el: 'C', x: 0.15, y: 0.5, label: 'CH\u2083' },
+            { el: 'O', x: 0.4, y: 0.5, label: 'O' },
+            { el: 'C', x: 0.62, y: 0.5, label: 'CH\u2082' },
+            { el: 'C', x: 0.85, y: 0.5, label: 'CH\u2083' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }, { from: 2, to: 3, order: 1 }],
+          highlightAtoms: [1]
+        },
+        dme: {
+          atoms: [
+            { el: 'C', x: 0.25, y: 0.5, label: 'CH\u2083' },
+            { el: 'O', x: 0.5, y: 0.5, label: 'O' },
+            { el: 'C', x: 0.75, y: 0.5, label: 'CH\u2083' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }],
+          highlightAtoms: [1]
+        }
+      },
+      spectroscopy: { ir: '1000\u20131300 cm\u207B\u00B9 (C\u2013O\u2013C stretch)', ms: 'Alpha cleavage beside O', nmr: '\u03B4 3.3\u20133.9 (CH next to O)' }
+    },
+    {
+      id: 'carboxylate', name: 'Carboxylate Ion', generalFormula: 'R\u2013COO\u207B',
+      category: 'oxygen', hlOnly: false, suffix: '-oate', prefix: '',
+      properties: {
+        polarity: 'Ionic',
+        hBonding: 'Acceptor (ionic)',
+        solubility: 'Soluble (Na\u207A/K\u207A salts)',
+        bpTrend: 'High (ionic)',
+        state: 'Solid',
+        reactions: 'Formed by neutralization of carboxylic acid'
+      },
+      exampleMolecules: [
+        { name: 'Sodium ethanoate', formula: 'CH\u2083COO\u207BNa\u207A', id: 'na_ethanoate' },
+        { name: 'Sodium methanoate', formula: 'HCOO\u207BNa\u207A', id: 'na_methanoate' }
+      ],
+      structures: {
+        na_ethanoate: {
+          atoms: [
+            { el: 'C', x: 0.15, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.4, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.4, y: 0.25, label: 'O' },
+            { el: 'O', x: 0.65, y: 0.5, label: 'O\u207B' },
+            { el: 'Na', x: 0.85, y: 0.5, label: 'Na\u207A' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 }, { from: 1, to: 3, order: 1 }],
+          highlightAtoms: [1, 2, 3]
+        },
+        na_methanoate: {
+          atoms: [
+            { el: 'H', x: 0.1, y: 0.5, label: 'H' },
+            { el: 'C', x: 0.35, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.35, y: 0.25, label: 'O' },
+            { el: 'O', x: 0.6, y: 0.5, label: 'O\u207B' },
+            { el: 'Na', x: 0.8, y: 0.5, label: 'Na\u207A' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 }, { from: 1, to: 3, order: 1 }],
+          highlightAtoms: [1, 2, 3]
+        }
+      },
+      spectroscopy: { ir: '1550\u20131610 cm\u207B\u00B9 (asymmetric COO\u207B), 1400\u20131450 cm\u207B\u00B9 (symmetric)', ms: 'Loss of 44 (CO\u2082)', nmr: '\u03B4 2.0\u20132.2 (CH\u2083 adjacent to COO\u207B)' }
+    },
+
+    // ── Nitrogen-containing ──
+    {
+      id: 'amine', name: 'Amine', generalFormula: 'R\u2013NH\u2082',
+      category: 'nitrogen', hlOnly: false, suffix: '-amine', prefix: 'amino-',
+      properties: {
+        polarity: 'Polar',
+        hBonding: 'Donor + Acceptor',
+        solubility: 'Soluble (small R)',
+        bpTrend: 'Moderate (weaker H-bonds than OH)',
+        state: 'Gas/Liquid',
+        reactions: 'Base behavior, nucleophilic substitution'
+      },
+      exampleMolecules: [
+        { name: 'Ethylamine', formula: 'CH\u2083CH\u2082NH\u2082', id: 'ethylamine' },
+        { name: 'Methylamine', formula: 'CH\u2083NH\u2082', id: 'methylamine' }
+      ],
+      structures: {
+        ethylamine: {
+          atoms: [
+            { el: 'C', x: 0.2, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.5, y: 0.5, label: 'CH\u2082' },
+            { el: 'N', x: 0.8, y: 0.5, label: 'NH\u2082' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }],
+          highlightAtoms: [2]
+        },
+        methylamine: {
+          atoms: [
+            { el: 'C', x: 0.35, y: 0.5, label: 'CH\u2083' },
+            { el: 'N', x: 0.65, y: 0.5, label: 'NH\u2082' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }],
+          highlightAtoms: [1]
+        }
+      },
+      spectroscopy: { ir: '3300\u20133500 cm\u207B\u00B9 (N\u2013H stretch, two peaks)', ms: 'Odd M\u207A (nitrogen rule)', nmr: '\u03B4 0.5\u20133.0 (N\u2013H, broad, exchangeable)' }
+    },
+
+    // ── Halogen-containing ──
+    {
+      id: 'halogenoalkane', name: 'Halogenoalkane', generalFormula: 'R\u2013X (X = F, Cl, Br, I)',
+      category: 'halogen', hlOnly: false, suffix: '', prefix: 'halo-',
+      properties: {
+        polarity: 'Polar (C\u03B4\u207A\u2013X\u03B4\u207B)',
+        hBonding: 'None',
+        solubility: 'Insoluble in water',
+        bpTrend: 'Higher than alkanes (dipole)',
+        state: 'Liquid',
+        reactions: 'Nucleophilic substitution, elimination'
+      },
+      exampleMolecules: [
+        { name: 'Chloroethane', formula: 'CH\u2083CH\u2082Cl', id: 'chloroethane' },
+        { name: 'Bromoethane', formula: 'CH\u2083CH\u2082Br', id: 'bromoethane' }
+      ],
+      structures: {
+        chloroethane: {
+          atoms: [
+            { el: 'C', x: 0.2, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.5, y: 0.5, label: 'CH\u2082' },
+            { el: 'Cl', x: 0.8, y: 0.5, label: 'Cl' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }],
+          highlightAtoms: [2]
+        },
+        bromoethane: {
+          atoms: [
+            { el: 'C', x: 0.2, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.5, y: 0.5, label: 'CH\u2082' },
+            { el: 'Br', x: 0.8, y: 0.5, label: 'Br' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }],
+          highlightAtoms: [2]
+        }
+      },
+      spectroscopy: { ir: '500\u20131000 cm\u207B\u00B9 (C\u2013X stretch, varies by halogen)', ms: 'Isotope patterns: Cl (M, M+2), Br (M, M+2 equal)', nmr: '\u03B4 3.0\u20134.0 (CH next to halogen)' }
+    },
+
+    // ── HL Groups ──
+    {
+      id: 'ester', name: 'Ester', generalFormula: 'R\u2013COO\u2013R\'',
+      category: 'hl', hlOnly: true, suffix: '-oate', prefix: '',
+      properties: {
+        polarity: 'Polar',
+        hBonding: 'Acceptor only',
+        solubility: 'Slightly soluble',
+        bpTrend: 'Moderate',
+        state: 'Liquid',
+        reactions: 'Hydrolysis (acid/base), condensation'
+      },
+      exampleMolecules: [
+        { name: 'Ethyl ethanoate', formula: 'CH\u2083COOCH\u2082CH\u2083', id: 'ethyl_ethanoate' },
+        { name: 'Methyl methanoate', formula: 'HCOOCH\u2083', id: 'methyl_methanoate' }
+      ],
+      structures: {
+        ethyl_ethanoate: {
+          atoms: [
+            { el: 'C', x: 0.1, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.3, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.3, y: 0.25, label: 'O' },
+            { el: 'O', x: 0.52, y: 0.5, label: 'O' },
+            { el: 'C', x: 0.72, y: 0.5, label: 'CH\u2082' },
+            { el: 'C', x: 0.92, y: 0.5, label: 'CH\u2083' }
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 },
+            { from: 1, to: 3, order: 1 }, { from: 3, to: 4, order: 1 },
+            { from: 4, to: 5, order: 1 }
+          ],
+          highlightAtoms: [1, 2, 3]
+        },
+        methyl_methanoate: {
+          atoms: [
+            { el: 'H', x: 0.12, y: 0.5, label: 'H' },
+            { el: 'C', x: 0.32, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.32, y: 0.25, label: 'O' },
+            { el: 'O', x: 0.55, y: 0.5, label: 'O' },
+            { el: 'C', x: 0.78, y: 0.5, label: 'CH\u2083' }
+          ],
+          bonds: [
+            { from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 },
+            { from: 1, to: 3, order: 1 }, { from: 3, to: 4, order: 1 }
+          ],
+          highlightAtoms: [1, 2, 3]
+        }
+      },
+      spectroscopy: { ir: '1735\u20131750 cm\u207B\u00B9 (C=O stretch), 1000\u20131300 cm\u207B\u00B9 (C\u2013O)', ms: 'Loss of OR\' group', nmr: '\u03B4 3.5\u20134.5 (OCH)' }
+    },
+    {
+      id: 'amide', name: 'Amide', generalFormula: 'R\u2013CONH\u2082',
+      category: 'hl', hlOnly: true, suffix: '-amide', prefix: '',
+      properties: {
+        polarity: 'Very polar',
+        hBonding: 'Donor + Acceptor',
+        solubility: 'Soluble (small R)',
+        bpTrend: 'Very high (strong H-bonding)',
+        state: 'Solid',
+        reactions: 'Hydrolysis, dehydration'
+      },
+      exampleMolecules: [
+        { name: 'Ethanamide', formula: 'CH\u2083CONH\u2082', id: 'ethanamide' },
+        { name: 'Methanamide', formula: 'HCONH\u2082', id: 'methanamide' }
+      ],
+      structures: {
+        ethanamide: {
+          atoms: [
+            { el: 'C', x: 0.2, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.45, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.45, y: 0.25, label: 'O' },
+            { el: 'N', x: 0.72, y: 0.5, label: 'NH\u2082' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 }, { from: 1, to: 3, order: 1 }],
+          highlightAtoms: [1, 2, 3]
+        },
+        methanamide: {
+          atoms: [
+            { el: 'H', x: 0.15, y: 0.5, label: 'H' },
+            { el: 'C', x: 0.4, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.4, y: 0.25, label: 'O' },
+            { el: 'N', x: 0.68, y: 0.5, label: 'NH\u2082' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 }, { from: 1, to: 3, order: 1 }],
+          highlightAtoms: [1, 2, 3]
+        }
+      },
+      spectroscopy: { ir: '3350 + 3180 cm\u207B\u00B9 (N\u2013H, two peaks), 1680 cm\u207B\u00B9 (C=O)', ms: 'Loss of 44 (CONH\u2082)', nmr: '\u03B4 6.0\u20138.0 (NH\u2082, broad, exchangeable)' }
+    },
+    {
+      id: 'nitrile', name: 'Nitrile', generalFormula: 'R\u2013C\u2261N',
+      category: 'hl', hlOnly: true, suffix: '-nitrile', prefix: 'cyano-',
+      properties: {
+        polarity: 'Polar',
+        hBonding: 'Acceptor only',
+        solubility: 'Slightly soluble',
+        bpTrend: 'Moderate\u2013high',
+        state: 'Liquid',
+        reactions: 'Hydrolysis to acid, reduction to amine'
+      },
+      exampleMolecules: [
+        { name: 'Ethanenitrile', formula: 'CH\u2083CN', id: 'ethanenitrile' },
+        { name: 'Propanenitrile', formula: 'CH\u2083CH\u2082CN', id: 'propanenitrile' }
+      ],
+      structures: {
+        ethanenitrile: {
+          atoms: [
+            { el: 'C', x: 0.25, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.5, y: 0.5, label: 'C' },
+            { el: 'N', x: 0.75, y: 0.5, label: 'N' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 3 }],
+          highlightAtoms: [1, 2]
+        },
+        propanenitrile: {
+          atoms: [
+            { el: 'C', x: 0.15, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.38, y: 0.5, label: 'CH\u2082' },
+            { el: 'C', x: 0.6, y: 0.5, label: 'C' },
+            { el: 'N', x: 0.82, y: 0.5, label: 'N' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }, { from: 2, to: 3, order: 3 }],
+          highlightAtoms: [2, 3]
+        }
+      },
+      spectroscopy: { ir: '2210\u20132260 cm\u207B\u00B9 (C\u2261N stretch, sharp)', ms: 'Loss of 27 (HCN)', nmr: '\u03B4 2.0\u20132.5 (CH next to CN)' }
+    },
+    {
+      id: 'acyl_chloride', name: 'Acyl Chloride', generalFormula: 'R\u2013COCl',
+      category: 'hl', hlOnly: true, suffix: '-oyl chloride', prefix: '',
+      properties: {
+        polarity: 'Polar',
+        hBonding: 'None (reacts with water)',
+        solubility: 'Reacts with water',
+        bpTrend: 'Moderate',
+        state: 'Liquid',
+        reactions: 'Hydrolysis, esterification, amide formation'
+      },
+      exampleMolecules: [
+        { name: 'Ethanoyl chloride', formula: 'CH\u2083COCl', id: 'ethanoyl_cl' },
+        { name: 'Propanoyl chloride', formula: 'CH\u2083CH\u2082COCl', id: 'propanoyl_cl' }
+      ],
+      structures: {
+        ethanoyl_cl: {
+          atoms: [
+            { el: 'C', x: 0.2, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.5, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.5, y: 0.25, label: 'O' },
+            { el: 'Cl', x: 0.78, y: 0.5, label: 'Cl' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 2 }, { from: 1, to: 3, order: 1 }],
+          highlightAtoms: [1, 2, 3]
+        },
+        propanoyl_cl: {
+          atoms: [
+            { el: 'C', x: 0.1, y: 0.5, label: 'CH\u2083' },
+            { el: 'C', x: 0.32, y: 0.5, label: 'CH\u2082' },
+            { el: 'C', x: 0.55, y: 0.5, label: 'C' },
+            { el: 'O', x: 0.55, y: 0.25, label: 'O' },
+            { el: 'Cl', x: 0.8, y: 0.5, label: 'Cl' }
+          ],
+          bonds: [{ from: 0, to: 1, order: 1 }, { from: 1, to: 2, order: 1 }, { from: 2, to: 3, order: 2 }, { from: 2, to: 4, order: 1 }],
+          highlightAtoms: [2, 3, 4]
+        }
+      },
+      spectroscopy: { ir: '1770\u20131815 cm\u207B\u00B9 (C=O stretch, high)', ms: 'Loss of 35/37 (Cl isotopes)', nmr: '\u03B4 2.5\u20133.0 (CH next to COCl)' }
+    }
+  ];
+
+  // ID lookup
+  var GRP_MAP = {};
+  for (var i = 0; i < GROUPS.length; i++) GRP_MAP[GROUPS[i].id] = GROUPS[i];
+
+  // ═══════════════════════════════════════════════════
+  // Teacher Presets
+  // ═══════════════════════════════════════════════════
+  var PRESETS = [
+    { name: 'SL Tour', groups: ['alkane','alkene','alkyne','arene','alcohol','aldehyde','ketone','carboxylic_acid','amine','halogenoalkane','ether','carboxylate'], hlMode: false },
+    { name: 'Oxygen Family', groups: ['alcohol','aldehyde','ketone','carboxylic_acid'], hlMode: false },
+    { name: 'Naming Practice', groups: ['alcohol','aldehyde','ketone','carboxylic_acid','amine','ester'], hlMode: false },
+    { name: 'HL Extensions', groups: ['ester','amide','nitrile','acyl_chloride'], hlMode: true },
+    { name: 'Spectroscopy Signatures', groups: ['alcohol','aldehyde','ketone','carboxylic_acid','amine','ester','nitrile'], hlMode: true }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // State
+  // ═══════════════════════════════════════════════════
+  var _selectedGroup = null;
+  var _selectedMolIdx = 0;
+  var _hlEnabled = false;
+  var _teacherMode = false;
+  var _hlInput = null;
+  var _tInput = null;
+
+  // Canvas
+  var _canvas = null;
+  var _ctx = null;
+  var CANVAS_W = 680;
+  var CANVAS_H = 420;
+
+  // Element colors
+  var EL_COLORS = {
+    'C': '#1E293B', 'H': '#64748B', 'O': '#DC2626', 'N': '#7C3AED',
+    'Cl': '#059669', 'Br': '#92400E', 'Na': '#2563EB', 'default': '#1E293B'
+  };
+
+  // ═══════════════════════════════════════════════════
+  // Palette
+  // ═══════════════════════════════════════════════════
+  function buildPalette() {
+    var list = document.getElementById('paletteList');
+    while (list.firstChild) list.removeChild(list.firstChild);
+
+    for (var c = 0; c < CATEGORIES.length; c++) {
+      var cat = CATEGORIES[c];
+      var catHeader = document.createElement('div');
+      catHeader.className = 'palette-category' + (cat.key === 'hl' ? ' hl-cat' : '');
+      catHeader.textContent = cat.label;
+      list.appendChild(catHeader);
+
+      for (var g = 0; g < GROUPS.length; g++) {
+        var grp = GROUPS[g];
+        if (grp.category !== cat.key) continue;
+        var btn = document.createElement('button');
+        btn.className = 'palette-item' + (grp.hlOnly ? ' hl-grp' : '');
+        btn.textContent = grp.name + ' \u2014 ' + grp.generalFormula;
+        btn.setAttribute('data-grp-id', grp.id);
+        btn.addEventListener('click', (function(id) {
+          return function() { selectGroup(id); };
+        })(grp.id));
+        list.appendChild(btn);
+      }
+    }
+  }
+
+  function updatePaletteActive() {
+    var items = document.querySelectorAll('.palette-item');
+    for (var i = 0; i < items.length; i++) {
+      var id = items[i].getAttribute('data-grp-id');
+      if (id === (_selectedGroup ? _selectedGroup.id : null)) {
+        items[i].classList.add('active');
+      } else {
+        items[i].classList.remove('active');
+      }
+    }
+  }
+
+  function filterPalette(query) {
+    var q = query.toLowerCase();
+    var items = document.querySelectorAll('.palette-item');
+    var cats = document.querySelectorAll('.palette-category');
+    var catVisible = {};
+
+    for (var i = 0; i < items.length; i++) {
+      var text = items[i].textContent.toLowerCase();
+      var id = items[i].getAttribute('data-grp-id');
+      var grp = GRP_MAP[id];
+      if (grp.hlOnly && !_hlEnabled) { items[i].style.display = 'none'; continue; }
+      var matches = !q || text.indexOf(q) !== -1;
+      if (matches) {
+        items[i].style.display = '';
+        catVisible[grp.category] = true;
+      } else {
+        items[i].style.display = 'none';
+      }
+    }
+
+    for (var j = 0; j < cats.length; j++) {
+      var catKey = CATEGORIES[j] ? CATEGORIES[j].key : '';
+      if (!q) { cats[j].style.display = ''; }
+      else { cats[j].style.display = catVisible[catKey] ? '' : 'none'; }
+    }
+  }
+
+  function buildPresets() {
+    var sel = document.getElementById('presetSelect');
+    for (var i = 0; i < PRESETS.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = PRESETS[i].name;
+      sel.appendChild(opt);
+    }
+    sel.addEventListener('change', function() {
+      if (!sel.value) return;
+      var preset = PRESETS[parseInt(sel.value, 10)];
+      if (preset.hlMode && !_hlEnabled) toggleHL();
+      if (preset.groups.length > 0) selectGroup(preset.groups[0]);
+      sel.value = '';
+    });
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Canvas Setup
+  // ═══════════════════════════════════════════════════
+  function setupCanvas() {
+    _canvas = document.getElementById('structCanvas');
+    _ctx = _canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    _canvas.width = CANVAS_W * dpr;
+    _canvas.height = CANVAS_H * dpr;
+    _canvas.style.width = CANVAS_W + 'px';
+    _canvas.style.maxWidth = '100%';
+    _canvas.style.height = CANVAS_H + 'px';
+    _canvas.setAttribute('role', 'img');
+    _canvas.setAttribute('aria-label', 'Molecular structure viewer');
+    _ctx.scale(dpr, dpr);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Structure Renderer
+  // ═══════════════════════════════════════════════════
+  function drawStructure(grp, molId) {
+    var ctx = _ctx;
+    ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+
+    if (!grp) return;
+    var struct = grp.structures[molId];
+    if (!struct) return;
+
+    var atoms = struct.atoms;
+    var bonds = struct.bonds;
+    var hlAtoms = struct.highlightAtoms || [];
+    var catColor = CAT_COLORS[grp.category] || CAT_COLORS.hydrocarbon;
+
+    var pad = 60;
+    var w = CANVAS_W - 2 * pad;
+    var h = CANVAS_H - 2 * pad;
+
+    function toX(nx) { return pad + nx * w; }
+    function toY(ny) { return pad + ny * h; }
+
+    // ── Background ──
+    ctx.fillStyle = '#FAFBFC';
+    ctx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    // ── Highlight region ──
+    if (hlAtoms.length > 0) {
+      var hlPad = 30;
+      var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      for (var hi = 0; hi < hlAtoms.length; hi++) {
+        var ha = atoms[hlAtoms[hi]];
+        var hx = toX(ha.x);
+        var hy = toY(ha.y);
+        if (hx < minX) minX = hx;
+        if (hx > maxX) maxX = hx;
+        if (hy < minY) minY = hy;
+        if (hy > maxY) maxY = hy;
+      }
+      ctx.save();
+      ctx.fillStyle = catColor.fill;
+      ctx.strokeStyle = catColor.stroke;
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.roundRect(minX - hlPad, minY - hlPad, (maxX - minX) + 2 * hlPad, (maxY - minY) + 2 * hlPad, 12);
+      ctx.fill();
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+    }
+
+    // ── Bonds ──
+    for (var bi = 0; bi < bonds.length; bi++) {
+      var bond = bonds[bi];
+      var a1 = atoms[bond.from];
+      var a2 = atoms[bond.to];
+      var x1 = toX(a1.x), y1 = toY(a1.y);
+      var x2 = toX(a2.x), y2 = toY(a2.y);
+
+      // Shorten bonds to not overlap labels
+      var dx = x2 - x1, dy = y2 - y1;
+      var len = Math.sqrt(dx * dx + dy * dy);
+      var nx = dx / len, ny = dy / len;
+      var labelOffset = 20;
+      var sx1 = x1 + nx * labelOffset;
+      var sy1 = y1 + ny * labelOffset;
+      var sx2 = x2 - nx * labelOffset;
+      var sy2 = y2 - ny * labelOffset;
+
+      ctx.save();
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2.5;
+      ctx.lineCap = 'round';
+
+      if (bond.order === 1) {
+        ctx.beginPath();
+        ctx.moveTo(sx1, sy1);
+        ctx.lineTo(sx2, sy2);
+        ctx.stroke();
+      } else if (bond.order === 2) {
+        var off = 4;
+        var px = -ny * off, py = nx * off;
+        ctx.beginPath();
+        ctx.moveTo(sx1 + px, sy1 + py);
+        ctx.lineTo(sx2 + px, sy2 + py);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(sx1 - px, sy1 - py);
+        ctx.lineTo(sx2 - px, sy2 - py);
+        ctx.stroke();
+      } else if (bond.order === 3) {
+        ctx.beginPath();
+        ctx.moveTo(sx1, sy1);
+        ctx.lineTo(sx2, sy2);
+        ctx.stroke();
+        var off3 = 5;
+        var px3 = -ny * off3, py3 = nx * off3;
+        ctx.beginPath();
+        ctx.moveTo(sx1 + px3, sy1 + py3);
+        ctx.lineTo(sx2 + px3, sy2 + py3);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(sx1 - px3, sy1 - py3);
+        ctx.lineTo(sx2 - px3, sy2 - py3);
+        ctx.stroke();
+      }
+      ctx.restore();
+    }
+
+    // ── Atom labels ──
+    for (var ai = 0; ai < atoms.length; ai++) {
+      var atom = atoms[ai];
+      var ax = toX(atom.x);
+      var ay = toY(atom.y);
+      var label = atom.label;
+      if (!label && atom.el !== 'C') label = atom.el;
+      if (!label) continue;
+
+      var isHL = hlAtoms.indexOf(ai) !== -1;
+      var color = EL_COLORS[atom.el] || EL_COLORS['default'];
+
+      // Background pill for label
+      ctx.save();
+      ctx.font = '600 16px "Fira Code", monospace';
+      var tw = ctx.measureText(label).width;
+      var pillW = tw + 14;
+      var pillH = 26;
+
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath();
+      ctx.roundRect(ax - pillW / 2, ay - pillH / 2, pillW, pillH, 6);
+      ctx.fill();
+
+      if (isHL) {
+        ctx.strokeStyle = catColor.stroke;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.roundRect(ax - pillW / 2, ay - pillH / 2, pillW, pillH, 6);
+        ctx.stroke();
+      }
+
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(label, ax, ay);
+      ctx.restore();
+    }
+
+    // ── Lone pairs (for O and N heteroatoms) ──
+    for (var li = 0; li < atoms.length; li++) {
+      var la = atoms[li];
+      if (la.el !== 'O' && la.el !== 'N') continue;
+      var lx = toX(la.x);
+      var ly = toY(la.y);
+
+      // Determine which side to draw lone pairs (away from bonds)
+      var hasUp = false, hasDown = false, hasLeft = false, hasRight = false;
+      for (var lbi = 0; lbi < bonds.length; lbi++) {
+        var fromIdx = bonds[lbi].from;
+        var toIdx = bonds[lbi].to;
+        if (fromIdx !== li && toIdx !== li) continue;
+        var other = atoms[fromIdx === li ? toIdx : fromIdx];
+        var odx = other.x - la.x;
+        var ody = other.y - la.y;
+        if (Math.abs(ody) > Math.abs(odx)) {
+          if (ody < 0) hasUp = true; else hasDown = true;
+        } else {
+          if (odx < 0) hasLeft = true; else hasRight = true;
+        }
+      }
+
+      ctx.save();
+      ctx.fillStyle = EL_COLORS[la.el] || '#64748B';
+      var dotR = 2.5;
+      var dotOff = 22;
+      var dotSpread = 5;
+
+      // Draw lone pairs on free sides
+      if (!hasUp) {
+        ctx.beginPath(); ctx.arc(lx - dotSpread, ly - dotOff, dotR, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(lx + dotSpread, ly - dotOff, dotR, 0, Math.PI * 2); ctx.fill();
+      }
+      if (!hasDown) {
+        ctx.beginPath(); ctx.arc(lx - dotSpread, ly + dotOff, dotR, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(lx + dotSpread, ly + dotOff, dotR, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.restore();
+    }
+
+    // ── Group name label (top-left) ──
+    ctx.save();
+    ctx.font = '700 14px Inter, sans-serif';
+    ctx.fillStyle = catColor.stroke;
+    ctx.textAlign = 'left';
+    ctx.fillText(grp.name, 12, 24);
+
+    // Current molecule name
+    var mol = grp.exampleMolecules[_selectedMolIdx] || grp.exampleMolecules[0];
+    ctx.font = '500 12px Inter, sans-serif';
+    ctx.fillStyle = '#64748B';
+    ctx.fillText(mol.name, 12, 42);
+    ctx.restore();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Info Panel
+  // ═══════════════════════════════════════════════════
+  function updateInfoPanel(grp) {
+    var panel = document.getElementById('infoPanel');
+    while (panel.firstChild) panel.removeChild(panel.firstChild);
+
+    if (!grp) {
+      var msg = document.createElement('div');
+      msg.style.cssText = 'color: var(--text-muted); font-size: 0.85rem;';
+      msg.textContent = 'Select a functional group from the palette to explore.';
+      panel.appendChild(msg);
+      return;
+    }
+
+    // Name row
+    var nameRow = document.createElement('div');
+    nameRow.className = 'group-name';
+    nameRow.textContent = grp.name;
+    if (grp.suffix) {
+      var suffBadge = document.createElement('span');
+      suffBadge.className = 'suffix-badge';
+      suffBadge.textContent = grp.suffix;
+      nameRow.appendChild(suffBadge);
+    }
+    if (grp.prefix) {
+      var prefBadge = document.createElement('span');
+      prefBadge.className = 'prefix-badge';
+      prefBadge.textContent = grp.prefix;
+      nameRow.appendChild(prefBadge);
+    }
+    panel.appendChild(nameRow);
+
+    // Formula
+    var formulaDiv = document.createElement('div');
+    formulaDiv.className = 'group-formula';
+    formulaDiv.textContent = grp.generalFormula;
+    panel.appendChild(formulaDiv);
+
+    // Properties grid
+    var grid = document.createElement('div');
+    grid.className = 'props-grid';
+    var props = grp.properties;
+    var propKeys = [
+      ['Polarity', props.polarity],
+      ['H-bonding', props.hBonding],
+      ['Solubility', props.solubility],
+      ['BP Trend', props.bpTrend],
+      ['State at RTP', props.state],
+      ['Key Reactions', props.reactions]
+    ];
+    for (var pi = 0; pi < propKeys.length; pi++) {
+      var propItem = document.createElement('div');
+      var propLabel = document.createElement('div');
+      propLabel.className = 'prop-label';
+      propLabel.textContent = propKeys[pi][0];
+      var propValue = document.createElement('div');
+      propValue.className = 'prop-value';
+      propValue.textContent = propKeys[pi][1];
+      propItem.appendChild(propLabel);
+      propItem.appendChild(propValue);
+      grid.appendChild(propItem);
+    }
+    panel.appendChild(grid);
+
+    // Example molecules
+    var exSection = document.createElement('div');
+    exSection.className = 'examples-section';
+    var exLabel = document.createElement('div');
+    exLabel.className = 'examples-label';
+    exLabel.textContent = 'Example Molecules';
+    exSection.appendChild(exLabel);
+
+    var exMols = grp.exampleMolecules;
+    for (var ei = 0; ei < exMols.length; ei++) {
+      var exBtn = document.createElement('button');
+      exBtn.className = 'example-btn' + (ei === _selectedMolIdx ? ' active' : '');
+      exBtn.textContent = exMols[ei].name + ' (' + exMols[ei].formula + ')';
+      exBtn.addEventListener('click', (function(idx) {
+        return function() {
+          _selectedMolIdx = idx;
+          redraw();
+        };
+      })(ei));
+      exSection.appendChild(exBtn);
+    }
+    panel.appendChild(exSection);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Spectroscopy Panel (HL)
+  // ═══════════════════════════════════════════════════
+  function updateSpecPanel(grp) {
+    var panel = document.getElementById('specPanel');
+    while (panel.firstChild) panel.removeChild(panel.firstChild);
+
+    if (!grp || !grp.spectroscopy) {
+      var na = document.createElement('div');
+      na.className = 'spec-na';
+      na.textContent = 'Select a functional group to view spectroscopy data.';
+      panel.appendChild(na);
+      return;
+    }
+
+    var spec = grp.spectroscopy;
+    var grid = document.createElement('div');
+    grid.className = 'spec-grid';
+
+    var fields = [
+      ['IR', spec.ir],
+      ['MS', spec.ms],
+      ['\u00B9H NMR', spec.nmr]
+    ];
+    for (var si = 0; si < fields.length; si++) {
+      var label = document.createElement('div');
+      label.className = 'spec-label';
+      label.textContent = fields[si][0];
+      grid.appendChild(label);
+      var value = document.createElement('div');
+      value.className = 'spec-value';
+      value.textContent = fields[si][1];
+      grid.appendChild(value);
+    }
+    panel.appendChild(grid);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Selection + Redraw
+  // ═══════════════════════════════════════════════════
+  function selectGroup(id) {
+    var grp = GRP_MAP[id];
+    if (!grp) return;
+    _selectedGroup = grp;
+    _selectedMolIdx = 0;
+    _canvas.setAttribute('aria-label', 'Structure of ' + grp.name + ': ' + grp.exampleMolecules[0].name);
+    updatePaletteActive();
+    redraw();
+  }
+
+  function redraw() {
+    if (!_selectedGroup) return;
+    var mol = _selectedGroup.exampleMolecules[_selectedMolIdx];
+    if (!mol) { _selectedMolIdx = 0; mol = _selectedGroup.exampleMolecules[0]; }
+    drawStructure(_selectedGroup, mol.id);
+    updateInfoPanel(_selectedGroup);
+    updateSpecPanel(_selectedGroup);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Toggles
+  // ═══════════════════════════════════════════════════
+  function toggleHL() {
+    _hlEnabled = !_hlEnabled;
+    document.body.classList.toggle('hl-active', _hlEnabled);
+    if (_hlInput) _hlInput.checked = _hlEnabled;
+    if (!_hlEnabled && _selectedGroup && _selectedGroup.hlOnly) {
+      selectGroup('alkane');
+    }
+  }
+
+  function toggleTeacher() {
+    _teacherMode = !_teacherMode;
+    if (_tInput) _tInput.checked = _teacherMode;
+    var presetSection = document.getElementById('presetSection');
+    presetSection.style.display = _teacherMode ? 'block' : 'none';
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Keyboard Shortcuts
+  // ═══════════════════════════════════════════════════
+  function getVisibleGroups() {
+    var visible = [];
+    for (var i = 0; i < GROUPS.length; i++) {
+      if (GROUPS[i].hlOnly && !_hlEnabled) continue;
+      visible.push(GROUPS[i]);
+    }
+    return visible;
+  }
+
+  function navigateGroup(dir) {
+    var visible = getVisibleGroups();
+    if (!visible.length) return;
+    var idx = -1;
+    if (_selectedGroup) {
+      for (var i = 0; i < visible.length; i++) {
+        if (visible[i].id === _selectedGroup.id) { idx = i; break; }
+      }
+    }
+    idx += dir;
+    if (idx < 0) idx = visible.length - 1;
+    if (idx >= visible.length) idx = 0;
+    selectGroup(visible[idx].id);
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+      if (e.key === 'Escape') {
+        e.target.blur();
+        document.getElementById('grpSearch').value = '';
+        filterPalette('');
+      }
+      return;
+    }
+
+    switch (e.key.toLowerCase()) {
+      case 'h':
+        e.preventDefault();
+        toggleHL();
+        break;
+      case 't':
+        e.preventDefault();
+        toggleTeacher();
+        break;
+      case 's':
+        e.preventDefault();
+        // Toggle spectroscopy visibility as a convenience
+        if (_hlEnabled) {
+          var specCard = document.querySelector('.hl-panel');
+          if (specCard) {
+            specCard.style.display = specCard.style.display === 'none' ? 'block' : 'none';
+          }
+        }
+        break;
+      case 'r':
+        e.preventDefault();
+        selectGroup('alkane');
+        break;
+      case '/':
+        e.preventDefault();
+        document.getElementById('grpSearch').focus();
+        break;
+      case 'escape':
+        document.getElementById('grpSearch').value = '';
+        filterPalette('');
+        break;
+      case 'arrowup':
+        e.preventDefault();
+        navigateGroup(-1);
+        break;
+      case 'arrowdown':
+        e.preventDefault();
+        navigateGroup(1);
+        break;
+      case '1':
+        if (_selectedGroup && _selectedGroup.exampleMolecules.length >= 1) {
+          _selectedMolIdx = 0; redraw();
+        }
+        break;
+      case '2':
+        if (_selectedGroup && _selectedGroup.exampleMolecules.length >= 2) {
+          _selectedMolIdx = 1; redraw();
+        }
+        break;
+      case '3':
+        if (_selectedGroup && _selectedGroup.exampleMolecules.length >= 3) {
+          _selectedMolIdx = 2; redraw();
+        }
+        break;
+    }
+  });
+
+  // ═══════════════════════════════════════════════════
+  // Header Toggles
+  // ═══════════════════════════════════════════════════
+  function buildHeaderToggles() {
+    var container = document.getElementById('headerToggles');
+
+    // HL toggle
+    var hlGroup = document.createElement('div');
+    hlGroup.className = 'sim-toggle-group';
+    var hlLabel = document.createElement('span');
+    hlLabel.className = 'sim-toggle-label';
+    hlLabel.textContent = 'HL';
+    var hlToggle = document.createElement('label');
+    hlToggle.className = 'sim-toggle';
+    _hlInput = document.createElement('input');
+    _hlInput.type = 'checkbox';
+    _hlInput.setAttribute('aria-label', 'Enable HL mode');
+    _hlInput.addEventListener('change', function() {
+      _hlEnabled = !_hlInput.checked;
+      toggleHL();
+    });
+    var hlSlider = document.createElement('span');
+    hlSlider.className = 'sim-toggle-slider';
+    hlSlider.style.setProperty('--toggle-on', 'var(--purple)');
+    hlToggle.appendChild(_hlInput);
+    hlToggle.appendChild(hlSlider);
+    hlGroup.appendChild(hlLabel);
+    hlGroup.appendChild(hlToggle);
+    container.appendChild(hlGroup);
+
+    // Teacher toggle
+    var tGroup = document.createElement('div');
+    tGroup.className = 'sim-toggle-group';
+    var tLabel = document.createElement('span');
+    tLabel.className = 'sim-toggle-label';
+    tLabel.textContent = 'Teacher';
+    var tToggle = document.createElement('label');
+    tToggle.className = 'sim-toggle';
+    _tInput = document.createElement('input');
+    _tInput.type = 'checkbox';
+    _tInput.setAttribute('aria-label', 'Enable Teacher mode');
+    _tInput.addEventListener('change', function() {
+      _teacherMode = !_tInput.checked;
+      toggleTeacher();
+    });
+    var tSlider = document.createElement('span');
+    tSlider.className = 'sim-toggle-slider';
+    tToggle.appendChild(_tInput);
+    tToggle.appendChild(tSlider);
+    tGroup.appendChild(tLabel);
+    tGroup.appendChild(tToggle);
+    container.appendChild(tGroup);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Init
+  // ═══════════════════════════════════════════════════
+  function init() {
+    setupCanvas();
+    buildPalette();
+    buildPresets();
+    buildHeaderToggles();
+
+    document.getElementById('presetSection').style.display = 'none';
+
+    document.getElementById('grpSearch').addEventListener('input', function() {
+      filterPalette(this.value);
+    });
+
+    selectGroup('alkane');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+</body>
+</html>
