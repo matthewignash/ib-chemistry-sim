@@ -162,6 +162,7 @@
   .spec-label { font-weight: 700; color: var(--purple); font-size: 0.72rem; }
   .spec-value { font-family: 'Fira Code', monospace; font-size: 0.75rem; }
   .spec-na { font-size: 0.8rem; color: var(--text-muted); font-style: italic; padding: 0.5rem 0; }
+  .hl-panel.spec-hidden { display: none !important; }
 
   /* ── Keyboard Hint ── */
   .keyboard-hint {
@@ -984,7 +985,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   var PRESETS = [
     { name: 'SL Tour', groups: ['alkane','alkene','alkyne','arene','alcohol','aldehyde','ketone','carboxylic_acid','amine','halogenoalkane','ether','carboxylate'], hlMode: false },
     { name: 'Oxygen Family', groups: ['alcohol','aldehyde','ketone','carboxylic_acid'], hlMode: false },
-    { name: 'Naming Practice', groups: ['alcohol','aldehyde','ketone','carboxylic_acid','amine','ester'], hlMode: false },
+    { name: 'Naming Practice', groups: ['alcohol','aldehyde','ketone','carboxylic_acid','amine','halogenoalkane'], hlMode: false },
     { name: 'HL Extensions', groups: ['ester','amide','nitrile','acyl_chloride'], hlMode: true },
     { name: 'Spectroscopy Signatures', groups: ['alcohol','aldehyde','ketone','carboxylic_acid','amine','ester','nitrile'], hlMode: true }
   ];
@@ -1474,6 +1475,9 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     _hlEnabled = !_hlEnabled;
     document.body.classList.toggle('hl-active', _hlEnabled);
     if (_hlInput) _hlInput.checked = _hlEnabled;
+    // Reset spec panel visibility when toggling HL
+    var specCard = document.querySelector('.hl-panel');
+    if (specCard) specCard.classList.remove('spec-hidden');
     if (!_hlEnabled && _selectedGroup && _selectedGroup.hlOnly) {
       selectGroup('alkane');
     }
@@ -1534,11 +1538,11 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
         break;
       case 's':
         e.preventDefault();
-        // Toggle spectroscopy visibility as a convenience
+        // Toggle spectroscopy visibility via CSS class (not inline style)
         if (_hlEnabled) {
           var specCard = document.querySelector('.hl-panel');
           if (specCard) {
-            specCard.style.display = specCard.style.display === 'none' ? 'block' : 'none';
+            specCard.classList.toggle('spec-hidden');
           }
         }
         break;
@@ -1598,8 +1602,14 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     _hlInput.type = 'checkbox';
     _hlInput.setAttribute('aria-label', 'Enable HL mode');
     _hlInput.addEventListener('change', function() {
-      _hlEnabled = !_hlInput.checked;
-      toggleHL();
+      // Checkbox already toggled by browser; set state to match, then apply
+      _hlEnabled = _hlInput.checked;
+      document.body.classList.toggle('hl-active', _hlEnabled);
+      var specCard = document.querySelector('.hl-panel');
+      if (specCard) specCard.classList.remove('spec-hidden');
+      if (!_hlEnabled && _selectedGroup && _selectedGroup.hlOnly) {
+        selectGroup('alkane');
+      }
     });
     var hlSlider = document.createElement('span');
     hlSlider.className = 'sim-toggle-slider';
@@ -1622,8 +1632,10 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     _tInput.type = 'checkbox';
     _tInput.setAttribute('aria-label', 'Enable Teacher mode');
     _tInput.addEventListener('change', function() {
-      _teacherMode = !_tInput.checked;
-      toggleTeacher();
+      // Checkbox already toggled by browser; set state to match, then apply
+      _teacherMode = _tInput.checked;
+      var presetSection = document.getElementById('presetSection');
+      presetSection.style.display = _teacherMode ? 'block' : 'none';
     });
     var tSlider = document.createElement('span');
     tSlider.className = 'sim-toggle-slider';
