@@ -1,0 +1,1396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Organic Mechanisms Explorer — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --sim-canvas-bg: #FAFBFC;
+    --hl-badge-bg: #7C3AED;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    color: white; padding: 1.5rem 2rem;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
+  }
+  .header-badge.hl { background: var(--hl-badge-bg); }
+
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s;
+  }
+  .sim-toggle-slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--teal); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sim-top-row { display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+  .sim-card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden; }
+  .sim-card-header {
+    background: var(--navy); color: white; padding: 0.6rem 1rem;
+    font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  .palette-panel { max-height: 600px; display: flex; flex-direction: column; position: sticky; top: 1rem; align-self: start; }
+  .palette-panel .sim-card-body { padding: 0.5rem; overflow-y: auto; flex: 1; }
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+  .palette-category {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); padding: 0.4rem 0.3rem 0.2rem; margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block; width: 100%; text-align: left; padding: 0.3rem 0.5rem; margin: 0.15rem 0; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .palette-item:hover { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .palette-item.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+  .preset-section { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+  .preset-section select {
+    width: 100%; padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.75rem; font-family: inherit; cursor: pointer;
+  }
+
+  .main-panel { display: flex; flex-direction: column; gap: 1rem; align-self: start; }
+  #mechCanvas { display: block; background: var(--sim-canvas-bg); border-radius: 4px; }
+  #energyCanvas { display: block; background: var(--sim-canvas-bg); border-radius: 4px; }
+
+  .step-controls {
+    display: flex; align-items: center; justify-content: center; gap: 0.75rem;
+    padding: 0.5rem 0; flex-wrap: wrap;
+  }
+  .step-controls button {
+    padding: 0.35rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);
+    font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .step-controls button:hover { background: var(--teal-bg); border-color: var(--teal); }
+  .step-controls button.playing { background: var(--teal); color: white; border-color: var(--teal); }
+  .step-counter { font-size: 0.78rem; font-weight: 600; font-family: 'Fira Code', monospace; min-width: 80px; text-align: center; }
+
+  .step-desc { font-size: 0.82rem; line-height: 1.7; color: var(--text); }
+  .step-desc strong { color: var(--navy); }
+
+  .bottom-row { display: grid; grid-template-columns: 300px 1fr; gap: 1rem; }
+  .summary-grid { display: grid; grid-template-columns: auto 1fr; gap: 0.3rem 0.75rem; font-size: 0.78rem; }
+  .summary-label { font-weight: 700; color: var(--text-muted); font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.04em; }
+  .summary-value { font-weight: 500; }
+  .type-badge {
+    display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px;
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: white; background: var(--purple); margin-bottom: 0.5rem;
+  }
+  .rxn-select {
+    width: 100%; padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.72rem; font-family: 'Fira Code', monospace; cursor: pointer; margin-top: 0.5rem;
+  }
+  .arrow-legend { display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.7rem; color: var(--text-muted); }
+  .arrow-legend-item { display: flex; align-items: center; gap: 0.3rem; }
+  .legend-line { width: 20px; height: 3px; border-radius: 2px; }
+
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .palette-panel { max-height: 200px; position: static; }
+    .bottom-row { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Organic Mechanisms Explorer</h1>
+    <span class="subtitle">IB Chemistry — R3.4 Reaction Mechanisms (HL)</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">R3.4</span>
+    <span class="header-badge hl">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<div class="sim-container">
+  <div class="sim-top-row">
+    <div class="palette-panel sim-card">
+      <div class="sim-card-header">Mechanisms</div>
+      <div class="sim-card-body">
+        <input type="text" class="palette-search" id="mechSearch" placeholder="Search mechanisms...">
+        <div id="paletteList"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect"><option value="">Teacher Presets...</option></select>
+        </div>
+      </div>
+    </div>
+
+    <div class="main-panel">
+      <div class="sim-card">
+        <div class="sim-card-header">Mechanism Animation</div>
+        <div class="sim-card-body" style="padding: 0.5rem;">
+          <canvas id="mechCanvas"></canvas>
+          <div class="step-controls" id="stepControls"></div>
+        </div>
+      </div>
+
+      <div class="sim-card">
+        <div class="sim-card-header">Step Description</div>
+        <div class="sim-card-body" id="stepDescPanel">
+          <div class="step-desc" style="color: var(--text-muted);">Select a mechanism from the palette to begin.</div>
+        </div>
+      </div>
+
+      <div class="bottom-row">
+        <div class="sim-card">
+          <div class="sim-card-header">Energy Profile</div>
+          <div class="sim-card-body" style="padding: 0.5rem;">
+            <canvas id="energyCanvas"></canvas>
+          </div>
+        </div>
+        <div class="sim-card">
+          <div class="sim-card-header">Mechanism Summary</div>
+          <div class="sim-card-body" id="summaryPanel">
+            <div style="color: var(--text-muted); font-size: 0.85rem;">Select a mechanism to view details.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="keyboard-hint">
+    <kbd>&larr;</kbd><kbd>&rarr;</kbd> Step &nbsp; <kbd>Space</kbd> Play/Pause &nbsp;
+    <kbd>&uarr;</kbd><kbd>&darr;</kbd> Prev/Next mechanism &nbsp;
+    <kbd>1</kbd>-<kbd>6</kbd> Reaction &nbsp;
+    <kbd>T</kbd> Teacher &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>Esc</kbd> Deselect
+  </div>
+</div>
+
+<script>
+// roundRect polyfill
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    var tl = r[0]||0, tr = r[1]||0, br = r[2]||0, bl = r[3]||0;
+    this.beginPath(); this.moveTo(x+tl, y); this.lineTo(x+w-tr, y);
+    this.quadraticCurveTo(x+w, y, x+w, y+tr); this.lineTo(x+w, y+h-br);
+    this.quadraticCurveTo(x+w, y+h, x+w-br, y+h); this.lineTo(x+bl, y+h);
+    this.quadraticCurveTo(x, y+h, x, y+h-bl); this.lineTo(x, y+tl);
+    this.quadraticCurveTo(x, y, x+tl, y); this.closePath(); return this;
+  };
+}
+
+(function() {
+  'use strict';
+
+  // ═══════════════════════════════════════
+  // Categories
+  // ═══════════════════════════════════════
+  var CATEGORIES = [
+    { key: 'substitution', label: 'Nucleophilic Substitution' },
+    { key: 'elimination', label: 'Elimination' },
+    { key: 'addition', label: 'Electrophilic Addition' },
+    { key: 'radical', label: 'Free Radical' }
+  ];
+
+  // ═══════════════════════════════════════
+  // Mechanism Data
+  // ═══════════════════════════════════════
+  var MECHANISMS = [
+    {
+      id: 'sn2', name: 'SN2', category: 'substitution',
+      rate: 'Rate = k[RX][Nu\u207B]',
+      stereo: 'Inversion of configuration (Walden inversion)',
+      conditions: 'Strong nucleophile, polar aprotic solvent',
+      substratePref: 'Methyl > Primary > Secondary (no tertiary)',
+      energyType: 'one-step', Ea: 85,
+      steps: [
+        {
+          desc: 'The {nuc} nucleophile approaches the electrophilic carbon from the opposite side (180\u00B0) to the {lg} leaving group. The carbon has a \u03B4+ partial charge due to the polar C\u2013{lg} bond.',
+          atoms: [
+            { id: 'nuc', role: 'nuc', x: 0.08, y: 0.5 },
+            { id: 'c1', role: 'sub', x: 0.45, y: 0.5 },
+            { id: 'lg', role: 'lg', x: 0.75, y: 0.5 },
+            { id: 'r1', role: 'r1', x: 0.45, y: 0.25 },
+            { id: 'r2', role: 'r2', x: 0.45, y: 0.75 }
+          ],
+          bonds: [
+            { from: 'c1', to: 'lg', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r2', order: 1, state: 'normal' }
+          ],
+          charges: [{ atom: 'nuc', text: '\u207B' }, { atom: 'c1', text: '\u03B4+' }, { atom: 'lg', text: '\u03B4\u207B' }],
+          arrows: []
+        },
+        {
+          desc: 'Backside attack: {nuc} donates a lone pair to the \u03B4+ carbon while the C\u2013{lg} bond simultaneously breaks. This is a concerted, one-step mechanism. The transition state is pentacoordinate.',
+          atoms: [
+            { id: 'nuc', role: 'nuc', x: 0.2, y: 0.5 },
+            { id: 'c1', role: 'sub', x: 0.45, y: 0.5 },
+            { id: 'lg', role: 'lg', x: 0.7, y: 0.5 },
+            { id: 'r1', role: 'r1', x: 0.45, y: 0.25 },
+            { id: 'r2', role: 'r2', x: 0.45, y: 0.75 }
+          ],
+          bonds: [
+            { from: 'nuc', to: 'c1', order: 1, state: 'forming' },
+            { from: 'c1', to: 'lg', order: 1, state: 'breaking' },
+            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r2', order: 1, state: 'normal' }
+          ],
+          charges: [{ atom: 'nuc', text: '\u03B4\u207B' }, { atom: 'lg', text: '\u03B4\u207B' }],
+          arrows: [{ from: 'nuc', to: 'c1', type: 'full' }, { from: 'c1', to: 'lg', type: 'full' }]
+        },
+        {
+          desc: 'Products formed: the nucleophile is now bonded to carbon with inverted stereochemistry. {lg}\u207B departs as the leaving group. The configuration at the carbon centre has been inverted.',
+          atoms: [
+            { id: 'nuc', role: 'nuc', x: 0.3, y: 0.5 },
+            { id: 'c1', role: 'sub', x: 0.5, y: 0.5 },
+            { id: 'lg', role: 'lg', x: 0.85, y: 0.5 },
+            { id: 'r1', role: 'r1', x: 0.5, y: 0.25 },
+            { id: 'r2', role: 'r2', x: 0.5, y: 0.75 }
+          ],
+          bonds: [
+            { from: 'nuc', to: 'c1', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r2', order: 1, state: 'normal' }
+          ],
+          charges: [{ atom: 'lg', text: '\u207B' }],
+          arrows: []
+        }
+      ],
+      reactions: [
+        { eq: 'CH\u2083CH\u2082Br + OH\u207B \u2192 CH\u2083CH\u2082OH + Br\u207B', nuc: 'OH\u207B', sub: 'CH\u2083CH\u2082', lg: 'Br', r1: 'H', r2: 'H', prod: 'CH\u2083CH\u2082OH' },
+        { eq: 'CH\u2083Br + CN\u207B \u2192 CH\u2083CN + Br\u207B', nuc: 'CN\u207B', sub: 'CH\u2083', lg: 'Br', r1: 'H', r2: 'H', prod: 'CH\u2083CN' },
+        { eq: 'CH\u2083CH\u2082Cl + NH\u2083 \u2192 CH\u2083CH\u2082NH\u2083\u207A + Cl\u207B', nuc: 'NH\u2083', sub: 'CH\u2083CH\u2082', lg: 'Cl', r1: 'H', r2: 'H', prod: 'CH\u2083CH\u2082NH\u2083\u207A' },
+        { eq: 'CH\u2083I + H\u2082O \u2192 CH\u2083OH + HI', nuc: 'H\u2082O', sub: 'CH\u2083', lg: 'I', r1: 'H', r2: 'H', prod: 'CH\u2083OH' },
+        { eq: 'CH\u2083Br + CH\u2083O\u207B \u2192 CH\u2083OCH\u2083 + Br\u207B', nuc: 'CH\u2083O\u207B', sub: 'CH\u2083', lg: 'Br', r1: 'H', r2: 'H', prod: 'CH\u2083OCH\u2083' }
+      ]
+    },
+    {
+      id: 'sn1', name: 'SN1', category: 'substitution',
+      rate: 'Rate = k[RX]',
+      stereo: 'Racemisation (planar carbocation intermediate)',
+      conditions: 'Weak/neutral nucleophile, polar protic solvent',
+      substratePref: 'Tertiary > Secondary (no primary/methyl)',
+      energyType: 'two-step', Ea: 100,
+      steps: [
+        {
+          desc: 'Step 1 \u2014 Ionisation: The C\u2013{lg} bond breaks heterolytically. The leaving group departs with both bonding electrons, forming a planar carbocation intermediate.',
+          atoms: [
+            { id: 'c1', role: 'sub', x: 0.4, y: 0.5 },
+            { id: 'lg', role: 'lg', x: 0.7, y: 0.5 },
+            { id: 'r1', role: 'r1', x: 0.25, y: 0.28 },
+            { id: 'r2', role: 'r2', x: 0.25, y: 0.72 },
+            { id: 'r3', role: 'r3', x: 0.4, y: 0.2 }
+          ],
+          bonds: [
+            { from: 'c1', to: 'lg', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r2', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r3', order: 1, state: 'normal' }
+          ],
+          charges: [{ atom: 'c1', text: '\u03B4+' }, { atom: 'lg', text: '\u03B4\u207B' }],
+          arrows: [{ from: 'c1', to: 'lg', type: 'full' }]
+        },
+        {
+          desc: 'Carbocation intermediate formed: The carbon is now sp\u00B2 hybridised and planar, with an empty p orbital above and below. {lg}\u207B has left. The carbocation can be attacked from either side.',
+          atoms: [
+            { id: 'c1', role: 'sub', x: 0.45, y: 0.5 },
+            { id: 'lg', role: 'lg', x: 0.88, y: 0.5 },
+            { id: 'r1', role: 'r1', x: 0.25, y: 0.3 },
+            { id: 'r2', role: 'r2', x: 0.25, y: 0.7 },
+            { id: 'r3', role: 'r3', x: 0.45, y: 0.2 }
+          ],
+          bonds: [
+            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r2', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r3', order: 1, state: 'normal' }
+          ],
+          charges: [{ atom: 'c1', text: '+' }, { atom: 'lg', text: '\u207B' }],
+          arrows: []
+        },
+        {
+          desc: 'Step 2 \u2014 Nucleophilic attack: {nuc} donates a lone pair to the empty p orbital of the carbocation. Attack can occur from either face, giving a racemic mixture (equal amounts of both enantiomers).',
+          atoms: [
+            { id: 'nuc', role: 'nuc', x: 0.1, y: 0.5 },
+            { id: 'c1', role: 'sub', x: 0.45, y: 0.5 },
+            { id: 'r1', role: 'r1', x: 0.3, y: 0.28 },
+            { id: 'r2', role: 'r2', x: 0.3, y: 0.72 },
+            { id: 'r3', role: 'r3', x: 0.45, y: 0.2 }
+          ],
+          bonds: [
+            { from: 'nuc', to: 'c1', order: 1, state: 'forming' },
+            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r2', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r3', order: 1, state: 'normal' }
+          ],
+          charges: [],
+          arrows: [{ from: 'nuc', to: 'c1', type: 'full' }]
+        }
+      ],
+      reactions: [
+        { eq: '(CH\u2083)\u2083CBr + H\u2082O \u2192 (CH\u2083)\u2083COH + HBr', nuc: 'H\u2082O', sub: 'C', lg: 'Br', r1: 'CH\u2083', r2: 'CH\u2083', r3: 'CH\u2083', prod: '(CH\u2083)\u2083COH' },
+        { eq: '(CH\u2083)\u2083CCl + H\u2082O \u2192 (CH\u2083)\u2083COH + HCl', nuc: 'H\u2082O', sub: 'C', lg: 'Cl', r1: 'CH\u2083', r2: 'CH\u2083', r3: 'CH\u2083', prod: '(CH\u2083)\u2083COH' },
+        { eq: '(CH\u2083)\u2082CHBr + CH\u2083OH \u2192 (CH\u2083)\u2082CHOCH\u2083 + HBr', nuc: 'CH\u2083OH', sub: 'CH', lg: 'Br', r1: 'CH\u2083', r2: 'CH\u2083', r3: 'H', prod: '(CH\u2083)\u2082CHOCH\u2083' },
+        { eq: '(CH\u2083)\u2083CBr + CN\u207B \u2192 (CH\u2083)\u2083CCN + Br\u207B', nuc: 'CN\u207B', sub: 'C', lg: 'Br', r1: 'CH\u2083', r2: 'CH\u2083', r3: 'CH\u2083', prod: '(CH\u2083)\u2083CCN' },
+        { eq: 'C\u2086H\u2085CHBrCH\u2083 + H\u2082O \u2192 C\u2086H\u2085CHOHCH\u2083', nuc: 'H\u2082O', sub: 'CH', lg: 'Br', r1: 'C\u2086H\u2085', r2: 'CH\u2083', r3: 'H', prod: 'C\u2086H\u2085CHOHCH\u2083' }
+      ]
+    },
+    {
+      id: 'e2', name: 'E2', category: 'elimination',
+      rate: 'Rate = k[RX][base]',
+      stereo: 'Anti-periplanar geometry required',
+      conditions: 'Strong base (e.g., OH\u207B, OEt\u207B), high temperature',
+      substratePref: 'All substrate types; favoured by bulky base',
+      energyType: 'one-step', Ea: 90,
+      steps: [
+        {
+          desc: 'The strong base {nuc} approaches a hydrogen on the carbon adjacent (\u03B2-carbon) to the C\u2013{lg} bond. The H and {lg} must be anti-periplanar (180\u00B0).',
+          atoms: [
+            { id: 'base', role: 'nuc', x: 0.15, y: 0.2 },
+            { id: 'cb', role: 'sub', x: 0.35, y: 0.4 },
+            { id: 'hb', role: 'hb', x: 0.35, y: 0.15 },
+            { id: 'ca', role: 'ca', x: 0.6, y: 0.4 },
+            { id: 'lg', role: 'lg', x: 0.6, y: 0.7 },
+            { id: 'r1', role: 'r1', x: 0.2, y: 0.55 },
+            { id: 'r2', role: 'r2', x: 0.78, y: 0.4 }
+          ],
+          bonds: [
+            { from: 'cb', to: 'hb', order: 1, state: 'normal' },
+            { from: 'cb', to: 'ca', order: 1, state: 'normal' },
+            { from: 'ca', to: 'lg', order: 1, state: 'normal' },
+            { from: 'cb', to: 'r1', order: 1, state: 'normal' },
+            { from: 'ca', to: 'r2', order: 1, state: 'normal' }
+          ],
+          charges: [{ atom: 'base', text: '\u207B' }, { atom: 'ca', text: '\u03B4+' }, { atom: 'lg', text: '\u03B4\u207B' }],
+          arrows: []
+        },
+        {
+          desc: 'Concerted mechanism: {nuc} abstracts the \u03B2-H, the C\u2013H bond electrons form a C=C \u03C0 bond, and the C\u2013{lg} bond breaks simultaneously. All three processes occur in one step.',
+          atoms: [
+            { id: 'base', role: 'nuc', x: 0.15, y: 0.15 },
+            { id: 'cb', role: 'sub', x: 0.35, y: 0.4 },
+            { id: 'hb', role: 'hb', x: 0.25, y: 0.15 },
+            { id: 'ca', role: 'ca', x: 0.6, y: 0.4 },
+            { id: 'lg', role: 'lg', x: 0.7, y: 0.7 },
+            { id: 'r1', role: 'r1', x: 0.2, y: 0.55 },
+            { id: 'r2', role: 'r2', x: 0.78, y: 0.4 }
+          ],
+          bonds: [
+            { from: 'cb', to: 'hb', order: 1, state: 'breaking' },
+            { from: 'cb', to: 'ca', order: 2, state: 'forming' },
+            { from: 'ca', to: 'lg', order: 1, state: 'breaking' },
+            { from: 'cb', to: 'r1', order: 1, state: 'normal' },
+            { from: 'ca', to: 'r2', order: 1, state: 'normal' }
+          ],
+          charges: [],
+          arrows: [{ from: 'base', to: 'hb', type: 'full' }, { from: 'cb', to: 'ca', type: 'full' }, { from: 'ca', to: 'lg', type: 'full' }]
+        },
+        {
+          desc: 'Products: an alkene is formed (C=C double bond), {lg}\u207B leaves, and the base is now protonated. Zaitsev\'s rule: the more substituted alkene is the major product.',
+          atoms: [
+            { id: 'base', role: 'nuc', x: 0.12, y: 0.15 },
+            { id: 'cb', role: 'sub', x: 0.4, y: 0.4 },
+            { id: 'ca', role: 'ca', x: 0.62, y: 0.4 },
+            { id: 'lg', role: 'lg', x: 0.85, y: 0.7 },
+            { id: 'r1', role: 'r1', x: 0.25, y: 0.55 },
+            { id: 'r2', role: 'r2', x: 0.78, y: 0.4 }
+          ],
+          bonds: [
+            { from: 'cb', to: 'ca', order: 2, state: 'normal' },
+            { from: 'cb', to: 'r1', order: 1, state: 'normal' },
+            { from: 'ca', to: 'r2', order: 1, state: 'normal' }
+          ],
+          charges: [{ atom: 'lg', text: '\u207B' }],
+          arrows: []
+        }
+      ],
+      reactions: [
+        { eq: 'CH\u2083CHBrCH\u2083 + OH\u207B \u2192 CH\u2083CH=CH\u2082 + H\u2082O + Br\u207B', nuc: 'OH\u207B', sub: 'CH', lg: 'Br', r1: 'CH\u2083', r2: 'CH\u2083', hb: 'H', prod: 'propene' },
+        { eq: 'CH\u2083CH\u2082CH\u2082Br + OC\u2082H\u2085\u207B \u2192 CH\u2083CH=CH\u2082 + Br\u207B', nuc: 'OC\u2082H\u2085\u207B', sub: 'CH\u2082', lg: 'Br', r1: 'H', r2: 'CH\u2083', hb: 'H', prod: 'propene' },
+        { eq: '(CH\u2083)\u2082CHCH\u2082Br + OH\u207B \u2192 2-methylpropene + Br\u207B', nuc: 'OH\u207B', sub: 'CH\u2082', lg: 'Br', r1: 'H', r2: '(CH\u2083)\u2082CH', hb: 'H', prod: '2-methylpropene' },
+        { eq: 'CH\u2083CHBrCH\u2082CH\u2083 + OH\u207B \u2192 but-2-ene + Br\u207B (Zaitsev)', nuc: 'OH\u207B', sub: 'CH', lg: 'Br', r1: 'CH\u2083', r2: 'CH\u2082CH\u2083', hb: 'H', prod: 'but-2-ene' },
+        { eq: 'Cyclohexyl-Br + OH\u207B \u2192 cyclohexene + Br\u207B', nuc: 'OH\u207B', sub: 'CH', lg: 'Br', r1: 'ring', r2: 'ring', hb: 'H', prod: 'cyclohexene' }
+      ]
+    },
+    {
+      id: 'e1', name: 'E1', category: 'elimination',
+      rate: 'Rate = k[RX]',
+      stereo: 'No stereospecificity (Zaitsev product favoured)',
+      conditions: 'Weak base, polar protic solvent, high temperature',
+      substratePref: 'Tertiary > Secondary',
+      energyType: 'two-step', Ea: 110,
+      steps: [
+        {
+          desc: 'Step 1 \u2014 Ionisation: The C\u2013{lg} bond breaks heterolytically, forming a planar carbocation. This is the rate-determining step (same as SN1).',
+          atoms: [
+            { id: 'ca', role: 'ca', x: 0.4, y: 0.4 },
+            { id: 'cb', role: 'sub', x: 0.25, y: 0.4 },
+            { id: 'lg', role: 'lg', x: 0.65, y: 0.4 },
+            { id: 'r1', role: 'r1', x: 0.4, y: 0.15 },
+            { id: 'r2', role: 'r2', x: 0.55, y: 0.55 },
+            { id: 'hb', role: 'hb', x: 0.12, y: 0.4 }
+          ],
+          bonds: [
+            { from: 'ca', to: 'lg', order: 1, state: 'normal' },
+            { from: 'ca', to: 'cb', order: 1, state: 'normal' },
+            { from: 'ca', to: 'r1', order: 1, state: 'normal' },
+            { from: 'ca', to: 'r2', order: 1, state: 'normal' },
+            { from: 'cb', to: 'hb', order: 1, state: 'normal' }
+          ],
+          charges: [{ atom: 'ca', text: '\u03B4+' }, { atom: 'lg', text: '\u03B4\u207B' }],
+          arrows: [{ from: 'ca', to: 'lg', type: 'full' }]
+        },
+        {
+          desc: 'Step 2 \u2014 Elimination: A weak base (e.g., solvent) abstracts a \u03B2-hydrogen. The electrons from the C\u2013H bond form the C=C \u03C0 bond. Zaitsev product (most substituted alkene) is favoured.',
+          atoms: [
+            { id: 'ca', role: 'ca', x: 0.45, y: 0.4 },
+            { id: 'cb', role: 'sub', x: 0.25, y: 0.4 },
+            { id: 'lg', role: 'lg', x: 0.85, y: 0.4 },
+            { id: 'r1', role: 'r1', x: 0.45, y: 0.15 },
+            { id: 'r2', role: 'r2', x: 0.6, y: 0.55 },
+            { id: 'hb', role: 'hb', x: 0.12, y: 0.25 },
+            { id: 'base', role: 'nuc', x: 0.05, y: 0.15 }
+          ],
+          bonds: [
+            { from: 'ca', to: 'cb', order: 2, state: 'forming' },
+            { from: 'ca', to: 'r1', order: 1, state: 'normal' },
+            { from: 'ca', to: 'r2', order: 1, state: 'normal' },
+            { from: 'cb', to: 'hb', order: 1, state: 'breaking' }
+          ],
+          charges: [{ atom: 'ca', text: '+' }],
+          arrows: [{ from: 'base', to: 'hb', type: 'full' }, { from: 'cb', to: 'ca', type: 'full' }]
+        },
+        {
+          desc: 'Products: an alkene (C=C) and {lg}\u207B. The more substituted alkene is the major product (Zaitsev\'s rule).',
+          atoms: [
+            { id: 'ca', role: 'ca', x: 0.45, y: 0.4 },
+            { id: 'cb', role: 'sub', x: 0.25, y: 0.4 },
+            { id: 'r1', role: 'r1', x: 0.45, y: 0.15 },
+            { id: 'r2', role: 'r2', x: 0.6, y: 0.55 },
+            { id: 'lg', role: 'lg', x: 0.85, y: 0.4 }
+          ],
+          bonds: [
+            { from: 'ca', to: 'cb', order: 2, state: 'normal' },
+            { from: 'ca', to: 'r1', order: 1, state: 'normal' },
+            { from: 'ca', to: 'r2', order: 1, state: 'normal' }
+          ],
+          charges: [{ atom: 'lg', text: '\u207B' }],
+          arrows: []
+        }
+      ],
+      reactions: [
+        { eq: '(CH\u2083)\u2083CBr \u2192 (CH\u2083)\u2082C=CH\u2082 + HBr', nuc: 'solvent', sub: 'C(CH\u2083)\u2082', lg: 'Br', r1: 'CH\u2083', r2: 'CH\u2083', hb: 'H', prod: '2-methylpropene' },
+        { eq: '(CH\u2083)\u2083CCl \u2192 (CH\u2083)\u2082C=CH\u2082 + HCl', nuc: 'solvent', sub: 'C(CH\u2083)\u2082', lg: 'Cl', r1: 'CH\u2083', r2: 'CH\u2083', hb: 'H', prod: '2-methylpropene' },
+        { eq: '2-bromo-2-methylbutane \u2192 2-methylbut-2-ene', nuc: 'solvent', sub: 'C(CH\u2083)', lg: 'Br', r1: 'CH\u2083', r2: 'CH\u2082CH\u2083', hb: 'H', prod: '2-methylbut-2-ene' },
+        { eq: 'Cyclohexanol + H\u2082SO\u2084 \u2192 cyclohexene + H\u2082O', nuc: 'H\u2082SO\u2084', sub: 'CH', lg: 'OH\u2082\u207A', r1: 'ring', r2: 'ring', hb: 'H', prod: 'cyclohexene' },
+        { eq: '(CH\u2083)\u2082CHOH + H\u2082SO\u2084 \u2192 (CH\u2083)\u2082C=CH\u2082 + H\u2082O', nuc: 'H\u2082SO\u2084', sub: 'CH', lg: 'OH\u2082\u207A', r1: 'CH\u2083', r2: 'CH\u2083', hb: 'H', prod: 'propene' }
+      ]
+    },
+    {
+      id: 'ea', name: 'Electrophilic Addition', category: 'addition',
+      rate: 'Depends on electrophile',
+      stereo: 'Markovnikov\'s rule for asymmetric alkenes',
+      conditions: 'Room temperature, no catalyst needed for HX',
+      substratePref: 'Alkenes (C=C)',
+      energyType: 'two-step', Ea: 70,
+      steps: [
+        {
+          desc: 'The \u03C0 electrons of the C=C double bond attack the electrophile {nuc}. This breaks the \u03C0 bond and forms a new \u03C3 bond to the more substituted carbon (Markovnikov). A carbocation intermediate forms on the less substituted carbon.',
+          atoms: [
+            { id: 'c1', role: 'sub', x: 0.3, y: 0.45 },
+            { id: 'c2', role: 'ca', x: 0.5, y: 0.45 },
+            { id: 'e1', role: 'nuc', x: 0.4, y: 0.15 },
+            { id: 'r1', role: 'r1', x: 0.15, y: 0.45 },
+            { id: 'r2', role: 'r2', x: 0.65, y: 0.45 }
+          ],
+          bonds: [
+            { from: 'c1', to: 'c2', order: 2, state: 'normal' },
+            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
+            { from: 'c2', to: 'r2', order: 1, state: 'normal' }
+          ],
+          charges: [{ atom: 'e1', text: '\u03B4+' }],
+          arrows: [{ from: 'c1', to: 'e1', type: 'full' }]
+        },
+        {
+          desc: 'Step 2 \u2014 Nucleophilic attack: {lg}\u207B (the counter-ion from the electrophile) attacks the carbocation intermediate from either side, completing the addition.',
+          atoms: [
+            { id: 'c1', role: 'sub', x: 0.3, y: 0.45 },
+            { id: 'c2', role: 'ca', x: 0.5, y: 0.45 },
+            { id: 'e1', role: 'nuc', x: 0.3, y: 0.15 },
+            { id: 'nu', role: 'lg', x: 0.5, y: 0.8 },
+            { id: 'r1', role: 'r1', x: 0.15, y: 0.45 },
+            { id: 'r2', role: 'r2', x: 0.65, y: 0.45 }
+          ],
+          bonds: [
+            { from: 'c1', to: 'c2', order: 1, state: 'normal' },
+            { from: 'c1', to: 'e1', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
+            { from: 'c2', to: 'r2', order: 1, state: 'normal' },
+            { from: 'c2', to: 'nu', order: 1, state: 'forming' }
+          ],
+          charges: [{ atom: 'c2', text: '+' }],
+          arrows: [{ from: 'nu', to: 'c2', type: 'full' }]
+        },
+        {
+          desc: 'Product formed: both carbons are now sp\u00B3 hybridised. The electrophile adds to the more substituted carbon (Markovnikov) and the nucleophile to the less substituted carbon.',
+          atoms: [
+            { id: 'c1', role: 'sub', x: 0.3, y: 0.45 },
+            { id: 'c2', role: 'ca', x: 0.55, y: 0.45 },
+            { id: 'e1', role: 'nuc', x: 0.3, y: 0.15 },
+            { id: 'nu', role: 'lg', x: 0.55, y: 0.75 },
+            { id: 'r1', role: 'r1', x: 0.12, y: 0.45 },
+            { id: 'r2', role: 'r2', x: 0.73, y: 0.45 }
+          ],
+          bonds: [
+            { from: 'c1', to: 'c2', order: 1, state: 'normal' },
+            { from: 'c1', to: 'e1', order: 1, state: 'normal' },
+            { from: 'c2', to: 'nu', order: 1, state: 'normal' },
+            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
+            { from: 'c2', to: 'r2', order: 1, state: 'normal' }
+          ],
+          charges: [],
+          arrows: []
+        }
+      ],
+      reactions: [
+        { eq: 'CH\u2082=CH\u2082 + HBr \u2192 CH\u2083CH\u2082Br', nuc: 'H\u207A', sub: 'CH\u2082', lg: 'Br\u207B', r1: 'H', r2: 'H', prod: 'CH\u2083CH\u2082Br' },
+        { eq: 'CH\u2082=CH\u2082 + Br\u2082 \u2192 CH\u2082BrCH\u2082Br', nuc: 'Br', sub: 'CH\u2082', lg: 'Br\u207B', r1: 'H', r2: 'H', prod: '1,2-dibromoethane' },
+        { eq: 'CH\u2083CH=CH\u2082 + HBr \u2192 CH\u2083CHBrCH\u2083 (Markovnikov)', nuc: 'H\u207A', sub: 'CH', lg: 'Br\u207B', r1: 'CH\u2083', r2: 'CH\u2083', prod: '2-bromopropane' },
+        { eq: 'CH\u2082=CH\u2082 + H\u2082O (H\u2083PO\u2084) \u2192 CH\u2083CH\u2082OH', nuc: 'H\u207A', sub: 'CH\u2082', lg: 'OH\u207B', r1: 'H', r2: 'H', prod: 'ethanol' },
+        { eq: 'CH\u2083CH=CH\u2082 + HCl \u2192 CH\u2083CHClCH\u2083', nuc: 'H\u207A', sub: 'CH', lg: 'Cl\u207B', r1: 'CH\u2083', r2: 'CH\u2083', prod: '2-chloropropane' },
+        { eq: 'CH\u2082=CH\u2082 + Cl\u2082 \u2192 CH\u2082ClCH\u2082Cl', nuc: 'Cl', sub: 'CH\u2082', lg: 'Cl\u207B', r1: 'H', r2: 'H', prod: '1,2-dichloroethane' }
+      ]
+    },
+    {
+      id: 'frs', name: 'Free Radical Substitution', category: 'radical',
+      rate: 'Chain reaction (not simple rate law)',
+      stereo: 'No stereoselectivity (radical intermediate)',
+      conditions: 'UV light, gas phase or non-polar solvent',
+      substratePref: 'Alkanes',
+      energyType: 'chain', Ea: 160,
+      steps: [
+        {
+          desc: 'Initiation: UV light causes homolytic fission of the {nuc}\u2013{nuc} bond. Each atom takes one electron, forming two radicals ({nuc}\u2022). Shown with fishhook (single-barbed) arrows.',
+          atoms: [
+            { id: 'x1', role: 'nuc', x: 0.35, y: 0.45 },
+            { id: 'x2', role: 'lg', x: 0.65, y: 0.45 },
+            { id: 'uv', role: 'uv', x: 0.5, y: 0.15 }
+          ],
+          bonds: [
+            { from: 'x1', to: 'x2', order: 1, state: 'normal' }
+          ],
+          charges: [],
+          arrows: [{ from: 'x1', to: 'x1', type: 'fishhook' }, { from: 'x2', to: 'x2', type: 'fishhook' }]
+        },
+        {
+          desc: 'Propagation step 1: A {nuc}\u2022 radical abstracts a hydrogen from {sub}, forming H\u2013{nuc} and a carbon radical ({sub}\u2022). Fishhook arrows show one-electron movement.',
+          atoms: [
+            { id: 'x1', role: 'nuc', x: 0.15, y: 0.45 },
+            { id: 'c1', role: 'sub', x: 0.5, y: 0.45 },
+            { id: 'h1', role: 'hb', x: 0.35, y: 0.25 }
+          ],
+          bonds: [
+            { from: 'c1', to: 'h1', order: 1, state: 'breaking' }
+          ],
+          charges: [{ atom: 'x1', text: '\u2022' }],
+          arrows: [{ from: 'x1', to: 'h1', type: 'fishhook' }, { from: 'c1', to: 'h1', type: 'fishhook' }]
+        },
+        {
+          desc: 'Propagation step 2: The {sub}\u2022 radical reacts with another {nuc}\u2082 molecule. This forms the substituted product ({sub}\u2013{nuc}) and regenerates a {nuc}\u2022 radical to continue the chain.',
+          atoms: [
+            { id: 'c1', role: 'sub', x: 0.2, y: 0.45 },
+            { id: 'x1', role: 'nuc', x: 0.5, y: 0.45 },
+            { id: 'x2', role: 'lg', x: 0.7, y: 0.45 }
+          ],
+          bonds: [
+            { from: 'x1', to: 'x2', order: 1, state: 'breaking' },
+            { from: 'c1', to: 'x1', order: 1, state: 'forming' }
+          ],
+          charges: [{ atom: 'c1', text: '\u2022' }],
+          arrows: [{ from: 'c1', to: 'x1', type: 'fishhook' }, { from: 'x1', to: 'x2', type: 'fishhook' }]
+        },
+        {
+          desc: 'Termination: Two radicals combine, ending the chain. Possible termination products: {nuc}\u2013{nuc}, {sub}\u2013{sub}, or {sub}\u2013{nuc}. The chain reaction is now complete.',
+          atoms: [
+            { id: 'c1', role: 'sub', x: 0.3, y: 0.45 },
+            { id: 'x1', role: 'nuc', x: 0.6, y: 0.45 }
+          ],
+          bonds: [
+            { from: 'c1', to: 'x1', order: 1, state: 'forming' }
+          ],
+          charges: [{ atom: 'c1', text: '\u2022' }, { atom: 'x1', text: '\u2022' }],
+          arrows: []
+        }
+      ],
+      reactions: [
+        { eq: 'CH\u2084 + Cl\u2082 \u2192 CH\u2083Cl + HCl', nuc: 'Cl', sub: 'CH\u2083', lg: 'Cl', r1: 'H', r2: 'H', hb: 'H', prod: 'CH\u2083Cl' },
+        { eq: 'CH\u2084 + Br\u2082 \u2192 CH\u2083Br + HBr', nuc: 'Br', sub: 'CH\u2083', lg: 'Br', r1: 'H', r2: 'H', hb: 'H', prod: 'CH\u2083Br' },
+        { eq: 'C\u2082H\u2086 + Cl\u2082 \u2192 C\u2082H\u2085Cl + HCl', nuc: 'Cl', sub: 'C\u2082H\u2085', lg: 'Cl', r1: 'H', r2: 'H', hb: 'H', prod: 'C\u2082H\u2085Cl' },
+        { eq: 'C\u2083H\u2088 + Cl\u2082 \u2192 C\u2083H\u2087Cl + HCl', nuc: 'Cl', sub: 'C\u2083H\u2087', lg: 'Cl', r1: 'H', r2: 'H', hb: 'H', prod: 'C\u2083H\u2087Cl' },
+        { eq: 'CH\u2084 + F\u2082 \u2192 CH\u2083F + HF', nuc: 'F', sub: 'CH\u2083', lg: 'F', r1: 'H', r2: 'H', hb: 'H', prod: 'CH\u2083F' }
+      ]
+    }
+  ];
+
+  var MECH_MAP = {};
+  for (var i = 0; i < MECHANISMS.length; i++) MECH_MAP[MECHANISMS[i].id] = MECHANISMS[i];
+
+  var PRESETS = [
+    { name: 'SN1 vs SN2', mechId: 'sn2' },
+    { name: 'E1 vs E2', mechId: 'e2' },
+    { name: 'Substitution vs Elimination', mechId: 'sn2' },
+    { name: 'Addition Tour', mechId: 'ea' },
+    { name: 'Free Radical Steps', mechId: 'frs' }
+  ];
+
+  // ═══════════════════════════════════════
+  // State
+  // ═══════════════════════════════════════
+  var _selMech = null;
+  var _selRxnIdx = 0;
+  var _curStep = 0;
+  var _playing = false;
+  var _playTimer = null;
+  var _teacherMode = false;
+  var _tInput = null;
+  var _canvas, _ctx, _eCanvas, _eCtx;
+  var CW = 680, CH = 420, EW = 280, EH = 180;
+  var _animFrame = null;
+  var _animProgress = 1;
+  var _animStart = 0;
+  var ANIM_DUR = 600;
+
+  // ═══════════════════════════════════════
+  // Palette
+  // ═══════════════════════════════════════
+  function buildPalette() {
+    var list = document.getElementById('paletteList');
+    while (list.firstChild) list.removeChild(list.firstChild);
+    for (var c = 0; c < CATEGORIES.length; c++) {
+      var cat = CATEGORIES[c];
+      var hdr = document.createElement('div');
+      hdr.className = 'palette-category';
+      hdr.textContent = cat.label;
+      list.appendChild(hdr);
+      for (var m = 0; m < MECHANISMS.length; m++) {
+        var mech = MECHANISMS[m];
+        if (mech.category !== cat.key) continue;
+        var btn = document.createElement('button');
+        btn.className = 'palette-item';
+        btn.textContent = mech.name;
+        btn.setAttribute('data-mech-id', mech.id);
+        btn.addEventListener('click', (function(id) { return function() { selectMech(id); }; })(mech.id));
+        list.appendChild(btn);
+      }
+    }
+  }
+
+  function updatePaletteActive() {
+    var items = document.querySelectorAll('.palette-item');
+    for (var i = 0; i < items.length; i++) {
+      var id = items[i].getAttribute('data-mech-id');
+      items[i].classList.toggle('active', id === (_selMech ? _selMech.id : null));
+    }
+  }
+
+  function filterPalette(q) {
+    q = q.toLowerCase();
+    var items = document.querySelectorAll('.palette-item');
+    var cats = document.querySelectorAll('.palette-category');
+    var vis = {};
+    for (var i = 0; i < items.length; i++) {
+      var show = !q || items[i].textContent.toLowerCase().indexOf(q) !== -1;
+      items[i].style.display = show ? '' : 'none';
+      if (show) { var mid = items[i].getAttribute('data-mech-id'); vis[MECH_MAP[mid].category] = true; }
+    }
+    for (var j = 0; j < cats.length; j++) {
+      var ck = CATEGORIES[j] ? CATEGORIES[j].key : '';
+      cats[j].style.display = (!q || vis[ck]) ? '' : 'none';
+    }
+  }
+
+  function buildPresets() {
+    var sel = document.getElementById('presetSelect');
+    for (var i = 0; i < PRESETS.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = PRESETS[i].name;
+      sel.appendChild(opt);
+    }
+    sel.addEventListener('change', function() {
+      if (!sel.value) return;
+      selectMech(PRESETS[parseInt(sel.value, 10)].mechId);
+      sel.value = '';
+    });
+  }
+
+  // ═══════════════════════════════════════
+  // Canvas Setup
+  // ═══════════════════════════════════════
+  function setupCanvas() {
+    _canvas = document.getElementById('mechCanvas');
+    _ctx = _canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    _canvas.width = CW * dpr; _canvas.height = CH * dpr;
+    _canvas.style.width = CW + 'px'; _canvas.style.maxWidth = '100%'; _canvas.style.height = CH + 'px';
+    _canvas.setAttribute('role', 'img'); _canvas.setAttribute('aria-label', 'Mechanism animation');
+    _ctx.scale(dpr, dpr);
+
+    _eCanvas = document.getElementById('energyCanvas');
+    _eCtx = _eCanvas.getContext('2d');
+    _eCanvas.width = EW * dpr; _eCanvas.height = EH * dpr;
+    _eCanvas.style.width = EW + 'px'; _eCanvas.style.maxWidth = '100%'; _eCanvas.style.height = EH + 'px';
+    _eCanvas.setAttribute('role', 'img'); _eCanvas.setAttribute('aria-label', 'Energy profile');
+    _eCtx.scale(dpr, dpr);
+  }
+
+  // ═══════════════════════════════════════
+  // Resolve template labels
+  // ═══════════════════════════════════════
+  function resolveLabel(role, rxn) {
+    var map = { nuc: rxn.nuc || '', sub: rxn.sub || '', lg: rxn.lg || '', r1: rxn.r1 || 'R', r2: rxn.r2 || 'R', r3: rxn.r3 || 'R', hb: rxn.hb || 'H', ca: rxn.sub || 'C', uv: 'UV \u210E\u03BD' };
+    return map[role] || role;
+  }
+
+  function resolveDesc(desc, rxn) {
+    return desc.replace(/\{nuc\}/g, rxn.nuc || '').replace(/\{lg\}/g, rxn.lg || '').replace(/\{sub\}/g, rxn.sub || '').replace(/\{prod\}/g, rxn.prod || '');
+  }
+
+  // ═══════════════════════════════════════
+  // Draw Frame
+  // ═══════════════════════════════════════
+  var EL_COLORS = { 'O': '#DC2626', 'N': '#7C3AED', 'Cl': '#059669', 'Br': '#92400E', 'F': '#D97706', 'I': '#6D28D9' };
+
+  function atomColor(label) {
+    if (!label) return '#1E293B';
+    for (var el in EL_COLORS) { if (label.indexOf(el) !== -1 && label.indexOf('CH') === -1) return EL_COLORS[el]; }
+    if (label === 'H' || label === 'H\u207A') return '#64748B';
+    return '#1E293B';
+  }
+
+  function drawFrame(mech, rxn, stepIdx, progress) {
+    var ctx = _ctx;
+    ctx.clearRect(0, 0, CW, CH);
+    ctx.fillStyle = '#FAFBFC'; ctx.fillRect(0, 0, CW, CH);
+    if (!mech) return;
+
+    var step = mech.steps[stepIdx];
+    if (!step) return;
+    var pad = 50;
+    var w = CW - 2 * pad, h = CH - 2 * pad;
+    function toX(nx) { return pad + nx * w; }
+    function toY(ny) { return pad + ny * h; }
+
+    var prog = (progress !== undefined) ? progress : 1;
+
+    // ── Bonds ──
+    for (var bi = 0; bi < step.bonds.length; bi++) {
+      var bond = step.bonds[bi];
+      var a1 = null, a2 = null;
+      for (var ai = 0; ai < step.atoms.length; ai++) {
+        if (step.atoms[ai].id === bond.from) a1 = step.atoms[ai];
+        if (step.atoms[ai].id === bond.to) a2 = step.atoms[ai];
+      }
+      if (!a1 || !a2) continue;
+      var x1 = toX(a1.x), y1 = toY(a1.y), x2 = toX(a2.x), y2 = toY(a2.y);
+      var dx = x2 - x1, dy = y2 - y1, len = Math.sqrt(dx*dx + dy*dy);
+      var nx = dx/len, ny = dy/len;
+      var off = 22;
+      var sx1 = x1 + nx*off, sy1 = y1 + ny*off, sx2 = x2 - nx*off, sy2 = y2 - ny*off;
+
+      ctx.save();
+      ctx.lineWidth = 2.5; ctx.lineCap = 'round';
+      if (bond.state === 'breaking') {
+        ctx.strokeStyle = '#DC2626'; ctx.setLineDash([6, 4]); ctx.globalAlpha = 1 - prog * 0.5;
+      } else if (bond.state === 'forming') {
+        ctx.strokeStyle = '#059669'; ctx.globalAlpha = 0.4 + prog * 0.6;
+      } else {
+        ctx.strokeStyle = '#475569';
+      }
+
+      if (bond.order === 1) {
+        ctx.beginPath(); ctx.moveTo(sx1, sy1); ctx.lineTo(sx2, sy2); ctx.stroke();
+      } else if (bond.order === 2) {
+        var px = -ny * 4, py = nx * 4;
+        ctx.beginPath(); ctx.moveTo(sx1+px, sy1+py); ctx.lineTo(sx2+px, sy2+py); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(sx1-px, sy1-py); ctx.lineTo(sx2-px, sy2-py); ctx.stroke();
+      }
+      ctx.setLineDash([]); ctx.restore();
+    }
+
+    // ── Curly Arrows ──
+    if (prog > 0.1) {
+      for (var ari = 0; ari < step.arrows.length; ari++) {
+        var arr = step.arrows[ari];
+        var fromAtom = null, toAtom = null;
+        for (var fi = 0; fi < step.atoms.length; fi++) {
+          if (step.atoms[fi].id === arr.from) fromAtom = step.atoms[fi];
+          if (step.atoms[fi].id === arr.to) toAtom = step.atoms[fi];
+        }
+        if (!fromAtom || !toAtom) continue;
+        var fx = toX(fromAtom.x), fy = toY(fromAtom.y);
+        var tx = toX(toAtom.x), ty = toY(toAtom.y);
+        var arrowProg = Math.min(1, (prog - 0.1) / 0.7);
+        drawCurlyArrow(ctx, fx, fy, tx, ty, arr.type, arrowProg);
+      }
+    }
+
+    // ── Atom Labels ──
+    for (var li = 0; li < step.atoms.length; li++) {
+      var atom = step.atoms[li];
+      var label = resolveLabel(atom.role, rxn);
+      if (!label) continue;
+      var ax = toX(atom.x), ay = toY(atom.y);
+      var color = atomColor(label);
+
+      ctx.save();
+      ctx.font = '600 14px "Fira Code", monospace';
+      var tw = ctx.measureText(label).width;
+      var pw = tw + 12, ph = 24;
+      ctx.fillStyle = '#FFFFFF';
+      ctx.beginPath(); ctx.roundRect(ax - pw/2, ay - ph/2, pw, ph, 6); ctx.fill();
+      ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.roundRect(ax - pw/2, ay - ph/2, pw, ph, 6); ctx.stroke();
+      ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText(label, ax, ay);
+      ctx.restore();
+    }
+
+    // ── Charges ──
+    for (var ci = 0; ci < step.charges.length; ci++) {
+      var ch = step.charges[ci];
+      var ca = null;
+      for (var cai = 0; cai < step.atoms.length; cai++) {
+        if (step.atoms[cai].id === ch.atom) { ca = step.atoms[cai]; break; }
+      }
+      if (!ca) continue;
+      ctx.save();
+      ctx.font = '700 12px Inter, sans-serif';
+      ctx.fillStyle = '#DC2626'; ctx.textAlign = 'center';
+      ctx.fillText(ch.text, toX(ca.x), toY(ca.y) - 18);
+      ctx.restore();
+    }
+
+    // ── Step label ──
+    ctx.save();
+    ctx.font = '600 12px Inter, sans-serif'; ctx.fillStyle = '#64748B'; ctx.textAlign = 'left';
+    ctx.fillText('Step ' + (stepIdx + 1) + ' of ' + mech.steps.length, 10, 18);
+    ctx.restore();
+  }
+
+  // ═══════════════════════════════════════
+  // Curly Arrow
+  // ═══════════════════════════════════════
+  function drawCurlyArrow(ctx, fx, fy, tx, ty, type, prog) {
+    var dx = tx - fx, dy = ty - fy;
+    var mx = (fx + tx) / 2, my = (fy + ty) / 2;
+    var perpX = -dy * 0.35, perpY = dx * 0.35;
+    var cpx = mx + perpX, cpy = my + perpY;
+
+    var color = type === 'fishhook' ? '#DC2626' : '#2563EB';
+    ctx.save();
+    ctx.strokeStyle = color; ctx.fillStyle = color;
+    ctx.lineWidth = type === 'fishhook' ? 2 : 2.5;
+    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+
+    // Draw partial curve
+    ctx.beginPath();
+    var steps = Math.floor(60 * prog);
+    for (var s = 0; s <= steps; s++) {
+      var t = s / 60;
+      var u = 1 - t;
+      var px = u*u*fx + 2*u*t*cpx + t*t*tx;
+      var py = u*u*fy + 2*u*t*cpy + t*t*ty;
+      if (s === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+
+    // Arrowhead at progress point
+    if (prog > 0.15) {
+      var t2 = prog;
+      var u2 = 1 - t2;
+      var ex = u2*u2*fx + 2*u2*t2*cpx + t2*t2*tx;
+      var ey = u2*u2*fy + 2*u2*t2*cpy + t2*t2*ty;
+      // Tangent
+      var tangX = 2*(1-t2)*(cpx-fx) + 2*t2*(tx-cpx);
+      var tangY = 2*(1-t2)*(cpy-fy) + 2*t2*(ty-cpy);
+      var angle = Math.atan2(tangY, tangX);
+      var hl = 8;
+
+      ctx.beginPath();
+      ctx.moveTo(ex, ey);
+      if (type === 'fishhook') {
+        // Single barb
+        ctx.lineTo(ex - hl * Math.cos(angle - 0.5), ey - hl * Math.sin(angle - 0.5));
+        ctx.stroke();
+      } else {
+        // Double barb (filled)
+        ctx.lineTo(ex - hl * Math.cos(angle - Math.PI/6), ey - hl * Math.sin(angle - Math.PI/6));
+        ctx.lineTo(ex - hl * Math.cos(angle + Math.PI/6), ey - hl * Math.sin(angle + Math.PI/6));
+        ctx.closePath();
+        ctx.fill();
+      }
+    }
+    ctx.restore();
+  }
+
+  // ═══════════════════════════════════════
+  // Energy Profile
+  // ═══════════════════════════════════════
+  function drawEnergy(mech, stepFrac) {
+    var ctx = _eCtx;
+    ctx.clearRect(0, 0, EW, EH);
+    ctx.fillStyle = '#FAFBFC'; ctx.fillRect(0, 0, EW, EH);
+    if (!mech) return;
+
+    var pad = 25;
+    var pw = EW - 2*pad, ph = EH - 2*pad;
+    function toX(f) { return pad + f * pw; }
+    function toY(f) { return pad + ph - f * ph; }
+
+    // Axes
+    ctx.save(); ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad, pad); ctx.lineTo(pad, pad + ph); ctx.lineTo(pad + pw, pad + ph); ctx.stroke();
+    ctx.restore();
+
+    // Y label
+    ctx.save(); ctx.fillStyle = '#94A3B8'; ctx.font = '500 9px Inter, sans-serif';
+    ctx.translate(8, pad + ph/2); ctx.rotate(-Math.PI/2); ctx.textAlign = 'center'; ctx.fillText('Energy', 0, 0);
+    ctx.restore();
+
+    // Curve
+    var color = '#2563EB';
+    ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+    ctx.beginPath();
+
+    if (mech.energyType === 'one-step') {
+      // Single hump: reactants 0.3 → TS 0.85 → products varies
+      var prodE = 0.15;
+      for (var s = 0; s <= 100; s++) {
+        var t = s / 100;
+        var e;
+        if (t < 0.12) e = 0.3;
+        else if (t < 0.5) { var lt = (t - 0.12) / 0.38; e = 0.3 + (0.85 - 0.3) * Math.sin(lt * Math.PI / 2); }
+        else if (t < 0.88) { var lt2 = (t - 0.5) / 0.38; e = 0.85 - (0.85 - prodE) * Math.sin(lt2 * Math.PI / 2); }
+        else e = prodE;
+        if (s === 0) ctx.moveTo(toX(t), toY(e)); else ctx.lineTo(toX(t), toY(e));
+      }
+    } else if (mech.energyType === 'two-step') {
+      for (var s2 = 0; s2 <= 100; s2++) {
+        var t2 = s2 / 100;
+        var e2;
+        if (t2 < 0.1) e2 = 0.25;
+        else if (t2 < 0.3) { var lt3 = (t2 - 0.1) / 0.2; e2 = 0.25 + 0.5 * Math.sin(lt3 * Math.PI); }
+        else if (t2 < 0.45) e2 = 0.35;
+        else if (t2 < 0.7) { var lt4 = (t2 - 0.45) / 0.25; e2 = 0.35 + 0.4 * Math.sin(lt4 * Math.PI); }
+        else if (t2 < 0.88) { var lt5 = (t2 - 0.7) / 0.18; e2 = 0.15 + (0.35 - 0.15) * (1 - lt5); }
+        else e2 = 0.15;
+        if (s2 === 0) ctx.moveTo(toX(t2), toY(e2)); else ctx.lineTo(toX(t2), toY(e2));
+      }
+    } else {
+      // Chain reaction
+      for (var s3 = 0; s3 <= 100; s3++) {
+        var t3 = s3 / 100;
+        var e3;
+        if (t3 < 0.1) e3 = 0.3;
+        else if (t3 < 0.25) { var lt6 = (t3 - 0.1) / 0.15; e3 = 0.3 + 0.55 * Math.sin(lt6 * Math.PI / 2); }
+        else if (t3 < 0.4) { var lt7 = (t3 - 0.25) / 0.15; e3 = 0.85 - 0.5 * lt7; }
+        else if (t3 < 0.9) e3 = 0.35 + 0.08 * Math.sin((t3 - 0.4) * 12);
+        else e3 = 0.2;
+        if (s3 === 0) ctx.moveTo(toX(t3), toY(e3)); else ctx.lineTo(toX(t3), toY(e3));
+      }
+    }
+    ctx.stroke(); ctx.restore();
+
+    // Step dot
+    var totalSteps = mech.steps.length;
+    var dotFrac = stepFrac / (totalSteps - 1 || 1);
+    // Map to appropriate x position
+    var dotX, dotY;
+    if (mech.energyType === 'one-step') {
+      var fracs = [0.06, 0.5, 0.94];
+      dotX = fracs[Math.min(stepFrac, fracs.length - 1)] || dotFrac;
+    } else if (mech.energyType === 'two-step') {
+      var fracs2 = [0.05, 0.2, 0.55, 0.92];
+      dotX = fracs2[Math.min(stepFrac, fracs2.length - 1)] || dotFrac;
+    } else {
+      var fracs3 = [0.18, 0.35, 0.65, 0.92];
+      dotX = fracs3[Math.min(stepFrac, fracs3.length - 1)] || dotFrac;
+    }
+
+    // Get Y at this X position by sampling the curve
+    ctx.save();
+    ctx.fillStyle = '#DC2626';
+    ctx.beginPath();
+    ctx.arc(toX(dotX), toY(getCurveY(mech, dotX)), 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Labels
+    ctx.save(); ctx.font = '500 8px Inter, sans-serif'; ctx.fillStyle = '#94A3B8'; ctx.textAlign = 'center';
+    ctx.fillText('Reaction progress', pad + pw/2, EH - 4);
+    ctx.restore();
+  }
+
+  function getCurveY(mech, t) {
+    if (mech.energyType === 'one-step') {
+      if (t < 0.12) return 0.3;
+      if (t < 0.5) { var lt = (t - 0.12) / 0.38; return 0.3 + 0.55 * Math.sin(lt * Math.PI / 2); }
+      if (t < 0.88) { var lt2 = (t - 0.5) / 0.38; return 0.85 - 0.7 * Math.sin(lt2 * Math.PI / 2); }
+      return 0.15;
+    } else if (mech.energyType === 'two-step') {
+      if (t < 0.1) return 0.25;
+      if (t < 0.3) { var lt3 = (t - 0.1) / 0.2; return 0.25 + 0.5 * Math.sin(lt3 * Math.PI); }
+      if (t < 0.45) return 0.35;
+      if (t < 0.7) { var lt4 = (t - 0.45) / 0.25; return 0.35 + 0.4 * Math.sin(lt4 * Math.PI); }
+      if (t < 0.88) { var lt5 = (t - 0.7) / 0.18; return 0.15 + 0.2 * (1 - lt5); }
+      return 0.15;
+    } else {
+      if (t < 0.1) return 0.3;
+      if (t < 0.25) { var lt6 = (t - 0.1) / 0.15; return 0.3 + 0.55 * Math.sin(lt6 * Math.PI / 2); }
+      if (t < 0.4) { var lt7 = (t - 0.25) / 0.15; return 0.85 - 0.5 * lt7; }
+      if (t < 0.9) return 0.35 + 0.08 * Math.sin((t - 0.4) * 12);
+      return 0.2;
+    }
+  }
+
+  // ═══════════════════════════════════════
+  // Step Controls
+  // ═══════════════════════════════════════
+  var _btnBack, _btnNext, _btnPlay, _btnReset, _stepLabel;
+
+  function buildStepControls() {
+    var cont = document.getElementById('stepControls');
+    _btnBack = document.createElement('button'); _btnBack.textContent = '\u25C0 Back';
+    _btnBack.addEventListener('click', prevStep);
+    _stepLabel = document.createElement('span'); _stepLabel.className = 'step-counter'; _stepLabel.textContent = '---';
+    _btnNext = document.createElement('button'); _btnNext.textContent = 'Next \u25B6';
+    _btnNext.addEventListener('click', nextStep);
+    _btnPlay = document.createElement('button'); _btnPlay.textContent = '\u25B6 Play';
+    _btnPlay.addEventListener('click', togglePlay);
+    _btnReset = document.createElement('button'); _btnReset.textContent = '\u21BA Reset';
+    _btnReset.addEventListener('click', resetSteps);
+    cont.appendChild(_btnBack); cont.appendChild(_stepLabel); cont.appendChild(_btnNext);
+    cont.appendChild(_btnPlay); cont.appendChild(_btnReset);
+  }
+
+  function updateStepLabel() {
+    if (!_selMech) { _stepLabel.textContent = '---'; return; }
+    _stepLabel.textContent = 'Step ' + (_curStep + 1) + ' / ' + _selMech.steps.length;
+  }
+
+  function nextStep() {
+    if (!_selMech || _curStep >= _selMech.steps.length - 1) return;
+    _curStep++;
+    startStepAnim();
+  }
+
+  function prevStep() {
+    if (!_selMech || _curStep <= 0) return;
+    _curStep--;
+    redraw();
+  }
+
+  function resetSteps() {
+    stopPlay();
+    _curStep = 0;
+    redraw();
+  }
+
+  function togglePlay() {
+    if (_playing) { stopPlay(); return; }
+    _playing = true;
+    _btnPlay.textContent = '\u23F8 Pause';
+    _btnPlay.classList.add('playing');
+    playTick();
+  }
+
+  function stopPlay() {
+    _playing = false;
+    if (_playTimer) { clearTimeout(_playTimer); _playTimer = null; }
+    _btnPlay.textContent = '\u25B6 Play';
+    _btnPlay.classList.remove('playing');
+  }
+
+  function playTick() {
+    if (!_playing || !_selMech) { stopPlay(); return; }
+    if (_curStep < _selMech.steps.length - 1) {
+      nextStep();
+      _playTimer = setTimeout(playTick, 2000);
+    } else {
+      stopPlay();
+    }
+  }
+
+  // ═══════════════════════════════════════
+  // Animation
+  // ═══════════════════════════════════════
+  function startStepAnim() {
+    _animProgress = 0;
+    _animStart = performance.now();
+    if (!_animFrame) _animFrame = requestAnimationFrame(animLoop);
+  }
+
+  function animLoop(ts) {
+    var elapsed = ts - _animStart;
+    _animProgress = Math.min(1, elapsed / ANIM_DUR);
+    var eased = _animProgress < 0.5 ? 4*_animProgress*_animProgress*_animProgress : 1 - Math.pow(-2*_animProgress+2, 3)/2;
+    var rxn = _selMech.reactions[_selRxnIdx];
+    drawFrame(_selMech, rxn, _curStep, eased);
+    drawEnergy(_selMech, _curStep);
+    updateStepLabel();
+    updateStepDesc();
+    if (_animProgress < 1) { _animFrame = requestAnimationFrame(animLoop); }
+    else { _animFrame = null; }
+  }
+
+  // ═══════════════════════════════════════
+  // Info Panels
+  // ═══════════════════════════════════════
+  function updateStepDesc() {
+    var panel = document.getElementById('stepDescPanel');
+    while (panel.firstChild) panel.removeChild(panel.firstChild);
+    if (!_selMech) {
+      var msg = document.createElement('div');
+      msg.className = 'step-desc'; msg.style.color = 'var(--text-muted)';
+      msg.textContent = 'Select a mechanism from the palette to begin.';
+      panel.appendChild(msg); return;
+    }
+    var step = _selMech.steps[_curStep];
+    var rxn = _selMech.reactions[_selRxnIdx];
+    var desc = document.createElement('div');
+    desc.className = 'step-desc';
+    desc.textContent = resolveDesc(step.desc, rxn);
+    panel.appendChild(desc);
+  }
+
+  function updateSummary() {
+    var panel = document.getElementById('summaryPanel');
+    while (panel.firstChild) panel.removeChild(panel.firstChild);
+    if (!_selMech) {
+      var msg = document.createElement('div');
+      msg.style.cssText = 'color: var(--text-muted); font-size: 0.85rem;';
+      msg.textContent = 'Select a mechanism to view details.';
+      panel.appendChild(msg); return;
+    }
+    var mech = _selMech;
+    var rxn = mech.reactions[_selRxnIdx];
+
+    // Type badge
+    var badge = document.createElement('div');
+    badge.className = 'type-badge';
+    badge.textContent = mech.name;
+    panel.appendChild(badge);
+
+    // Summary grid
+    var grid = document.createElement('div');
+    grid.className = 'summary-grid';
+    var fields = [
+      ['Rate Law', mech.rate],
+      ['Conditions', mech.conditions],
+      ['Stereochemistry', mech.stereo],
+      ['Substrate Pref.', mech.substratePref],
+      ['Equation', rxn.eq]
+    ];
+    for (var i = 0; i < fields.length; i++) {
+      var lbl = document.createElement('div'); lbl.className = 'summary-label'; lbl.textContent = fields[i][0];
+      var val = document.createElement('div'); val.className = 'summary-value'; val.textContent = fields[i][1];
+      grid.appendChild(lbl); grid.appendChild(val);
+    }
+    panel.appendChild(grid);
+
+    // Reaction selector
+    var rxnSel = document.createElement('select');
+    rxnSel.className = 'rxn-select';
+    for (var ri = 0; ri < mech.reactions.length; ri++) {
+      var opt = document.createElement('option');
+      opt.value = String(ri);
+      opt.textContent = mech.reactions[ri].eq;
+      if (ri === _selRxnIdx) opt.selected = true;
+      rxnSel.appendChild(opt);
+    }
+    rxnSel.addEventListener('change', function() {
+      _selRxnIdx = parseInt(rxnSel.value, 10);
+      _curStep = 0;
+      redraw();
+    });
+    panel.appendChild(rxnSel);
+
+    // Arrow legend
+    var legend = document.createElement('div');
+    legend.className = 'arrow-legend';
+    var fullItem = document.createElement('div'); fullItem.className = 'arrow-legend-item';
+    var fullLine = document.createElement('span'); fullLine.className = 'legend-line'; fullLine.style.background = '#2563EB';
+    var fullText = document.createElement('span'); fullText.textContent = 'Heterolytic (2e\u207B)';
+    fullItem.appendChild(fullLine); fullItem.appendChild(fullText);
+    var fishItem = document.createElement('div'); fishItem.className = 'arrow-legend-item';
+    var fishLine = document.createElement('span'); fishLine.className = 'legend-line'; fishLine.style.background = '#DC2626';
+    var fishText = document.createElement('span'); fishText.textContent = 'Homolytic (1e\u207B)';
+    fishItem.appendChild(fishLine); fishItem.appendChild(fishText);
+    legend.appendChild(fullItem); legend.appendChild(fishItem);
+    panel.appendChild(legend);
+  }
+
+  // ═══════════════════════════════════════
+  // Selection
+  // ═══════════════════════════════════════
+  function selectMech(id) {
+    var mech = MECH_MAP[id];
+    if (!mech) return;
+    stopPlay();
+    _selMech = mech;
+    _selRxnIdx = 0;
+    _curStep = 0;
+    _canvas.setAttribute('aria-label', 'Mechanism animation: ' + mech.name);
+    updatePaletteActive();
+    redraw();
+  }
+
+  function redraw() {
+    if (!_selMech) return;
+    var rxn = _selMech.reactions[_selRxnIdx];
+    drawFrame(_selMech, rxn, _curStep, 1);
+    drawEnergy(_selMech, _curStep);
+    updateStepLabel();
+    updateStepDesc();
+    updateSummary();
+  }
+
+  // ═══════════════════════════════════════
+  // Keyboard
+  // ═══════════════════════════════════════
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+      if (e.key === 'Escape') { e.target.blur(); document.getElementById('mechSearch').value = ''; filterPalette(''); }
+      return;
+    }
+    switch (e.key.toLowerCase()) {
+      case 'arrowright': e.preventDefault(); nextStep(); break;
+      case 'arrowleft': e.preventDefault(); prevStep(); break;
+      case ' ': e.preventDefault(); togglePlay(); break;
+      case 't': e.preventDefault(); toggleTeacher(); break;
+      case 'r': e.preventDefault(); resetSteps(); break;
+      case '/': e.preventDefault(); document.getElementById('mechSearch').focus(); break;
+      case 'escape': document.getElementById('mechSearch').value = ''; filterPalette(''); break;
+      case 'arrowup': e.preventDefault(); navigateMech(-1); break;
+      case 'arrowdown': e.preventDefault(); navigateMech(1); break;
+      default:
+        var num = parseInt(e.key, 10);
+        if (num >= 1 && num <= 6 && _selMech && _selMech.reactions.length >= num) {
+          _selRxnIdx = num - 1; _curStep = 0; redraw();
+        }
+    }
+  });
+
+  function navigateMech(dir) {
+    var idx = -1;
+    if (_selMech) { for (var i = 0; i < MECHANISMS.length; i++) { if (MECHANISMS[i].id === _selMech.id) { idx = i; break; } } }
+    idx += dir;
+    if (idx < 0) idx = MECHANISMS.length - 1;
+    if (idx >= MECHANISMS.length) idx = 0;
+    selectMech(MECHANISMS[idx].id);
+  }
+
+  // ═══════════════════════════════════════
+  // Header Toggle
+  // ═══════════════════════════════════════
+  function toggleTeacher() {
+    _teacherMode = !_teacherMode;
+    if (_tInput) _tInput.checked = _teacherMode;
+    document.getElementById('presetSection').style.display = _teacherMode ? 'block' : 'none';
+  }
+
+  function buildHeaderToggles() {
+    var container = document.getElementById('headerToggles');
+    var tGroup = document.createElement('div'); tGroup.className = 'sim-toggle-group';
+    var tLabel = document.createElement('span'); tLabel.className = 'sim-toggle-label'; tLabel.textContent = 'Teacher';
+    var tToggle = document.createElement('label'); tToggle.className = 'sim-toggle';
+    _tInput = document.createElement('input'); _tInput.type = 'checkbox';
+    _tInput.setAttribute('aria-label', 'Enable Teacher mode');
+    _tInput.addEventListener('change', function() {
+      _teacherMode = _tInput.checked;
+      document.getElementById('presetSection').style.display = _teacherMode ? 'block' : 'none';
+    });
+    var tSlider = document.createElement('span'); tSlider.className = 'sim-toggle-slider';
+    tToggle.appendChild(_tInput); tToggle.appendChild(tSlider);
+    tGroup.appendChild(tLabel); tGroup.appendChild(tToggle);
+    container.appendChild(tGroup);
+  }
+
+  // ═══════════════════════════════════════
+  // Init
+  // ═══════════════════════════════════════
+  function init() {
+    setupCanvas();
+    buildPalette();
+    buildPresets();
+    buildStepControls();
+    buildHeaderToggles();
+    document.getElementById('presetSection').style.display = 'none';
+    document.getElementById('mechSearch').addEventListener('input', function() { filterPalette(this.value); });
+    selectMech('sn2');
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+
+})();
+</script>
+</body>
+</html>
