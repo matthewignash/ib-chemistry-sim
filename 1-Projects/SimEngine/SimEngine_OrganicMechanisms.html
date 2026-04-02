@@ -172,10 +172,10 @@
     <div class="palette-panel sim-card">
       <div class="sim-card-header">Mechanisms</div>
       <div class="sim-card-body">
-        <input type="text" class="palette-search" id="mechSearch" placeholder="Search mechanisms...">
+        <input type="text" class="palette-search" id="mechSearch" placeholder="Search mechanisms..." aria-label="Search mechanisms">
         <div id="paletteList"></div>
         <div class="preset-section" id="presetSection">
-          <select id="presetSelect"><option value="">Teacher Presets...</option></select>
+          <select id="presetSelect" aria-label="Teacher presets"><option value="">Teacher Presets...</option></select>
         </div>
       </div>
     </div>
@@ -630,13 +630,15 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
           atoms: [
             { id: 'x1', role: 'nuc', x: 0.35, y: 0.45 },
             { id: 'x2', role: 'lg', x: 0.65, y: 0.45 },
-            { id: 'uv', role: 'uv', x: 0.5, y: 0.15 }
+            { id: 'uv', role: 'uv', x: 0.5, y: 0.15 },
+            { id: 'x1out', role: '', x: 0.18, y: 0.45 },
+            { id: 'x2out', role: '', x: 0.82, y: 0.45 }
           ],
           bonds: [
             { from: 'x1', to: 'x2', order: 1, state: 'normal' }
           ],
           charges: [],
-          arrows: [{ from: 'x1', to: 'x1', type: 'fishhook' }, { from: 'x2', to: 'x2', type: 'fishhook' }]
+          arrows: [{ from: 'x1', to: 'x1out', type: 'fishhook' }, { from: 'x2', to: 'x2out', type: 'fishhook' }]
         },
         {
           desc: 'Propagation step 1: A {nuc}\u2022 radical abstracts a hydrogen from {sub}, forming H\u2013{nuc} and a carbon radical ({sub}\u2022). Fishhook arrows show one-electron movement.',
@@ -790,6 +792,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     _canvas.width = CW * dpr; _canvas.height = CH * dpr;
     _canvas.style.width = CW + 'px'; _canvas.style.maxWidth = '100%'; _canvas.style.height = CH + 'px';
     _canvas.setAttribute('role', 'img'); _canvas.setAttribute('aria-label', 'Mechanism animation');
+    _canvas.setAttribute('aria-describedby', 'stepDescPanel');
     _ctx.scale(dpr, dpr);
 
     _eCanvas = document.getElementById('energyCanvas');
@@ -1062,7 +1065,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     var totalSteps = mech.steps.length;
     var dotFrac = stepFrac / (totalSteps - 1 || 1);
     // Map to appropriate x position
-    var dotX, dotY;
+    var dotX;
     if (mech.energyType === 'one-step') {
       var fracs = [0.06, 0.5, 0.94];
       dotX = fracs[Math.min(stepFrac, fracs.length - 1)] || dotFrac;
@@ -1118,14 +1121,14 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   function buildStepControls() {
     var cont = document.getElementById('stepControls');
     _btnBack = document.createElement('button'); _btnBack.textContent = '\u25C0 Back';
-    _btnBack.addEventListener('click', prevStep);
+    _btnBack.setAttribute('aria-label', 'Previous step'); _btnBack.addEventListener('click', prevStep);
     _stepLabel = document.createElement('span'); _stepLabel.className = 'step-counter'; _stepLabel.textContent = '---';
     _btnNext = document.createElement('button'); _btnNext.textContent = 'Next \u25B6';
-    _btnNext.addEventListener('click', nextStep);
+    _btnNext.setAttribute('aria-label', 'Next step'); _btnNext.addEventListener('click', nextStep);
     _btnPlay = document.createElement('button'); _btnPlay.textContent = '\u25B6 Play';
-    _btnPlay.addEventListener('click', togglePlay);
+    _btnPlay.setAttribute('aria-label', 'Play animation'); _btnPlay.addEventListener('click', togglePlay);
     _btnReset = document.createElement('button'); _btnReset.textContent = '\u21BA Reset';
-    _btnReset.addEventListener('click', resetSteps);
+    _btnReset.setAttribute('aria-label', 'Reset to step 1'); _btnReset.addEventListener('click', resetSteps);
     cont.appendChild(_btnBack); cont.appendChild(_stepLabel); cont.appendChild(_btnNext);
     cont.appendChild(_btnPlay); cont.appendChild(_btnReset);
   }
@@ -1138,6 +1141,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   function nextStep() {
     if (!_selMech || _curStep >= _selMech.steps.length - 1) return;
     _curStep++;
+    updateStepDesc();
     startStepAnim();
   }
 
@@ -1182,9 +1186,10 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   // Animation
   // ═══════════════════════════════════════
   function startStepAnim() {
+    if (_animFrame) { cancelAnimationFrame(_animFrame); _animFrame = null; }
     _animProgress = 0;
     _animStart = performance.now();
-    if (!_animFrame) _animFrame = requestAnimationFrame(animLoop);
+    _animFrame = requestAnimationFrame(animLoop);
   }
 
   function animLoop(ts) {
@@ -1195,7 +1200,6 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     drawFrame(_selMech, rxn, _curStep, eased);
     drawEnergy(_selMech, _curStep);
     updateStepLabel();
-    updateStepDesc();
     if (_animProgress < 1) { _animFrame = requestAnimationFrame(animLoop); }
     else { _animFrame = null; }
   }
@@ -1258,6 +1262,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     // Reaction selector
     var rxnSel = document.createElement('select');
     rxnSel.className = 'rxn-select';
+    rxnSel.setAttribute('aria-label', 'Select example reaction');
     for (var ri = 0; ri < mech.reactions.length; ri++) {
       var opt = document.createElement('option');
       opt.value = String(ri);
