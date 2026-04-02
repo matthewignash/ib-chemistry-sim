@@ -303,7 +303,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   var BOND_ENERGIES = {
     'C-H': 414, 'O-H': 463, 'C-C': 346, 'O=O': 498,
     'C=C': 614, 'H-H': 436, 'C-O': 358, 'N-H': 391,
-    'C=O': 804, 'N\u2261N': 945, 'C-Cl': 324, 'Cl-Cl': 242,
+    'C=O': 805, 'N\u2261N': 945, 'C-Cl': 324, 'Cl-Cl': 242,
     'C-Br': 285, 'H-Cl': 432, 'N=O': 587, 'H-Br': 366,
     'O-O': 142, 'Br-Br': 193
   };
@@ -332,7 +332,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       catalystNote: null,
       bonds: {
         broken: [{ bond: 'C-H', count: 4, energy: 414 }, { bond: 'O=O', count: 2, energy: 498 }],
-        formed: [{ bond: 'C=O', count: 2, energy: 804 }, { bond: 'O-H', count: 4, energy: 463 }]
+        formed: [{ bond: 'C=O', count: 2, energy: 805 }, { bond: 'O-H', count: 4, energy: 463 }]
       }
     },
     {
@@ -346,12 +346,12 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
           { bond: 'C-O', count: 1, energy: 358 }, { bond: 'O-H', count: 1, energy: 463 },
           { bond: 'O=O', count: 3, energy: 498 }
         ],
-        formed: [{ bond: 'C=O', count: 4, energy: 804 }, { bond: 'O-H', count: 6, energy: 463 }]
+        formed: [{ bond: 'C=O', count: 4, energy: 805 }, { bond: 'O-H', count: 6, energy: 463 }]
       }
     },
     {
       id: 'c3h8_comb',
-      equation: 'C\u2083H\u2088(g) + 5O\u2082(g) \u2192 3CO\u2082(g) + 4H\u2082O(g)',
+      equation: 'C\u2083H\u2088(g) + 5O\u2082(g) \u2192 3CO\u2082(g) + 4H\u2082O(l)',
       deltaH: -2219, Ea: 210, type: 'exo', category: 'combustion', hlOnly: false,
       catalystNote: null,
       bonds: {
@@ -359,7 +359,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
           { bond: 'C-H', count: 8, energy: 414 }, { bond: 'C-C', count: 2, energy: 346 },
           { bond: 'O=O', count: 5, energy: 498 }
         ],
-        formed: [{ bond: 'C=O', count: 6, energy: 804 }, { bond: 'O-H', count: 8, energy: 463 }]
+        formed: [{ bond: 'C=O', count: 6, energy: 805 }, { bond: 'O-H', count: 8, energy: 463 }]
       }
     },
     {
@@ -542,6 +542,8 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   var _annotationsOn = true;
   var _hlEnabled = false;
   var _teacherMode = false;
+  var _hlInput = null;   // header toggle checkbox ref
+  var _tInput = null;    // header toggle checkbox ref
 
   // Animation state
   var _anim = { progress: 0, phase: 'idle', startTime: 0 };
@@ -553,6 +555,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   var CANVAS_W = 680;
   var CANVAS_H = 420;
   var MARGIN = { top: 40, right: 30, bottom: 50, left: 60 };
+  var CATALYST_EA_FACTOR = 0.55; // Illustrative ~45% Ea reduction for visual clarity
 
   // Bond bar colors
   var BOND_COLORS = {
@@ -615,6 +618,11 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       var text = items[i].textContent.toLowerCase();
       var id = items[i].getAttribute('data-rxn-id');
       var rxn = RXN_MAP[id];
+      // Keep HL reactions hidden when HL mode is off
+      if (rxn.hlOnly && !_hlEnabled) {
+        items[i].style.display = 'none';
+        continue;
+      }
       var matchesSearch = !q || text.indexOf(q) !== -1;
       if (matchesSearch) {
         items[i].style.display = '';
@@ -664,6 +672,8 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     _canvas.style.width = CANVAS_W + 'px';
     _canvas.style.maxWidth = '100%';
     _canvas.style.height = CANVAS_H + 'px';
+    _canvas.setAttribute('role', 'img');
+    _canvas.setAttribute('aria-label', 'Energy profile diagram');
     _ctx.scale(dpr, dpr);
   }
 
@@ -885,7 +895,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     // ── Catalyst overlay ──
     if (_catalystOn && progress > 0.8) {
       var catProgress = Math.min(1, (progress - 0.8) * 5);
-      var catTransE = rxn.Ea * 0.55;
+      var catTransE = rxn.Ea * CATALYST_EA_FACTOR;
       var catTransY = toY(catTransE);
 
       function getCatBezierPoint(t) {
@@ -1022,7 +1032,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       // Catalyzed Ea arrow
       if (_catalystOn) {
         var catEaX = toX(0.28);
-        var catTransE2 = rxn.Ea * 0.55;
+        var catTransE2 = rxn.Ea * CATALYST_EA_FACTOR;
         var catTransY2 = toY(catTransE2);
         drawArrow(ctx, catEaX, reactantY, catEaX, catTransY2, '#059669', false);
         ctx.font = '600 10px "Fira Code", monospace';
@@ -1338,6 +1348,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     var rxn = RXN_MAP[id];
     if (!rxn) return;
     _selectedRxn = rxn;
+    _canvas.setAttribute('aria-label', 'Energy profile diagram for ' + rxn.equation);
     updatePaletteActive();
     updateInfoPanel(rxn);
     updateBondPanel(rxn);
@@ -1359,6 +1370,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   function toggleHL() {
     _hlEnabled = !_hlEnabled;
     document.body.classList.toggle('hl-active', _hlEnabled);
+    if (_hlInput) _hlInput.checked = _hlEnabled;
     // If current reaction is HL-only and HL is off, deselect
     if (!_hlEnabled && _selectedRxn && _selectedRxn.hlOnly) {
       selectReaction('ch4_comb');
@@ -1368,6 +1380,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
 
   function toggleTeacher() {
     _teacherMode = !_teacherMode;
+    if (_tInput) _tInput.checked = _teacherMode;
     var presetSection = document.getElementById('presetSection');
     presetSection.style.display = _teacherMode ? 'block' : 'none';
   }
@@ -1468,20 +1481,18 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     hlLabel.textContent = 'HL';
     var hlToggle = document.createElement('label');
     hlToggle.className = 'sim-toggle';
-    var hlInput = document.createElement('input');
-    hlInput.type = 'checkbox';
-    hlInput.addEventListener('change', function() {
-      _hlEnabled = hlInput.checked;
-      document.body.classList.toggle('hl-active', _hlEnabled);
-      if (!_hlEnabled && _selectedRxn && _selectedRxn.hlOnly) {
-        selectReaction('ch4_comb');
-      }
-      if (_selectedRxn) updateBondPanel(_selectedRxn);
+    _hlInput = document.createElement('input');
+    _hlInput.type = 'checkbox';
+    _hlInput.setAttribute('aria-label', 'Enable HL mode');
+    _hlInput.addEventListener('change', function() {
+      // Set state from checkbox, then apply (toggleHL flips, so set before calling)
+      _hlEnabled = !_hlInput.checked; // toggleHL will flip this
+      toggleHL();
     });
     var hlSlider = document.createElement('span');
     hlSlider.className = 'sim-toggle-slider';
     hlSlider.style.setProperty('--toggle-on', 'var(--purple)');
-    hlToggle.appendChild(hlInput);
+    hlToggle.appendChild(_hlInput);
     hlToggle.appendChild(hlSlider);
     hlGroup.appendChild(hlLabel);
     hlGroup.appendChild(hlToggle);
@@ -1495,16 +1506,16 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     tLabel.textContent = 'Teacher';
     var tToggle = document.createElement('label');
     tToggle.className = 'sim-toggle';
-    var tInput = document.createElement('input');
-    tInput.type = 'checkbox';
-    tInput.addEventListener('change', function() {
-      _teacherMode = tInput.checked;
-      var presetSection = document.getElementById('presetSection');
-      presetSection.style.display = _teacherMode ? 'block' : 'none';
+    _tInput = document.createElement('input');
+    _tInput.type = 'checkbox';
+    _tInput.setAttribute('aria-label', 'Enable Teacher mode');
+    _tInput.addEventListener('change', function() {
+      _teacherMode = !_tInput.checked; // toggleTeacher will flip this
+      toggleTeacher();
     });
     var tSlider = document.createElement('span');
     tSlider.className = 'sim-toggle-slider';
-    tToggle.appendChild(tInput);
+    tToggle.appendChild(_tInput);
     tToggle.appendChild(tSlider);
     tGroup.appendChild(tLabel);
     tGroup.appendChild(tToggle);
