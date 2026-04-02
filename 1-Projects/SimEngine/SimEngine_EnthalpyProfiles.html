@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enthalpy &amp; Energy Profiles Explorer — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --sim-canvas-bg: #FAFBFC;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
+  }
+  .header-badge.hl { background: var(--hl-badge-bg); display: none; }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* ── Toggle ── */
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s; --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--toggle-on); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+  /* ── Layout ── */
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sim-top-row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .sim-card {
+    background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy); color: white; padding: 0.6rem 1rem;
+    font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  /* ── Palette ── */
+  .palette-panel { max-height: 600px; display: flex; flex-direction: column; position: sticky; top: 1rem; align-self: start; }
+  .palette-panel .sim-card-body { padding: 0.5rem; overflow-y: auto; flex: 1; }
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+  .palette-category {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); padding: 0.4rem 0.3rem 0.2rem; margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block; width: 100%; text-align: left; padding: 0.3rem 0.5rem; margin: 0.15rem 0; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .palette-item:hover { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .palette-item.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+  .palette-item.hl-rxn { display: none; }
+  body.hl-active .palette-item.hl-rxn { display: block; }
+  .palette-category.hl-cat { display: none; }
+  body.hl-active .palette-category.hl-cat { display: block; }
+  .preset-section { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); }
+  .preset-section select {
+    width: 100%; padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.75rem; font-family: inherit; cursor: pointer;
+  }
+
+  /* ── Main Panel ── */
+  .main-panel { display: flex; flex-direction: column; gap: 1rem; align-self: start; }
+
+  /* ── Canvas ── */
+  #profileCanvas { display: block; background: var(--sim-canvas-bg); border-radius: 4px; }
+
+  /* ── Info Panel ── */
+  .info-row { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+  .info-equation { font-size: 1rem; font-weight: 600; font-family: 'Fira Code', monospace; }
+  .info-value { font-size: 0.85rem; font-weight: 600; font-family: 'Fira Code', monospace; }
+  .info-value.exo { color: var(--red); }
+  .info-value.endo { color: var(--blue); }
+  .info-value.ea { color: var(--teal); }
+  .type-badge {
+    display: inline-block; padding: 0.2rem 0.6rem; border-radius: 999px;
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: white;
+  }
+  .type-badge.exo { background: var(--red); }
+  .type-badge.endo { background: var(--blue); }
+  .info-toggles { display: flex; gap: 1rem; margin-top: 0.5rem; }
+  .info-toggle-group { display: flex; align-items: center; gap: 0.4rem; }
+  .info-toggle-group label { font-size: 0.78rem; color: var(--text-muted); cursor: pointer; }
+  .info-toggle-group input[type="checkbox"] { accent-color: var(--teal); cursor: pointer; }
+  .catalyst-note { font-size: 0.75rem; color: var(--green); font-style: italic; margin-top: 0.3rem; }
+
+  /* ── HL Bond Enthalpy Panel ── */
+  .hl-panel { display: none; }
+  body.hl-active .hl-panel { display: block; }
+  .bond-section-title { font-size: 0.8rem; font-weight: 600; margin-bottom: 0.4rem; }
+  .bond-bar-container { margin-bottom: 0.75rem; }
+  .bond-bar-label { font-size: 0.72rem; font-weight: 600; color: var(--text-muted); margin-bottom: 0.2rem; }
+  .bond-bar-track {
+    height: 28px; border-radius: 6px; overflow: hidden; display: flex; background: #F1F5F9;
+    position: relative;
+  }
+  .bond-bar-segment {
+    height: 100%; display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; font-weight: 600; color: white; min-width: 2px;
+    transition: width 0.5s ease;
+  }
+  .bond-bar-total {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    font-size: 0.72rem; font-weight: 700; font-family: 'Fira Code', monospace;
+  }
+  .bond-table { width: 100%; border-collapse: collapse; margin-top: 0.5rem; }
+  .bond-table th {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--text-muted); padding: 0.3rem 0.5rem; border-bottom: 2px solid var(--border); text-align: left;
+  }
+  .bond-table td {
+    font-size: 0.75rem; padding: 0.25rem 0.5rem; border-bottom: 1px solid var(--border);
+    font-family: 'Fira Code', monospace;
+  }
+  .bond-calc-line {
+    font-size: 0.82rem; font-weight: 600; font-family: 'Fira Code', monospace;
+    margin-top: 0.75rem; padding: 0.5rem; background: var(--teal-bg); border-radius: 6px;
+  }
+  .bond-discrepancy {
+    font-size: 0.72rem; color: var(--text-muted); font-style: italic; margin-top: 0.4rem;
+  }
+  .bond-na-note {
+    font-size: 0.8rem; color: var(--text-muted); font-style: italic; padding: 1rem 0;
+  }
+
+  /* ── Keyboard Hint ── */
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .palette-panel { max-height: 200px; position: static; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>Enthalpy &amp; Energy Profiles Explorer</h1>
+    <span class="subtitle">IB Chemistry — R1.1 Enthalpy Changes</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">R1.1</span>
+    <span class="header-badge hl">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- Main Content -->
+<div class="sim-container">
+  <div class="sim-top-row">
+
+    <!-- Left: Reaction Palette -->
+    <div class="palette-panel sim-card">
+      <div class="sim-card-header">Reactions</div>
+      <div class="sim-card-body">
+        <input type="text" class="palette-search" id="rxnSearch" placeholder="Search reactions...">
+        <div id="paletteList"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Main Panel -->
+    <div class="main-panel">
+      <!-- Energy Profile Canvas -->
+      <div class="sim-card">
+        <div class="sim-card-header">Energy Profile Diagram</div>
+        <div class="sim-card-body" style="padding: 0.5rem;">
+          <canvas id="profileCanvas"></canvas>
+        </div>
+      </div>
+
+      <!-- Reaction Info Panel -->
+      <div class="sim-card">
+        <div class="sim-card-header">Reaction Details</div>
+        <div class="sim-card-body" id="infoPanel">
+          <div style="color: var(--text-muted); font-size: 0.85rem;">Select a reaction from the palette to view its energy profile.</div>
+        </div>
+      </div>
+
+      <!-- HL: Bond Enthalpy Calculator -->
+      <div class="hl-panel sim-card">
+        <div class="sim-card-header">Bond Enthalpy Calculator</div>
+        <div class="sim-card-body" id="bondPanel">
+          <div class="bond-na-note">Select a reaction to view bond enthalpy calculations.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="keyboard-hint">
+    <kbd>H</kbd> HL toggle &nbsp; <kbd>T</kbd> Teacher mode &nbsp;
+    <kbd>C</kbd> Catalyst &nbsp; <kbd>A</kbd> Annotations &nbsp;
+    <kbd>&uarr;</kbd><kbd>&darr;</kbd> Prev/Next &nbsp;
+    <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>Esc</kbd> Deselect
+  </div>
+</div>
+
+<!-- SimEngine Core -->
+<script src="../../3-Resources/SimEngine/SimEngine_Core.js"></script>
+
+<script>
+// roundRect polyfill for older browsers (Chromebooks, older iPads)
+if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    var tl = r[0] || 0, tr = r[1] || 0, br = r[2] || 0, bl = r[3] || 0;
+    this.beginPath();
+    this.moveTo(x + tl, y);
+    this.lineTo(x + w - tr, y);
+    this.quadraticCurveTo(x + w, y, x + w, y + tr);
+    this.lineTo(x + w, y + h - br);
+    this.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+    this.lineTo(x + bl, y + h);
+    this.quadraticCurveTo(x, y + h, x, y + h - bl);
+    this.lineTo(x, y + tl);
+    this.quadraticCurveTo(x, y, x + tl, y);
+    this.closePath();
+    return this;
+  };
+}
+
+(function() {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════
+  // Bond Energies (IB Data Booklet Section 11)
+  // ═══════════════════════════════════════════════════
+  var BOND_ENERGIES = {
+    'C-H': 414, 'O-H': 463, 'C-C': 346, 'O=O': 498,
+    'C=C': 614, 'H-H': 436, 'C-O': 358, 'N-H': 391,
+    'C=O': 804, 'N\u2261N': 945, 'C-Cl': 324, 'Cl-Cl': 242,
+    'C-Br': 285, 'H-Cl': 432, 'N=O': 587, 'H-Br': 366,
+    'O-O': 142, 'Br-Br': 193
+  };
+
+  // ═══════════════════════════════════════════════════
+  // Categories
+  // ═══════════════════════════════════════════════════
+  var CATEGORIES = [
+    { key: 'combustion', label: 'Combustion' },
+    { key: 'neutralization', label: 'Neutralization' },
+    { key: 'decomposition', label: 'Decomposition' },
+    { key: 'dissolution', label: 'Dissolution' },
+    { key: 'synthesis', label: 'Synthesis' },
+    { key: 'hl', label: 'HL Reactions' }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // Reaction Library (20 reactions)
+  // ═══════════════════════════════════════════════════
+  var REACTIONS = [
+    // ── Combustion ──
+    {
+      id: 'ch4_comb',
+      equation: 'CH\u2084(g) + 2O\u2082(g) \u2192 CO\u2082(g) + 2H\u2082O(l)',
+      deltaH: -890, Ea: 218, type: 'exo', category: 'combustion', hlOnly: false,
+      catalystNote: null,
+      bonds: {
+        broken: [{ bond: 'C-H', count: 4, energy: 414 }, { bond: 'O=O', count: 2, energy: 498 }],
+        formed: [{ bond: 'C=O', count: 2, energy: 804 }, { bond: 'O-H', count: 4, energy: 463 }]
+      }
+    },
+    {
+      id: 'c2h5oh_comb',
+      equation: 'C\u2082H\u2085OH(l) + 3O\u2082(g) \u2192 2CO\u2082(g) + 3H\u2082O(l)',
+      deltaH: -1367, Ea: 190, type: 'exo', category: 'combustion', hlOnly: false,
+      catalystNote: null,
+      bonds: {
+        broken: [
+          { bond: 'C-H', count: 5, energy: 414 }, { bond: 'C-C', count: 1, energy: 346 },
+          { bond: 'C-O', count: 1, energy: 358 }, { bond: 'O-H', count: 1, energy: 463 },
+          { bond: 'O=O', count: 3, energy: 498 }
+        ],
+        formed: [{ bond: 'C=O', count: 4, energy: 804 }, { bond: 'O-H', count: 6, energy: 463 }]
+      }
+    },
+    {
+      id: 'c3h8_comb',
+      equation: 'C\u2083H\u2088(g) + 5O\u2082(g) \u2192 3CO\u2082(g) + 4H\u2082O(g)',
+      deltaH: -2219, Ea: 210, type: 'exo', category: 'combustion', hlOnly: false,
+      catalystNote: null,
+      bonds: {
+        broken: [
+          { bond: 'C-H', count: 8, energy: 414 }, { bond: 'C-C', count: 2, energy: 346 },
+          { bond: 'O=O', count: 5, energy: 498 }
+        ],
+        formed: [{ bond: 'C=O', count: 6, energy: 804 }, { bond: 'O-H', count: 8, energy: 463 }]
+      }
+    },
+    {
+      id: 'h2_comb',
+      equation: '2H\u2082(g) + O\u2082(g) \u2192 2H\u2082O(l)',
+      deltaH: -572, Ea: 210, type: 'exo', category: 'combustion', hlOnly: false,
+      catalystNote: null,
+      bonds: {
+        broken: [{ bond: 'H-H', count: 2, energy: 436 }, { bond: 'O=O', count: 1, energy: 498 }],
+        formed: [{ bond: 'O-H', count: 4, energy: 463 }]
+      }
+    },
+    {
+      id: 'c_comb',
+      equation: 'C(s) + O\u2082(g) \u2192 CO\u2082(g)',
+      deltaH: -394, Ea: 200, type: 'exo', category: 'combustion', hlOnly: false,
+      catalystNote: null,
+      bonds: null
+    },
+
+    // ── Neutralization ──
+    {
+      id: 'hcl_naoh',
+      equation: 'HCl(aq) + NaOH(aq) \u2192 NaCl(aq) + H\u2082O(l)',
+      deltaH: -57.1, Ea: 25, type: 'exo', category: 'neutralization', hlOnly: false,
+      catalystNote: null,
+      bonds: null
+    },
+    {
+      id: 'h2so4_naoh',
+      equation: 'H\u2082SO\u2084(aq) + 2NaOH(aq) \u2192 Na\u2082SO\u2084(aq) + 2H\u2082O(l)',
+      deltaH: -114.2, Ea: 25, type: 'exo', category: 'neutralization', hlOnly: false,
+      catalystNote: null,
+      bonds: null
+    },
+    {
+      id: 'ch3cooh_naoh',
+      equation: 'CH\u2083COOH(aq) + NaOH(aq) \u2192 CH\u2083COONa(aq) + H\u2082O(l)',
+      deltaH: -55.2, Ea: 30, type: 'exo', category: 'neutralization', hlOnly: false,
+      catalystNote: null,
+      bonds: null
+    },
+
+    // ── Decomposition ──
+    {
+      id: 'caco3_decomp',
+      equation: 'CaCO\u2083(s) \u2192 CaO(s) + CO\u2082(g)',
+      deltaH: 178, Ea: 250, type: 'endo', category: 'decomposition', hlOnly: false,
+      catalystNote: null,
+      bonds: null
+    },
+    {
+      id: 'h2o2_decomp',
+      equation: '2H\u2082O\u2082(aq) \u2192 2H\u2082O(l) + O\u2082(g)',
+      deltaH: -196, Ea: 75, type: 'exo', category: 'decomposition', hlOnly: false,
+      catalystNote: 'MnO\u2082 catalyst',
+      bonds: {
+        broken: [{ bond: 'O-H', count: 4, energy: 463 }, { bond: 'O-O', count: 2, energy: 142 }],
+        formed: [{ bond: 'O-H', count: 4, energy: 463 }, { bond: 'O=O', count: 1, energy: 498 }]
+      }
+    },
+    {
+      id: 'n2o4_decomp',
+      equation: 'N\u2082O\u2084(g) \u2192 2NO\u2082(g)',
+      deltaH: 57.2, Ea: 55, type: 'endo', category: 'decomposition', hlOnly: false,
+      catalystNote: null,
+      bonds: null
+    },
+    {
+      id: 'nh4cl_decomp',
+      equation: 'NH\u2084Cl(s) \u2192 NH\u2083(g) + HCl(g)',
+      deltaH: 176, Ea: 200, type: 'endo', category: 'decomposition', hlOnly: false,
+      catalystNote: null,
+      bonds: null
+    },
+
+    // ── Dissolution ──
+    {
+      id: 'nacl_dissolve',
+      equation: 'NaCl(s) \u2192 Na\u207A(aq) + Cl\u207B(aq)',
+      deltaH: 3.9, Ea: 20, type: 'endo', category: 'dissolution', hlOnly: false,
+      catalystNote: null,
+      bonds: null
+    },
+    {
+      id: 'naoh_dissolve',
+      equation: 'NaOH(s) \u2192 Na\u207A(aq) + OH\u207B(aq)',
+      deltaH: -44.5, Ea: 15, type: 'exo', category: 'dissolution', hlOnly: false,
+      catalystNote: null,
+      bonds: null
+    },
+
+    // ── Synthesis ──
+    {
+      id: 'haber',
+      equation: 'N\u2082(g) + 3H\u2082(g) \u2192 2NH\u2083(g)',
+      deltaH: -92, Ea: 230, type: 'exo', category: 'synthesis', hlOnly: false,
+      catalystNote: 'Fe catalyst',
+      bonds: {
+        broken: [{ bond: 'N\u2261N', count: 1, energy: 945 }, { bond: 'H-H', count: 3, energy: 436 }],
+        formed: [{ bond: 'N-H', count: 6, energy: 391 }]
+      }
+    },
+    {
+      id: 'hcl_form',
+      equation: 'H\u2082(g) + Cl\u2082(g) \u2192 2HCl(g)',
+      deltaH: -185, Ea: 180, type: 'exo', category: 'synthesis', hlOnly: false,
+      catalystNote: null,
+      bonds: {
+        broken: [{ bond: 'H-H', count: 1, energy: 436 }, { bond: 'Cl-Cl', count: 1, energy: 242 }],
+        formed: [{ bond: 'H-Cl', count: 2, energy: 432 }]
+      }
+    },
+    {
+      id: 'h2o_form',
+      equation: '2H\u2082(g) + O\u2082(g) \u2192 2H\u2082O(g)',
+      deltaH: -484, Ea: 210, type: 'exo', category: 'synthesis', hlOnly: false,
+      catalystNote: null,
+      bonds: {
+        broken: [{ bond: 'H-H', count: 2, energy: 436 }, { bond: 'O=O', count: 1, energy: 498 }],
+        formed: [{ bond: 'O-H', count: 4, energy: 463 }]
+      }
+    },
+
+    // ── HL Reactions ──
+    {
+      id: 'ch4_chlor',
+      equation: 'CH\u2084(g) + Cl\u2082(g) \u2192 CH\u2083Cl(g) + HCl(g)',
+      deltaH: -104, Ea: 160, type: 'exo', category: 'hl', hlOnly: true,
+      catalystNote: 'UV light initiator',
+      bonds: {
+        broken: [{ bond: 'C-H', count: 1, energy: 414 }, { bond: 'Cl-Cl', count: 1, energy: 242 }],
+        formed: [{ bond: 'C-Cl', count: 1, energy: 324 }, { bond: 'H-Cl', count: 1, energy: 432 }]
+      }
+    },
+    {
+      id: 'c2h4_hbr',
+      equation: 'C\u2082H\u2084(g) + HBr(g) \u2192 C\u2082H\u2085Br(g)',
+      deltaH: -54, Ea: 140, type: 'exo', category: 'hl', hlOnly: true,
+      catalystNote: null,
+      bonds: {
+        broken: [{ bond: 'C=C', count: 1, energy: 614 }, { bond: 'H-Br', count: 1, energy: 366 }],
+        formed: [{ bond: 'C-C', count: 1, energy: 346 }, { bond: 'C-H', count: 1, energy: 414 }, { bond: 'C-Br', count: 1, energy: 285 }]
+      }
+    },
+    {
+      id: 'n2_o2',
+      equation: 'N\u2082(g) + O\u2082(g) \u2192 2NO(g)',
+      deltaH: 181, Ea: 310, type: 'endo', category: 'hl', hlOnly: true,
+      catalystNote: null,
+      bonds: {
+        broken: [{ bond: 'N\u2261N', count: 1, energy: 945 }, { bond: 'O=O', count: 1, energy: 498 }],
+        formed: [{ bond: 'N=O', count: 2, energy: 587 }]
+      }
+    }
+  ];
+
+  // ID lookup map
+  var RXN_MAP = {};
+  for (var i = 0; i < REACTIONS.length; i++) {
+    RXN_MAP[REACTIONS[i].id] = REACTIONS[i];
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Teacher Presets
+  // ═══════════════════════════════════════════════════
+  var PRESETS = [
+    { name: 'Exo vs Endo', rxnId: 'ch4_comb', catalyst: false, hlMode: false },
+    { name: 'Catalyst Effect', rxnId: 'h2o2_decomp', catalyst: true, hlMode: false },
+    { name: 'Neutralization Series', rxnId: 'hcl_naoh', catalyst: false, hlMode: false },
+    { name: 'Haber Process', rxnId: 'haber', catalyst: true, hlMode: false },
+    { name: 'HL: Bond Enthalpy Calc', rxnId: 'hcl_form', catalyst: false, hlMode: true }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // State
+  // ═══════════════════════════════════════════════════
+  var _selectedRxn = null;
+  var _catalystOn = false;
+  var _annotationsOn = true;
+  var _hlEnabled = false;
+  var _teacherMode = false;
+
+  // Animation state
+  var _anim = { progress: 0, phase: 'idle', startTime: 0 };
+  var _animFrame = null;
+
+  // Canvas
+  var _canvas = null;
+  var _ctx = null;
+  var CANVAS_W = 680;
+  var CANVAS_H = 420;
+  var MARGIN = { top: 40, right: 30, bottom: 50, left: 60 };
+
+  // Bond bar colors
+  var BOND_COLORS = {
+    'C-H': '#F59E0B', 'O-H': '#3B82F6', 'C-C': '#8B5CF6', 'O=O': '#EF4444',
+    'C=C': '#10B981', 'H-H': '#6366F1', 'C-O': '#F97316', 'N-H': '#14B8A6',
+    'C=O': '#EC4899', 'N\u2261N': '#8B5CF6', 'C-Cl': '#059669', 'Cl-Cl': '#84CC16',
+    'C-Br': '#A855F7', 'H-Cl': '#06B6D4', 'N=O': '#F43F5E', 'H-Br': '#D946EF',
+    'O-O': '#FB923C', 'Br-Br': '#C084FC'
+  };
+
+  // ═══════════════════════════════════════════════════
+  // Palette Building
+  // ═══════════════════════════════════════════════════
+  function buildPalette() {
+    var list = document.getElementById('paletteList');
+    while (list.firstChild) list.removeChild(list.firstChild);
+
+    for (var c = 0; c < CATEGORIES.length; c++) {
+      var cat = CATEGORIES[c];
+      var catHeader = document.createElement('div');
+      catHeader.className = 'palette-category' + (cat.key === 'hl' ? ' hl-cat' : '');
+      catHeader.textContent = cat.label;
+      list.appendChild(catHeader);
+
+      for (var r = 0; r < REACTIONS.length; r++) {
+        var rxn = REACTIONS[r];
+        if (rxn.category !== cat.key) continue;
+        var btn = document.createElement('button');
+        btn.className = 'palette-item' + (rxn.hlOnly ? ' hl-rxn' : '');
+        btn.textContent = rxn.equation;
+        btn.setAttribute('data-rxn-id', rxn.id);
+        btn.addEventListener('click', (function(id) {
+          return function() { selectReaction(id); };
+        })(rxn.id));
+        list.appendChild(btn);
+      }
+    }
+  }
+
+  function updatePaletteActive() {
+    var items = document.querySelectorAll('.palette-item');
+    for (var i = 0; i < items.length; i++) {
+      var id = items[i].getAttribute('data-rxn-id');
+      if (id === (_selectedRxn ? _selectedRxn.id : null)) {
+        items[i].classList.add('active');
+      } else {
+        items[i].classList.remove('active');
+      }
+    }
+  }
+
+  function filterPalette(query) {
+    var q = query.toLowerCase();
+    var items = document.querySelectorAll('.palette-item');
+    var cats = document.querySelectorAll('.palette-category');
+    // Track which categories have visible items
+    var catVisible = {};
+
+    for (var i = 0; i < items.length; i++) {
+      var text = items[i].textContent.toLowerCase();
+      var id = items[i].getAttribute('data-rxn-id');
+      var rxn = RXN_MAP[id];
+      var matchesSearch = !q || text.indexOf(q) !== -1;
+      if (matchesSearch) {
+        items[i].style.display = '';
+        catVisible[rxn.category] = true;
+      } else {
+        items[i].style.display = 'none';
+      }
+    }
+
+    for (var j = 0; j < cats.length; j++) {
+      var catKey = CATEGORIES[j] ? CATEGORIES[j].key : '';
+      if (!q) {
+        cats[j].style.display = '';
+      } else {
+        cats[j].style.display = catVisible[catKey] ? '' : 'none';
+      }
+    }
+  }
+
+  function buildPresets() {
+    var sel = document.getElementById('presetSelect');
+    for (var i = 0; i < PRESETS.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = PRESETS[i].name;
+      sel.appendChild(opt);
+    }
+    sel.addEventListener('change', function() {
+      if (!sel.value) return;
+      var preset = PRESETS[parseInt(sel.value, 10)];
+      if (preset.hlMode && !_hlEnabled) toggleHL();
+      _catalystOn = preset.catalyst;
+      selectReaction(preset.rxnId);
+      sel.value = '';
+    });
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Canvas Setup + Drawing Helpers
+  // ═══════════════════════════════════════════════════
+  function setupCanvas() {
+    _canvas = document.getElementById('profileCanvas');
+    _ctx = _canvas.getContext('2d');
+    var dpr = window.devicePixelRatio || 1;
+    _canvas.width = CANVAS_W * dpr;
+    _canvas.height = CANVAS_H * dpr;
+    _canvas.style.width = CANVAS_W + 'px';
+    _canvas.style.maxWidth = '100%';
+    _canvas.style.height = CANVAS_H + 'px';
+    _ctx.scale(dpr, dpr);
+  }
+
+  function clearCanvas() {
+    _ctx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+  }
+
+  function drawArrow(ctx, x1, y1, x2, y2, color, doubleHead) {
+    var headLen = 8;
+    var dx = x2 - x1;
+    var dy = y2 - y1;
+    var angle = Math.atan2(dy, dx);
+
+    ctx.save();
+    ctx.strokeStyle = color;
+    ctx.fillStyle = color;
+    ctx.lineWidth = 2;
+
+    // Line
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+
+    // Arrowhead at end
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath();
+    ctx.fill();
+
+    // Arrowhead at start (if double-headed)
+    if (doubleHead) {
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x1 + headLen * Math.cos(angle - Math.PI / 6), y1 + headLen * Math.sin(angle - Math.PI / 6));
+      ctx.lineTo(x1 + headLen * Math.cos(angle + Math.PI / 6), y1 + headLen * Math.sin(angle + Math.PI / 6));
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    ctx.restore();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Energy Profile Rendering
+  // ═══════════════════════════════════════════════════
+  function easeInOutCubic(t) {
+    return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+  }
+
+  function drawEnergyProfile(rxn, animProgress) {
+    if (!rxn) return;
+    clearCanvas();
+    var ctx = _ctx;
+    var plotL = MARGIN.left;
+    var plotR = CANVAS_W - MARGIN.right;
+    var plotT = MARGIN.top;
+    var plotB = CANVAS_H - MARGIN.bottom;
+    var plotW = plotR - plotL;
+    var plotH = plotB - plotT;
+
+    var reactantE = 0;
+    var productE = rxn.deltaH;
+    var transitionE = rxn.Ea;
+
+    // Find Y range
+    var minE = Math.min(reactantE, productE);
+    var maxE = Math.max(transitionE, reactantE, productE);
+    var range = maxE - minE;
+    var pad = range * 0.15;
+    var yMin = minE - pad;
+    var yMax = maxE + pad;
+
+    function toY(e) { return plotB - ((e - yMin) / (yMax - yMin)) * plotH; }
+    function toX(frac) { return plotL + frac * plotW; }
+
+    // ── Background ──
+    ctx.save();
+    ctx.fillStyle = '#FAFBFC';
+    ctx.fillRect(plotL, plotT, plotW, plotH);
+    ctx.restore();
+
+    // ── Axes ──
+    ctx.save();
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(plotL, plotT);
+    ctx.lineTo(plotL, plotB);
+    ctx.lineTo(plotR, plotB);
+    ctx.stroke();
+    ctx.restore();
+
+    // Y-axis label
+    ctx.save();
+    ctx.fillStyle = '#64748B';
+    ctx.font = '500 12px Inter, sans-serif';
+    ctx.translate(16, plotT + plotH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('Enthalpy / kJ', 0, 0);
+    ctx.restore();
+
+    // X-axis label
+    ctx.save();
+    ctx.fillStyle = '#64748B';
+    ctx.font = '500 12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Reaction progress \u2192', plotL + plotW / 2, CANVAS_H - 10);
+    ctx.restore();
+
+    // ── Clip to animation progress ──
+    var progress = (animProgress !== undefined) ? animProgress : 1;
+    var isExo = rxn.type === 'exo';
+    var curveColor = isExo ? '#DC2626' : '#2563EB';
+    var bgTint = isExo ? 'rgba(220,38,38,0.04)' : 'rgba(37,99,235,0.04)';
+
+    // ── Energy level plateaus ──
+    var reactantY = toY(reactantE);
+    var productY = toY(productE);
+    var transY = toY(transitionE);
+
+    // Plateau alpha for animation
+    var plateauAlpha = Math.min(1, progress * 5);
+
+    ctx.save();
+    ctx.globalAlpha = plateauAlpha;
+    ctx.setLineDash([4, 4]);
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#94A3B8';
+
+    // Reactant level line
+    ctx.beginPath();
+    ctx.moveTo(plotL, reactantY);
+    ctx.lineTo(toX(0.15), reactantY);
+    ctx.stroke();
+
+    // Product level line
+    if (progress > 0.7) {
+      ctx.beginPath();
+      ctx.moveTo(toX(0.85), productY);
+      ctx.lineTo(plotR, productY);
+      ctx.stroke();
+    }
+
+    ctx.setLineDash([]);
+    ctx.restore();
+
+    // ── Background tint between levels ──
+    if (progress > 0.5) {
+      var tintAlpha = Math.min(0.5, (progress - 0.5) * 2);
+      ctx.save();
+      ctx.globalAlpha = tintAlpha;
+      ctx.fillStyle = bgTint;
+      var tintTop = Math.min(reactantY, productY);
+      var tintBot = Math.max(reactantY, productY);
+      ctx.fillRect(toX(0.6), tintTop, toX(0.95) - toX(0.6), tintBot - tintTop);
+      ctx.restore();
+    }
+
+    // ── Main bezier curve ──
+    // Curve: reactant plateau → peak → product plateau
+    var rPlatEnd = 0.12;
+    var peakX = 0.50;
+    var pPlatStart = 0.88;
+
+    // Build the full path points
+    function getBezierPoint(t) {
+      // Piecewise: plateau → rise → peak → fall → plateau
+      if (t <= rPlatEnd) {
+        return { x: toX(t), y: reactantY };
+      } else if (t >= pPlatStart) {
+        return { x: toX(t), y: productY };
+      } else if (t <= peakX) {
+        // Rising segment: cubic bezier from (rPlatEnd, reactantY) to (peakX, transY)
+        var localT = (t - rPlatEnd) / (peakX - rPlatEnd);
+        var p0x = toX(rPlatEnd), p0y = reactantY;
+        var p3x = toX(peakX), p3y = transY;
+        var cp1x = p0x + (p3x - p0x) * 0.4, cp1y = p0y;
+        var cp2x = p3x - (p3x - p0x) * 0.3, cp2y = p3y;
+        var u = localT;
+        var x = Math.pow(1-u,3)*p0x + 3*Math.pow(1-u,2)*u*cp1x + 3*(1-u)*u*u*cp2x + u*u*u*p3x;
+        var y = Math.pow(1-u,3)*p0y + 3*Math.pow(1-u,2)*u*cp1y + 3*(1-u)*u*u*cp2y + u*u*u*p3y;
+        return { x: x, y: y };
+      } else {
+        // Falling segment: cubic bezier from (peakX, transY) to (pPlatStart, productY)
+        var localT2 = (t - peakX) / (pPlatStart - peakX);
+        var p0x2 = toX(peakX), p0y2 = transY;
+        var p3x2 = toX(pPlatStart), p3y2 = productY;
+        var cp1x2 = p0x2 + (p3x2 - p0x2) * 0.3, cp1y2 = p0y2;
+        var cp2x2 = p3x2 - (p3x2 - p0x2) * 0.4, cp2y2 = p3y2;
+        var u2 = localT2;
+        var x2 = Math.pow(1-u2,3)*p0x2 + 3*Math.pow(1-u2,2)*u2*cp1x2 + 3*(1-u2)*u2*u2*cp2x2 + u2*u2*u2*p3x2;
+        var y2 = Math.pow(1-u2,3)*p0y2 + 3*Math.pow(1-u2,2)*u2*cp1y2 + 3*(1-u2)*u2*u2*cp2y2 + u2*u2*u2*p3y2;
+        return { x: x2, y: y2 };
+      }
+    }
+
+    // Draw main curve up to progress
+    var drawTo = rPlatEnd + (1 - rPlatEnd) * progress;
+    ctx.save();
+    ctx.strokeStyle = curveColor;
+    ctx.lineWidth = 3;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    var steps = 200;
+    for (var s = 0; s <= steps; s++) {
+      var t = (s / steps) * drawTo;
+      var pt = getBezierPoint(t);
+      if (s === 0) ctx.moveTo(pt.x, pt.y);
+      else ctx.lineTo(pt.x, pt.y);
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    // ── Catalyst overlay ──
+    if (_catalystOn && progress > 0.8) {
+      var catProgress = Math.min(1, (progress - 0.8) * 5);
+      var catTransE = rxn.Ea * 0.55;
+      var catTransY = toY(catTransE);
+
+      function getCatBezierPoint(t) {
+        if (t <= rPlatEnd) return { x: toX(t), y: reactantY };
+        if (t >= pPlatStart) return { x: toX(t), y: productY };
+        if (t <= peakX) {
+          var lt = (t - rPlatEnd) / (peakX - rPlatEnd);
+          var p0x = toX(rPlatEnd), p0y = reactantY;
+          var p3x = toX(peakX), p3y = catTransY;
+          var c1x = p0x + (p3x-p0x)*0.4, c1y = p0y;
+          var c2x = p3x - (p3x-p0x)*0.3, c2y = p3y;
+          var u = lt;
+          return {
+            x: Math.pow(1-u,3)*p0x + 3*Math.pow(1-u,2)*u*c1x + 3*(1-u)*u*u*c2x + u*u*u*p3x,
+            y: Math.pow(1-u,3)*p0y + 3*Math.pow(1-u,2)*u*c1y + 3*(1-u)*u*u*c2y + u*u*u*p3y
+          };
+        } else {
+          var lt2 = (t - peakX) / (pPlatStart - peakX);
+          var p0x2 = toX(peakX), p0y2 = catTransY;
+          var p3x2 = toX(pPlatStart), p3y2 = productY;
+          var c1x2 = p0x2 + (p3x2-p0x2)*0.3, c1y2 = p0y2;
+          var c2x2 = p3x2 - (p3x2-p0x2)*0.4, c2y2 = p3y2;
+          var u2 = lt2;
+          return {
+            x: Math.pow(1-u2,3)*p0x2 + 3*Math.pow(1-u2,2)*u2*c1x2 + 3*(1-u2)*u2*u2*c2x2 + u2*u2*u2*p3x2,
+            y: Math.pow(1-u2,3)*p0y2 + 3*Math.pow(1-u2,2)*u2*c1y2 + 3*(1-u2)*u2*u2*c2y2 + u2*u2*u2*p3y2
+          };
+        }
+      }
+
+      var catDrawTo = rPlatEnd + (1 - rPlatEnd) * catProgress;
+      ctx.save();
+      ctx.strokeStyle = '#059669';
+      ctx.lineWidth = 2.5;
+      ctx.setLineDash([8, 6]);
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      for (var cs = 0; cs <= steps; cs++) {
+        var ct = (cs / steps) * catDrawTo;
+        var cpt = getCatBezierPoint(ct);
+        if (cs === 0) ctx.moveTo(cpt.x, cpt.y);
+        else ctx.lineTo(cpt.x, cpt.y);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.restore();
+
+      // Legend
+      if (catProgress > 0.5) {
+        var legX = plotR - 160;
+        var legY = plotT + 8;
+        ctx.save();
+        ctx.fillStyle = 'rgba(255,255,255,0.92)';
+        ctx.strokeStyle = '#E2E8F0';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.roundRect(legX, legY, 155, 48, 6);
+        ctx.fill();
+        ctx.stroke();
+
+        ctx.font = '500 10px Inter, sans-serif';
+        ctx.fillStyle = '#1E293B';
+
+        // Solid line
+        ctx.strokeStyle = curveColor;
+        ctx.lineWidth = 2.5;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.moveTo(legX + 8, legY + 16);
+        ctx.lineTo(legX + 30, legY + 16);
+        ctx.stroke();
+        ctx.fillText('Without catalyst', legX + 36, legY + 20);
+
+        // Dashed line
+        ctx.strokeStyle = '#059669';
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.moveTo(legX + 8, legY + 34);
+        ctx.lineTo(legX + 30, legY + 34);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillText('With catalyst', legX + 36, legY + 38);
+
+        ctx.restore();
+      }
+    }
+
+    // ── Annotations ──
+    if (_annotationsOn && progress >= 1) {
+      var annotAlpha = 1;
+
+      ctx.save();
+      ctx.globalAlpha = annotAlpha;
+
+      // Reactant label
+      ctx.font = '600 11px Inter, sans-serif';
+      ctx.fillStyle = '#475569';
+      ctx.textAlign = 'center';
+      ctx.fillText('Reactants', toX(0.06), reactantY - 12);
+
+      // Product label
+      ctx.fillText('Products', toX(0.94), productY - 12);
+
+      // Transition state label + dot
+      ctx.fillText('Transition state', toX(peakX), transY - 14);
+      ctx.fillStyle = curveColor;
+      ctx.beginPath();
+      ctx.arc(toX(peakX), transY, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      // ΔH arrow at x=0.82
+      var dhX = toX(0.82);
+      var dhTop = Math.min(reactantY, productY);
+      var dhBot = Math.max(reactantY, productY);
+      if (Math.abs(rxn.deltaH) > 0.5) {
+        drawArrow(ctx, dhX, reactantY, dhX, productY, curveColor, true);
+        // Label
+        ctx.font = '600 11px "Fira Code", monospace';
+        ctx.fillStyle = curveColor;
+        ctx.textAlign = 'left';
+        var dhSign = rxn.deltaH < 0 ? '' : '+';
+        ctx.fillText('\u0394H = ' + dhSign + rxn.deltaH + ' kJ/mol', dhX + 8, (dhTop + dhBot) / 2 + 4);
+      }
+
+      // Ea arrow at x=0.35
+      var eaX = toX(0.35);
+      drawArrow(ctx, eaX, reactantY, eaX, transY, '#0D9488', false);
+      ctx.font = '600 11px "Fira Code", monospace';
+      ctx.fillStyle = '#0D9488';
+      ctx.textAlign = 'left';
+      ctx.fillText('Ea = +' + rxn.Ea + ' kJ/mol', eaX + 8, (reactantY + transY) / 2 + 4);
+
+      // Catalyzed Ea arrow
+      if (_catalystOn) {
+        var catEaX = toX(0.28);
+        var catTransE2 = rxn.Ea * 0.55;
+        var catTransY2 = toY(catTransE2);
+        drawArrow(ctx, catEaX, reactantY, catEaX, catTransY2, '#059669', false);
+        ctx.font = '600 10px "Fira Code", monospace';
+        ctx.fillStyle = '#059669';
+        ctx.textAlign = 'left';
+        ctx.fillText('Ea (cat)', catEaX + 8, (reactantY + catTransY2) / 2 + 4);
+      }
+
+      ctx.restore();
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Animation
+  // ═══════════════════════════════════════════════════
+  function startDrawAnimation() {
+    _anim.phase = 'drawing';
+    _anim.progress = 0;
+    _anim.startTime = performance.now();
+    if (!_animFrame) {
+      _animFrame = requestAnimationFrame(animateLoop);
+    }
+  }
+
+  function animateLoop(timestamp) {
+    if (_anim.phase === 'idle') {
+      _animFrame = null;
+      return;
+    }
+
+    var elapsed = timestamp - _anim.startTime;
+
+    if (_anim.phase === 'drawing') {
+      _anim.progress = Math.min(1, elapsed / 1500);
+      var easedProgress = easeInOutCubic(_anim.progress);
+      drawEnergyProfile(_selectedRxn, easedProgress);
+
+      if (_anim.progress >= 1) {
+        _anim.phase = 'complete';
+        drawEnergyProfile(_selectedRxn, 1);
+        _animFrame = null;
+        return;
+      }
+    }
+
+    _animFrame = requestAnimationFrame(animateLoop);
+  }
+
+  function stopAnimation() {
+    if (_animFrame) {
+      cancelAnimationFrame(_animFrame);
+      _animFrame = null;
+    }
+    _anim.phase = 'idle';
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Reaction Info Panel
+  // ═══════════════════════════════════════════════════
+  function updateInfoPanel(rxn) {
+    var panel = document.getElementById('infoPanel');
+    while (panel.firstChild) panel.removeChild(panel.firstChild);
+
+    if (!rxn) {
+      var msg = document.createElement('div');
+      msg.style.cssText = 'color: var(--text-muted); font-size: 0.85rem;';
+      msg.textContent = 'Select a reaction from the palette to view its energy profile.';
+      panel.appendChild(msg);
+      return;
+    }
+
+    var isExo = rxn.type === 'exo';
+
+    // Row 1: Equation + badge
+    var row1 = document.createElement('div');
+    row1.className = 'info-row';
+
+    var eqSpan = document.createElement('span');
+    eqSpan.className = 'info-equation';
+    eqSpan.textContent = rxn.equation;
+    row1.appendChild(eqSpan);
+
+    var badge = document.createElement('span');
+    badge.className = 'type-badge ' + (isExo ? 'exo' : 'endo');
+    badge.textContent = isExo ? 'EXOTHERMIC' : 'ENDOTHERMIC';
+    row1.appendChild(badge);
+
+    panel.appendChild(row1);
+
+    // Row 2: Values
+    var row2 = document.createElement('div');
+    row2.className = 'info-row';
+
+    var dhVal = document.createElement('span');
+    dhVal.className = 'info-value ' + (isExo ? 'exo' : 'endo');
+    var dhSign = rxn.deltaH < 0 ? '' : '+';
+    dhVal.textContent = '\u0394H = ' + dhSign + rxn.deltaH + ' kJ/mol';
+    row2.appendChild(dhVal);
+
+    var eaVal = document.createElement('span');
+    eaVal.className = 'info-value ea';
+    eaVal.textContent = 'Ea = +' + rxn.Ea + ' kJ/mol';
+    row2.appendChild(eaVal);
+
+    panel.appendChild(row2);
+
+    // Toggles
+    var toggles = document.createElement('div');
+    toggles.className = 'info-toggles';
+
+    // Catalyst toggle
+    var catGroup = document.createElement('div');
+    catGroup.className = 'info-toggle-group';
+    var catCb = document.createElement('input');
+    catCb.type = 'checkbox';
+    catCb.id = 'catToggle';
+    catCb.checked = _catalystOn;
+    catCb.addEventListener('change', function() {
+      _catalystOn = catCb.checked;
+      redraw();
+    });
+    var catLabel = document.createElement('label');
+    catLabel.setAttribute('for', 'catToggle');
+    catLabel.textContent = 'Catalyst overlay';
+    catGroup.appendChild(catCb);
+    catGroup.appendChild(catLabel);
+    toggles.appendChild(catGroup);
+
+    // Annotations toggle
+    var annGroup = document.createElement('div');
+    annGroup.className = 'info-toggle-group';
+    var annCb = document.createElement('input');
+    annCb.type = 'checkbox';
+    annCb.id = 'annToggle';
+    annCb.checked = _annotationsOn;
+    annCb.addEventListener('change', function() {
+      _annotationsOn = annCb.checked;
+      redraw();
+    });
+    var annLabel = document.createElement('label');
+    annLabel.setAttribute('for', 'annToggle');
+    annLabel.textContent = 'Annotations';
+    annGroup.appendChild(annCb);
+    annGroup.appendChild(annLabel);
+    toggles.appendChild(annGroup);
+
+    panel.appendChild(toggles);
+
+    // Catalyst note
+    if (rxn.catalystNote) {
+      var note = document.createElement('div');
+      note.className = 'catalyst-note';
+      note.textContent = rxn.catalystNote;
+      panel.appendChild(note);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Bond Enthalpy Panel (HL)
+  // ═══════════════════════════════════════════════════
+  function updateBondPanel(rxn) {
+    var panel = document.getElementById('bondPanel');
+    while (panel.firstChild) panel.removeChild(panel.firstChild);
+
+    if (!rxn) {
+      var msg = document.createElement('div');
+      msg.className = 'bond-na-note';
+      msg.textContent = 'Select a reaction to view bond enthalpy calculations.';
+      panel.appendChild(msg);
+      return;
+    }
+
+    if (!rxn.bonds) {
+      var note = document.createElement('div');
+      note.className = 'bond-na-note';
+      note.textContent = 'Bond enthalpy calculations apply to gaseous covalent reactions only. This reaction involves ionic or aqueous species.';
+      panel.appendChild(note);
+      return;
+    }
+
+    var broken = rxn.bonds.broken;
+    var formed = rxn.bonds.formed;
+
+    // Calculate totals
+    var totalBroken = 0;
+    for (var i = 0; i < broken.length; i++) totalBroken += broken[i].count * broken[i].energy;
+    var totalFormed = 0;
+    for (var j = 0; j < formed.length; j++) totalFormed += formed[j].count * formed[j].energy;
+    var calcDeltaH = totalBroken - totalFormed;
+
+    // ── Stacked bars ──
+    // Bonds Broken bar
+    var brokenContainer = document.createElement('div');
+    brokenContainer.className = 'bond-bar-container';
+    var brokenLabel = document.createElement('div');
+    brokenLabel.className = 'bond-bar-label';
+    brokenLabel.textContent = 'Bonds Broken (endothermic)';
+    brokenContainer.appendChild(brokenLabel);
+
+    var maxTotal = Math.max(totalBroken, totalFormed);
+    var brokenTrack = document.createElement('div');
+    brokenTrack.className = 'bond-bar-track';
+    for (var bi = 0; bi < broken.length; bi++) {
+      var seg = document.createElement('div');
+      seg.className = 'bond-bar-segment';
+      var segWidth = (broken[bi].count * broken[bi].energy / maxTotal) * 100;
+      seg.style.width = segWidth + '%';
+      seg.style.backgroundColor = BOND_COLORS[broken[bi].bond] || '#94A3B8';
+      if (segWidth > 8) seg.textContent = broken[bi].bond;
+      seg.title = broken[bi].count + '\u00D7' + broken[bi].bond + ' = ' + (broken[bi].count * broken[bi].energy) + ' kJ';
+      brokenTrack.appendChild(seg);
+    }
+    var brokenTotal = document.createElement('span');
+    brokenTotal.className = 'bond-bar-total';
+    brokenTotal.style.color = '#DC2626';
+    brokenTotal.textContent = '+' + totalBroken + ' kJ';
+    brokenTrack.appendChild(brokenTotal);
+    brokenContainer.appendChild(brokenTrack);
+    panel.appendChild(brokenContainer);
+
+    // Bonds Formed bar
+    var formedContainer = document.createElement('div');
+    formedContainer.className = 'bond-bar-container';
+    var formedLabel = document.createElement('div');
+    formedLabel.className = 'bond-bar-label';
+    formedLabel.textContent = 'Bonds Formed (exothermic)';
+    formedContainer.appendChild(formedLabel);
+
+    var formedTrack = document.createElement('div');
+    formedTrack.className = 'bond-bar-track';
+    for (var fi = 0; fi < formed.length; fi++) {
+      var seg2 = document.createElement('div');
+      seg2.className = 'bond-bar-segment';
+      var segWidth2 = (formed[fi].count * formed[fi].energy / maxTotal) * 100;
+      seg2.style.width = segWidth2 + '%';
+      seg2.style.backgroundColor = BOND_COLORS[formed[fi].bond] || '#94A3B8';
+      if (segWidth2 > 8) seg2.textContent = formed[fi].bond;
+      seg2.title = formed[fi].count + '\u00D7' + formed[fi].bond + ' = ' + (formed[fi].count * formed[fi].energy) + ' kJ';
+      formedTrack.appendChild(seg2);
+    }
+    var formedTotal = document.createElement('span');
+    formedTotal.className = 'bond-bar-total';
+    formedTotal.style.color = '#2563EB';
+    formedTotal.textContent = '\u2212' + totalFormed + ' kJ';
+    formedTrack.appendChild(formedTotal);
+    formedContainer.appendChild(formedTrack);
+    panel.appendChild(formedContainer);
+
+    // ── Itemized table ──
+    var table = document.createElement('table');
+    table.className = 'bond-table';
+    var thead = document.createElement('thead');
+    var headRow = document.createElement('tr');
+    var headers = ['Bonds Broken', 'Energy', 'Bonds Formed', 'Energy'];
+    for (var hi = 0; hi < headers.length; hi++) {
+      var th = document.createElement('th');
+      th.textContent = headers[hi];
+      headRow.appendChild(th);
+    }
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    var maxRows = Math.max(broken.length, formed.length);
+    for (var ri = 0; ri < maxRows; ri++) {
+      var tr = document.createElement('tr');
+      if (ri < broken.length) {
+        var td1 = document.createElement('td');
+        td1.textContent = broken[ri].count + ' \u00D7 ' + broken[ri].bond;
+        tr.appendChild(td1);
+        var td2 = document.createElement('td');
+        td2.textContent = (broken[ri].count * broken[ri].energy) + ' kJ';
+        tr.appendChild(td2);
+      } else {
+        tr.appendChild(document.createElement('td'));
+        tr.appendChild(document.createElement('td'));
+      }
+      if (ri < formed.length) {
+        var td3 = document.createElement('td');
+        td3.textContent = formed[ri].count + ' \u00D7 ' + formed[ri].bond;
+        tr.appendChild(td3);
+        var td4 = document.createElement('td');
+        td4.textContent = (formed[ri].count * formed[ri].energy) + ' kJ';
+        tr.appendChild(td4);
+      } else {
+        tr.appendChild(document.createElement('td'));
+        tr.appendChild(document.createElement('td'));
+      }
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    panel.appendChild(table);
+
+    // ── Calculation line ──
+    var calcLine = document.createElement('div');
+    calcLine.className = 'bond-calc-line';
+    var calcSign = calcDeltaH < 0 ? '' : '+';
+    calcLine.textContent = '\u0394H = \u03A3(broken) \u2212 \u03A3(formed) = ' + totalBroken + ' \u2212 ' + totalFormed + ' = ' + calcSign + calcDeltaH + ' kJ/mol';
+    panel.appendChild(calcLine);
+
+    // ── Discrepancy note ──
+    var disc = document.createElement('div');
+    disc.className = 'bond-discrepancy';
+    var dhSign2 = rxn.deltaH < 0 ? '' : '+';
+    disc.textContent = 'Bond enthalpies are average values \u2014 calculated \u0394H is approximate. Data booklet value: ' + dhSign2 + rxn.deltaH + ' kJ/mol';
+    panel.appendChild(disc);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Selection + Redraw
+  // ═══════════════════════════════════════════════════
+  function selectReaction(id) {
+    var rxn = RXN_MAP[id];
+    if (!rxn) return;
+    _selectedRxn = rxn;
+    updatePaletteActive();
+    updateInfoPanel(rxn);
+    updateBondPanel(rxn);
+    stopAnimation();
+    startDrawAnimation();
+  }
+
+  function redraw() {
+    if (_selectedRxn) {
+      drawEnergyProfile(_selectedRxn, 1);
+      updateInfoPanel(_selectedRxn);
+      updateBondPanel(_selectedRxn);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // HL / Teacher toggles
+  // ═══════════════════════════════════════════════════
+  function toggleHL() {
+    _hlEnabled = !_hlEnabled;
+    document.body.classList.toggle('hl-active', _hlEnabled);
+    // If current reaction is HL-only and HL is off, deselect
+    if (!_hlEnabled && _selectedRxn && _selectedRxn.hlOnly) {
+      selectReaction('ch4_comb');
+    }
+    if (_selectedRxn) updateBondPanel(_selectedRxn);
+  }
+
+  function toggleTeacher() {
+    _teacherMode = !_teacherMode;
+    var presetSection = document.getElementById('presetSection');
+    presetSection.style.display = _teacherMode ? 'block' : 'none';
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Keyboard Shortcuts
+  // ═══════════════════════════════════════════════════
+  function getVisibleReactions() {
+    var visible = [];
+    for (var i = 0; i < REACTIONS.length; i++) {
+      if (REACTIONS[i].hlOnly && !_hlEnabled) continue;
+      visible.push(REACTIONS[i]);
+    }
+    return visible;
+  }
+
+  document.addEventListener('keydown', function(e) {
+    // Don't capture when typing in search
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+      if (e.key === 'Escape') {
+        e.target.blur();
+        document.getElementById('rxnSearch').value = '';
+        filterPalette('');
+      }
+      return;
+    }
+
+    switch (e.key.toLowerCase()) {
+      case 'h':
+        e.preventDefault();
+        toggleHL();
+        break;
+      case 't':
+        e.preventDefault();
+        toggleTeacher();
+        break;
+      case 'c':
+        e.preventDefault();
+        _catalystOn = !_catalystOn;
+        redraw();
+        break;
+      case 'a':
+        e.preventDefault();
+        _annotationsOn = !_annotationsOn;
+        redraw();
+        break;
+      case 'r':
+        e.preventDefault();
+        _catalystOn = false;
+        _annotationsOn = true;
+        selectReaction('ch4_comb');
+        break;
+      case '/':
+        e.preventDefault();
+        document.getElementById('rxnSearch').focus();
+        break;
+      case 'escape':
+        document.getElementById('rxnSearch').value = '';
+        filterPalette('');
+        break;
+      case 'arrowup':
+        e.preventDefault();
+        navigateReaction(-1);
+        break;
+      case 'arrowdown':
+        e.preventDefault();
+        navigateReaction(1);
+        break;
+    }
+  });
+
+  function navigateReaction(dir) {
+    var visible = getVisibleReactions();
+    if (!visible.length) return;
+    var idx = -1;
+    if (_selectedRxn) {
+      for (var i = 0; i < visible.length; i++) {
+        if (visible[i].id === _selectedRxn.id) { idx = i; break; }
+      }
+    }
+    idx += dir;
+    if (idx < 0) idx = visible.length - 1;
+    if (idx >= visible.length) idx = 0;
+    selectReaction(visible[idx].id);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Header Toggles (SimEngine-style)
+  // ═══════════════════════════════════════════════════
+  function buildHeaderToggles() {
+    var container = document.getElementById('headerToggles');
+
+    // HL toggle
+    var hlGroup = document.createElement('div');
+    hlGroup.className = 'sim-toggle-group';
+    var hlLabel = document.createElement('span');
+    hlLabel.className = 'sim-toggle-label';
+    hlLabel.textContent = 'HL';
+    var hlToggle = document.createElement('label');
+    hlToggle.className = 'sim-toggle';
+    var hlInput = document.createElement('input');
+    hlInput.type = 'checkbox';
+    hlInput.addEventListener('change', function() {
+      _hlEnabled = hlInput.checked;
+      document.body.classList.toggle('hl-active', _hlEnabled);
+      if (!_hlEnabled && _selectedRxn && _selectedRxn.hlOnly) {
+        selectReaction('ch4_comb');
+      }
+      if (_selectedRxn) updateBondPanel(_selectedRxn);
+    });
+    var hlSlider = document.createElement('span');
+    hlSlider.className = 'sim-toggle-slider';
+    hlSlider.style.setProperty('--toggle-on', 'var(--purple)');
+    hlToggle.appendChild(hlInput);
+    hlToggle.appendChild(hlSlider);
+    hlGroup.appendChild(hlLabel);
+    hlGroup.appendChild(hlToggle);
+    container.appendChild(hlGroup);
+
+    // Teacher toggle
+    var tGroup = document.createElement('div');
+    tGroup.className = 'sim-toggle-group';
+    var tLabel = document.createElement('span');
+    tLabel.className = 'sim-toggle-label';
+    tLabel.textContent = 'Teacher';
+    var tToggle = document.createElement('label');
+    tToggle.className = 'sim-toggle';
+    var tInput = document.createElement('input');
+    tInput.type = 'checkbox';
+    tInput.addEventListener('change', function() {
+      _teacherMode = tInput.checked;
+      var presetSection = document.getElementById('presetSection');
+      presetSection.style.display = _teacherMode ? 'block' : 'none';
+    });
+    var tSlider = document.createElement('span');
+    tSlider.className = 'sim-toggle-slider';
+    tToggle.appendChild(tInput);
+    tToggle.appendChild(tSlider);
+    tGroup.appendChild(tLabel);
+    tGroup.appendChild(tToggle);
+    container.appendChild(tGroup);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Init
+  // ═══════════════════════════════════════════════════
+  function init() {
+    setupCanvas();
+    buildPalette();
+    buildPresets();
+    buildHeaderToggles();
+
+    // Hide presets by default (teacher mode off)
+    document.getElementById('presetSection').style.display = 'none';
+
+    // Search handler
+    document.getElementById('rxnSearch').addEventListener('input', function() {
+      filterPalette(this.value);
+    });
+
+    // Select default reaction
+    selectReaction('ch4_comb');
+  }
+
+  // Wait for DOM
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+</body>
+</html>
