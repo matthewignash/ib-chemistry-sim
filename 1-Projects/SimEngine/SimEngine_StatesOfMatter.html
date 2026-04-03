@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>States of Matter — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --red-bg: #FEF2F2;
+    --green-bg: #F0FDF4;
+    --amber-bg: #FFFBEB;
+    --sim-canvas-bg: #FAFBFC;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
+  }
+  .header-badge.hl { background: var(--hl-badge-bg); display: none; }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* ── Toggle ── */
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s; --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--toggle-on); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+  /* ── Tab Bar ── */
+  .tab-bar {
+    background: white; border-bottom: 2px solid var(--border);
+    display: flex; gap: 0; max-width: 1200px; margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .tab-btn {
+    padding: 0.75rem 1.5rem; font-size: 0.85rem; font-weight: 600;
+    color: var(--text-muted); background: none; border: none;
+    border-bottom: 3px solid transparent; cursor: pointer;
+    transition: all 0.2s; font-family: inherit; margin-bottom: -2px;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--teal-bg); }
+  .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .tab-btn .tab-num {
+    display: inline-block; width: 20px; height: 20px; line-height: 20px;
+    text-align: center; border-radius: 4px; font-size: 0.65rem; font-weight: 700;
+    background: var(--border); color: var(--text-muted); margin-right: 0.4rem;
+  }
+  .tab-btn.active .tab-num { background: var(--teal); color: white; }
+
+  /* ── Layout ── */
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sim-top-row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .sim-card {
+    background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy); color: white; padding: 0.6rem 1rem;
+    font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  /* ── Palette ── */
+  .palette-panel { max-height: 600px; display: flex; flex-direction: column; position: sticky; top: 1rem; align-self: start; grid-column: 1; grid-row: 1; }
+  .tab-content { grid-column: 2; grid-row: 1; }
+  .palette-panel .sim-card-body { padding: 0.5rem; overflow-y: auto; flex: 1; }
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+  .tab-btn:focus-visible, .check-btn:focus-visible, .palette-item:focus-visible,
+  .mb-preset-btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .palette-category {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); padding: 0.4rem 0.3rem 0.2rem; margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block; width: 100%; text-align: left; padding: 0.3rem 0.5rem; margin: 0.15rem 0; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .palette-item:hover { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .palette-item.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+  .preset-section { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); display: none; }
+  .preset-section select {
+    width: 100%; padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.75rem; font-family: inherit; cursor: pointer;
+  }
+
+  /* ── Main Panel ── */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Canvas ── */
+  .sim-canvas { display: block; width: 100%; background: var(--sim-canvas-bg); border-radius: 4px; }
+
+  /* ── Buttons ── */
+  .check-btn {
+    display: inline-block; padding: 0.5rem 1.2rem; margin-top: 0.75rem;
+    background: var(--teal); color: white; border: none; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    transition: background 0.2s;
+  }
+  .check-btn:hover { background: #0B7C73; }
+  .check-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+  .btn-row { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }
+
+  /* ── State badge ── */
+  .state-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.82rem; font-weight: 700; letter-spacing: 0.03em;
+  }
+  .state-badge.solid { background: #DBEAFE; color: #1E40AF; }
+  .state-badge.liquid { background: #D1FAE5; color: #065F46; }
+  .state-badge.gas { background: #FEE2E2; color: #991B1B; }
+
+  /* ── Property cards ── */
+  .property-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.75rem; }
+  .prop-card {
+    padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--border);
+    background: white; font-size: 0.78rem;
+  }
+  .prop-card-label { font-weight: 700; font-size: 0.68rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.15rem; }
+  .prop-card-value { font-weight: 600; color: var(--text); }
+
+  /* ── Slider ── */
+  .temp-slider-wrap { margin-top: 0.75rem; }
+  .temp-slider-wrap label { font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 0.25rem; }
+  .temp-slider-wrap input[type="range"] { width: 100%; }
+  .temp-readout { font-family: 'Fira Code', monospace; font-size: 0.82rem; font-weight: 600; color: var(--teal); margin-top: 0.2rem; }
+
+  /* ── MB preset buttons ── */
+  .mb-preset-btn {
+    padding: 0.3rem 0.7rem; border-radius: 6px; font-size: 0.72rem; font-weight: 600;
+    border: 2px solid; cursor: pointer; background: white; font-family: inherit; transition: all 0.15s;
+  }
+  .mb-preset-btn.active { color: white; }
+  .mb-preset-btn:hover { opacity: 0.85; }
+
+  /* ── Annotation panel ── */
+  .annotation-panel {
+    margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px;
+    border: 1px solid var(--border); background: white; font-size: 0.82rem;
+  }
+  .annotation-panel-title { font-weight: 700; font-size: 0.72rem; text-transform: uppercase; color: var(--teal); margin-bottom: 0.3rem; }
+
+  /* ── HL / Teacher ── */
+  .hl-panel { display: none; }
+  body.hl-active .hl-panel { display: block; }
+  .hl-card {
+    margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px;
+    border: 1px solid var(--hl-border); background: #F5F3FF;
+  }
+  .hl-card-title {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 0.3rem;
+  }
+  .teacher-panel { display: none; }
+  body.teacher-active .teacher-panel { display: block; }
+  body.teacher-active .preset-section { display: block; }
+  .answer-reveal {
+    margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: var(--amber-bg);
+    border: 1px solid #FCD34D; border-radius: 6px; font-size: 0.78rem;
+    font-family: 'Fira Code', monospace; display: none;
+  }
+  body.teacher-active .answer-reveal { display: block; }
+
+  /* ── Keyboard Hint ── */
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .palette-panel { max-height: 200px; position: static; }
+    .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>States of Matter</h1>
+    <span class="subtitle">IB Chemistry — S1.1 States of Matter</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">S1.1</span>
+    <span class="header-badge hl">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="particle"><span class="tab-num">1</span>Particle View</button>
+  <button class="tab-btn" data-tab="heating"><span class="tab-num">2</span>Heating Curve</button>
+  <button class="tab-btn" data-tab="maxwell"><span class="tab-num">3</span>KE Distribution</button>
+</div>
+
+<!-- Main Content -->
+<div class="sim-container">
+  <div class="sim-top-row">
+
+    <!-- Sidebar -->
+    <div class="sim-card palette-panel">
+      <div class="sim-card-header" id="paletteHeader">Substances</div>
+      <div class="sim-card-body">
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search substances">
+        <div id="paletteList"></div>
+        <div id="sidebarControls"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect" aria-label="Teacher presets">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 1: Particle View -->
+    <div class="tab-content active" id="tab-particle">
+      <div class="sim-card">
+        <div class="sim-card-header">Particle Simulation</div>
+        <div class="sim-card-body">
+          <canvas id="particleCanvas" class="sim-canvas" height="400" role="img" aria-label="Animated particle simulation showing states of matter"></canvas>
+          <div id="particleInfo"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Heating Curve -->
+    <div class="tab-content" id="tab-heating">
+      <div class="sim-card">
+        <div class="sim-card-header">Heating Curve</div>
+        <div class="sim-card-body">
+          <canvas id="heatingCanvas" class="sim-canvas" height="350" role="img" aria-label="Temperature vs energy heating curve"></canvas>
+          <div id="heatingControls"></div>
+          <div id="heatingAnnotation"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: KE Distribution -->
+    <div class="tab-content" id="tab-maxwell">
+      <div class="sim-card">
+        <div class="sim-card-header">Maxwell-Boltzmann Distribution</div>
+        <div class="sim-card-body">
+          <canvas id="maxwellCanvas" class="sim-canvas" height="300" role="img" aria-label="Maxwell-Boltzmann kinetic energy distribution"></canvas>
+          <div id="maxwellControls"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="keyboard-hint">
+    <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp;
+    <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Tabs &nbsp;
+    <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp;
+    <kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate &nbsp;
+    <kbd>E</kbd> Export CSV &nbsp;
+    <kbd>Space</kbd> Play/Pause
+  </div>
+</div>
+
+<script>
+// roundRect polyfill
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    var tl = r[0]||0, tr = r[1]||0, br = r[2]||0, bl = r[3]||0;
+    this.beginPath();
+    this.moveTo(x+tl, y);
+    this.lineTo(x+w-tr, y);
+    this.quadraticCurveTo(x+w, y, x+w, y+tr);
+    this.lineTo(x+w, y+h-br);
+    this.quadraticCurveTo(x+w, y+h, x+w-br, y+h);
+    this.lineTo(x+bl, y+h);
+    this.quadraticCurveTo(x, y+h, x, y+h-bl);
+    this.lineTo(x, y+tl);
+    this.quadraticCurveTo(x, y, x+tl, y);
+    this.closePath();
+    return this;
+  };
+}
+
+(function() {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════
+  // Helpers
+  // ═══════════════════════════════════════════════════
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined && text !== null) e.textContent = text;
+    return e;
+  }
+
+  function round(val, dp) {
+    if (dp === undefined) dp = 1;
+    var f = Math.pow(10, dp);
+    return Math.round(val * f) / f;
+  }
+
+  function setupCanvas(canvas) {
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.offsetWidth;
+    if (!canvas.dataset.baseHeight) {
+      canvas.dataset.baseHeight = canvas.getAttribute('height') || '300';
+    }
+    var h = parseInt(canvas.dataset.baseHeight);
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+
+  function q(s) {
+    if (s === undefined || s === null) return '""';
+    s = String(s);
+    if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  }
+
+  function lerp(a, b, t) {
+    return a + (b - a) * Math.max(0, Math.min(1, t));
+  }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  // ═══════════════════════════════════════════════════
+  // DATA
+  // ═══════════════════════════════════════════════════
+  var CATEGORIES = [
+    { key: 'molecular', label: 'Molecular' },
+    { key: 'ionic', label: 'Ionic' },
+    { key: 'metallic', label: 'Metallic' }
+  ];
+
+  var SUBSTANCES = [
+    { id: 'water',   label: 'Water (H\u2082O)',   category: 'molecular', mp: 273, bp: 373, color: '#2563EB',
+      dhFus: 6.01, dhVap: 40.7, cp: [2.09, 4.18, 2.01] },
+    { id: 'ethanol', label: 'Ethanol (C\u2082H\u2085OH)', category: 'molecular', mp: 159, bp: 351, color: '#059669',
+      dhFus: 4.9, dhVap: 38.6, cp: [0.97, 2.44, 1.42] },
+    { id: 'nacl',    label: 'NaCl',               category: 'ionic',     mp: 1074, bp: 1686, color: '#7C3AED',
+      dhFus: 28.2, dhVap: 170.0, cp: [0.87, 1.08, 0.50] },
+    { id: 'iron',    label: 'Iron (Fe)',           category: 'metallic',  mp: 1811, bp: 3134, color: '#DC2626',
+      dhFus: 13.8, dhVap: 347.0, cp: [0.45, 0.82, 0.45] }
+  ];
+
+  var TEACHER_PRESETS = [
+    { label: 'Molecular comparison', ids: ['water', 'ethanol'] },
+    { label: 'Ionic vs Molecular', ids: ['water', 'nacl'] },
+    { label: 'High mp/bp contrast', ids: ['ethanol', 'iron'] },
+    { label: 'All substances', ids: ['water', 'ethanol', 'nacl', 'iron'] }
+  ];
+
+  var MB_PRESETS = [
+    { temp: 200, label: '200 K', color: '#2563EB' },
+    { temp: 400, label: '400 K', color: '#0D9488' },
+    { temp: 800, label: '800 K', color: '#DC2626' }
+  ];
+
+  var SEGMENT_ANNOTATIONS = [
+    { label: 'Solid heating', desc: 'Particles vibrate faster around fixed lattice positions. Temperature rises as kinetic energy increases.' },
+    { label: 'Melting (fusion)', desc: 'Energy breaks intermolecular forces. Temperature stays constant at the melting point. Particles gain freedom to slide past each other.' },
+    { label: 'Liquid heating', desc: 'Particles move faster with greater translational motion. Temperature rises as average kinetic energy increases.' },
+    { label: 'Boiling (vaporization)', desc: 'Energy overcomes remaining intermolecular forces. Temperature stays constant at the boiling point. Particles escape into the gas phase.' },
+    { label: 'Gas heating', desc: 'Particles move freely at high speed, filling all available space. Temperature rises as kinetic energy increases further.' }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // STATE
+  // ═══════════════════════════════════════════════════
+  var _activeTab = 'particle';
+  var _selected = SUBSTANCES[0];
+  var _temperature = 300;
+  var _particles = [];
+  var _paused = false;
+
+  // Heating curve
+  var _heatProgress = 0;
+  var _heatAnimating = false;
+  var _selectedSegment = -1;
+
+  // Maxwell-Boltzmann
+  var _mbActive = [false, false, false]; // which presets are toggled
+  var _mbThreshold = 0.6; // 0..1 fraction of x-axis
+
+  // ═══════════════════════════════════════════════════
+  // PALETTE
+  // ═══════════════════════════════════════════════════
+  function buildPalette() {
+    var list = document.getElementById('paletteList');
+    list.textContent = '';
+    var searchVal = document.getElementById('paletteSearch').value.toLowerCase();
+
+    CATEGORIES.forEach(function(cat) {
+      var items = SUBSTANCES.filter(function(s) {
+        return s.category === cat.key && s.label.toLowerCase().indexOf(searchVal) >= 0;
+      });
+      if (items.length === 0) return;
+      var catEl = el('div', 'palette-category', cat.label);
+      list.appendChild(catEl);
+      items.forEach(function(s) {
+        var btn = el('button', 'palette-item', s.label);
+        if (_selected && _selected.id === s.id) btn.className += ' active';
+        btn.addEventListener('click', function() { selectSubstance(s); });
+        list.appendChild(btn);
+      });
+    });
+
+    // Teacher presets
+    var presetSel = document.getElementById('presetSelect');
+    presetSel.textContent = '';
+    var defOpt = el('option', '', 'Teacher Presets...');
+    defOpt.value = '';
+    presetSel.appendChild(defOpt);
+    TEACHER_PRESETS.forEach(function(p, i) {
+      var opt = el('option', '', p.label);
+      opt.value = String(i);
+      presetSel.appendChild(opt);
+    });
+    presetSel.onchange = function() {
+      if (presetSel.value === '') return;
+      var preset = TEACHER_PRESETS[parseInt(presetSel.value)];
+      if (preset && preset.ids.length > 0) {
+        var s = SUBSTANCES.find(function(x) { return x.id === preset.ids[0]; });
+        if (s) selectSubstance(s);
+      }
+    };
+
+    buildSidebarControls();
+  }
+
+  function buildSidebarControls() {
+    var wrap = document.getElementById('sidebarControls');
+    wrap.textContent = '';
+
+    if (_activeTab === 'particle') {
+      // Temperature slider
+      var sliderWrap = el('div', 'temp-slider-wrap');
+      var label = el('label', '', 'Temperature');
+      var minT = Math.max(50, _selected.mp - 100);
+      var maxT = _selected.bp + 200;
+      var slider = document.createElement('input');
+      slider.type = 'range';
+      slider.min = String(minT);
+      slider.max = String(maxT);
+      slider.value = String(clamp(_temperature, minT, maxT));
+      slider.setAttribute('aria-label', 'Temperature');
+      var readout = el('div', 'temp-readout', _temperature + ' K');
+      slider.addEventListener('input', function() {
+        _temperature = parseInt(slider.value);
+        readout.textContent = _temperature + ' K';
+        initParticles();
+        if (_activeTab === 'particle') renderParticleTab();
+      });
+      sliderWrap.appendChild(label);
+      sliderWrap.appendChild(slider);
+      sliderWrap.appendChild(readout);
+      wrap.appendChild(sliderWrap);
+    }
+
+    if (_activeTab === 'heating') {
+      var row = el('div', 'btn-row');
+      var heatBtn = el('button', 'check-btn', 'Heat');
+      heatBtn.addEventListener('click', function() {
+        if (_heatAnimating) return;
+        _heatAnimating = true;
+        _heatProgress = 0;
+        _selectedSegment = -1;
+      });
+      var resetBtn = el('button', 'check-btn', 'Reset');
+      resetBtn.style.background = 'var(--text-muted)';
+      resetBtn.addEventListener('click', function() {
+        _heatAnimating = false;
+        _heatProgress = 0;
+        _selectedSegment = -1;
+        renderHeatingTab();
+      });
+      row.appendChild(heatBtn);
+      row.appendChild(resetBtn);
+      wrap.appendChild(row);
+    }
+
+    if (_activeTab === 'maxwell') {
+      var mLabel = el('div', 'palette-category', 'Temperature Presets');
+      wrap.appendChild(mLabel);
+      MB_PRESETS.forEach(function(p, i) {
+        var btn = el('button', 'mb-preset-btn', p.label);
+        btn.style.borderColor = p.color;
+        btn.style.color = p.color;
+        if (_mbActive[i]) {
+          btn.classList.add('active');
+          btn.style.background = p.color;
+          btn.style.color = 'white';
+        }
+        btn.addEventListener('click', function() {
+          _mbActive[i] = !_mbActive[i];
+          buildSidebarControls();
+          renderMaxwellTab();
+        });
+        wrap.appendChild(btn);
+      });
+    }
+  }
+
+  function selectSubstance(s) {
+    _selected = s;
+    _temperature = Math.round((s.mp + s.bp) / 2);
+    _heatProgress = 0;
+    _heatAnimating = false;
+    _selectedSegment = -1;
+    initParticles();
+    buildPalette();
+    refreshCurrentTab();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // HEADER TOGGLES
+  // ═══════════════════════════════════════════════════
+  function buildToggles() {
+    var wrap = document.getElementById('headerToggles');
+    wrap.textContent = '';
+
+    // HL toggle
+    var hlGroup = el('div', 'sim-toggle-group');
+    var hlLabel = el('span', 'sim-toggle-label', 'HL');
+    var hlToggle = el('label', 'sim-toggle');
+    var hlInput = document.createElement('input');
+    hlInput.type = 'checkbox';
+    hlInput.setAttribute('aria-label', 'Enable HL content');
+    hlInput.addEventListener('change', function() {
+      document.body.classList.toggle('hl-active', hlInput.checked);
+    });
+    var hlSlider = el('span', 'sim-toggle-slider');
+    hlSlider.style.setProperty('--toggle-on', 'var(--purple)');
+    hlToggle.appendChild(hlInput);
+    hlToggle.appendChild(hlSlider);
+    hlGroup.appendChild(hlLabel);
+    hlGroup.appendChild(hlToggle);
+    wrap.appendChild(hlGroup);
+
+    // Teacher toggle
+    var tGroup = el('div', 'sim-toggle-group');
+    var tLabel = el('span', 'sim-toggle-label', 'Teacher');
+    var tToggle = el('label', 'sim-toggle');
+    var tInput = document.createElement('input');
+    tInput.type = 'checkbox';
+    tInput.setAttribute('aria-label', 'Enable teacher mode');
+    tInput.addEventListener('change', function() {
+      document.body.classList.toggle('teacher-active', tInput.checked);
+    });
+    var tSlider = el('span', 'sim-toggle-slider');
+    tSlider.style.setProperty('--toggle-on', 'var(--amber)');
+    tToggle.appendChild(tInput);
+    tToggle.appendChild(tSlider);
+    tGroup.appendChild(tLabel);
+    tGroup.appendChild(tToggle);
+    wrap.appendChild(tGroup);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB SWITCHING
+  // ═══════════════════════════════════════════════════
+  function switchTab(tabName) {
+    _activeTab = tabName;
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
+    });
+    document.querySelectorAll('.tab-content').forEach(function(tc) {
+      tc.classList.toggle('active', tc.id === 'tab-' + tabName);
+    });
+    buildSidebarControls();
+    refreshCurrentTab();
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      switchTab(btn.getAttribute('data-tab'));
+    });
+  });
+
+  function refreshCurrentTab() {
+    if (_activeTab === 'particle') renderParticleTab();
+    else if (_activeTab === 'heating') renderHeatingTab();
+    else if (_activeTab === 'maxwell') renderMaxwellTab();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 1: PARTICLE VIEW
+  // ═══════════════════════════════════════════════════
+  var PARTICLE_COUNT = 30;
+  var PARTICLE_RADIUS = 8;
+
+  function getState(temp, sub) {
+    if (!sub) sub = _selected;
+    if (temp < sub.mp) return 'solid';
+    if (temp < sub.bp) return 'liquid';
+    return 'gas';
+  }
+
+  function getStateProperties(state) {
+    switch (state) {
+      case 'solid': return {
+        spacing: 'Close, fixed positions',
+        movement: 'Vibrate around fixed points',
+        shape: 'Fixed shape & volume',
+        compress: 'Incompressible'
+      };
+      case 'liquid': return {
+        spacing: 'Close but irregular',
+        movement: 'Slide past each other',
+        shape: 'Variable shape, fixed volume',
+        compress: 'Nearly incompressible'
+      };
+      case 'gas': return {
+        spacing: 'Far apart, random',
+        movement: 'Fast, random, straight lines',
+        shape: 'Fills container',
+        compress: 'Highly compressible'
+      };
+    }
+  }
+
+  function initParticles() {
+    var canvas = document.getElementById('particleCanvas');
+    var w = canvas.offsetWidth || 600;
+    var h = parseInt(canvas.getAttribute('height')) || 400;
+    _particles = [];
+    var state = getState(_temperature);
+    for (var i = 0; i < PARTICLE_COUNT; i++) {
+      var p = { id: i };
+      if (state === 'solid') {
+        // Lattice grid
+        var cols = 6;
+        var rows = Math.ceil(PARTICLE_COUNT / cols);
+        var col = i % cols;
+        var row = Math.floor(i / cols);
+        var spacingX = w / (cols + 1);
+        var spacingY = h / (rows + 2);
+        p.homeX = spacingX * (col + 1);
+        p.homeY = spacingY * (row + 1) + h * 0.3;
+        p.x = p.homeX;
+        p.y = p.homeY;
+        p.vx = 0;
+        p.vy = 0;
+      } else if (state === 'liquid') {
+        p.x = Math.random() * (w - 40) + 20;
+        p.y = h * 0.4 + Math.random() * (h * 0.55 - 20);
+        p.homeX = p.x;
+        p.homeY = p.y;
+        p.vx = (Math.random() - 0.5) * 2;
+        p.vy = (Math.random() - 0.5) * 2;
+      } else {
+        p.x = Math.random() * (w - 40) + 20;
+        p.y = Math.random() * (h - 40) + 20;
+        p.homeX = p.x;
+        p.homeY = p.y;
+        p.vx = (Math.random() - 0.5) * 4;
+        p.vy = (Math.random() - 0.5) * 4;
+      }
+      // Transition blending factor
+      p.phase = Math.random() * Math.PI * 2;
+      _particles.push(p);
+    }
+  }
+
+  function updateParticles() {
+    if (_paused) return;
+    var canvas = document.getElementById('particleCanvas');
+    var w = canvas.offsetWidth || 600;
+    var h = parseInt(canvas.dataset.baseHeight) || 400;
+    var state = getState(_temperature);
+    var sub = _selected;
+    var transW = 10;
+
+    // Compute blend factors for transitions
+    var solidFrac = 0, liquidFrac = 0, gasFrac = 0;
+    if (_temperature < sub.mp - transW) {
+      solidFrac = 1;
+    } else if (_temperature < sub.mp + transW) {
+      var t = (_temperature - (sub.mp - transW)) / (2 * transW);
+      solidFrac = 1 - t;
+      liquidFrac = t;
+    } else if (_temperature < sub.bp - transW) {
+      liquidFrac = 1;
+    } else if (_temperature < sub.bp + transW) {
+      var t2 = (_temperature - (sub.bp - transW)) / (2 * transW);
+      liquidFrac = 1 - t2;
+      gasFrac = t2;
+    } else {
+      gasFrac = 1;
+    }
+
+    var speedScale = Math.sqrt(_temperature / 300);
+
+    _particles.forEach(function(p) {
+      if (solidFrac > 0) {
+        // Vibration around home
+        var amp = clamp(_temperature / sub.mp * 8, 1, 15) * solidFrac;
+        p.phase += 0.1 + Math.random() * 0.05;
+        var targetX = p.homeX + Math.sin(p.phase) * amp;
+        var targetY = p.homeY + Math.cos(p.phase * 1.3) * amp;
+        p.x = lerp(p.x, targetX, 0.3 * solidFrac);
+        p.y = lerp(p.y, targetY, 0.3 * solidFrac);
+      }
+
+      if (liquidFrac > 0) {
+        var lSpeed = speedScale * 1.5 * liquidFrac;
+        p.vx += (Math.random() - 0.5) * 0.5 * liquidFrac;
+        p.vy += (Math.random() - 0.5) * 0.5 * liquidFrac;
+        var mag = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (mag > lSpeed * 3) {
+          p.vx = p.vx / mag * lSpeed * 3;
+          p.vy = p.vy / mag * lSpeed * 3;
+        }
+        p.x += p.vx * liquidFrac;
+        p.y += p.vy * liquidFrac;
+        // Keep in bottom 60%
+        var topBound = h * 0.4 * liquidFrac;
+        if (p.y < topBound + PARTICLE_RADIUS) { p.y = topBound + PARTICLE_RADIUS; p.vy = Math.abs(p.vy) * 0.5; }
+        if (p.y > h - PARTICLE_RADIUS) { p.y = h - PARTICLE_RADIUS; p.vy = -Math.abs(p.vy) * 0.5; }
+      }
+
+      if (gasFrac > 0) {
+        var gSpeed = speedScale * 3 * gasFrac;
+        p.vx += (Math.random() - 0.5) * 0.3 * gasFrac;
+        p.vy += (Math.random() - 0.5) * 0.3 * gasFrac;
+        var gmag = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+        if (gmag > gSpeed * 3) {
+          p.vx = p.vx / gmag * gSpeed * 3;
+          p.vy = p.vy / gmag * gSpeed * 3;
+        }
+        p.x += p.vx * gasFrac;
+        p.y += p.vy * gasFrac;
+      }
+
+      // Wall bounce
+      if (p.x < PARTICLE_RADIUS) { p.x = PARTICLE_RADIUS; p.vx = Math.abs(p.vx); }
+      if (p.x > w - PARTICLE_RADIUS) { p.x = w - PARTICLE_RADIUS; p.vx = -Math.abs(p.vx); }
+      if (p.y < PARTICLE_RADIUS) { p.y = PARTICLE_RADIUS; p.vy = Math.abs(p.vy); }
+      if (p.y > h - PARTICLE_RADIUS) { p.y = h - PARTICLE_RADIUS; p.vy = -Math.abs(p.vy); }
+    });
+  }
+
+  function drawParticles() {
+    var canvas = document.getElementById('particleCanvas');
+    if (!canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight) || 400;
+
+    // Background
+    ctx.fillStyle = '#FAFBFC';
+    ctx.fillRect(0, 0, w, h);
+
+    // Container walls
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(1, 1, w - 2, h - 2);
+
+    // Particles
+    _particles.forEach(function(p) {
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, PARTICLE_RADIUS, 0, Math.PI * 2);
+      ctx.fillStyle = _selected.color;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    });
+
+    // State label
+    var state = getState(_temperature);
+    var stateLabel = state.charAt(0).toUpperCase() + state.slice(1);
+    ctx.font = '600 14px Inter, sans-serif';
+    ctx.fillStyle = state === 'solid' ? '#1E40AF' : state === 'liquid' ? '#065F46' : '#991B1B';
+    var bgCol = state === 'solid' ? '#DBEAFE' : state === 'liquid' ? '#D1FAE5' : '#FEE2E2';
+    var tw = ctx.measureText(stateLabel).width;
+    ctx.fillStyle = bgCol;
+    ctx.roundRect(10, 10, tw + 20, 28, 14);
+    ctx.fill();
+    ctx.fillStyle = state === 'solid' ? '#1E40AF' : state === 'liquid' ? '#065F46' : '#991B1B';
+    ctx.fillText(stateLabel, 20, 29);
+
+    // Temperature display
+    ctx.font = '500 12px "Fira Code", monospace';
+    ctx.fillStyle = '#64748B';
+    ctx.fillText(_temperature + ' K (' + round(_temperature - 273.15, 0) + ' \u00B0C)', 10, h - 12);
+  }
+
+  function renderParticleTab() {
+    var info = document.getElementById('particleInfo');
+    info.textContent = '';
+
+    var state = getState(_temperature);
+    var props = getStateProperties(state);
+
+    // State badge
+    var badge = el('span', 'state-badge ' + state, state.charAt(0).toUpperCase() + state.slice(1));
+    var badgeRow = el('div', '');
+    badgeRow.style.marginTop = '0.75rem';
+    badgeRow.appendChild(badge);
+    var tempSpan = el('span', '', '  ' + _temperature + ' K');
+    tempSpan.style.fontFamily = '"Fira Code", monospace';
+    tempSpan.style.fontSize = '0.85rem';
+    tempSpan.style.marginLeft = '0.5rem';
+    tempSpan.style.color = '#64748B';
+    badgeRow.appendChild(tempSpan);
+    info.appendChild(badgeRow);
+
+    // Property cards
+    var cards = el('div', 'property-cards');
+    var propKeys = [
+      { key: 'spacing', label: 'Particle Spacing' },
+      { key: 'movement', label: 'Movement' },
+      { key: 'shape', label: 'Shape / Volume' },
+      { key: 'compress', label: 'Compressibility' }
+    ];
+    propKeys.forEach(function(pk) {
+      var card = el('div', 'prop-card');
+      var lbl = el('div', 'prop-card-label', pk.label);
+      var val = el('div', 'prop-card-value', props[pk.key]);
+      card.appendChild(lbl);
+      card.appendChild(val);
+      cards.appendChild(card);
+    });
+    info.appendChild(cards);
+
+    // HL panel: intermolecular forces
+    var hlCard = el('div', 'hl-card hl-panel');
+    var hlTitle = el('div', 'hl-card-title', 'HL Extension: Intermolecular Forces');
+    hlCard.appendChild(hlTitle);
+    var forceText = '';
+    if (_selected.category === 'molecular') {
+      forceText = 'Molecular substances are held together by intermolecular forces (London dispersion, dipole-dipole, or hydrogen bonding). These are weaker than ionic/metallic bonds, giving lower melting/boiling points.';
+    } else if (_selected.category === 'ionic') {
+      forceText = 'Ionic compounds have strong electrostatic attractions between oppositely charged ions in a 3D lattice. These require significant energy to overcome, giving high mp/bp.';
+    } else {
+      forceText = 'Metallic bonding involves delocalized electrons shared among a lattice of metal cations. The strength depends on charge density and number of valence electrons.';
+    }
+    var hlText = el('div', '', forceText);
+    hlText.style.fontSize = '0.78rem';
+    hlCard.appendChild(hlText);
+    info.appendChild(hlCard);
+
+    drawParticles();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 2: HEATING CURVE
+  // ═══════════════════════════════════════════════════
+  function getHeatingCurvePoints(sub) {
+    // Returns array of {energy, temp} for the 5 segments + 2 plateaus
+    // Normalised energy 0..1
+    var cp = sub.cp; // [solid, liquid, gas] heat capacities
+    var dhFus = sub.dhFus;
+    var dhVap = sub.dhVap;
+    var startTemp = Math.max(50, sub.mp - 200);
+    var endTemp = sub.bp + sub.bp * 0.3;
+    // total energy units
+    var e1 = cp[0] * (sub.mp - startTemp); // solid heating
+    var e2 = dhFus;                         // melting plateau
+    var e3 = cp[1] * (sub.bp - sub.mp);    // liquid heating
+    var e4 = dhVap;                         // boiling plateau
+    var e5 = cp[2] * (endTemp - sub.bp);   // gas heating
+    var total = e1 + e2 + e3 + e4 + e5;
+
+    return {
+      segments: [
+        { e0: 0, e1: e1/total, t0: startTemp, t1: sub.mp },
+        { e0: e1/total, e1: (e1+e2)/total, t0: sub.mp, t1: sub.mp },
+        { e0: (e1+e2)/total, e1: (e1+e2+e3)/total, t0: sub.mp, t1: sub.bp },
+        { e0: (e1+e2+e3)/total, e1: (e1+e2+e3+e4)/total, t0: sub.bp, t1: sub.bp },
+        { e0: (e1+e2+e3+e4)/total, e1: 1, t0: sub.bp, t1: endTemp }
+      ],
+      startTemp: startTemp,
+      endTemp: endTemp
+    };
+  }
+
+  function getTempAtProgress(progress) {
+    var curve = getHeatingCurvePoints(_selected);
+    for (var i = 0; i < curve.segments.length; i++) {
+      var seg = curve.segments[i];
+      if (progress <= seg.e1) {
+        var frac = (progress - seg.e0) / (seg.e1 - seg.e0);
+        return lerp(seg.t0, seg.t1, frac);
+      }
+    }
+    return curve.endTemp;
+  }
+
+  function drawHeatingCurve() {
+    var canvas = document.getElementById('heatingCanvas');
+    if (!canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight) || 350;
+    var curve = getHeatingCurvePoints(_selected);
+
+    var pad = { left: 60, right: 30, top: 30, bottom: 50 };
+    var plotW = w - pad.left - pad.right;
+    var plotH = h - pad.top - pad.bottom;
+
+    // Background
+    ctx.fillStyle = '#FAFBFC';
+    ctx.fillRect(0, 0, w, h);
+
+    // Axes
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, h - pad.bottom);
+    ctx.lineTo(w - pad.right, h - pad.bottom);
+    ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#64748B';
+    ctx.font = '500 12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Energy added (kJ)', w / 2, h - 8);
+    ctx.save();
+    ctx.translate(16, h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Temperature (K)', 0, 0);
+    ctx.restore();
+
+    // Draw curve segments
+    var colors = ['#2563EB', '#7C3AED', '#059669', '#7C3AED', '#DC2626'];
+    var segLabels = ['Solid', 'Melting', 'Liquid', 'Boiling', 'Gas'];
+
+    curve.segments.forEach(function(seg, i) {
+      var x0 = pad.left + seg.e0 * plotW;
+      var x1 = pad.left + seg.e1 * plotW;
+      var tRange = curve.endTemp - curve.startTemp;
+      var y0 = pad.top + plotH - ((seg.t0 - curve.startTemp) / tRange) * plotH;
+      var y1 = pad.top + plotH - ((seg.t1 - curve.startTemp) / tRange) * plotH;
+
+      // Highlight selected segment
+      if (_selectedSegment === i) {
+        ctx.fillStyle = 'rgba(13,148,136,0.08)';
+        ctx.fillRect(x0, pad.top, x1 - x0, plotH);
+      }
+
+      ctx.strokeStyle = colors[i];
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x0, y0);
+      ctx.lineTo(x1, y1);
+      ctx.stroke();
+
+      // Segment label
+      ctx.fillStyle = colors[i];
+      ctx.font = '600 10px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(segLabels[i], (x0 + x1) / 2, y1 < y0 ? (y0 + y1) / 2 - 8 : y0 - 8);
+    });
+
+    // Temperature tick marks for mp and bp
+    ctx.setLineDash([4, 4]);
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 1;
+    var tRange = curve.endTemp - curve.startTemp;
+    var mpY = pad.top + plotH - ((_selected.mp - curve.startTemp) / tRange) * plotH;
+    var bpY = pad.top + plotH - ((_selected.bp - curve.startTemp) / tRange) * plotH;
+    ctx.beginPath();
+    ctx.moveTo(pad.left - 5, mpY);
+    ctx.lineTo(w - pad.right, mpY);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(pad.left - 5, bpY);
+    ctx.lineTo(w - pad.right, bpY);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.fillStyle = '#64748B';
+    ctx.font = '500 10px "Fira Code", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillText(_selected.mp + ' K', pad.left - 8, mpY + 4);
+    ctx.fillText(_selected.bp + ' K', pad.left - 8, bpY + 4);
+
+    // Animated dot
+    if (_heatProgress > 0) {
+      var dotE = _heatProgress;
+      var dotT = getTempAtProgress(dotE);
+      var dotX = pad.left + dotE * plotW;
+      var dotY = pad.top + plotH - ((dotT - curve.startTemp) / tRange) * plotH;
+      ctx.beginPath();
+      ctx.arc(dotX, dotY, 6, 0, Math.PI * 2);
+      ctx.fillStyle = _selected.color;
+      ctx.fill();
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+    }
+
+    // Inset particle preview
+    drawInsetPreview(ctx, w - 150, 10, 120, 120);
+  }
+
+  function drawInsetPreview(ctx, ix, iy, iw, ih) {
+    ctx.save();
+    ctx.fillStyle = '#F1F5F9';
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 1;
+    ctx.roundRect(ix, iy, iw, ih, 8);
+    ctx.fill();
+    ctx.stroke();
+    ctx.clip();
+
+    var temp = _heatProgress > 0 ? getTempAtProgress(_heatProgress) : _selected.mp;
+    var state = getState(Math.round(temp));
+    var count = 12;
+    var r = 5;
+
+    for (var i = 0; i < count; i++) {
+      var px, py;
+      if (state === 'solid') {
+        var cols = 4;
+        var col = i % cols;
+        var row = Math.floor(i / cols);
+        px = ix + 15 + col * 25 + Math.sin(Date.now() * 0.005 + i) * 2;
+        py = iy + 30 + row * 25 + Math.cos(Date.now() * 0.005 + i * 1.3) * 2;
+      } else if (state === 'liquid') {
+        px = ix + 10 + (i % 4) * 28 + Math.sin(Date.now() * 0.003 + i * 2) * 6;
+        py = iy + ih * 0.4 + (Math.floor(i / 4)) * 22 + Math.cos(Date.now() * 0.004 + i) * 4;
+      } else {
+        px = ix + 10 + Math.abs(Math.sin(Date.now() * 0.002 + i * 3.7)) * (iw - 20);
+        py = iy + 10 + Math.abs(Math.cos(Date.now() * 0.003 + i * 2.3)) * (ih - 20);
+      }
+      ctx.beginPath();
+      ctx.arc(px, py, r, 0, Math.PI * 2);
+      ctx.fillStyle = _selected.color;
+      ctx.fill();
+    }
+
+    // Label
+    ctx.font = '600 10px Inter, sans-serif';
+    ctx.fillStyle = '#64748B';
+    ctx.textAlign = 'left';
+    ctx.fillText(state, ix + 6, iy + 14);
+    ctx.restore();
+  }
+
+  function renderHeatingTab() {
+    drawHeatingCurve();
+
+    var annot = document.getElementById('heatingAnnotation');
+    annot.textContent = '';
+
+    if (_selectedSegment >= 0 && _selectedSegment < SEGMENT_ANNOTATIONS.length) {
+      var a = SEGMENT_ANNOTATIONS[_selectedSegment];
+      var panel = el('div', 'annotation-panel');
+      var title = el('div', 'annotation-panel-title', a.label);
+      var desc = el('div', '', a.desc);
+      desc.style.fontSize = '0.82rem';
+      panel.appendChild(title);
+      panel.appendChild(desc);
+      annot.appendChild(panel);
+    } else {
+      var hint = el('div', '', 'Click a segment on the curve for particle-level annotations.');
+      hint.style.fontSize = '0.78rem';
+      hint.style.color = '#64748B';
+      hint.style.marginTop = '0.5rem';
+      annot.appendChild(hint);
+    }
+
+    // HL extension
+    var hlCard = el('div', 'hl-card hl-panel');
+    var hlTitle = el('div', 'hl-card-title', 'HL Extension: Enthalpy Changes');
+    hlCard.appendChild(hlTitle);
+    var hlText = el('div', '', '\u0394H(fus) = ' + _selected.dhFus + ' kJ/mol, \u0394H(vap) = ' + _selected.dhVap + ' kJ/mol. During phase transitions, energy goes into overcoming intermolecular forces rather than increasing kinetic energy.');
+    hlText.style.fontSize = '0.78rem';
+    hlText.style.fontFamily = '"Fira Code", monospace';
+    hlCard.appendChild(hlText);
+    annot.appendChild(hlCard);
+
+    var controls = document.getElementById('heatingControls');
+    controls.textContent = '';
+  }
+
+  // Heating canvas click handler
+  document.getElementById('heatingCanvas').addEventListener('click', function(evt) {
+    var canvas = document.getElementById('heatingCanvas');
+    var rect = canvas.getBoundingClientRect();
+    var x = evt.clientX - rect.left;
+    var w = canvas.offsetWidth;
+    var pad = { left: 60, right: 30 };
+    var plotW = w - pad.left - pad.right;
+    var frac = (x - pad.left) / plotW;
+    if (frac < 0 || frac > 1) return;
+
+    var curve = getHeatingCurvePoints(_selected);
+    for (var i = 0; i < curve.segments.length; i++) {
+      if (frac >= curve.segments[i].e0 && frac <= curve.segments[i].e1) {
+        _selectedSegment = i;
+        renderHeatingTab();
+        return;
+      }
+    }
+  });
+
+  // ═══════════════════════════════════════════════════
+  // TAB 3: MAXWELL-BOLTZMANN DISTRIBUTION
+  // ═══════════════════════════════════════════════════
+  function mbDistribution(E, T) {
+    // f(E) = C * sqrt(E) * exp(-E / (k*T))
+    // Using scaled units; k = 1 for display
+    var kT = T / 400; // scale factor
+    if (kT < 0.01) kT = 0.01;
+    return Math.sqrt(E) * Math.exp(-E / kT);
+  }
+
+  function drawMaxwell() {
+    var canvas = document.getElementById('maxwellCanvas');
+    if (!canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight) || 300;
+
+    var pad = { left: 50, right: 30, top: 30, bottom: 50 };
+    var plotW = w - pad.left - pad.right;
+    var plotH = h - pad.top - pad.bottom;
+
+    // Background
+    ctx.fillStyle = '#FAFBFC';
+    ctx.fillRect(0, 0, w, h);
+
+    // Axes
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, h - pad.bottom);
+    ctx.lineTo(w - pad.right, h - pad.bottom);
+    ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#64748B';
+    ctx.font = '500 12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Kinetic Energy', w / 2, h - 8);
+    ctx.save();
+    ctx.translate(14, h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('f(E) - Fraction of particles', 0, 0);
+    ctx.restore();
+
+    var maxE = 3.5;
+    var steps = 200;
+    var activeCount = 0;
+
+    // Find global max for scaling
+    var globalMax = 0.001;
+    MB_PRESETS.forEach(function(p, i) {
+      if (!_mbActive[i]) return;
+      for (var j = 0; j <= steps; j++) {
+        var E = (j / steps) * maxE;
+        var val = mbDistribution(E, p.temp);
+        if (val > globalMax) globalMax = val;
+      }
+    });
+
+    // Draw threshold line
+    var threshX = pad.left + _mbThreshold * plotW;
+    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = '#DC2626';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(threshX, pad.top);
+    ctx.lineTo(threshX, h - pad.bottom);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Threshold label
+    ctx.fillStyle = '#DC2626';
+    ctx.font = '600 10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Ea threshold', threshX, pad.top - 5);
+
+    // Draw each active curve
+    MB_PRESETS.forEach(function(p, i) {
+      if (!_mbActive[i]) return;
+      activeCount++;
+
+      ctx.strokeStyle = p.color;
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+
+      // Shaded area above threshold
+      var shadePath = [];
+
+      for (var j = 0; j <= steps; j++) {
+        var E = (j / steps) * maxE;
+        var val = mbDistribution(E, p.temp);
+        var x = pad.left + (E / maxE) * plotW;
+        var y = pad.top + plotH - (val / globalMax) * plotH * 0.9;
+        if (j === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+
+        var eFrac = E / maxE;
+        if (eFrac >= _mbThreshold) {
+          shadePath.push({ x: x, y: y });
+        }
+      }
+      ctx.stroke();
+
+      // Shaded area
+      if (shadePath.length > 1) {
+        ctx.fillStyle = p.color.replace(')', ',0.12)').replace('rgb', 'rgba');
+        // Use hex to rgba
+        var r = parseInt(p.color.slice(1,3), 16);
+        var g = parseInt(p.color.slice(3,5), 16);
+        var b = parseInt(p.color.slice(5,7), 16);
+        ctx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',0.12)';
+        ctx.beginPath();
+        ctx.moveTo(shadePath[0].x, h - pad.bottom);
+        shadePath.forEach(function(pt) { ctx.lineTo(pt.x, pt.y); });
+        ctx.lineTo(shadePath[shadePath.length - 1].x, h - pad.bottom);
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      // Label
+      ctx.fillStyle = p.color;
+      ctx.font = '600 11px Inter, sans-serif';
+      ctx.textAlign = 'left';
+      var peakE = p.temp / 400 * 0.5;
+      var peakX = pad.left + (peakE / maxE) * plotW;
+      var peakY = pad.top + plotH - (mbDistribution(peakE, p.temp) / globalMax) * plotH * 0.9;
+      ctx.fillText(p.label, peakX + 5, peakY - 8);
+    });
+
+    if (activeCount === 0) {
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '500 14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Toggle temperature presets in the sidebar to display curves.', w / 2, h / 2);
+    }
+  }
+
+  function renderMaxwellTab() {
+    drawMaxwell();
+
+    var controls = document.getElementById('maxwellControls');
+    controls.textContent = '';
+
+    // Threshold slider
+    var sliderWrap = el('div', 'temp-slider-wrap');
+    var label = el('label', '', 'Energy Threshold (Ea)');
+    var slider = document.createElement('input');
+    slider.type = 'range';
+    slider.min = '0';
+    slider.max = '100';
+    slider.value = String(Math.round(_mbThreshold * 100));
+    slider.setAttribute('aria-label', 'Energy threshold');
+    slider.addEventListener('input', function() {
+      _mbThreshold = parseInt(slider.value) / 100;
+      drawMaxwell();
+    });
+    sliderWrap.appendChild(label);
+    sliderWrap.appendChild(slider);
+    controls.appendChild(sliderWrap);
+
+    // HL panel
+    var hlCard = el('div', 'hl-card hl-panel');
+    var hlTitle = el('div', 'hl-card-title', 'HL Extension: Boltzmann Factor');
+    hlCard.appendChild(hlTitle);
+    var hlText = el('div', '', 'The fraction of molecules with energy above Ea determines reaction rate. As temperature increases, the curve flattens and shifts right, increasing the proportion of molecules that can overcome the activation energy barrier.');
+    hlText.style.fontSize = '0.78rem';
+    hlCard.appendChild(hlText);
+    controls.appendChild(hlCard);
+  }
+
+  // Maxwell canvas click for threshold
+  document.getElementById('maxwellCanvas').addEventListener('click', function(evt) {
+    var canvas = document.getElementById('maxwellCanvas');
+    var rect = canvas.getBoundingClientRect();
+    var x = evt.clientX - rect.left;
+    var pad = { left: 50, right: 30 };
+    var plotW = canvas.offsetWidth - pad.left - pad.right;
+    var frac = (x - pad.left) / plotW;
+    if (frac >= 0 && frac <= 1) {
+      _mbThreshold = frac;
+      renderMaxwellTab();
+    }
+  });
+
+  // ═══════════════════════════════════════════════════
+  // ANIMATION LOOP
+  // ═══════════════════════════════════════════════════
+  var _intervalId = setInterval(function() {
+    if (_activeTab === 'particle') {
+      updateParticles();
+      drawParticles();
+    }
+    if (_activeTab === 'heating' && _heatAnimating) {
+      _heatProgress += 0.003;
+      if (_heatProgress >= 1) {
+        _heatProgress = 1;
+        _heatAnimating = false;
+      }
+      drawHeatingCurve();
+    }
+    if (_activeTab === 'heating') {
+      // Redraw inset preview for animation
+      var canvas = document.getElementById('heatingCanvas');
+      if (canvas.offsetWidth && !_heatAnimating) {
+        // slight redraw for animated inset
+        drawHeatingCurve();
+      }
+    }
+  }, 33); // ~30fps
+
+  // ═══════════════════════════════════════════════════
+  // KEYBOARD SHORTCUTS
+  // ═══════════════════════════════════════════════════
+  document.addEventListener('keydown', function(evt) {
+    if (evt.target.tagName === 'INPUT' || evt.target.tagName === 'SELECT' || evt.target.tagName === 'TEXTAREA') return;
+    var key = evt.key.toLowerCase();
+    switch (key) {
+      case 'h':
+        var hlInput = document.querySelector('#headerToggles .sim-toggle input');
+        if (hlInput) { hlInput.checked = !hlInput.checked; hlInput.dispatchEvent(new Event('change')); }
+        break;
+      case 't':
+        var tInputs = document.querySelectorAll('#headerToggles .sim-toggle input');
+        if (tInputs.length > 1) { tInputs[1].checked = !tInputs[1].checked; tInputs[1].dispatchEvent(new Event('change')); }
+        break;
+      case '1':
+        switchTab('particle');
+        break;
+      case '2':
+        switchTab('heating');
+        break;
+      case '3':
+        switchTab('maxwell');
+        break;
+      case 'r':
+        _heatProgress = 0;
+        _heatAnimating = false;
+        _selectedSegment = -1;
+        _mbActive = [false, false, false];
+        _mbThreshold = 0.6;
+        initParticles();
+        buildSidebarControls();
+        refreshCurrentTab();
+        break;
+      case '/':
+        evt.preventDefault();
+        document.getElementById('paletteSearch').focus();
+        break;
+      case 'arrowdown':
+        evt.preventDefault();
+        navigatePalette(1);
+        break;
+      case 'arrowup':
+        evt.preventDefault();
+        navigatePalette(-1);
+        break;
+      case 'e':
+        exportCSV();
+        break;
+      case ' ':
+        evt.preventDefault();
+        _paused = !_paused;
+        if (_activeTab === 'heating') {
+          if (_heatAnimating) {
+            _heatAnimating = false;
+          } else {
+            _heatAnimating = true;
+            if (_heatProgress >= 1) _heatProgress = 0;
+          }
+        }
+        break;
+    }
+  });
+
+  function navigatePalette(dir) {
+    var items = document.querySelectorAll('.palette-item');
+    if (items.length === 0) return;
+    var activeIdx = -1;
+    items.forEach(function(item, i) {
+      if (item.classList.contains('active')) activeIdx = i;
+    });
+    activeIdx += dir;
+    if (activeIdx < 0) activeIdx = items.length - 1;
+    if (activeIdx >= items.length) activeIdx = 0;
+    items[activeIdx].click();
+    items[activeIdx].scrollIntoView({ block: 'nearest' });
+  }
+
+  // ═══════════════════════════════════════════════════
+  // SEARCH
+  // ═══════════════════════════════════════════════════
+  document.getElementById('paletteSearch').addEventListener('input', function() {
+    buildPalette();
+  });
+
+  // ═══════════════════════════════════════════════════
+  // DATA EXPORT
+  // ═══════════════════════════════════════════════════
+  function exportCSV() {
+    var rows = [['Tab', 'Substance', 'Property', 'Value', 'Timestamp'].map(q)];
+    var ts = new Date().toISOString();
+
+    if (_activeTab === 'particle') {
+      var state = getState(_temperature);
+      rows.push([q('Particle View'), q(_selected.label), q('Temperature'), q(_temperature + ' K'), q(ts)].join(','));
+      rows.push([q('Particle View'), q(_selected.label), q('State'), q(state), q(ts)].join(','));
+      rows.push([q('Particle View'), q(_selected.label), q('Melting Point'), q(_selected.mp + ' K'), q(ts)].join(','));
+      rows.push([q('Particle View'), q(_selected.label), q('Boiling Point'), q(_selected.bp + ' K'), q(ts)].join(','));
+    }
+    if (_activeTab === 'heating') {
+      rows.push([q('Heating Curve'), q(_selected.label), q('dH(fus)'), q(_selected.dhFus + ' kJ/mol'), q(ts)].join(','));
+      rows.push([q('Heating Curve'), q(_selected.label), q('dH(vap)'), q(_selected.dhVap + ' kJ/mol'), q(ts)].join(','));
+      rows.push([q('Heating Curve'), q(_selected.label), q('Progress'), q(round(_heatProgress * 100, 0) + '%'), q(ts)].join(','));
+    }
+    if (_activeTab === 'maxwell') {
+      MB_PRESETS.forEach(function(p, i) {
+        if (_mbActive[i]) {
+          rows.push([q('KE Distribution'), q(_selected.label), q('Active Curve'), q(p.label), q(ts)].join(','));
+        }
+      });
+      rows.push([q('KE Distribution'), q(_selected.label), q('Threshold'), q(round(_mbThreshold * 100, 0) + '%'), q(ts)].join(','));
+    }
+
+    // Fix header row join
+    var header = rows[0].join(',');
+    var body = rows.slice(1).join('\n');
+    var csv = header + '\n' + body;
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'StatesOfMatter_export.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // RESIZE HANDLER
+  // ═══════════════════════════════════════════════════
+  var _resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(function() {
+      initParticles();
+      refreshCurrentTab();
+    }, 200);
+  });
+
+  // ═══════════════════════════════════════════════════
+  // INIT
+  // ═══════════════════════════════════════════════════
+  buildToggles();
+  buildPalette();
+  initParticles();
+  renderParticleTab();
+
+})();
+</script>
+</body>
+</html>
