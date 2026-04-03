@@ -1,0 +1,2838 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Nuclear Atom — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --red-bg: #FEF2F2;
+    --green-bg: #F0FDF4;
+    --amber-bg: #FFFBEB;
+    --sim-canvas-bg: #FAFBFC;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
+  }
+  .header-badge.hl { background: var(--hl-badge-bg); display: none; }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* ── Toggle ── */
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s; --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--toggle-on); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+  /* ── Tab Bar ── */
+  .tab-bar {
+    background: white; border-bottom: 2px solid var(--border);
+    display: flex; gap: 0; max-width: 1200px; margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .tab-btn {
+    padding: 0.75rem 1.5rem; font-size: 0.85rem; font-weight: 600;
+    color: var(--text-muted); background: none; border: none;
+    border-bottom: 3px solid transparent; cursor: pointer;
+    transition: all 0.2s; font-family: inherit; margin-bottom: -2px;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--teal-bg); }
+  .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .tab-btn .tab-num {
+    display: inline-block; width: 20px; height: 20px; line-height: 20px;
+    text-align: center; border-radius: 4px; font-size: 0.65rem; font-weight: 700;
+    background: var(--border); color: var(--text-muted); margin-right: 0.4rem;
+  }
+  .tab-btn.active .tab-num { background: var(--teal); color: white; }
+
+  /* ── Layout ── */
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sim-top-row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .sim-card {
+    background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy); color: white; padding: 0.6rem 1rem;
+    font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  /* ── Palette ── */
+  .palette-panel { max-height: 600px; display: flex; flex-direction: column; position: sticky; top: 1rem; align-self: start; grid-column: 1; grid-row: 1; }
+  .tab-content { grid-column: 2; grid-row: 1; }
+  .palette-panel .sim-card-body { padding: 0.5rem; overflow-y: auto; flex: 1; }
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+  .palette-category {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); padding: 0.4rem 0.3rem 0.2rem; margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block; width: 100%; text-align: left; padding: 0.3rem 0.5rem; margin: 0.15rem 0; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .palette-item:hover { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .palette-item.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+  .palette-item.hl-rxn { display: none; }
+  body.hl-active .palette-item.hl-rxn { display: block; }
+  .palette-category.hl-cat { display: none; }
+  body.hl-active .palette-category.hl-cat { display: block; }
+  .preset-section { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); display: none; }
+  .preset-section select {
+    width: 100%; padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.75rem; font-family: inherit; cursor: pointer;
+  }
+
+  /* ── Main Panel ── */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Canvas ── */
+  .sim-canvas { display: block; width: 100%; background: var(--sim-canvas-bg); border-radius: 4px; }
+
+  /* ── Common ── */
+  .check-btn {
+    display: inline-block; padding: 0.5rem 1.2rem; margin-top: 0.75rem;
+    background: var(--teal); color: white; border: none; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    transition: background 0.2s;
+  }
+  .check-btn:hover { background: #0B7C73; }
+  .check-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+  /* ── Tab 1: Isotope Explorer ── */
+  .isotope-cards { display: flex; flex-wrap: wrap; gap: 0.75rem; margin: 0.75rem 0; }
+  .isotope-card {
+    padding: 0.6rem 0.8rem; border-radius: 8px; border: 1px solid var(--border);
+    background: white; text-align: center; min-width: 80px;
+  }
+  .isotope-notation { font-family: 'Fira Code', monospace; font-size: 1.1rem; font-weight: 700; position: relative; display: inline-block; padding-left: 1.4rem; }
+  .isotope-notation .mass-num { position: absolute; top: -0.5em; left: 0; font-size: 0.65em; }
+  .isotope-notation .atomic-num { position: absolute; bottom: -0.3em; left: 0; font-size: 0.65em; }
+  .isotope-abundance { font-family: 'Fira Code', monospace; font-size: 0.75rem; color: var(--teal); margin-top: 0.2rem; }
+
+  .ram-calc { padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: white; margin-top: 0.75rem; }
+  .ram-calc-title { font-size: 0.78rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .ram-formula { font-family: 'Fira Code', monospace; font-size: 0.78rem; line-height: 1.8; color: var(--text); }
+  .ram-result { font-family: 'Fira Code', monospace; font-size: 0.9rem; font-weight: 700; color: var(--teal); margin-top: 0.3rem; }
+  .ram-compare { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem; }
+  .what-if-row { display: flex; gap: 0.5rem; align-items: center; margin: 0.2rem 0; font-size: 0.78rem; }
+  .what-if-row input {
+    width: 70px; padding: 0.25rem; border: 1px solid var(--border); border-radius: 4px;
+    font-family: 'Fira Code', monospace; font-size: 0.75rem; text-align: right;
+  }
+  .what-if-row label { min-width: 60px; font-family: 'Fira Code', monospace; }
+
+  /* ── Tab 2 & 3: Mass Spec ── */
+  .spec-canvas-wrap { position: relative; background: white; border-radius: 8px; border: 1px solid var(--border); overflow: hidden; }
+  .spec-info { padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: white; margin-top: 0.75rem; }
+  .spec-info-title { font-size: 0.78rem; font-weight: 700; margin-bottom: 0.3rem; }
+  .peak-label-dropdown {
+    position: absolute; background: white; border: 1px solid var(--teal); border-radius: 6px;
+    padding: 0.3rem; z-index: 50; box-shadow: 0 4px 12px rgba(0,0,0,0.15); display: none;
+  }
+  .peak-label-dropdown select {
+    padding: 0.3rem; border: 1px solid var(--border); border-radius: 4px;
+    font-size: 0.8rem; font-family: inherit;
+  }
+  .peak-label-dropdown button {
+    padding: 0.25rem 0.5rem; background: var(--teal); color: white; border: none;
+    border-radius: 4px; font-size: 0.75rem; cursor: pointer; margin-left: 0.3rem;
+  }
+  .score-bar {
+    display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem;
+    background: var(--blue-bg); border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  .score-bar .score-val { font-family: 'Fira Code', monospace; color: var(--teal); }
+
+  /* Tab 3: Build mode */
+  .build-checklist { padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border); background: white; margin-top: 0.5rem; }
+  .build-check-item { font-size: 0.78rem; padding: 0.2rem 0; display: flex; align-items: center; gap: 0.4rem; }
+  .build-check-item .check-icon { font-size: 0.85rem; }
+  .build-check-item.done { color: var(--green); }
+  .build-check-item.pending { color: var(--text-muted); }
+  .build-overlay-legend { display: flex; gap: 1rem; margin-top: 0.5rem; font-size: 0.75rem; align-items: center; }
+  .build-overlay-legend .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 0.3rem; vertical-align: middle; }
+  .challenge-prompt {
+    padding: 0.6rem 1rem; background: var(--blue-bg); border-radius: 8px; border: 1px solid #BFDBFE;
+    margin-bottom: 0.75rem; font-family: 'Fira Code', monospace; font-size: 0.9rem; font-weight: 600;
+  }
+
+  /* ── Tab 4: Emission Spectra ── */
+  .spectra-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .bohr-info {
+    padding: 0.5rem 0.75rem; border-radius: 6px; background: var(--teal-bg); border: 1px solid rgba(13,148,136,0.2);
+    font-size: 0.78rem; margin-top: 0.5rem; min-height: 2.5rem;
+  }
+  .bohr-info .energy-val { font-family: 'Fira Code', monospace; font-weight: 600; color: var(--teal); }
+  .spectrum-dark { background: #111827; border-radius: 8px; overflow: hidden; }
+  .series-legend { display: flex; gap: 0.75rem; margin-top: 0.5rem; font-size: 0.72rem; flex-wrap: wrap; }
+  .series-legend .series-item { display: flex; align-items: center; gap: 0.3rem; }
+  .series-legend .series-dot { width: 8px; height: 8px; border-radius: 50%; }
+  .comparison-section { margin-top: 1rem; }
+  .comparison-section .comp-title { font-size: 0.78rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .ref-spectrum-row { display: flex; align-items: center; gap: 0.5rem; margin: 0.3rem 0; }
+  .ref-spectrum-label { font-size: 0.75rem; font-weight: 600; min-width: 30px; }
+  .ref-spectrum-bar { flex: 1; height: 20px; background: #111827; border-radius: 4px; position: relative; overflow: hidden; }
+  .unknown-guess { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem; }
+  .unknown-guess select {
+    padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit;
+  }
+  .guess-feedback { font-size: 0.8rem; font-weight: 600; margin-left: 0.5rem; }
+
+  /* ── HL Panels ── */
+  .hl-panel { display: none; }
+  body.hl-active .hl-panel { display: block; }
+  .hl-card {
+    margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px;
+    border: 1px solid var(--hl-border); background: #F5F3FF;
+  }
+  .hl-card-title {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 0.3rem;
+  }
+
+  /* ── Teacher Mode ── */
+  .teacher-panel { display: none; }
+  body.teacher-active .teacher-panel { display: block; }
+  body.teacher-active .preset-section { display: block; }
+  .answer-reveal {
+    margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: var(--amber-bg);
+    border: 1px solid #FCD34D; border-radius: 6px; font-size: 0.78rem;
+    font-family: 'Fira Code', monospace; display: none;
+  }
+  body.teacher-active .answer-reveal { display: block; }
+
+  /* ── Keyboard Hint ── */
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .palette-panel { max-height: 200px; position: static; }
+    .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
+    .spectra-layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>The Nuclear Atom</h1>
+    <span class="subtitle">IB Chemistry — S1.2 The Nuclear Atom</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">S1.2</span>
+    <span class="header-badge hl">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="isotopes"><span class="tab-num">1</span>Isotope Explorer</button>
+  <button class="tab-btn" data-tab="msAnalyze"><span class="tab-num">2</span>Mass Spec: Analyze</button>
+  <button class="tab-btn" data-tab="msBuild"><span class="tab-num">3</span>Mass Spec: Build</button>
+  <button class="tab-btn" data-tab="emission"><span class="tab-num">4</span>Emission Spectra</button>
+</div>
+
+<!-- Main Content -->
+<div class="sim-container">
+  <div class="sim-top-row">
+
+    <!-- Sidebar -->
+    <div class="sim-card palette-panel">
+      <div class="sim-card-header" id="paletteHeader">Elements</div>
+      <div class="sim-card-body">
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search elements">
+        <div id="paletteList"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect" aria-label="Teacher presets">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 1: Isotope Explorer -->
+    <div class="tab-content active" id="tab-isotopes">
+      <div class="sim-card">
+        <div class="sim-card-header">Mini Periodic Table</div>
+        <div class="sim-card-body" style="padding:0.5rem;">
+          <canvas id="miniPTCanvas" class="sim-canvas" height="180" role="img" aria-label="Mini periodic table for isotope selection"></canvas>
+        </div>
+      </div>
+      <div class="sim-card" style="margin-top:1rem;">
+        <div class="sim-card-header">Isotope Explorer</div>
+        <div class="sim-card-body" id="isotopeBody">
+          <div id="isotopePlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+            Select an element from the palette or periodic table to begin.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Mass Spec Analyze -->
+    <div class="tab-content" id="tab-msAnalyze">
+      <div class="sim-card">
+        <div class="sim-card-header">Mass Spectrum — Analyze</div>
+        <div class="sim-card-body" id="msAnalyzeBody">
+          <div id="msAnalyzePlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+            Select a compound from the palette to begin.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Mass Spec Build -->
+    <div class="tab-content" id="tab-msBuild">
+      <div class="sim-card">
+        <div class="sim-card-header">Mass Spectrum — Build</div>
+        <div class="sim-card-body" id="msBuildBody">
+          <div id="msBuildPlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+            Select a compound from the palette to begin.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Emission Spectra -->
+    <div class="tab-content" id="tab-emission">
+      <div class="sim-card">
+        <div class="sim-card-header">Emission Spectra &amp; Bohr Model</div>
+        <div class="sim-card-body" id="emissionBody">
+          <div id="emissionPlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+            Select an element from the palette to begin.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="keyboard-hint">
+    <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp;
+    <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> Tabs &nbsp;
+    <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp;
+    <kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate &nbsp;
+    <kbd>E</kbd> Export CSV
+  </div>
+</div>
+
+<script>
+// roundRect polyfill
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    var tl = r[0]||0, tr = r[1]||0, br = r[2]||0, bl = r[3]||0;
+    this.beginPath();
+    this.moveTo(x+tl, y);
+    this.lineTo(x+w-tr, y);
+    this.quadraticCurveTo(x+w, y, x+w, y+tr);
+    this.lineTo(x+w, y+h-br);
+    this.quadraticCurveTo(x+w, y+h, x+w-br, y+h);
+    this.lineTo(x+bl, y+h);
+    this.quadraticCurveTo(x, y+h, x, y+h-bl);
+    this.lineTo(x, y+tl);
+    this.quadraticCurveTo(x, y, x+tl, y);
+    this.closePath();
+    return this;
+  };
+}
+
+(function() {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════
+  // Helpers
+  // ═══════════════════════════════════════════════════
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined && text !== null) e.textContent = text;
+    return e;
+  }
+
+  function round(val, dp) {
+    if (dp === undefined) dp = 3;
+    var f = Math.pow(10, dp);
+    return Math.round(val * f) / f;
+  }
+
+  function setupCanvas(canvas) {
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.offsetWidth;
+    if (!canvas.dataset.baseHeight) {
+      canvas.dataset.baseHeight = canvas.getAttribute('height') || '300';
+    }
+    var h = parseInt(canvas.dataset.baseHeight);
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+
+  // ═══════════════════════════════════════════════════
+  // ISOTOPE DATA (~25 elements)
+  // ═══════════════════════════════════════════════════
+  var ISOTOPE_DATA = {
+    H:  { z: 1,  symbol: 'H',  name: 'Hydrogen',  ram: 1.008,    cat: 'nonmetal',
+      isotopes: [{ mass: 1, exact: 1.00783, abundance: 99.985, name: 'Protium' }, { mass: 2, exact: 2.01410, abundance: 0.015, name: 'Deuterium' }] },
+    He: { z: 2,  symbol: 'He', name: 'Helium',    ram: 4.003,    cat: 'noble-gas',
+      isotopes: [{ mass: 3, exact: 3.01603, abundance: 0.0001 }, { mass: 4, exact: 4.00260, abundance: 99.9999 }] },
+    Li: { z: 3,  symbol: 'Li', name: 'Lithium',   ram: 6.941,    cat: 'alkali-metal',
+      isotopes: [{ mass: 6, exact: 6.01512, abundance: 7.59 }, { mass: 7, exact: 7.01600, abundance: 92.41 }] },
+    B:  { z: 5,  symbol: 'B',  name: 'Boron',     ram: 10.81,    cat: 'nonmetal',
+      isotopes: [{ mass: 10, exact: 10.01294, abundance: 19.9 }, { mass: 11, exact: 11.00931, abundance: 80.1 }] },
+    C:  { z: 6,  symbol: 'C',  name: 'Carbon',    ram: 12.011,   cat: 'nonmetal',
+      isotopes: [{ mass: 12, exact: 12.00000, abundance: 98.93 }, { mass: 13, exact: 13.00335, abundance: 1.07 }],
+      radioactive: [{ mass: 14, halfLife: '5730 years', decay: '\u03B2\u207B', use: 'Carbon dating' }] },
+    N:  { z: 7,  symbol: 'N',  name: 'Nitrogen',  ram: 14.007,   cat: 'nonmetal',
+      isotopes: [{ mass: 14, exact: 14.00307, abundance: 99.636 }, { mass: 15, exact: 15.00011, abundance: 0.364 }] },
+    O:  { z: 8,  symbol: 'O',  name: 'Oxygen',    ram: 15.999,   cat: 'nonmetal',
+      isotopes: [{ mass: 16, exact: 15.99491, abundance: 99.757 }, { mass: 17, exact: 16.99913, abundance: 0.038 }, { mass: 18, exact: 17.99916, abundance: 0.205 }] },
+    Ne: { z: 10, symbol: 'Ne', name: 'Neon',      ram: 20.180,   cat: 'noble-gas',
+      isotopes: [{ mass: 20, exact: 19.99244, abundance: 90.48 }, { mass: 21, exact: 20.99385, abundance: 0.27 }, { mass: 22, exact: 21.99139, abundance: 9.25 }] },
+    Mg: { z: 12, symbol: 'Mg', name: 'Magnesium', ram: 24.305,   cat: 'alkaline-earth',
+      isotopes: [{ mass: 24, exact: 23.98504, abundance: 78.99 }, { mass: 25, exact: 24.98584, abundance: 10.00 }, { mass: 26, exact: 25.98259, abundance: 11.01 }] },
+    Si: { z: 14, symbol: 'Si', name: 'Silicon',   ram: 28.085,   cat: 'nonmetal',
+      isotopes: [{ mass: 28, exact: 27.97693, abundance: 92.223 }, { mass: 29, exact: 28.97649, abundance: 4.685 }, { mass: 30, exact: 29.97377, abundance: 3.092 }] },
+    S:  { z: 16, symbol: 'S',  name: 'Sulfur',    ram: 32.065,   cat: 'nonmetal',
+      isotopes: [{ mass: 32, exact: 31.97207, abundance: 94.99 }, { mass: 33, exact: 32.97146, abundance: 0.75 }, { mass: 34, exact: 33.96787, abundance: 4.25 }, { mass: 36, exact: 35.96708, abundance: 0.01 }] },
+    Cl: { z: 17, symbol: 'Cl', name: 'Chlorine',  ram: 35.45,    cat: 'halogen',
+      isotopes: [{ mass: 35, exact: 34.96885, abundance: 75.76 }, { mass: 37, exact: 36.96590, abundance: 24.24 }] },
+    Ar: { z: 18, symbol: 'Ar', name: 'Argon',     ram: 39.948,   cat: 'noble-gas',
+      isotopes: [{ mass: 36, exact: 35.96755, abundance: 0.3365 }, { mass: 38, exact: 37.96273, abundance: 0.0632 }, { mass: 40, exact: 39.96238, abundance: 99.6003 }] },
+    K:  { z: 19, symbol: 'K',  name: 'Potassium', ram: 39.098,   cat: 'alkali-metal',
+      isotopes: [{ mass: 39, exact: 38.96371, abundance: 93.258 }, { mass: 40, exact: 39.96400, abundance: 0.012 }, { mass: 41, exact: 40.96183, abundance: 6.730 }],
+      radioactive: [{ mass: 40, halfLife: '1.25 \u00D7 10\u2079 years', decay: '\u03B2\u207B / EC', use: 'K-Ar dating of rocks' }] },
+    Ca: { z: 20, symbol: 'Ca', name: 'Calcium',   ram: 40.078,   cat: 'alkaline-earth',
+      isotopes: [{ mass: 40, exact: 39.96259, abundance: 96.941 }, { mass: 42, exact: 41.95862, abundance: 0.647 }, { mass: 43, exact: 42.95877, abundance: 0.135 }, { mass: 44, exact: 43.95548, abundance: 2.086 }, { mass: 46, exact: 45.95369, abundance: 0.004 }, { mass: 48, exact: 47.95253, abundance: 0.187 }] },
+    Fe: { z: 26, symbol: 'Fe', name: 'Iron',      ram: 55.845,   cat: 'transition-metal',
+      isotopes: [{ mass: 54, exact: 53.93961, abundance: 5.845 }, { mass: 56, exact: 55.93494, abundance: 91.754 }, { mass: 57, exact: 56.93540, abundance: 2.119 }, { mass: 58, exact: 57.93328, abundance: 0.282 }] },
+    Cu: { z: 29, symbol: 'Cu', name: 'Copper',    ram: 63.546,   cat: 'transition-metal',
+      isotopes: [{ mass: 63, exact: 62.92960, abundance: 69.17 }, { mass: 65, exact: 64.92779, abundance: 30.83 }] },
+    Zn: { z: 30, symbol: 'Zn', name: 'Zinc',      ram: 65.38,    cat: 'transition-metal',
+      isotopes: [{ mass: 64, exact: 63.92914, abundance: 49.17 }, { mass: 66, exact: 65.92603, abundance: 27.73 }, { mass: 67, exact: 66.92713, abundance: 4.04 }, { mass: 68, exact: 67.92484, abundance: 18.45 }, { mass: 70, exact: 69.92532, abundance: 0.61 }] },
+    Br: { z: 35, symbol: 'Br', name: 'Bromine',   ram: 79.904,   cat: 'halogen',
+      isotopes: [{ mass: 79, exact: 78.91834, abundance: 50.69 }, { mass: 81, exact: 80.91629, abundance: 49.31 }] },
+    Kr: { z: 36, symbol: 'Kr', name: 'Krypton',   ram: 83.798,   cat: 'noble-gas',
+      isotopes: [{ mass: 78, exact: 77.92040, abundance: 0.355 }, { mass: 80, exact: 79.91638, abundance: 2.286 }, { mass: 82, exact: 81.91348, abundance: 11.593 }, { mass: 83, exact: 82.91414, abundance: 11.500 }, { mass: 84, exact: 83.91151, abundance: 56.987 }, { mass: 86, exact: 85.91062, abundance: 17.279 }] },
+    Zr: { z: 40, symbol: 'Zr', name: 'Zirconium', ram: 91.224,   cat: 'transition-metal',
+      isotopes: [{ mass: 90, exact: 89.90470, abundance: 51.45 }, { mass: 91, exact: 90.90564, abundance: 11.22 }, { mass: 92, exact: 91.90504, abundance: 17.15 }, { mass: 94, exact: 93.90632, abundance: 17.38 }, { mass: 96, exact: 95.90828, abundance: 2.80 }] },
+    Ag: { z: 47, symbol: 'Ag', name: 'Silver',    ram: 107.868,  cat: 'transition-metal',
+      isotopes: [{ mass: 107, exact: 106.90509, abundance: 51.839 }, { mass: 109, exact: 108.90476, abundance: 48.161 }] },
+    Na: { z: 11, symbol: 'Na', name: 'Sodium',    ram: 22.990,   cat: 'alkali-metal',
+      isotopes: [{ mass: 23, exact: 22.98977, abundance: 100.0 }] }
+  };
+
+  // Element palette categories
+  var ELEMENT_CATEGORIES = [
+    { id: 'alkali-metal', name: 'Alkali Metals', elements: ['Li', 'Na', 'K'] },
+    { id: 'alkaline-earth', name: 'Alkaline Earth', elements: ['Mg', 'Ca'] },
+    { id: 'nonmetal', name: 'Nonmetals', elements: ['H', 'C', 'N', 'O', 'B', 'Si', 'S'] },
+    { id: 'halogen', name: 'Halogens', elements: ['Cl', 'Br'] },
+    { id: 'noble-gas', name: 'Noble Gases', elements: ['He', 'Ne', 'Ar', 'Kr'] },
+    { id: 'transition-metal', name: 'Transition Metals', elements: ['Fe', 'Cu', 'Zn', 'Zr', 'Ag'] }
+  ];
+
+  var CAT_COLORS = {
+    'alkali-metal': '#FEF3C7',
+    'alkaline-earth': '#FDE68A',
+    'nonmetal': '#CCFBF1',
+    'halogen': '#FDE2E2',
+    'noble-gas': '#E0E7FF',
+    'transition-metal': '#BFDBFE'
+  };
+
+  // ═══════════════════════════════════════════════════
+  // MASS SPEC DATA
+  // ═══════════════════════════════════════════════════
+  var MS_CATEGORIES = [
+    { id: 'elements', name: 'Elements' },
+    { id: 'organic', name: 'Simple Organic' },
+    { id: 'hl-frag', name: 'HL: Fragmentation', hl: true }
+  ];
+
+  var MS_COMPOUNDS = [
+    { id: 'ms-ne', cat: 'elements', name: 'Ne', formula: 'Ne', M: 20.180, difficulty: 'Easy',
+      peaks: [
+        { mz: 20, intensity: 100, label: 'M\u207A (\u00B2\u2070Ne\u207A)', type: 'molecular' },
+        { mz: 21, intensity: 0.3, label: '\u00B2\u00B9Ne\u207A', type: 'isotope' },
+        { mz: 22, intensity: 10.2, label: '\u00B2\u00B2Ne\u207A', type: 'isotope' }
+      ],
+      info: 'Neon shows three isotope peaks. The base peak at m/z = 20 corresponds to the most abundant isotope \u00B2\u2070Ne.' },
+    { id: 'ms-cl2', cat: 'elements', name: 'Cl\u2082', formula: 'Cl\u2082', M: 70.906, difficulty: 'Medium',
+      peaks: [
+        { mz: 35, intensity: 100, label: '\u00B3\u2075Cl\u207A (base peak)', type: 'fragment' },
+        { mz: 37, intensity: 32, label: '\u00B3\u2077Cl\u207A', type: 'fragment' },
+        { mz: 70, intensity: 60, label: 'M\u207A (\u00B3\u2075Cl\u2082\u207A)', type: 'molecular' },
+        { mz: 72, intensity: 39, label: 'M+2 (\u00B3\u2075Cl\u00B3\u2077Cl\u207A)', type: 'isotope' },
+        { mz: 74, intensity: 6, label: 'M+4 (\u00B3\u2077Cl\u2082\u207A)', type: 'isotope' }
+      ],
+      info: 'Cl\u2082 shows the characteristic 3:2:1 isotope pattern for M, M+2, M+4 (binomial distribution from two Cl atoms).' },
+    { id: 'ms-br2', cat: 'elements', name: 'Br\u2082', formula: 'Br\u2082', M: 159.808, difficulty: 'Medium',
+      peaks: [
+        { mz: 79, intensity: 98, label: '\u2077\u2079Br\u207A', type: 'fragment' },
+        { mz: 81, intensity: 100, label: '\u2078\u00B9Br\u207A (base peak)', type: 'fragment' },
+        { mz: 158, intensity: 51, label: 'M\u207A (\u2077\u2079Br\u2082\u207A)', type: 'molecular' },
+        { mz: 160, intensity: 100, label: 'M+2 (\u2077\u2079Br\u2078\u00B9Br\u207A)', type: 'isotope' },
+        { mz: 162, intensity: 49, label: 'M+4 (\u2078\u00B9Br\u2082\u207A)', type: 'isotope' }
+      ],
+      info: 'Br\u2082 shows a 1:2:1 isotope pattern for M, M+2, M+4 because \u2077\u2079Br and \u2078\u00B9Br have nearly equal abundance.' },
+    { id: 'ms-zr', cat: 'elements', name: 'Zr', formula: 'Zr', M: 91.224, difficulty: 'Medium',
+      peaks: [
+        { mz: 90, intensity: 100, label: '\u2079\u2070Zr\u207A (base peak)', type: 'molecular' },
+        { mz: 91, intensity: 21.8, label: '\u2079\u00B9Zr\u207A', type: 'isotope' },
+        { mz: 92, intensity: 33.4, label: '\u2079\u00B2Zr\u207A', type: 'isotope' },
+        { mz: 94, intensity: 33.8, label: '\u2079\u2074Zr\u207A', type: 'isotope' },
+        { mz: 96, intensity: 5.4, label: '\u2079\u2076Zr\u207A', type: 'isotope' }
+      ],
+      info: 'Zirconium has five stable isotopes. The isotope pattern from mass spectrometry directly reflects their natural abundances.' },
+    { id: 'ms-ch4', cat: 'organic', name: 'CH\u2084', formula: 'CH\u2084', M: 16.043, difficulty: 'Easy',
+      peaks: [
+        { mz: 12, intensity: 3, label: 'C\u207A', type: 'fragment' },
+        { mz: 13, intensity: 7, label: 'CH\u207A', type: 'fragment' },
+        { mz: 14, intensity: 16, label: 'CH\u2082\u207A', type: 'fragment' },
+        { mz: 15, intensity: 85, label: 'CH\u2083\u207A', type: 'fragment' },
+        { mz: 16, intensity: 100, label: 'M\u207A (CH\u2084\u207A)', type: 'molecular' }
+      ],
+      info: 'Methane fragments by successive loss of H atoms. The molecular ion at m/z = 16 is the base peak.' },
+    { id: 'ms-etoh', cat: 'organic', name: 'C\u2082H\u2085OH', formula: 'C\u2082H\u2085OH', M: 46.068, difficulty: 'Medium',
+      peaks: [
+        { mz: 15, intensity: 7, label: 'CH\u2083\u207A', type: 'fragment' },
+        { mz: 27, intensity: 14, label: 'CHO\u207A', type: 'fragment' },
+        { mz: 29, intensity: 24, label: 'CHO\u207A / C\u2082H\u2085\u207A', type: 'fragment' },
+        { mz: 31, intensity: 100, label: 'CH\u2082OH\u207A (base peak)', type: 'fragment' },
+        { mz: 45, intensity: 52, label: 'M-1 (CHO\u2082\u207A / C\u2082H\u2085O\u207A)', type: 'fragment' },
+        { mz: 46, intensity: 33, label: 'M\u207A (C\u2082H\u2085OH\u207A)', type: 'molecular' }
+      ],
+      info: 'Ethanol fragments primarily at the C\u2013O bond giving CH\u2082OH\u207A (m/z = 31) as the base peak. Loss of H gives M-1 at m/z = 45.' },
+    { id: 'ms-acoh', cat: 'organic', name: 'CH\u2083COOH', formula: 'CH\u2083COOH', M: 60.052, difficulty: 'Medium',
+      peaks: [
+        { mz: 15, intensity: 26, label: 'CH\u2083\u207A', type: 'fragment' },
+        { mz: 28, intensity: 6, label: 'CO\u207A', type: 'fragment' },
+        { mz: 43, intensity: 100, label: 'CH\u2083CO\u207A (base peak)', type: 'fragment' },
+        { mz: 45, intensity: 62, label: 'COOH\u207A', type: 'fragment' },
+        { mz: 60, intensity: 57, label: 'M\u207A (CH\u2083COOH\u207A)', type: 'molecular' }
+      ],
+      info: 'Acetic acid cleaves at the C\u2013C bond between the methyl and carboxyl groups, giving CH\u2083CO\u207A (m/z = 43) as the base peak.' },
+    { id: 'ms-c3h8', cat: 'hl-frag', name: 'C\u2083H\u2088', formula: 'C\u2083H\u2088', M: 44.096, difficulty: 'Hard',
+      peaks: [
+        { mz: 15, intensity: 14, label: 'CH\u2083\u207A', type: 'fragment' },
+        { mz: 26, intensity: 5, label: 'C\u2082H\u2082\u207A', type: 'fragment' },
+        { mz: 27, intensity: 32, label: 'C\u2082H\u2083\u207A', type: 'fragment' },
+        { mz: 28, intensity: 22, label: 'C\u2082H\u2084\u207A', type: 'fragment' },
+        { mz: 29, intensity: 100, label: 'C\u2082H\u2085\u207A (base peak)', type: 'fragment' },
+        { mz: 39, intensity: 8, label: 'C\u2083H\u2083\u207A', type: 'fragment' },
+        { mz: 43, intensity: 14, label: 'C\u2083H\u2087\u207A', type: 'fragment' },
+        { mz: 44, intensity: 34, label: 'M\u207A (C\u2083H\u2088\u207A)', type: 'molecular' }
+      ],
+      info: 'Propane fragments primarily by C\u2013C bond cleavage. Loss of CH\u2083 gives C\u2082H\u2085\u207A (m/z = 29) as the base peak.' },
+    { id: 'ms-c4h10', cat: 'hl-frag', name: 'C\u2084H\u2081\u2080', formula: 'C\u2084H\u2081\u2080', M: 58.122, difficulty: 'Hard',
+      peaks: [
+        { mz: 15, intensity: 8, label: 'CH\u2083\u207A', type: 'fragment' },
+        { mz: 27, intensity: 28, label: 'C\u2082H\u2083\u207A', type: 'fragment' },
+        { mz: 28, intensity: 14, label: 'C\u2082H\u2084\u207A', type: 'fragment' },
+        { mz: 29, intensity: 56, label: 'C\u2082H\u2085\u207A', type: 'fragment' },
+        { mz: 39, intensity: 9, label: 'C\u2083H\u2083\u207A', type: 'fragment' },
+        { mz: 41, intensity: 18, label: 'C\u2083H\u2085\u207A', type: 'fragment' },
+        { mz: 43, intensity: 100, label: 'C\u2083H\u2087\u207A (base peak)', type: 'fragment' },
+        { mz: 58, intensity: 22, label: 'M\u207A (C\u2084H\u2081\u2080\u207A)', type: 'molecular' }
+      ],
+      info: 'Butane fragments by C\u2013C bond cleavage. The base peak at m/z = 43 (C\u2083H\u2087\u207A) results from loss of CH\u2083.' }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // EMISSION SPECTRA DATA
+  // ═══════════════════════════════════════════════════
+  // Hydrogen energy levels: E_n = -13.6 / n^2 eV
+  function hydrogenEnergy(n) { return -13.6 / (n * n); }
+
+  // Wavelength from transition ni -> nf (nm)
+  function hydrogenWavelength(ni, nf) {
+    var dE = Math.abs(hydrogenEnergy(nf) - hydrogenEnergy(ni));
+    // dE in eV, convert to nm: lambda = hc/dE, hc = 1240 eV*nm
+    return 1240.0 / dE;
+  }
+
+  // Wavelength to RGB color (visible spectrum)
+  function wavelengthToColor(nm) {
+    var r = 0, g = 0, b = 0;
+    if (nm >= 380 && nm < 440) { r = -(nm - 440) / 60; b = 1; }
+    else if (nm >= 440 && nm < 490) { g = (nm - 440) / 50; b = 1; }
+    else if (nm >= 490 && nm < 510) { g = 1; b = -(nm - 510) / 20; }
+    else if (nm >= 510 && nm < 580) { r = (nm - 510) / 70; g = 1; }
+    else if (nm >= 580 && nm < 645) { r = 1; g = -(nm - 645) / 65; }
+    else if (nm >= 645 && nm <= 780) { r = 1; }
+    else { return '#888888'; } // UV or IR
+    // Intensity falloff at edges
+    var factor = 1.0;
+    if (nm >= 380 && nm < 420) factor = 0.3 + 0.7 * (nm - 380) / 40;
+    else if (nm > 700 && nm <= 780) factor = 0.3 + 0.7 * (780 - nm) / 80;
+    r = Math.round(255 * Math.pow(r * factor, 0.8));
+    g = Math.round(255 * Math.pow(g * factor, 0.8));
+    b = Math.round(255 * Math.pow(b * factor, 0.8));
+    return 'rgb(' + r + ',' + g + ',' + b + ')';
+  }
+
+  var SERIES_NAMES = { 1: 'Lyman (UV)', 2: 'Balmer (visible)', 3: 'Paschen (IR)' };
+  var SERIES_COLORS = { 1: '#8B5CF6', 2: '#059669', 3: '#DC2626' };
+
+  // Reference emission spectra (characteristic wavelengths in nm)
+  var REFERENCE_SPECTRA = {
+    H:  { name: 'Hydrogen', lines: [410, 434, 486, 656] },
+    He: { name: 'Helium',   lines: [389, 447, 471, 492, 502, 588, 668, 707] },
+    Li: { name: 'Lithium',  lines: [413, 460, 497, 610, 670] },
+    Na: { name: 'Sodium',   lines: [449, 466, 498, 515, 569, 589, 616, 819] },
+    Ca: { name: 'Calcium',  lines: [393, 397, 423, 443, 445, 527, 558, 612, 616, 643, 647, 714] },
+    Ne: { name: 'Neon',     lines: [585, 588, 603, 607, 616, 621, 626, 633, 638, 640, 650, 660, 693, 703, 724] }
+  };
+
+  // HL: Successive ionization energies (kJ/mol)
+  var SUCCESSIVE_IE = {
+    Na: { z: 11, ies: [496, 4562, 6912, 9544, 13354, 16613, 20117, 25496, 28932, 141362, 159076] },
+    Mg: { z: 12, ies: [738, 1451, 7733, 10543, 13630, 18020, 21711, 25661, 31653, 35458, 169988, 189368] },
+    Al: { z: 13, ies: [577, 1817, 2745, 11578, 14831, 18378, 23326, 27465, 31853, 38473, 42647, 201266, 222316] },
+    Si: { z: 14, ies: [786, 1577, 3232, 4356, 16091, 19805, 23780, 29287, 33878, 38726, 45962, 50502, 235193, 257923] },
+    P:  { z: 15, ies: [1012, 1907, 2914, 4964, 6274, 21267, 25431, 29872, 35905, 40950, 46261, 54110, 59024, 271791, 296195] },
+    S:  { z: 16, ies: [1000, 2252, 3357, 4556, 7004, 8496, 27107, 31719, 36621, 43177, 48710, 54460, 62930, 68216, 311048, 337138] }
+  };
+
+  // ═══════════════════════════════════════════════════
+  // Mini periodic table layout (subset)
+  // ═══════════════════════════════════════════════════
+  var MINI_PT_LAYOUT = {};
+  // Standard periodic table positions for our elements
+  MINI_PT_LAYOUT[1]  = [0, 0];  // H
+  MINI_PT_LAYOUT[2]  = [17, 0]; // He
+  MINI_PT_LAYOUT[3]  = [0, 1];  // Li
+  MINI_PT_LAYOUT[5]  = [12, 1]; // B
+  MINI_PT_LAYOUT[6]  = [13, 1]; // C
+  MINI_PT_LAYOUT[7]  = [14, 1]; // N
+  MINI_PT_LAYOUT[8]  = [15, 1]; // O
+  MINI_PT_LAYOUT[10] = [17, 1]; // Ne
+  MINI_PT_LAYOUT[11] = [0, 2];  // Na
+  MINI_PT_LAYOUT[12] = [1, 2];  // Mg
+  MINI_PT_LAYOUT[14] = [13, 2]; // Si
+  MINI_PT_LAYOUT[16] = [15, 2]; // S
+  MINI_PT_LAYOUT[17] = [16, 2]; // Cl
+  MINI_PT_LAYOUT[18] = [17, 2]; // Ar
+  MINI_PT_LAYOUT[19] = [0, 3];  // K
+  MINI_PT_LAYOUT[20] = [1, 3];  // Ca
+  MINI_PT_LAYOUT[26] = [7, 3];  // Fe
+  MINI_PT_LAYOUT[29] = [10, 3]; // Cu
+  MINI_PT_LAYOUT[30] = [11, 3]; // Zn
+  MINI_PT_LAYOUT[35] = [16, 3]; // Br
+  MINI_PT_LAYOUT[36] = [17, 3]; // Kr
+  MINI_PT_LAYOUT[40] = [3, 4];  // Zr
+  MINI_PT_LAYOUT[47] = [10, 4]; // Ag
+
+  // ═══════════════════════════════════════════════════
+  // STATE
+  // ═══════════════════════════════════════════════════
+  var _activeTab = 'isotopes';
+  var _selectedElement = null;    // key in ISOTOPE_DATA
+  var _selectedMS = null;         // MS_COMPOUNDS entry
+  var _selectedEmission = null;   // key in REFERENCE_SPECTRA
+  var _isHL = false;
+  var _isTeacher = false;
+
+  // Tab 1
+  var _whatIfAbundances = null;
+
+  // Tab 2
+  var _msLabels = {};       // { peakIndex: userLabel }
+  var _msScore = 0;
+  var _msTotal = 0;
+  var _msClickedPeak = -1;
+
+  // Tab 3
+  var _buildPeaks = [];     // [{ mz, intensity }]
+  var _buildDragging = -1;
+  var _buildChecked = false;
+
+  // Tab 4
+  var _bohrClickState = null; // null or { ni: n }
+  var _emissionLines = [];   // [{ wavelength, ni, nf }]
+  var _unknownElement = null;
+  var _unknownGuess = '';
+
+  // ═══════════════════════════════════════════════════
+  // DOM References
+  // ═══════════════════════════════════════════════════
+  var paletteList = document.getElementById('paletteList');
+  var paletteSearch = document.getElementById('paletteSearch');
+  var paletteHeader = document.getElementById('paletteHeader');
+  var presetSelect = document.getElementById('presetSelect');
+  var headerToggles = document.getElementById('headerToggles');
+
+  // ═══════════════════════════════════════════════════
+  // Build Header Toggles
+  // ═══════════════════════════════════════════════════
+  function buildToggles() {
+    var hlGroup = el('div', 'sim-toggle-group');
+    var hlLabel1 = el('span', 'sim-toggle-label', 'SL');
+    var hlToggle = el('label', 'sim-toggle');
+    var hlInput = document.createElement('input');
+    hlInput.type = 'checkbox';
+    hlInput.setAttribute('aria-label', 'Toggle HL content');
+    var hlSlider = el('span', 'sim-toggle-slider');
+    hlSlider.style.setProperty('--toggle-on', 'var(--purple)');
+    hlToggle.appendChild(hlInput);
+    hlToggle.appendChild(hlSlider);
+    var hlLabel2 = el('span', 'sim-toggle-label', 'HL');
+    hlGroup.appendChild(hlLabel1);
+    hlGroup.appendChild(hlToggle);
+    hlGroup.appendChild(hlLabel2);
+    hlInput.addEventListener('change', function() {
+      _isHL = this.checked;
+      document.body.classList.toggle('hl-active', _isHL);
+      buildPalette();
+      refreshCurrentTab();
+    });
+
+    var tGroup = el('div', 'sim-toggle-group');
+    var tLabel1 = el('span', 'sim-toggle-label', 'Student');
+    var tToggle = el('label', 'sim-toggle');
+    var tInput = document.createElement('input');
+    tInput.type = 'checkbox';
+    tInput.setAttribute('aria-label', 'Toggle teacher mode');
+    var tSlider = el('span', 'sim-toggle-slider');
+    tToggle.appendChild(tInput);
+    tToggle.appendChild(tSlider);
+    var tLabel2 = el('span', 'sim-toggle-label', 'Teacher');
+    tGroup.appendChild(tLabel1);
+    tGroup.appendChild(tToggle);
+    tGroup.appendChild(tLabel2);
+    tInput.addEventListener('change', function() {
+      _isTeacher = this.checked;
+      document.body.classList.toggle('teacher-active', _isTeacher);
+      refreshCurrentTab();
+    });
+
+    headerToggles.appendChild(hlGroup);
+    headerToggles.appendChild(tGroup);
+  }
+  buildToggles();
+
+  // ═══════════════════════════════════════════════════
+  // Tab Switching
+  // ═══════════════════════════════════════════════════
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabContents = document.querySelectorAll('.tab-content');
+
+  function switchTab(tabId) {
+    _activeTab = tabId;
+    for (var i = 0; i < tabBtns.length; i++) {
+      tabBtns[i].classList.toggle('active', tabBtns[i].getAttribute('data-tab') === tabId);
+    }
+    for (var i = 0; i < tabContents.length; i++) {
+      tabContents[i].classList.toggle('active', tabContents[i].id === 'tab-' + tabId);
+    }
+    buildPalette();
+    refreshCurrentTab();
+  }
+
+  for (var i = 0; i < tabBtns.length; i++) {
+    tabBtns[i].addEventListener('click', (function(btn) {
+      return function() { switchTab(btn.getAttribute('data-tab')); };
+    })(tabBtns[i]));
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Palette Building
+  // ═══════════════════════════════════════════════════
+  function buildPalette() {
+    paletteList.textContent = '';
+    var filter = paletteSearch.value.toLowerCase();
+
+    if (_activeTab === 'isotopes' || _activeTab === 'emission') {
+      paletteHeader.textContent = 'Elements';
+      var cats = (_activeTab === 'emission')
+        ? [{ id: 'emission', name: 'Elements', elements: ['H', 'He', 'Li', 'Na', 'Ca', 'Ne'] }]
+        : ELEMENT_CATEGORIES;
+
+      for (var c = 0; c < cats.length; c++) {
+        var cat = cats[c];
+        var catLabel = el('div', 'palette-category', cat.name);
+        var hasVisible = false;
+        var items = [];
+        for (var e = 0; e < cat.elements.length; e++) {
+          var sym = cat.elements[e];
+          var data = ISOTOPE_DATA[sym];
+          if (!data) continue;
+          var displayName = sym + ' \u2013 ' + data.name;
+          if (filter && displayName.toLowerCase().indexOf(filter) === -1) continue;
+          hasVisible = true;
+          var btn = el('button', 'palette-item', displayName);
+          var selKey = (_activeTab === 'emission') ? sym : sym;
+          if ((_activeTab === 'isotopes' && _selectedElement === sym) ||
+              (_activeTab === 'emission' && _selectedEmission === sym)) {
+            btn.classList.add('active');
+          }
+          btn.addEventListener('click', (function(s) {
+            return function() {
+              if (_activeTab === 'isotopes') selectElement(s);
+              else if (_activeTab === 'emission') selectEmission(s);
+            };
+          })(sym));
+          items.push(btn);
+        }
+        if (hasVisible) {
+          paletteList.appendChild(catLabel);
+          for (var j = 0; j < items.length; j++) paletteList.appendChild(items[j]);
+        }
+      }
+    } else if (_activeTab === 'msAnalyze' || _activeTab === 'msBuild') {
+      paletteHeader.textContent = 'Compounds';
+      for (var c = 0; c < MS_CATEGORIES.length; c++) {
+        var cat = MS_CATEGORIES[c];
+        var catLabel = el('div', 'palette-category' + (cat.hl ? ' hl-cat' : ''), cat.name);
+        var hasVisible = false;
+        var items = [];
+        for (var m = 0; m < MS_COMPOUNDS.length; m++) {
+          var comp = MS_COMPOUNDS[m];
+          if (comp.cat !== cat.id) continue;
+          var displayName = comp.name;
+          if (_activeTab === 'msBuild') displayName += ' (' + comp.difficulty + ')';
+          if (filter && displayName.toLowerCase().indexOf(filter) === -1) continue;
+          hasVisible = true;
+          var btn = el('button', 'palette-item' + (cat.hl ? ' hl-rxn' : ''), displayName);
+          if (_selectedMS && _selectedMS.id === comp.id) btn.classList.add('active');
+          btn.addEventListener('click', (function(c2) {
+            return function() { selectMSCompound(c2); };
+          })(comp));
+          items.push(btn);
+        }
+        if (hasVisible) {
+          paletteList.appendChild(catLabel);
+          for (var j = 0; j < items.length; j++) paletteList.appendChild(items[j]);
+        }
+      }
+    }
+
+    // Teacher presets
+    buildPresets();
+  }
+
+  function buildPresets() {
+    presetSelect.textContent = '';
+    var def = document.createElement('option');
+    def.value = '';
+    def.textContent = 'Teacher Presets...';
+    presetSelect.appendChild(def);
+
+    if (_activeTab === 'isotopes') {
+      var presets = [
+        { name: 'Cl RAM Calculation', value: 'Cl' },
+        { name: 'Cu Isotopes', value: 'Cu' },
+        { name: 'Multi-isotope (Zn)', value: 'Zn' },
+        { name: 'Monoisotopic (Na)', value: 'Na' }
+      ];
+      for (var i = 0; i < presets.length; i++) {
+        var o = document.createElement('option');
+        o.value = presets[i].value;
+        o.textContent = presets[i].name;
+        presetSelect.appendChild(o);
+      }
+    } else if (_activeTab === 'msAnalyze' || _activeTab === 'msBuild') {
+      var presets = [
+        { name: 'Isotope Patterns (Cl\u2082)', value: 'ms-cl2' },
+        { name: 'Simple Fragmentation (CH\u2084)', value: 'ms-ch4' },
+        { name: 'Organic Analysis (C\u2082H\u2085OH)', value: 'ms-etoh' }
+      ];
+      for (var i = 0; i < presets.length; i++) {
+        var o = document.createElement('option');
+        o.value = presets[i].value;
+        o.textContent = presets[i].name;
+        presetSelect.appendChild(o);
+      }
+    } else if (_activeTab === 'emission') {
+      var presets = [
+        { name: 'Hydrogen Balmer Series', value: 'H' },
+        { name: 'Sodium D-line', value: 'Na' },
+        { name: 'Compare H vs He', value: 'H' }
+      ];
+      for (var i = 0; i < presets.length; i++) {
+        var o = document.createElement('option');
+        o.value = presets[i].value;
+        o.textContent = presets[i].name;
+        presetSelect.appendChild(o);
+      }
+    }
+  }
+
+  presetSelect.addEventListener('change', function() {
+    var val = this.value;
+    if (!val) return;
+    if (_activeTab === 'isotopes') selectElement(val);
+    else if (_activeTab === 'msAnalyze' || _activeTab === 'msBuild') {
+      for (var i = 0; i < MS_COMPOUNDS.length; i++) {
+        if (MS_COMPOUNDS[i].id === val) { selectMSCompound(MS_COMPOUNDS[i]); break; }
+      }
+    } else if (_activeTab === 'emission') selectEmission(val);
+  });
+
+  paletteSearch.addEventListener('input', function() { buildPalette(); });
+
+  // ═══════════════════════════════════════════════════
+  // REFRESH
+  // ═══════════════════════════════════════════════════
+  function refreshCurrentTab() {
+    if (_activeTab === 'isotopes') renderIsotopeTab();
+    else if (_activeTab === 'msAnalyze') renderMSAnalyzeTab();
+    else if (_activeTab === 'msBuild') renderMSBuildTab();
+    else if (_activeTab === 'emission') renderEmissionTab();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 1: ISOTOPE EXPLORER
+  // ═══════════════════════════════════════════════════
+  function selectElement(sym) {
+    _selectedElement = sym;
+    _whatIfAbundances = null;
+    buildPalette();
+    renderIsotopeTab();
+  }
+
+  function renderIsotopeTab() {
+    drawMiniPT();
+    var body = document.getElementById('isotopeBody');
+    body.textContent = '';
+
+    if (!_selectedElement || !ISOTOPE_DATA[_selectedElement]) {
+      var ph = el('div', '', 'Select an element from the palette or periodic table to begin.');
+      ph.style.cssText = 'text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;';
+      body.appendChild(ph);
+      return;
+    }
+
+    var data = ISOTOPE_DATA[_selectedElement];
+
+    // Element header
+    var hdr = el('div');
+    hdr.style.cssText = 'display:flex;align-items:center;gap:0.75rem;margin-bottom:0.75rem;';
+    var symDiv = el('div', '', data.symbol);
+    symDiv.style.cssText = 'font-size:2rem;font-weight:700;font-family:"Fira Code",monospace;color:var(--navy);width:3rem;text-align:center;';
+    var nameDiv = el('div');
+    var nameText = el('div', '', data.name);
+    nameText.style.cssText = 'font-size:1rem;font-weight:600;';
+    var metaText = el('div', '', 'Z = ' + data.z + ' \u2022 ' + data.isotopes.length + ' stable isotope' + (data.isotopes.length > 1 ? 's' : ''));
+    metaText.style.cssText = 'font-size:0.75rem;color:var(--text-muted);';
+    nameDiv.appendChild(nameText);
+    nameDiv.appendChild(metaText);
+    hdr.appendChild(symDiv);
+    hdr.appendChild(nameDiv);
+    body.appendChild(hdr);
+
+    // Isotope cards
+    var cardsDiv = el('div', 'isotope-cards');
+    for (var i = 0; i < data.isotopes.length; i++) {
+      var iso = data.isotopes[i];
+      var card = el('div', 'isotope-card');
+      var notation = el('div', 'isotope-notation');
+      var massSpan = el('span', 'mass-num', String(iso.mass));
+      var atomicSpan = el('span', 'atomic-num', String(data.z));
+      notation.appendChild(massSpan);
+      notation.appendChild(atomicSpan);
+      notation.appendChild(document.createTextNode(data.symbol));
+      card.appendChild(notation);
+      if (iso.name) {
+        var nameLabel = el('div', '', iso.name);
+        nameLabel.style.cssText = 'font-size:0.7rem;color:var(--text-muted);margin-top:0.2rem;';
+        card.appendChild(nameLabel);
+      }
+      var abund = el('div', 'isotope-abundance', round(iso.abundance, 3) + '%');
+      card.appendChild(abund);
+      cardsDiv.appendChild(card);
+    }
+    body.appendChild(cardsDiv);
+
+    // Abundance bar chart canvas
+    var chartCard = el('div');
+    chartCard.style.cssText = 'margin:0.75rem 0;';
+    var chartCanvas = document.createElement('canvas');
+    chartCanvas.className = 'sim-canvas';
+    chartCanvas.setAttribute('height', '120');
+    chartCanvas.setAttribute('role', 'img');
+    chartCanvas.setAttribute('aria-label', 'Isotope abundance bar chart for ' + data.name);
+    chartCard.appendChild(chartCanvas);
+    body.appendChild(chartCard);
+
+    // RAM Calculator
+    var ramDiv = el('div', 'ram-calc');
+    var ramTitle = el('div', 'ram-calc-title', 'Relative Atomic Mass Calculator');
+    ramDiv.appendChild(ramTitle);
+
+    // What-if inputs
+    var abundances = _whatIfAbundances || data.isotopes.map(function(iso) { return iso.abundance; });
+    var whatIfDiv = el('div');
+    whatIfDiv.style.cssText = 'margin-bottom:0.5rem;';
+    for (var i = 0; i < data.isotopes.length; i++) {
+      var row = el('div', 'what-if-row');
+      var lbl = el('label', '', data.symbol + '-' + data.isotopes[i].mass + ':');
+      var inp = document.createElement('input');
+      inp.type = 'number';
+      inp.value = round(abundances[i], 3);
+      inp.min = '0';
+      inp.max = '100';
+      inp.step = '0.1';
+      inp.setAttribute('aria-label', 'Abundance of ' + data.symbol + '-' + data.isotopes[i].mass);
+      inp.addEventListener('input', (function(idx) {
+        return function(evt) {
+          if (!_whatIfAbundances) {
+            _whatIfAbundances = data.isotopes.map(function(iso) { return iso.abundance; });
+          }
+          _whatIfAbundances[idx] = parseFloat(evt.target.value) || 0;
+          updateRAM();
+        };
+      })(i));
+      var unitLabel = el('span', '', '%');
+      unitLabel.style.cssText = 'font-size:0.72rem;color:var(--text-muted);';
+      row.appendChild(lbl);
+      row.appendChild(inp);
+      row.appendChild(unitLabel);
+      whatIfDiv.appendChild(row);
+    }
+    ramDiv.appendChild(whatIfDiv);
+
+    // Formula display
+    var formulaDiv = el('div', 'ram-formula');
+    formulaDiv.id = 'ramFormula';
+    ramDiv.appendChild(formulaDiv);
+
+    var resultDiv = el('div', 'ram-result');
+    resultDiv.id = 'ramResult';
+    ramDiv.appendChild(resultDiv);
+
+    var compareDiv = el('div', 'ram-compare');
+    compareDiv.id = 'ramCompare';
+    ramDiv.appendChild(compareDiv);
+
+    body.appendChild(ramDiv);
+
+    // Teacher answer reveal
+    var revealDiv = el('div', 'answer-reveal');
+    revealDiv.textContent = 'Data Booklet RAM: ' + data.ram;
+    body.appendChild(revealDiv);
+
+    // HL: Radioactive isotopes card
+    if (data.radioactive) {
+      var hlCard = el('div', 'hl-card hl-panel');
+      var hlTitle = el('div', 'hl-card-title', 'Radioactive Isotopes');
+      hlCard.appendChild(hlTitle);
+      for (var i = 0; i < data.radioactive.length; i++) {
+        var ri = data.radioactive[i];
+        var riText = el('div', '', data.symbol + '-' + ri.mass + ': t\u00BD = ' + ri.halfLife + ', ' + ri.decay);
+        riText.style.cssText = 'font-size:0.78rem;font-family:"Fira Code",monospace;';
+        hlCard.appendChild(riText);
+        if (ri.use) {
+          var useText = el('div', '', 'Use: ' + ri.use);
+          useText.style.cssText = 'font-size:0.72rem;color:var(--text-muted);margin-top:0.1rem;';
+          hlCard.appendChild(useText);
+        }
+      }
+      body.appendChild(hlCard);
+    }
+
+    // Draw abundance chart after DOM insertion
+    setTimeout(function() {
+      drawAbundanceChart(chartCanvas, data, abundances);
+      updateRAM();
+    });
+  }
+
+  function updateRAM() {
+    var data = ISOTOPE_DATA[_selectedElement];
+    if (!data) return;
+    var abundances = _whatIfAbundances || data.isotopes.map(function(iso) { return iso.abundance; });
+    var formulaDiv = document.getElementById('ramFormula');
+    var resultDiv = document.getElementById('ramResult');
+    var compareDiv = document.getElementById('ramCompare');
+    if (!formulaDiv) return;
+
+    // Calculate
+    var totalAbund = 0;
+    for (var i = 0; i < abundances.length; i++) totalAbund += abundances[i];
+
+    var ram = 0;
+    var parts = [];
+    for (var i = 0; i < data.isotopes.length; i++) {
+      var frac = abundances[i] / totalAbund;
+      ram += data.isotopes[i].exact * frac;
+      parts.push('(' + round(abundances[i], 2) + '/' + round(totalAbund, 2) + ' \u00D7 ' + round(data.isotopes[i].exact, 5) + ')');
+    }
+
+    formulaDiv.textContent = 'RAM = ' + parts.join(' + ');
+    resultDiv.textContent = 'RAM = ' + round(ram, 3);
+
+    var diff = Math.abs(ram - data.ram);
+    if (_whatIfAbundances) {
+      compareDiv.textContent = 'Data Booklet: ' + data.ram + ' (difference: ' + round(diff, 3) + ')';
+    } else {
+      compareDiv.textContent = 'Data Booklet: ' + data.ram;
+    }
+  }
+
+  function drawAbundanceChart(canvas, data, abundances) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var pad = { top: 10, right: 20, bottom: 25, left: 60 };
+    var chartW = w - pad.left - pad.right;
+    var chartH = h - pad.top - pad.bottom;
+    var barH = Math.min(20, (chartH - 5 * data.isotopes.length) / data.isotopes.length);
+    var maxAbund = 100;
+
+    for (var i = 0; i < data.isotopes.length; i++) {
+      var iso = data.isotopes[i];
+      var y = pad.top + i * (barH + 8);
+      var barW = (abundances[i] / maxAbund) * chartW;
+
+      // Label
+      ctx.font = '500 11px "Fira Code", monospace';
+      ctx.fillStyle = '#1E293B';
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(data.symbol + '-' + iso.mass, pad.left - 8, y + barH / 2);
+
+      // Bar
+      ctx.fillStyle = '#0D9488';
+      ctx.beginPath();
+      ctx.roundRect(pad.left, y, Math.max(barW, 2), barH, 3);
+      ctx.fill();
+
+      // Value
+      ctx.fillStyle = '#1E293B';
+      ctx.textAlign = 'left';
+      ctx.fillText(round(abundances[i], 2) + '%', pad.left + barW + 6, y + barH / 2);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // MINI PERIODIC TABLE
+  // ═══════════════════════════════════════════════════
+  function drawMiniPT() {
+    var canvas = document.getElementById('miniPTCanvas');
+    if (!canvas || canvas.offsetWidth === 0) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var cols = 18;
+    var rows = 5;
+    var cellW = Math.floor((w - 20) / cols);
+    var cellH = Math.floor((h - 20) / rows);
+    var padX = (w - cols * cellW) / 2;
+    var padY = (h - rows * cellH) / 2;
+
+    // Draw all element cells
+    var keys = Object.keys(ISOTOPE_DATA);
+    for (var k = 0; k < keys.length; k++) {
+      var sym = keys[k];
+      var data = ISOTOPE_DATA[sym];
+      var pos = MINI_PT_LAYOUT[data.z];
+      if (!pos) continue;
+      var x = padX + pos[0] * cellW;
+      var y = padY + pos[1] * cellH;
+
+      // Background
+      var color = CAT_COLORS[data.cat] || '#E2E8F0';
+      if (_selectedElement === sym) color = '#0D9488';
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.roundRect(x + 1, y + 1, cellW - 2, cellH - 2, 3);
+      ctx.fill();
+
+      // Border
+      ctx.strokeStyle = _selectedElement === sym ? '#0B7C73' : '#CBD5E1';
+      ctx.lineWidth = _selectedElement === sym ? 2 : 0.5;
+      ctx.stroke();
+
+      // Symbol text
+      ctx.fillStyle = _selectedElement === sym ? 'white' : '#1E293B';
+      ctx.font = '600 ' + Math.min(12, cellW * 0.4) + 'px "Fira Code", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(sym, x + cellW / 2, y + cellH / 2);
+    }
+  }
+
+  // Mini PT click handler
+  var miniPTCanvas = document.getElementById('miniPTCanvas');
+  miniPTCanvas.addEventListener('click', function(evt) {
+    var rect = this.getBoundingClientRect();
+    var mx = evt.clientX - rect.left;
+    var my = evt.clientY - rect.top;
+
+    var w = this.offsetWidth;
+    var h = parseInt(this.dataset.baseHeight || '180');
+    var cols = 18, rows = 5;
+    var cellW = Math.floor((w - 20) / cols);
+    var cellH = Math.floor((h - 20) / rows);
+    var padX = (w - cols * cellW) / 2;
+    var padY = (h - rows * cellH) / 2;
+
+    var keys = Object.keys(ISOTOPE_DATA);
+    for (var k = 0; k < keys.length; k++) {
+      var sym = keys[k];
+      var data = ISOTOPE_DATA[sym];
+      var pos = MINI_PT_LAYOUT[data.z];
+      if (!pos) continue;
+      var x = padX + pos[0] * cellW;
+      var y = padY + pos[1] * cellH;
+      if (mx >= x && mx <= x + cellW && my >= y && my <= y + cellH) {
+        selectElement(sym);
+        return;
+      }
+    }
+  });
+
+  // ═══════════════════════════════════════════════════
+  // TAB 2: MASS SPEC ANALYZE
+  // ═══════════════════════════════════════════════════
+  function selectMSCompound(comp) {
+    _selectedMS = comp;
+    _msLabels = {};
+    _msScore = 0;
+    _msTotal = comp.peaks.length;
+    _msClickedPeak = -1;
+    _buildPeaks = [];
+    _buildChecked = false;
+    buildPalette();
+    refreshCurrentTab();
+  }
+
+  function renderMSAnalyzeTab() {
+    var body = document.getElementById('msAnalyzeBody');
+    body.textContent = '';
+
+    if (!_selectedMS) {
+      var ph = el('div', '', 'Select a compound from the palette to begin.');
+      ph.style.cssText = 'text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;';
+      body.appendChild(ph);
+      return;
+    }
+
+    var comp = _selectedMS;
+
+    // Score bar
+    var scoreBar = el('div', 'score-bar');
+    scoreBar.appendChild(document.createTextNode('Score: '));
+    var scoreVal = el('span', 'score-val', _msScore + ' / ' + _msTotal);
+    scoreVal.id = 'msScoreVal';
+    scoreBar.appendChild(scoreVal);
+    var resetBtn = el('button', 'check-btn', 'Reset');
+    resetBtn.style.cssText = 'margin:0;padding:0.3rem 0.8rem;margin-left:auto;font-size:0.75rem;';
+    resetBtn.addEventListener('click', function() {
+      _msLabels = {};
+      _msScore = 0;
+      _msClickedPeak = -1;
+      renderMSAnalyzeTab();
+    });
+    scoreBar.appendChild(resetBtn);
+    body.appendChild(scoreBar);
+
+    // Spectrum canvas
+    var canvasWrap = el('div', 'spec-canvas-wrap');
+    var specCanvas = document.createElement('canvas');
+    specCanvas.className = 'sim-canvas';
+    specCanvas.id = 'msAnalyzeCanvas';
+    specCanvas.setAttribute('height', '300');
+    specCanvas.setAttribute('role', 'img');
+    specCanvas.setAttribute('aria-label', 'Mass spectrum of ' + comp.name);
+    canvasWrap.appendChild(specCanvas);
+
+    // Label dropdown (hidden by default)
+    var dropdown = el('div', 'peak-label-dropdown');
+    dropdown.id = 'peakDropdown';
+    var ddSelect = document.createElement('select');
+    ddSelect.id = 'peakLabelSelect';
+    ddSelect.setAttribute('aria-label', 'Select peak label');
+    var options = ['M\u207A (molecular ion)', 'Base peak', 'Fragment', 'Isotope (M+1)', 'Isotope (M+2)', 'Isotope (M+4)'];
+    for (var i = 0; i < options.length; i++) {
+      var o = document.createElement('option');
+      o.value = options[i];
+      o.textContent = options[i];
+      ddSelect.appendChild(o);
+    }
+    dropdown.appendChild(ddSelect);
+    var ddBtn = document.createElement('button');
+    ddBtn.textContent = 'Label';
+    ddBtn.addEventListener('click', function() {
+      labelPeak(ddSelect.value);
+    });
+    dropdown.appendChild(ddBtn);
+    canvasWrap.appendChild(dropdown);
+
+    body.appendChild(canvasWrap);
+
+    // Info panel
+    var infoDiv = el('div', 'spec-info');
+    infoDiv.id = 'msInfoPanel';
+    var infoTitle = el('div', 'spec-info-title', comp.formula + ' (M = ' + comp.M + ')');
+    infoDiv.appendChild(infoTitle);
+    body.appendChild(infoDiv);
+
+    // Teacher answer reveal
+    var revealDiv = el('div', 'answer-reveal');
+    revealDiv.id = 'msAnswerReveal';
+    var revealContent = '';
+    for (var i = 0; i < comp.peaks.length; i++) {
+      revealContent += 'm/z = ' + comp.peaks[i].mz + ': ' + comp.peaks[i].label + '\n';
+    }
+    revealDiv.textContent = revealContent;
+    body.appendChild(revealDiv);
+
+    // Draw spectrum
+    setTimeout(function() { drawMSSpectrum(specCanvas, comp, 'analyze'); });
+
+    // Canvas click handler
+    specCanvas.addEventListener('click', function(evt) {
+      var rect = this.getBoundingClientRect();
+      var mx = evt.clientX - rect.left;
+      handleMSClick(mx, this);
+    });
+  }
+
+  function drawMSSpectrum(canvas, comp, mode) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var pad = { top: 20, right: 30, bottom: 40, left: 50 };
+    var chartW = w - pad.left - pad.right;
+    var chartH = h - pad.top - pad.bottom;
+
+    // Determine m/z range
+    var maxMZ = 0;
+    for (var i = 0; i < comp.peaks.length; i++) {
+      if (comp.peaks[i].mz > maxMZ) maxMZ = comp.peaks[i].mz;
+    }
+    maxMZ = Math.ceil(maxMZ * 1.15);
+    if (maxMZ < 20) maxMZ = 20;
+
+    // Axes
+    ctx.strokeStyle = '#1E293B';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, pad.top + chartH);
+    ctx.lineTo(pad.left + chartW, pad.top + chartH);
+    ctx.stroke();
+
+    // Y-axis label
+    ctx.save();
+    ctx.translate(15, pad.top + chartH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.font = '500 11px Inter, sans-serif';
+    ctx.fillStyle = '#64748B';
+    ctx.textAlign = 'center';
+    ctx.fillText('Relative Intensity (%)', 0, 0);
+    ctx.restore();
+
+    // X-axis label
+    ctx.font = '500 11px Inter, sans-serif';
+    ctx.fillStyle = '#64748B';
+    ctx.textAlign = 'center';
+    ctx.fillText('m/z', pad.left + chartW / 2, h - 5);
+
+    // Y-axis ticks
+    for (var i = 0; i <= 4; i++) {
+      var val = i * 25;
+      var y = pad.top + chartH - (val / 100) * chartH;
+      ctx.font = '11px "Fira Code", monospace';
+      ctx.fillStyle = '#64748B';
+      ctx.textAlign = 'right';
+      ctx.fillText(val, pad.left - 5, y + 4);
+      ctx.strokeStyle = '#E2E8F0';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, y);
+      ctx.lineTo(pad.left + chartW, y);
+      ctx.stroke();
+    }
+
+    // X-axis ticks
+    var xStep = maxMZ <= 50 ? 5 : (maxMZ <= 100 ? 10 : 20);
+    for (var x = 0; x <= maxMZ; x += xStep) {
+      var px = pad.left + (x / maxMZ) * chartW;
+      ctx.font = '11px "Fira Code", monospace';
+      ctx.fillStyle = '#64748B';
+      ctx.textAlign = 'center';
+      ctx.fillText(x, px, pad.top + chartH + 18);
+    }
+
+    // Draw peaks
+    var barW = Math.max(3, Math.min(12, chartW / maxMZ * 0.6));
+    for (var i = 0; i < comp.peaks.length; i++) {
+      var peak = comp.peaks[i];
+      var px = pad.left + (peak.mz / maxMZ) * chartW;
+      var barH = (peak.intensity / 100) * chartH;
+      var y = pad.top + chartH - barH;
+
+      // Color based on labeling state
+      if (mode === 'analyze' && _msLabels[i] !== undefined) {
+        ctx.fillStyle = _msLabels[i] ? '#059669' : '#DC2626';
+      } else {
+        ctx.fillStyle = '#0D9488';
+      }
+
+      ctx.fillRect(px - barW / 2, y, barW, barH);
+
+      // m/z label on peak
+      ctx.font = '500 9px "Fira Code", monospace';
+      ctx.fillStyle = '#1E293B';
+      ctx.textAlign = 'center';
+      ctx.fillText(peak.mz, px, y - 5);
+
+      // Show label if labeled correctly or teacher mode
+      if (mode === 'analyze' && (_msLabels[i] || _isTeacher)) {
+        ctx.font = '500 8px Inter, sans-serif';
+        ctx.fillStyle = _msLabels[i] ? '#059669' : '#7C3AED';
+        ctx.fillText(_isTeacher ? peak.label.split('(')[0].trim() : '\u2713', px, y - 16);
+      }
+    }
+
+    // Store layout for click detection
+    canvas._msLayout = { pad: pad, chartW: chartW, chartH: chartH, maxMZ: maxMZ, barW: barW };
+  }
+
+  function handleMSClick(mx, canvas) {
+    if (!_selectedMS || !canvas._msLayout) return;
+    var layout = canvas._msLayout;
+    var comp = _selectedMS;
+
+    // Find clicked peak
+    var barW = layout.barW;
+    var clickedIdx = -1;
+    for (var i = 0; i < comp.peaks.length; i++) {
+      var peak = comp.peaks[i];
+      var px = layout.pad.left + (peak.mz / layout.maxMZ) * layout.chartW;
+      if (Math.abs(mx - px) < barW * 1.5) {
+        clickedIdx = i;
+        break;
+      }
+    }
+
+    if (clickedIdx === -1 || _msLabels[clickedIdx] !== undefined) {
+      // Hide dropdown
+      var dd = document.getElementById('peakDropdown');
+      if (dd) dd.style.display = 'none';
+      return;
+    }
+
+    _msClickedPeak = clickedIdx;
+
+    // Show dropdown near the peak
+    var peak = comp.peaks[clickedIdx];
+    var px = layout.pad.left + (peak.mz / layout.maxMZ) * layout.chartW;
+    var dd = document.getElementById('peakDropdown');
+    if (dd) {
+      dd.style.display = 'block';
+      dd.style.left = Math.min(px, canvas.offsetWidth - 180) + 'px';
+      dd.style.top = '10px';
+    }
+  }
+
+  function labelPeak(userLabel) {
+    if (_msClickedPeak === -1 || !_selectedMS) return;
+    var comp = _selectedMS;
+    var peak = comp.peaks[_msClickedPeak];
+
+    // Check if correct
+    var correct = false;
+    var ul = userLabel.toLowerCase();
+    var pl = peak.type;
+    if (ul.indexOf('molecular') !== -1 && pl === 'molecular') correct = true;
+    else if (ul.indexOf('base') !== -1 && peak.intensity === 100) correct = true;
+    else if (ul.indexOf('fragment') !== -1 && pl === 'fragment') correct = true;
+    else if (ul.indexOf('m+1') !== -1 && peak.label.indexOf('M+1') !== -1) correct = true;
+    else if (ul.indexOf('m+2') !== -1 && (peak.label.indexOf('M+2') !== -1 || (peak.label.indexOf('M\u207A') !== -1 && pl === 'isotope'))) correct = true;
+    else if (ul.indexOf('m+4') !== -1 && peak.label.indexOf('M+4') !== -1) correct = true;
+    else if (ul.indexOf('isotope') !== -1 && pl === 'isotope') correct = true;
+
+    _msLabels[_msClickedPeak] = correct;
+    if (correct) _msScore++;
+
+    // Update score display
+    var sv = document.getElementById('msScoreVal');
+    if (sv) sv.textContent = _msScore + ' / ' + _msTotal;
+
+    // Hide dropdown
+    var dd = document.getElementById('peakDropdown');
+    if (dd) dd.style.display = 'none';
+
+    // Update info panel
+    var info = document.getElementById('msInfoPanel');
+    if (info && correct) {
+      var peakInfo = el('div', '', 'm/z = ' + peak.mz + ': ' + peak.label + ' \u2713');
+      peakInfo.style.cssText = 'font-size:0.78rem;color:var(--green);font-family:"Fira Code",monospace;';
+      info.appendChild(peakInfo);
+    } else if (info && !correct) {
+      var peakInfo = el('div', '', 'm/z = ' + peak.mz + ': Incorrect \u2717 (try again or check answers)');
+      peakInfo.style.cssText = 'font-size:0.78rem;color:var(--red);font-family:"Fira Code",monospace;';
+      info.appendChild(peakInfo);
+    }
+
+    _msClickedPeak = -1;
+
+    // Redraw
+    var canvas = document.getElementById('msAnalyzeCanvas');
+    if (canvas) drawMSSpectrum(canvas, comp, 'analyze');
+
+    // Show info when all labeled
+    if (_msScore === _msTotal && info) {
+      var fullInfo = el('div', '', comp.info);
+      fullInfo.style.cssText = 'font-size:0.78rem;color:var(--text);margin-top:0.5rem;padding:0.5rem;background:var(--green-bg);border-radius:6px;';
+      info.appendChild(fullInfo);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 3: MASS SPEC BUILD
+  // ═══════════════════════════════════════════════════
+  function renderMSBuildTab() {
+    var body = document.getElementById('msBuildBody');
+    body.textContent = '';
+
+    if (!_selectedMS) {
+      var ph = el('div', '', 'Select a compound from the palette to begin.');
+      ph.style.cssText = 'text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;';
+      body.appendChild(ph);
+      return;
+    }
+
+    var comp = _selectedMS;
+
+    // Challenge prompt
+    var prompt = el('div', 'challenge-prompt');
+    prompt.textContent = 'Build the mass spectrum for ' + comp.formula + ' (M = ' + comp.M + ')';
+    body.appendChild(prompt);
+
+    // Instruction
+    var instr = el('div', '', 'Click on the chart to place peaks. Drag peak tops to adjust intensity. Right-click to remove.');
+    instr.style.cssText = 'font-size:0.75rem;color:var(--text-muted);margin-bottom:0.5rem;';
+    body.appendChild(instr);
+
+    // Build canvas
+    var canvasWrap = el('div', 'spec-canvas-wrap');
+    var buildCanvas = document.createElement('canvas');
+    buildCanvas.className = 'sim-canvas';
+    buildCanvas.id = 'msBuildCanvas';
+    buildCanvas.setAttribute('height', '300');
+    buildCanvas.setAttribute('role', 'img');
+    buildCanvas.setAttribute('aria-label', 'Build mass spectrum for ' + comp.name);
+    canvasWrap.appendChild(buildCanvas);
+    body.appendChild(canvasWrap);
+
+    // Checklist
+    var checklist = el('div', 'build-checklist');
+    checklist.id = 'buildChecklist';
+    body.appendChild(checklist);
+
+    // Buttons row
+    var btnRow = el('div');
+    btnRow.style.cssText = 'display:flex;gap:0.5rem;margin-top:0.5rem;flex-wrap:wrap;';
+    var clearBtn = el('button', 'check-btn', 'Clear All');
+    clearBtn.style.cssText += ';background:var(--red);padding:0.4rem 1rem;';
+    clearBtn.addEventListener('click', function() {
+      _buildPeaks = [];
+      _buildChecked = false;
+      renderMSBuildTab();
+    });
+    var checkBtn = el('button', 'check-btn', 'Check Answer');
+    checkBtn.addEventListener('click', function() {
+      _buildChecked = true;
+      drawBuildSpectrum();
+      updateBuildChecklist();
+      showBuildFeedback();
+    });
+    btnRow.appendChild(clearBtn);
+    btnRow.appendChild(checkBtn);
+    body.appendChild(btnRow);
+
+    // Feedback area
+    var feedbackDiv = el('div');
+    feedbackDiv.id = 'buildFeedback';
+    body.appendChild(feedbackDiv);
+
+    // Teacher reveal
+    var revealDiv = el('div', 'answer-reveal');
+    var revealContent = 'Expected peaks:\n';
+    for (var i = 0; i < comp.peaks.length; i++) {
+      revealContent += 'm/z = ' + comp.peaks[i].mz + ', intensity = ' + comp.peaks[i].intensity + '%\n';
+    }
+    revealDiv.textContent = revealContent;
+    body.appendChild(revealDiv);
+
+    // Draw and set up interactions
+    setTimeout(function() {
+      drawBuildSpectrum();
+      updateBuildChecklist();
+    });
+
+    // Canvas interactions
+    buildCanvas.addEventListener('click', function(evt) {
+      if (_buildChecked) return;
+      var rect = this.getBoundingClientRect();
+      var mx = evt.clientX - rect.left;
+      var my = evt.clientY - rect.top;
+      handleBuildClick(mx, my, this);
+    });
+
+    buildCanvas.addEventListener('contextmenu', function(evt) {
+      evt.preventDefault();
+      if (_buildChecked) return;
+      var rect = this.getBoundingClientRect();
+      var mx = evt.clientX - rect.left;
+      handleBuildRightClick(mx, this);
+    });
+
+    buildCanvas.addEventListener('mousedown', function(evt) {
+      if (_buildChecked || evt.button !== 0) return;
+      var rect = this.getBoundingClientRect();
+      var mx = evt.clientX - rect.left;
+      handleBuildMouseDown(mx, this);
+    });
+
+    buildCanvas.addEventListener('mousemove', function(evt) {
+      if (_buildDragging === -1) return;
+      var rect = this.getBoundingClientRect();
+      var my = evt.clientY - rect.top;
+      handleBuildDrag(my, this);
+    });
+
+    buildCanvas.addEventListener('mouseup', function() {
+      _buildDragging = -1;
+    });
+  }
+
+  function getBuildLayout(canvas) {
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight || '300');
+    var comp = _selectedMS;
+    var maxMZ = 0;
+    for (var i = 0; i < comp.peaks.length; i++) {
+      if (comp.peaks[i].mz > maxMZ) maxMZ = comp.peaks[i].mz;
+    }
+    maxMZ = Math.ceil(maxMZ * 1.15);
+    if (maxMZ < 20) maxMZ = 20;
+    var pad = { top: 20, right: 30, bottom: 40, left: 50 };
+    return { w: w, h: h, pad: pad, maxMZ: maxMZ, chartW: w - pad.left - pad.right, chartH: h - pad.top - pad.bottom };
+  }
+
+  function drawBuildSpectrum() {
+    var canvas = document.getElementById('msBuildCanvas');
+    if (!canvas || !_selectedMS) return;
+    var comp = _selectedMS;
+    var ctx = setupCanvas(canvas);
+    var layout = getBuildLayout(canvas);
+    var w = layout.w, h = layout.h, pad = layout.pad;
+    var chartW = layout.chartW, chartH = layout.chartH, maxMZ = layout.maxMZ;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Axes
+    ctx.strokeStyle = '#1E293B';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, pad.top + chartH);
+    ctx.lineTo(pad.left + chartW, pad.top + chartH);
+    ctx.stroke();
+
+    // Y label
+    ctx.save();
+    ctx.translate(15, pad.top + chartH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.font = '500 11px Inter, sans-serif';
+    ctx.fillStyle = '#64748B';
+    ctx.textAlign = 'center';
+    ctx.fillText('Relative Intensity (%)', 0, 0);
+    ctx.restore();
+
+    // X label
+    ctx.font = '500 11px Inter, sans-serif';
+    ctx.fillStyle = '#64748B';
+    ctx.textAlign = 'center';
+    ctx.fillText('m/z', pad.left + chartW / 2, h - 5);
+
+    // Ticks
+    for (var i = 0; i <= 4; i++) {
+      var val = i * 25;
+      var y = pad.top + chartH - (val / 100) * chartH;
+      ctx.font = '11px "Fira Code", monospace';
+      ctx.fillStyle = '#64748B';
+      ctx.textAlign = 'right';
+      ctx.fillText(val, pad.left - 5, y + 4);
+      ctx.strokeStyle = '#E2E8F0';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, y);
+      ctx.lineTo(pad.left + chartW, y);
+      ctx.stroke();
+    }
+    var xStep = maxMZ <= 50 ? 5 : (maxMZ <= 100 ? 10 : 20);
+    for (var x = 0; x <= maxMZ; x += xStep) {
+      var px = pad.left + (x / maxMZ) * chartW;
+      ctx.font = '11px "Fira Code", monospace';
+      ctx.fillStyle = '#64748B';
+      ctx.textAlign = 'center';
+      ctx.fillText(x, px, pad.top + chartH + 18);
+    }
+
+    var barW = Math.max(3, Math.min(12, chartW / maxMZ * 0.6));
+
+    // If checked, draw correct peaks in green first
+    if (_buildChecked) {
+      for (var i = 0; i < comp.peaks.length; i++) {
+        var peak = comp.peaks[i];
+        var px = pad.left + (peak.mz / maxMZ) * chartW;
+        var barH = (peak.intensity / 100) * chartH;
+        var y = pad.top + chartH - barH;
+        ctx.fillStyle = 'rgba(5, 150, 105, 0.3)';
+        ctx.fillRect(px - barW / 2 - 2, y, barW + 4, barH);
+        ctx.font = '500 8px "Fira Code", monospace';
+        ctx.fillStyle = '#059669';
+        ctx.textAlign = 'center';
+        ctx.fillText(peak.mz, px, y - 5);
+      }
+    }
+
+    // Draw student peaks
+    for (var i = 0; i < _buildPeaks.length; i++) {
+      var peak = _buildPeaks[i];
+      var px = pad.left + (peak.mz / maxMZ) * chartW;
+      var barH = (peak.intensity / 100) * chartH;
+      var y = pad.top + chartH - barH;
+      ctx.fillStyle = _buildChecked ? 'rgba(13, 148, 136, 0.7)' : '#0D9488';
+      ctx.fillRect(px - barW / 2, y, barW, barH);
+      ctx.font = '500 9px "Fira Code", monospace';
+      ctx.fillStyle = '#1E293B';
+      ctx.textAlign = 'center';
+      ctx.fillText(peak.mz, px, y - 5);
+    }
+
+    canvas._buildLayout = layout;
+  }
+
+  function handleBuildClick(mx, my, canvas) {
+    var layout = getBuildLayout(canvas);
+    var pad = layout.pad;
+
+    // Convert click to m/z
+    var relX = mx - pad.left;
+    if (relX < 0 || relX > layout.chartW) return;
+    var mz = Math.round((relX / layout.chartW) * layout.maxMZ);
+    if (mz < 1) return;
+
+    // Check if clicking near existing peak
+    for (var i = 0; i < _buildPeaks.length; i++) {
+      if (Math.abs(_buildPeaks[i].mz - mz) <= 1) return; // too close
+    }
+
+    // Convert y to intensity
+    var relY = my - pad.top;
+    var intensity = Math.max(5, Math.min(100, Math.round((1 - relY / layout.chartH) * 100)));
+
+    _buildPeaks.push({ mz: mz, intensity: intensity });
+    _buildPeaks.sort(function(a, b) { return a.mz - b.mz; });
+    drawBuildSpectrum();
+    updateBuildChecklist();
+  }
+
+  function handleBuildRightClick(mx, canvas) {
+    var layout = getBuildLayout(canvas);
+    var pad = layout.pad;
+    var barW = Math.max(3, Math.min(12, layout.chartW / layout.maxMZ * 0.6));
+
+    for (var i = _buildPeaks.length - 1; i >= 0; i--) {
+      var px = pad.left + (_buildPeaks[i].mz / layout.maxMZ) * layout.chartW;
+      if (Math.abs(mx - px) < barW * 2) {
+        _buildPeaks.splice(i, 1);
+        drawBuildSpectrum();
+        updateBuildChecklist();
+        return;
+      }
+    }
+  }
+
+  function handleBuildMouseDown(mx, canvas) {
+    var layout = getBuildLayout(canvas);
+    var pad = layout.pad;
+    var barW = Math.max(3, Math.min(12, layout.chartW / layout.maxMZ * 0.6));
+
+    for (var i = 0; i < _buildPeaks.length; i++) {
+      var px = pad.left + (_buildPeaks[i].mz / layout.maxMZ) * layout.chartW;
+      if (Math.abs(mx - px) < barW * 2) {
+        _buildDragging = i;
+        return;
+      }
+    }
+  }
+
+  function handleBuildDrag(my, canvas) {
+    if (_buildDragging === -1) return;
+    var layout = getBuildLayout(canvas);
+    var pad = layout.pad;
+    var relY = my - pad.top;
+    var intensity = Math.max(5, Math.min(100, Math.round((1 - relY / layout.chartH) * 100)));
+    _buildPeaks[_buildDragging].intensity = intensity;
+    drawBuildSpectrum();
+  }
+
+  function updateBuildChecklist() {
+    var checklist = document.getElementById('buildChecklist');
+    if (!checklist || !_selectedMS) return;
+    checklist.textContent = '';
+
+    var comp = _selectedMS;
+
+    // Find molecular ion peak
+    var molPeak = null;
+    for (var i = 0; i < comp.peaks.length; i++) {
+      if (comp.peaks[i].type === 'molecular') { molPeak = comp.peaks[i]; break; }
+    }
+
+    // Check: molecular ion placed?
+    var hasMolIon = false;
+    if (molPeak) {
+      for (var i = 0; i < _buildPeaks.length; i++) {
+        if (Math.abs(_buildPeaks[i].mz - molPeak.mz) <= 1) { hasMolIon = true; break; }
+      }
+    }
+
+    // Check: base peak at 100%?
+    var hasBasePeak = false;
+    for (var i = 0; i < _buildPeaks.length; i++) {
+      if (_buildPeaks[i].intensity >= 95) { hasBasePeak = true; break; }
+    }
+
+    // Check: key fragments (>2 peaks)?
+    var hasFragments = _buildPeaks.length >= 3;
+
+    var checks = [
+      { text: 'Molecular ion (M\u207A) placed', done: hasMolIon },
+      { text: 'Base peak at 100%', done: hasBasePeak },
+      { text: 'Key fragments present (\u22653 peaks)', done: hasFragments }
+    ];
+
+    for (var i = 0; i < checks.length; i++) {
+      var item = el('div', 'build-check-item ' + (checks[i].done ? 'done' : 'pending'));
+      var icon = el('span', 'check-icon', checks[i].done ? '\u2713' : '\u25CB');
+      item.appendChild(icon);
+      item.appendChild(document.createTextNode(' ' + checks[i].text));
+      checklist.appendChild(item);
+    }
+  }
+
+  function showBuildFeedback() {
+    var feedbackDiv = document.getElementById('buildFeedback');
+    if (!feedbackDiv || !_selectedMS) return;
+    feedbackDiv.textContent = '';
+
+    var comp = _selectedMS;
+    var matched = 0;
+    var total = comp.peaks.length;
+
+    for (var i = 0; i < comp.peaks.length; i++) {
+      var cpeak = comp.peaks[i];
+      var found = false;
+      for (var j = 0; j < _buildPeaks.length; j++) {
+        if (Math.abs(_buildPeaks[j].mz - cpeak.mz) <= 1 &&
+            Math.abs(_buildPeaks[j].intensity - cpeak.intensity) <= 10) {
+          found = true;
+          break;
+        }
+      }
+      if (found) matched++;
+    }
+
+    var pct = Math.round((matched / total) * 100);
+    var card = el('div');
+    card.style.cssText = 'padding:0.75rem;border-radius:8px;margin-top:0.75rem;border:1px solid;';
+    if (pct >= 80) {
+      card.style.borderColor = 'var(--green)';
+      card.style.background = 'var(--green-bg)';
+    } else if (pct >= 50) {
+      card.style.borderColor = 'var(--amber)';
+      card.style.background = 'var(--amber-bg)';
+    } else {
+      card.style.borderColor = 'var(--red)';
+      card.style.background = 'var(--red-bg)';
+    }
+    var title = el('div', '', 'Score: ' + matched + '/' + total + ' peaks matched (' + pct + '%)');
+    title.style.cssText = 'font-weight:700;font-size:0.85rem;margin-bottom:0.3rem;';
+    card.appendChild(title);
+    var detail = el('div', '', 'Tolerance: \u00B11 m/z, \u00B110% intensity. Green = expected, Teal = your peaks.');
+    detail.style.cssText = 'font-size:0.75rem;color:var(--text-muted);';
+    card.appendChild(detail);
+
+    if (comp.info) {
+      var infoText = el('div', '', comp.info);
+      infoText.style.cssText = 'font-size:0.78rem;margin-top:0.5rem;';
+      card.appendChild(infoText);
+    }
+
+    feedbackDiv.appendChild(card);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 4: EMISSION SPECTRA
+  // ═══════════════════════════════════════════════════
+  function selectEmission(sym) {
+    _selectedEmission = sym;
+    _bohrClickState = null;
+    _emissionLines = [];
+    buildPalette();
+    renderEmissionTab();
+  }
+
+  function renderEmissionTab() {
+    var body = document.getElementById('emissionBody');
+    body.textContent = '';
+
+    if (!_selectedEmission) {
+      var ph = el('div', '', 'Select an element from the palette to begin.');
+      ph.style.cssText = 'text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;';
+      body.appendChild(ph);
+      return;
+    }
+
+    // Title
+    var titleDiv = el('div', '', REFERENCE_SPECTRA[_selectedEmission].name + ' Emission Spectrum');
+    titleDiv.style.cssText = 'font-size:0.9rem;font-weight:700;margin-bottom:0.75rem;';
+    body.appendChild(titleDiv);
+
+    if (_selectedEmission === 'H') {
+      // Full Bohr model + spectrum for Hydrogen
+      renderHydrogenBohr(body);
+    } else {
+      // Simple reference spectrum display for other elements
+      renderSimpleSpectrum(body);
+    }
+
+    // Spectrum comparison section
+    renderSpectrumComparison(body);
+
+    // HL: Successive IE
+    if (_selectedEmission && SUCCESSIVE_IE[_selectedEmission]) {
+      renderSuccessiveIE(body);
+    }
+  }
+
+  function renderHydrogenBohr(body) {
+    var layoutDiv = el('div', 'spectra-layout');
+
+    // Bohr model
+    var bohrCard = el('div');
+    var bohrTitle = el('div', '', 'Bohr Model — click a starting level, then an ending level');
+    bohrTitle.style.cssText = 'font-size:0.75rem;color:var(--text-muted);margin-bottom:0.3rem;';
+    bohrCard.appendChild(bohrTitle);
+    var bohrCanvas = document.createElement('canvas');
+    bohrCanvas.className = 'sim-canvas';
+    bohrCanvas.id = 'bohrCanvas';
+    bohrCanvas.setAttribute('height', '300');
+    bohrCanvas.setAttribute('role', 'img');
+    bohrCanvas.setAttribute('aria-label', 'Hydrogen Bohr model with clickable energy level transitions');
+    bohrCard.appendChild(bohrCanvas);
+
+    var bohrInfo = el('div', 'bohr-info');
+    bohrInfo.id = 'bohrInfo';
+    if (_bohrClickState) {
+      bohrInfo.textContent = 'Starting level: n = ' + _bohrClickState.ni + '. Click an ending level (n < ' + _bohrClickState.ni + ').';
+    } else {
+      bohrInfo.textContent = 'Click a higher energy level to start a transition.';
+    }
+    bohrCard.appendChild(bohrInfo);
+
+    // Show All button
+    var showAllBtn = el('button', 'check-btn', 'Show All Lines');
+    showAllBtn.style.cssText += ';margin-top:0.5rem;font-size:0.75rem;padding:0.35rem 0.8rem;';
+    showAllBtn.addEventListener('click', function() {
+      _emissionLines = [];
+      for (var ni = 2; ni <= 6; ni++) {
+        for (var nf = 1; nf < ni; nf++) {
+          var wl = hydrogenWavelength(ni, nf);
+          _emissionLines.push({ wavelength: wl, ni: ni, nf: nf });
+        }
+      }
+      drawEmissionSpectrum();
+      drawBohrModel();
+    });
+    bohrCard.appendChild(showAllBtn);
+
+    // Series legend
+    var legend = el('div', 'series-legend');
+    var series = [
+      { name: 'Lyman (UV, n\u21921)', color: SERIES_COLORS[1] },
+      { name: 'Balmer (Vis, n\u21922)', color: SERIES_COLORS[2] },
+      { name: 'Paschen (IR, n\u21923)', color: SERIES_COLORS[3] }
+    ];
+    for (var i = 0; i < series.length; i++) {
+      var item = el('span', 'series-item');
+      var dot = el('span', 'series-dot');
+      dot.style.background = series[i].color;
+      item.appendChild(dot);
+      item.appendChild(document.createTextNode(series[i].name));
+      legend.appendChild(item);
+    }
+    bohrCard.appendChild(legend);
+    layoutDiv.appendChild(bohrCard);
+
+    // Emission spectrum
+    var specCard = el('div');
+    var specTitle = el('div', '', 'Emission Spectrum');
+    specTitle.style.cssText = 'font-size:0.75rem;color:var(--text-muted);margin-bottom:0.3rem;';
+    specCard.appendChild(specTitle);
+    var specDiv = el('div', 'spectrum-dark');
+    var specCanvas = document.createElement('canvas');
+    specCanvas.className = 'sim-canvas';
+    specCanvas.id = 'emissionCanvas';
+    specCanvas.setAttribute('height', '200');
+    specCanvas.setAttribute('role', 'img');
+    specCanvas.setAttribute('aria-label', 'Hydrogen emission spectrum');
+    specCanvas.style.background = '#111827';
+    specDiv.appendChild(specCanvas);
+    specCard.appendChild(specDiv);
+
+    // Transition list
+    var transDiv = el('div');
+    transDiv.id = 'transitionList';
+    transDiv.style.cssText = 'margin-top:0.5rem;font-size:0.72rem;max-height:120px;overflow-y:auto;';
+    specCard.appendChild(transDiv);
+
+    layoutDiv.appendChild(specCard);
+    body.appendChild(layoutDiv);
+
+    // Draw after DOM insert
+    setTimeout(function() {
+      drawBohrModel();
+      drawEmissionSpectrum();
+      updateTransitionList();
+    });
+
+    // Bohr canvas click
+    bohrCanvas.addEventListener('click', function(evt) {
+      var rect = this.getBoundingClientRect();
+      var mx = evt.clientX - rect.left;
+      var my = evt.clientY - rect.top;
+      handleBohrClick(mx, my, this);
+    });
+  }
+
+  function drawBohrModel() {
+    var canvas = document.getElementById('bohrCanvas');
+    if (!canvas) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var cx = w / 2;
+    var cy = h / 2;
+    var maxR = Math.min(cx, cy) - 20;
+
+    // Draw energy levels (n=1 to n=6)
+    for (var n = 1; n <= 6; n++) {
+      var r = (n / 6) * maxR;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = n === (_bohrClickState ? _bohrClickState.ni : 0) ? '#0D9488' : '#CBD5E1';
+      ctx.lineWidth = n === (_bohrClickState ? _bohrClickState.ni : 0) ? 2.5 : 1;
+      ctx.stroke();
+
+      // Energy label — place at top of each circle
+      var eV = round(hydrogenEnergy(n), 2);
+      ctx.font = '500 9px "Fira Code", monospace';
+      ctx.fillStyle = '#64748B';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText('n=' + n, cx, cy - r - 3);
+      if (n <= 3) {
+        ctx.font = '400 8px "Fira Code", monospace';
+        ctx.fillText(eV + ' eV', cx, cy - r + 9);
+      }
+    }
+
+    // Draw nucleus
+    ctx.beginPath();
+    ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+    ctx.fillStyle = '#1B2A4A';
+    ctx.fill();
+    ctx.font = '600 8px "Fira Code", monospace';
+    ctx.fillStyle = 'white';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('+', cx, cy);
+
+    // Draw transition arrows for completed transitions
+    for (var t = 0; t < _emissionLines.length; t++) {
+      var line = _emissionLines[t];
+      var r1 = (line.ni / 6) * maxR;
+      var r2 = (line.nf / 6) * maxR;
+      var angle = -Math.PI / 2 + t * 0.3;
+      var x1 = cx + r1 * Math.cos(angle);
+      var y1 = cy + r1 * Math.sin(angle);
+      var x2 = cx + r2 * Math.cos(angle);
+      var y2 = cy + r2 * Math.sin(angle);
+
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.strokeStyle = SERIES_COLORS[line.nf] || '#0D9488';
+      ctx.lineWidth = 1.5;
+      ctx.stroke();
+
+      // Arrow head
+      var dx = x2 - x1;
+      var dy = y2 - y1;
+      var len = Math.sqrt(dx * dx + dy * dy);
+      var ux = dx / len;
+      var uy = dy / len;
+      ctx.beginPath();
+      ctx.moveTo(x2, y2);
+      ctx.lineTo(x2 - 5 * ux + 3 * uy, y2 - 5 * uy - 3 * ux);
+      ctx.lineTo(x2 - 5 * ux - 3 * uy, y2 - 5 * uy + 3 * ux);
+      ctx.closePath();
+      ctx.fillStyle = SERIES_COLORS[line.nf] || '#0D9488';
+      ctx.fill();
+    }
+
+    // Store layout for click detection
+    canvas._bohrLayout = { cx: cx, cy: cy, maxR: maxR };
+  }
+
+  function handleBohrClick(mx, my, canvas) {
+    var layout = canvas._bohrLayout;
+    if (!layout) return;
+
+    var dist = Math.sqrt((mx - layout.cx) * (mx - layout.cx) + (my - layout.cy) * (my - layout.cy));
+
+    // Find which level was clicked (within tolerance)
+    var clickedN = -1;
+    for (var n = 1; n <= 6; n++) {
+      var r = (n / 6) * layout.maxR;
+      if (Math.abs(dist - r) < 15) {
+        clickedN = n;
+        break;
+      }
+    }
+
+    if (clickedN === -1) return;
+
+    var info = document.getElementById('bohrInfo');
+
+    if (!_bohrClickState) {
+      // First click: select starting level (must be > 1)
+      if (clickedN <= 1) {
+        if (info) info.textContent = 'Select a higher level (n \u2265 2) as the starting level.';
+        return;
+      }
+      _bohrClickState = { ni: clickedN };
+      if (info) info.textContent = 'Starting level: n = ' + clickedN + '. Now click an ending level (n < ' + clickedN + ').';
+      drawBohrModel();
+    } else {
+      // Second click: select ending level (must be < starting)
+      if (clickedN >= _bohrClickState.ni) {
+        if (info) info.textContent = 'Ending level must be lower than n = ' + _bohrClickState.ni + '. Try again.';
+        return;
+      }
+
+      var ni = _bohrClickState.ni;
+      var nf = clickedN;
+      var wl = hydrogenWavelength(ni, nf);
+      var dE = Math.abs(hydrogenEnergy(nf) - hydrogenEnergy(ni));
+
+      // Add to emission lines (avoid duplicates)
+      var exists = false;
+      for (var i = 0; i < _emissionLines.length; i++) {
+        if (_emissionLines[i].ni === ni && _emissionLines[i].nf === nf) { exists = true; break; }
+      }
+      if (!exists) {
+        _emissionLines.push({ wavelength: wl, ni: ni, nf: nf });
+      }
+
+      _bohrClickState = null;
+
+      // Update info
+      var seriesName = SERIES_NAMES[nf] || 'n\u2192' + nf;
+      var region = wl < 400 ? 'UV' : (wl > 700 ? 'IR' : 'visible');
+      if (info) {
+        info.textContent = '';
+        var infoText = 'n = ' + ni + ' \u2192 n = ' + nf + ' | \u0394E = ' + round(dE, 3) + ' eV | \u03BB = ' + Math.round(wl) + ' nm (' + region + ') | ' + seriesName;
+        var span = el('span', 'energy-val', infoText);
+        info.appendChild(span);
+      }
+
+      drawBohrModel();
+      drawEmissionSpectrum();
+      updateTransitionList();
+    }
+  }
+
+  function drawEmissionSpectrum() {
+    var canvas = document.getElementById('emissionCanvas');
+    if (!canvas) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    // Dark background
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, w, h);
+
+    var pad = { left: 40, right: 20, top: 15, bottom: 30 };
+    var chartW = w - pad.left - pad.right;
+
+    // Wavelength range (show 90-800 nm to cover UV through IR)
+    var minWL = 90;
+    var maxWL = 800;
+
+    // Draw visible spectrum background bar
+    var visStart = pad.left + ((380 - minWL) / (maxWL - minWL)) * chartW;
+    var visEnd = pad.left + ((700 - minWL) / (maxWL - minWL)) * chartW;
+    var grad = ctx.createLinearGradient(visStart, 0, visEnd, 0);
+    grad.addColorStop(0, 'rgba(128, 0, 255, 0.15)');
+    grad.addColorStop(0.15, 'rgba(0, 0, 255, 0.15)');
+    grad.addColorStop(0.3, 'rgba(0, 255, 255, 0.15)');
+    grad.addColorStop(0.5, 'rgba(0, 255, 0, 0.15)');
+    grad.addColorStop(0.7, 'rgba(255, 255, 0, 0.15)');
+    grad.addColorStop(0.85, 'rgba(255, 128, 0, 0.15)');
+    grad.addColorStop(1, 'rgba(255, 0, 0, 0.15)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(visStart, pad.top, visEnd - visStart, h - pad.top - pad.bottom);
+
+    // UV/IR labels
+    ctx.font = '500 9px Inter, sans-serif';
+    ctx.fillStyle = '#6B7280';
+    ctx.textAlign = 'center';
+    ctx.fillText('UV', pad.left + ((200 - minWL) / (maxWL - minWL)) * chartW, pad.top + 10);
+    ctx.fillText('Visible', (visStart + visEnd) / 2, pad.top + 10);
+    ctx.fillText('IR', pad.left + ((750 - minWL) / (maxWL - minWL)) * chartW, pad.top + 10);
+
+    // Wavelength axis
+    ctx.strokeStyle = '#4B5563';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, h - pad.bottom);
+    ctx.lineTo(pad.left + chartW, h - pad.bottom);
+    ctx.stroke();
+
+    // Ticks
+    var tickStep = 100;
+    for (var wl = 100; wl <= 800; wl += tickStep) {
+      var x = pad.left + ((wl - minWL) / (maxWL - minWL)) * chartW;
+      ctx.font = '10px "Fira Code", monospace';
+      ctx.fillStyle = '#9CA3AF';
+      ctx.textAlign = 'center';
+      ctx.fillText(wl, x, h - pad.bottom + 15);
+    }
+    ctx.font = '500 10px Inter, sans-serif';
+    ctx.fillStyle = '#9CA3AF';
+    ctx.textAlign = 'center';
+    ctx.fillText('\u03BB (nm)', pad.left + chartW / 2, h - 3);
+
+    // Draw emission lines
+    for (var i = 0; i < _emissionLines.length; i++) {
+      var line = _emissionLines[i];
+      var x = pad.left + ((line.wavelength - minWL) / (maxWL - minWL)) * chartW;
+      if (x < pad.left || x > pad.left + chartW) continue;
+
+      var color;
+      if (line.wavelength >= 380 && line.wavelength <= 700) {
+        color = wavelengthToColor(line.wavelength);
+      } else {
+        color = line.wavelength < 380 ? '#8B5CF6' : '#DC2626';
+      }
+
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, pad.top + 20);
+      ctx.lineTo(x, h - pad.bottom - 5);
+      ctx.stroke();
+
+      // Glow effect
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 6;
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath();
+      ctx.moveTo(x, pad.top + 20);
+      ctx.lineTo(x, h - pad.bottom - 5);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      // Wavelength label
+      ctx.font = '500 8px "Fira Code", monospace';
+      ctx.fillStyle = color;
+      ctx.textAlign = 'center';
+      ctx.save();
+      ctx.translate(x, pad.top + 18);
+      ctx.rotate(-Math.PI / 4);
+      ctx.fillText(Math.round(line.wavelength), 0, 0);
+      ctx.restore();
+    }
+  }
+
+  function updateTransitionList() {
+    var div = document.getElementById('transitionList');
+    if (!div) return;
+    div.textContent = '';
+
+    if (_emissionLines.length === 0) {
+      div.textContent = 'Click transitions on the Bohr model to see spectral lines.';
+      div.style.color = 'var(--text-muted)';
+      return;
+    }
+    div.style.color = 'var(--text)';
+
+    for (var i = 0; i < _emissionLines.length; i++) {
+      var line = _emissionLines[i];
+      var dE = Math.abs(hydrogenEnergy(line.nf) - hydrogenEnergy(line.ni));
+      var region = line.wavelength < 400 ? 'UV' : (line.wavelength > 700 ? 'IR' : 'visible');
+      var row = el('div', '', 'n=' + line.ni + '\u2192n=' + line.nf + '  \u03BB=' + Math.round(line.wavelength) + ' nm  \u0394E=' + round(dE, 3) + ' eV  (' + region + ')');
+      row.style.cssText = 'font-family:"Fira Code",monospace;padding:0.1rem 0;';
+      var color = wavelengthToColor(line.wavelength);
+      if (line.wavelength < 380) color = '#8B5CF6';
+      if (line.wavelength > 700) color = '#DC2626';
+      row.style.borderLeft = '3px solid ' + color;
+      row.style.paddingLeft = '0.4rem';
+      div.appendChild(row);
+    }
+  }
+
+  function renderSimpleSpectrum(body) {
+    var specData = REFERENCE_SPECTRA[_selectedEmission];
+    if (!specData) return;
+
+    var specDiv = el('div', 'spectrum-dark');
+    specDiv.style.marginBottom = '0.75rem';
+    var specCanvas = document.createElement('canvas');
+    specCanvas.className = 'sim-canvas';
+    specCanvas.id = 'simpleSpecCanvas';
+    specCanvas.setAttribute('height', '120');
+    specCanvas.setAttribute('role', 'img');
+    specCanvas.setAttribute('aria-label', 'Emission spectrum of ' + specData.name);
+    specCanvas.style.background = '#111827';
+    specDiv.appendChild(specCanvas);
+    body.appendChild(specDiv);
+
+    setTimeout(function() {
+      drawSimpleSpectrum(specCanvas, specData.lines);
+    });
+  }
+
+  function drawSimpleSpectrum(canvas, lines) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+    ctx.fillStyle = '#111827';
+    ctx.fillRect(0, 0, w, h);
+
+    var pad = { left: 40, right: 20, top: 10, bottom: 25 };
+    var chartW = w - pad.left - pad.right;
+    var minWL = 350;
+    var maxWL = 850;
+
+    // Visible spectrum background
+    var visStart = pad.left + ((380 - minWL) / (maxWL - minWL)) * chartW;
+    var visEnd = pad.left + ((700 - minWL) / (maxWL - minWL)) * chartW;
+    var grad = ctx.createLinearGradient(visStart, 0, visEnd, 0);
+    grad.addColorStop(0, 'rgba(128, 0, 255, 0.1)');
+    grad.addColorStop(0.15, 'rgba(0, 0, 255, 0.1)');
+    grad.addColorStop(0.3, 'rgba(0, 255, 255, 0.1)');
+    grad.addColorStop(0.5, 'rgba(0, 255, 0, 0.1)');
+    grad.addColorStop(0.7, 'rgba(255, 255, 0, 0.1)');
+    grad.addColorStop(0.85, 'rgba(255, 128, 0, 0.1)');
+    grad.addColorStop(1, 'rgba(255, 0, 0, 0.1)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(visStart, pad.top, visEnd - visStart, h - pad.top - pad.bottom);
+
+    // Axis
+    ctx.strokeStyle = '#4B5563';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, h - pad.bottom);
+    ctx.lineTo(pad.left + chartW, h - pad.bottom);
+    ctx.stroke();
+
+    for (var wl = 400; wl <= 800; wl += 100) {
+      var x = pad.left + ((wl - minWL) / (maxWL - minWL)) * chartW;
+      ctx.font = '9px "Fira Code", monospace';
+      ctx.fillStyle = '#9CA3AF';
+      ctx.textAlign = 'center';
+      ctx.fillText(wl, x, h - pad.bottom + 14);
+    }
+
+    // Lines
+    for (var i = 0; i < lines.length; i++) {
+      var wl = lines[i];
+      var x = pad.left + ((wl - minWL) / (maxWL - minWL)) * chartW;
+      if (x < pad.left || x > pad.left + chartW) continue;
+
+      var color = wavelengthToColor(wl);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(x, pad.top + 5);
+      ctx.lineTo(x, h - pad.bottom - 5);
+      ctx.stroke();
+
+      ctx.lineWidth = 5;
+      ctx.globalAlpha = 0.3;
+      ctx.beginPath();
+      ctx.moveTo(x, pad.top + 5);
+      ctx.lineTo(x, h - pad.bottom - 5);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // SPECTRUM COMPARISON & UNKNOWN
+  // ═══════════════════════════════════════════════════
+  function renderSpectrumComparison(body) {
+    var compSection = el('div', 'comparison-section');
+    var compTitle = el('div', 'comp-title', 'Spectrum Comparison');
+    compSection.appendChild(compTitle);
+
+    // Reference spectra rows
+    var keys = ['H', 'He', 'Li', 'Na', 'Ca', 'Ne'];
+    for (var k = 0; k < keys.length; k++) {
+      var sym = keys[k];
+      var specData = REFERENCE_SPECTRA[sym];
+      var row = el('div', 'ref-spectrum-row');
+      var label = el('div', 'ref-spectrum-label', sym);
+      var bar = el('div', 'ref-spectrum-bar');
+      bar.id = 'refBar-' + sym;
+      row.appendChild(label);
+      row.appendChild(bar);
+      compSection.appendChild(row);
+    }
+
+    // Unknown spectrum challenge
+    var unknownTitle = el('div', 'comp-title', 'Identify the Unknown');
+    unknownTitle.style.marginTop = '0.75rem';
+    compSection.appendChild(unknownTitle);
+
+    var unknownRow = el('div', 'ref-spectrum-row');
+    var unknownLabel = el('div', 'ref-spectrum-label', '?');
+    unknownLabel.style.color = 'var(--amber)';
+    unknownLabel.style.fontWeight = '700';
+    var unknownBar = el('div', 'ref-spectrum-bar');
+    unknownBar.id = 'refBar-unknown';
+    unknownRow.appendChild(unknownLabel);
+    unknownRow.appendChild(unknownBar);
+    compSection.appendChild(unknownRow);
+
+    // Guess controls
+    var guessDiv = el('div', 'unknown-guess');
+    var guessSelect = document.createElement('select');
+    guessSelect.id = 'unknownGuessSelect';
+    guessSelect.setAttribute('aria-label', 'Guess the unknown element');
+    var defOpt = document.createElement('option');
+    defOpt.value = '';
+    defOpt.textContent = 'Select element...';
+    guessSelect.appendChild(defOpt);
+    for (var k = 0; k < keys.length; k++) {
+      var o = document.createElement('option');
+      o.value = keys[k];
+      o.textContent = keys[k] + ' \u2013 ' + REFERENCE_SPECTRA[keys[k]].name;
+      guessSelect.appendChild(o);
+    }
+    var guessBtn = el('button', 'check-btn', 'Check');
+    guessBtn.style.cssText += ';margin:0;padding:0.35rem 0.8rem;font-size:0.78rem;';
+    var guessFeedback = el('span', 'guess-feedback');
+    guessFeedback.id = 'guessFeedback';
+
+    guessBtn.addEventListener('click', function() {
+      var guess = guessSelect.value;
+      var fb = document.getElementById('guessFeedback');
+      if (!guess) {
+        if (fb) { fb.textContent = 'Select an element first.'; fb.style.color = 'var(--text-muted)'; }
+        return;
+      }
+      if (guess === _unknownElement) {
+        if (fb) { fb.textContent = '\u2713 Correct!'; fb.style.color = 'var(--green)'; }
+      } else {
+        if (fb) { fb.textContent = '\u2717 Try again.'; fb.style.color = 'var(--red)'; }
+      }
+    });
+
+    var newUnknownBtn = el('button', 'check-btn', 'New Unknown');
+    newUnknownBtn.style.cssText += ';margin:0;padding:0.35rem 0.8rem;font-size:0.78rem;background:var(--navy);';
+    newUnknownBtn.addEventListener('click', function() {
+      generateUnknown();
+      drawRefSpectra();
+      var fb = document.getElementById('guessFeedback');
+      if (fb) fb.textContent = '';
+      guessSelect.value = '';
+    });
+
+    guessDiv.appendChild(guessSelect);
+    guessDiv.appendChild(guessBtn);
+    guessDiv.appendChild(newUnknownBtn);
+    guessDiv.appendChild(guessFeedback);
+    compSection.appendChild(guessDiv);
+
+    body.appendChild(compSection);
+
+    // Generate unknown if needed
+    if (!_unknownElement) generateUnknown();
+
+    setTimeout(function() { drawRefSpectra(); });
+  }
+
+  function generateUnknown() {
+    var keys = ['H', 'He', 'Li', 'Na', 'Ca', 'Ne'];
+    // Fisher-Yates on a copy to pick random
+    var shuffled = keys.slice();
+    for (var i = shuffled.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1));
+      var temp = shuffled[i];
+      shuffled[i] = shuffled[j];
+      shuffled[j] = temp;
+    }
+    _unknownElement = shuffled[0];
+  }
+
+  function drawRefSpectra() {
+    var keys = ['H', 'He', 'Li', 'Na', 'Ca', 'Ne'];
+    for (var k = 0; k < keys.length; k++) {
+      drawRefBar(keys[k], REFERENCE_SPECTRA[keys[k]].lines);
+    }
+    // Draw unknown
+    if (_unknownElement) {
+      drawRefBar('unknown', REFERENCE_SPECTRA[_unknownElement].lines);
+    }
+  }
+
+  function drawRefBar(id, lines) {
+    var bar = document.getElementById('refBar-' + id);
+    if (!bar) return;
+    // Clear existing
+    bar.textContent = '';
+    var barW = bar.offsetWidth;
+    if (barW === 0) return;
+
+    var minWL = 350;
+    var maxWL = 850;
+
+    for (var i = 0; i < lines.length; i++) {
+      var wl = lines[i];
+      var x = ((wl - minWL) / (maxWL - minWL)) * 100;
+      if (x < 0 || x > 100) continue;
+
+      var line = document.createElement('div');
+      line.style.cssText = 'position:absolute;top:0;bottom:0;width:2px;';
+      line.style.left = x + '%';
+      line.style.background = wavelengthToColor(wl);
+      line.style.boxShadow = '0 0 3px ' + wavelengthToColor(wl);
+      bar.appendChild(line);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // HL: SUCCESSIVE IONIZATION ENERGIES
+  // ═══════════════════════════════════════════════════
+  function renderSuccessiveIE(body) {
+    var sym = _selectedEmission;
+    var ieData = SUCCESSIVE_IE[sym];
+    if (!ieData) return;
+
+    var hlCard = el('div', 'hl-card hl-panel');
+    var hlTitle = el('div', 'hl-card-title', 'Successive Ionization Energies — ' + sym);
+    hlCard.appendChild(hlTitle);
+
+    var ieCanvas = document.createElement('canvas');
+    ieCanvas.className = 'sim-canvas';
+    ieCanvas.id = 'sieCanvas';
+    ieCanvas.setAttribute('height', '250');
+    ieCanvas.setAttribute('role', 'img');
+    ieCanvas.setAttribute('aria-label', 'Successive ionization energies bar chart for ' + sym);
+    hlCard.appendChild(ieCanvas);
+
+    var note = el('div', '', 'Log scale. Large jumps indicate removal of electron from a new shell (inner electrons).');
+    note.style.cssText = 'font-size:0.72rem;color:var(--text-muted);margin-top:0.3rem;';
+    hlCard.appendChild(note);
+
+    body.appendChild(hlCard);
+
+    setTimeout(function() { drawSIE(ieCanvas, ieData); });
+  }
+
+  function drawSIE(canvas, ieData) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var pad = { top: 20, right: 20, bottom: 35, left: 60 };
+    var chartW = w - pad.left - pad.right;
+    var chartH = h - pad.top - pad.bottom;
+    var ies = ieData.ies;
+    var n = ies.length;
+
+    // Log scale
+    var maxLog = Math.ceil(Math.log10(ies[n - 1]));
+    var minLog = Math.floor(Math.log10(ies[0]));
+
+    var barW = Math.min(30, (chartW - 10) / n - 2);
+
+    // Y-axis (log scale)
+    ctx.font = '500 10px Inter, sans-serif';
+    ctx.fillStyle = '#64748B';
+    for (var exp = minLog; exp <= maxLog; exp++) {
+      var y = pad.top + chartH - ((exp - minLog) / (maxLog - minLog)) * chartH;
+      ctx.textAlign = 'right';
+      ctx.fillText('10^' + exp, pad.left - 5, y + 4);
+      ctx.strokeStyle = '#E2E8F0';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(pad.left, y);
+      ctx.lineTo(pad.left + chartW, y);
+      ctx.stroke();
+    }
+
+    // Y label
+    ctx.save();
+    ctx.translate(12, pad.top + chartH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('IE (kJ/mol)', 0, 0);
+    ctx.restore();
+
+    // Bars
+    var prevLog = null;
+    for (var i = 0; i < n; i++) {
+      var logVal = Math.log10(ies[i]);
+      var barH = ((logVal - minLog) / (maxLog - minLog)) * chartH;
+      var x = pad.left + (i + 0.5) * (chartW / n) - barW / 2;
+      var y = pad.top + chartH - barH;
+
+      // Color: detect large jumps (>3x ratio to previous)
+      var isJump = prevLog !== null && (logVal - prevLog) > 0.5;
+      ctx.fillStyle = isJump ? '#DC2626' : '#0D9488';
+      ctx.beginPath();
+      ctx.roundRect(x, y, barW, barH, [3, 3, 0, 0]);
+      ctx.fill();
+
+      // IE number label
+      ctx.font = '500 9px "Fira Code", monospace';
+      ctx.fillStyle = '#1E293B';
+      ctx.textAlign = 'center';
+      ctx.fillText(i + 1, x + barW / 2, pad.top + chartH + 15);
+
+      // Shell break annotation
+      if (isJump) {
+        ctx.font = '600 8px Inter, sans-serif';
+        ctx.fillStyle = '#DC2626';
+        ctx.fillText('\u2191 shell', x + barW / 2, y - 5);
+      }
+
+      prevLog = logVal;
+    }
+
+    // X label
+    ctx.font = '500 10px Inter, sans-serif';
+    ctx.fillStyle = '#64748B';
+    ctx.textAlign = 'center';
+    ctx.fillText('Ionization number', pad.left + chartW / 2, h - 3);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // KEYBOARD SHORTCUTS
+  // ═══════════════════════════════════════════════════
+  document.addEventListener('keydown', function(evt) {
+    var tag = evt.target.tagName;
+    if (tag === 'INPUT' || tag === 'SELECT' || tag === 'TEXTAREA') return;
+
+    switch (evt.key.toLowerCase()) {
+      case 'h':
+        _isHL = !_isHL;
+        document.body.classList.toggle('hl-active', _isHL);
+        var hlCb = headerToggles.querySelector('.sim-toggle input');
+        if (hlCb) hlCb.checked = _isHL;
+        buildPalette();
+        refreshCurrentTab();
+        break;
+      case 't':
+        _isTeacher = !_isTeacher;
+        document.body.classList.toggle('teacher-active', _isTeacher);
+        var tCbs = headerToggles.querySelectorAll('.sim-toggle input');
+        if (tCbs[1]) tCbs[1].checked = _isTeacher;
+        refreshCurrentTab();
+        break;
+      case '1': switchTab('isotopes'); break;
+      case '2': switchTab('msAnalyze'); break;
+      case '3': switchTab('msBuild'); break;
+      case '4': switchTab('emission'); break;
+      case 'r':
+        if (_activeTab === 'isotopes') { _selectedElement = null; _whatIfAbundances = null; }
+        else if (_activeTab === 'msAnalyze') { _msLabels = {}; _msScore = 0; _msClickedPeak = -1; }
+        else if (_activeTab === 'msBuild') { _buildPeaks = []; _buildChecked = false; }
+        else if (_activeTab === 'emission') { _bohrClickState = null; _emissionLines = []; }
+        refreshCurrentTab();
+        break;
+      case '/':
+        evt.preventDefault();
+        paletteSearch.focus();
+        break;
+      case 'arrowdown':
+      case 'arrowup':
+        evt.preventDefault();
+        var items = paletteList.querySelectorAll('.palette-item:not(.hl-rxn), body.hl-active .palette-item');
+        if (!document.body.classList.contains('hl-active')) {
+          items = paletteList.querySelectorAll('.palette-item:not(.hl-rxn)');
+        } else {
+          items = paletteList.querySelectorAll('.palette-item');
+        }
+        if (items.length === 0) break;
+        var activeIdx = -1;
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].classList.contains('active')) { activeIdx = i; break; }
+        }
+        if (evt.key.toLowerCase() === 'arrowdown') {
+          activeIdx = (activeIdx + 1) % items.length;
+        } else {
+          activeIdx = activeIdx <= 0 ? items.length - 1 : activeIdx - 1;
+        }
+        items[activeIdx].click();
+        items[activeIdx].scrollIntoView({ block: 'nearest' });
+        break;
+      case 'enter':
+        if (_activeTab === 'msBuild') {
+          var checkBtn = document.querySelector('#tab-msBuild .check-btn');
+          if (checkBtn && checkBtn.textContent === 'Check Answer') checkBtn.click();
+        }
+        break;
+      case 'e':
+        exportCSV();
+        break;
+    }
+  });
+
+  // ═══════════════════════════════════════════════════
+  // DATA EXPORT
+  // ═══════════════════════════════════════════════════
+  function exportCSV() {
+    var rows = [['Tab', 'Item', 'Action', 'Result', 'Timestamp']];
+    var ts = new Date().toISOString();
+    if (_activeTab === 'msAnalyze' && _selectedMS) {
+      rows.push(['Mass Spec Analyze', _selectedMS.name, 'Score', _msScore + '/' + _msTotal, ts]);
+    }
+    if (_activeTab === 'msBuild' && _selectedMS && _buildChecked) {
+      rows.push(['Mass Spec Build', _selectedMS.name, 'Submitted', _buildPeaks.length + ' peaks', ts]);
+    }
+    if (_activeTab === 'emission' && _selectedEmission) {
+      rows.push(['Emission', _selectedEmission, 'Transitions', _emissionLines.length + ' lines', ts]);
+    }
+    var csv = rows.map(function(r) { return r.join(','); }).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'NuclearAtom_export.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // RESIZE HANDLER
+  // ═══════════════════════════════════════════════════
+  var _resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(function() { refreshCurrentTab(); }, 200);
+  });
+
+  // ═══════════════════════════════════════════════════
+  // INIT
+  // ═══════════════════════════════════════════════════
+  buildPalette();
+  renderIsotopeTab();
+
+})();
+</script>
+</body>
+</html>
