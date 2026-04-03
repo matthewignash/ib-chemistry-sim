@@ -1,0 +1,1769 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Covalent Bonding — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --red-bg: #FEF2F2;
+    --green-bg: #F0FDF4;
+    --amber-bg: #FFFBEB;
+    --sim-canvas-bg: #FAFBFC;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
+  }
+  .header-badge.hl { background: var(--hl-badge-bg); display: none; }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* ── Toggle ── */
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s; --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--toggle-on); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+  /* ── Tab Bar ── */
+  .tab-bar {
+    background: white; border-bottom: 2px solid var(--border);
+    display: flex; gap: 0; max-width: 1200px; margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .tab-btn {
+    padding: 0.75rem 1.5rem; font-size: 0.85rem; font-weight: 600;
+    color: var(--text-muted); background: none; border: none;
+    border-bottom: 3px solid transparent; cursor: pointer;
+    transition: all 0.2s; font-family: inherit; margin-bottom: -2px;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--teal-bg); }
+  .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .tab-btn .tab-num {
+    display: inline-block; width: 20px; height: 20px; line-height: 20px;
+    text-align: center; border-radius: 4px; font-size: 0.65rem; font-weight: 700;
+    background: var(--border); color: var(--text-muted); margin-right: 0.4rem;
+  }
+  .tab-btn.active .tab-num { background: var(--teal); color: white; }
+
+  /* ── Layout ── */
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sim-top-row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .sim-card {
+    background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy); color: white; padding: 0.6rem 1rem;
+    font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  /* ── Palette ── */
+  .palette-panel { max-height: 600px; display: flex; flex-direction: column; position: sticky; top: 1rem; align-self: start; grid-column: 1; grid-row: 1; }
+  .tab-content { grid-column: 2; grid-row: 1; }
+  .palette-panel .sim-card-body { padding: 0.5rem; overflow-y: auto; flex: 1; }
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+  .tab-btn:focus-visible, .check-btn:focus-visible, .palette-item:focus-visible,
+  .mode-btn:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+  .palette-category {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); padding: 0.4rem 0.3rem 0.2rem; margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block; width: 100%; text-align: left; padding: 0.3rem 0.5rem; margin: 0.15rem 0; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .palette-item:hover { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .palette-item.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+  .preset-section { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); display: none; }
+  .preset-section select {
+    width: 100%; padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.75rem; font-family: inherit; cursor: pointer;
+  }
+
+  /* ── Main Panel ── */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Canvas ── */
+  .sim-canvas { display: block; width: 100%; background: var(--sim-canvas-bg); border-radius: 4px; }
+
+  /* ── Buttons ── */
+  .check-btn {
+    display: inline-block; padding: 0.5rem 1.2rem; margin-top: 0.75rem;
+    background: var(--teal); color: white; border: none; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    transition: background 0.2s;
+  }
+  .check-btn:hover { background: #0B7C73; }
+  .check-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+  .check-btn.secondary { background: var(--text-muted); }
+  .check-btn.secondary:hover { background: #475569; }
+
+  .btn-row { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.75rem; flex-wrap: wrap; }
+
+  /* ── Property cards ── */
+  .property-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-top: 0.75rem; }
+  .property-cards.four-col { grid-template-columns: repeat(4, 1fr); }
+  .prop-card {
+    padding: 0.5rem 0.75rem; border-radius: 8px; border: 1px solid var(--border);
+    background: white; font-size: 0.78rem;
+  }
+  .prop-card-label { font-weight: 700; font-size: 0.68rem; text-transform: uppercase; color: var(--text-muted); margin-bottom: 0.15rem; }
+  .prop-card-value { font-weight: 600; color: var(--text); font-family: 'Fira Code', monospace; }
+
+  /* ── Slider ── */
+  .temp-slider-wrap { margin-top: 0.75rem; }
+  .temp-slider-wrap label { font-size: 0.75rem; font-weight: 600; display: block; margin-bottom: 0.25rem; }
+  .temp-slider-wrap input[type="range"] { width: 100%; }
+  .temp-readout { font-family: 'Fira Code', monospace; font-size: 0.82rem; font-weight: 600; color: var(--teal); margin-top: 0.2rem; }
+
+  /* ── Calc fields ── */
+  .calc-field { margin-bottom: 0.6rem; }
+  .calc-field label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 0.2rem; }
+  .calc-field select {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.82rem; font-family: inherit; outline: none; cursor: pointer;
+  }
+  .calc-field select:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+
+  /* ── Annotation panel ── */
+  .annotation-panel {
+    margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px;
+    border: 1px solid var(--border); background: white; font-size: 0.82rem;
+  }
+  .annotation-panel-title { font-weight: 700; font-size: 0.72rem; text-transform: uppercase; color: var(--teal); margin-bottom: 0.3rem; }
+
+  /* ── HL / Teacher ── */
+  .hl-panel { display: none; }
+  body.hl-active .hl-panel { display: block; }
+  body.hl-active .tab-content.hl-panel { display: none; }
+  body.hl-active .tab-content.hl-panel.active { display: block; }
+  body.hl-active .tab-btn.hl-panel { display: inline-flex; }
+  .hl-card {
+    margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px;
+    border: 1px solid var(--hl-border); background: #F5F3FF;
+  }
+  .hl-card-title {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 0.3rem;
+  }
+  .teacher-panel { display: none; }
+  body.teacher-active .teacher-panel { display: block; }
+  body.teacher-active .preset-section { display: block; }
+  .answer-reveal {
+    margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: var(--amber-bg);
+    border: 1px solid #FCD34D; border-radius: 6px; font-size: 0.78rem;
+    font-family: 'Fira Code', monospace; display: none;
+  }
+  body.teacher-active .answer-reveal { display: block; }
+
+  /* ── Comparison table ── */
+  .comparison-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 0.5rem; }
+  .comparison-table th {
+    background: var(--navy); color: white; padding: 0.4rem 0.5rem; text-align: left;
+    font-size: 0.72rem; font-weight: 600; cursor: pointer; user-select: none;
+  }
+  .comparison-table th:hover { background: #2D4A7A; }
+  .comparison-table td {
+    padding: 0.35rem 0.5rem; border-bottom: 1px solid var(--border);
+    font-family: 'Fira Code', monospace; font-size: 0.75rem;
+  }
+  .comparison-table tr:hover td { background: var(--teal-bg); }
+
+  /* ── Toggle button group ── */
+  .toggle-group { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.5rem; }
+  .toggle-row { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; }
+  .toggle-row input[type="checkbox"] { accent-color: var(--teal); }
+
+  /* ── Keyboard Hint ── */
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .palette-panel { max-height: 200px; position: static; }
+    .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
+    .property-cards { grid-template-columns: 1fr; }
+    .property-cards.four-col { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>Covalent Bonding</h1>
+    <span class="subtitle">IB Chemistry — S2.3 The Covalent Bond</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">S2.3</span>
+    <span class="header-badge hl">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="explorer"><span class="tab-num">1</span>Bond Explorer</button>
+  <button class="tab-btn hl-panel" data-tab="orbitals"><span class="tab-num">2</span>Orbital Overlap</button>
+  <button class="tab-btn" data-tab="compare"><span class="tab-num">3</span>Bond Comparison</button>
+</div>
+
+<!-- Main Content -->
+<div class="sim-container">
+  <div class="sim-top-row">
+
+    <!-- Sidebar -->
+    <div class="sim-card palette-panel">
+      <div class="sim-card-header" id="paletteHeader">Controls</div>
+      <div class="sim-card-body">
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search bonds">
+        <div id="paletteList"></div>
+        <div id="sidebarControls"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect" aria-label="Teacher presets">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 1: Bond Explorer -->
+    <div class="tab-content active" id="tab-explorer">
+      <div class="sim-card">
+        <div class="sim-card-header">Bond Visualization</div>
+        <div class="sim-card-body">
+          <canvas id="bondCanvas" class="sim-canvas" height="300" role="img" aria-label="Visual representation of covalent bond between two atoms"></canvas>
+          <div class="property-cards four-col" id="bondProperties"></div>
+        </div>
+      </div>
+      <div class="sim-card" style="margin-top:0.75rem;">
+        <div class="sim-card-header">Trend Graph</div>
+        <div class="sim-card-body">
+          <canvas id="trendCanvas" class="sim-canvas" height="250" role="img" aria-label="Bar chart comparing bond properties across a series"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Orbital Overlap & Hybridization (HL) -->
+    <div class="tab-content hl-panel" id="tab-orbitals">
+      <div class="sim-card">
+        <div class="sim-card-header">Orbital Overlap Diagram</div>
+        <div class="sim-card-body">
+          <canvas id="orbitalCanvas" class="sim-canvas" height="350" role="img" aria-label="Orbital overlap and hybridization diagram"></canvas>
+          <div class="property-cards" id="orbitalProperties"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Bond Comparison -->
+    <div class="tab-content" id="tab-compare">
+      <div class="sim-card">
+        <div class="sim-card-header">Visual Comparison</div>
+        <div class="sim-card-body">
+          <canvas id="compareCanvas" class="sim-canvas" height="300" role="img" aria-label="Side-by-side visual comparison of selected bonds"></canvas>
+        </div>
+      </div>
+      <div class="sim-card" style="margin-top:0.75rem;">
+        <div class="sim-card-header">Comparison Table</div>
+        <div class="sim-card-body" id="compareTableBody">
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="keyboard-hint">
+    <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp;
+    <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Tabs &nbsp;
+    <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp;
+    <kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate &nbsp;
+    <kbd>E</kbd> Export CSV
+  </div>
+</div>
+
+<script>
+// roundRect polyfill
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    var tl = r[0]||0, tr = r[1]||0, br = r[2]||0, bl = r[3]||0;
+    this.beginPath();
+    this.moveTo(x+tl, y);
+    this.lineTo(x+w-tr, y);
+    this.quadraticCurveTo(x+w, y, x+w, y+tr);
+    this.lineTo(x+w, y+h-br);
+    this.quadraticCurveTo(x+w, y+h, x+w-br, y+h);
+    this.lineTo(x+bl, y+h);
+    this.quadraticCurveTo(x, y+h, x, y+h-bl);
+    this.lineTo(x, y+tl);
+    this.quadraticCurveTo(x, y, x+tl, y);
+    this.closePath();
+    return this;
+  };
+}
+
+(function() {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════
+  // Helpers
+  // ═══════════════════════════════════════════════════
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined && text !== null) e.textContent = text;
+    return e;
+  }
+
+  function round(val, dp) {
+    if (dp === undefined) dp = 1;
+    var f = Math.pow(10, dp);
+    return Math.round(val * f) / f;
+  }
+
+  function setupCanvas(canvas) {
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.offsetWidth;
+    if (!canvas.dataset.baseHeight) {
+      canvas.dataset.baseHeight = canvas.getAttribute('height') || '300';
+    }
+    var h = parseInt(canvas.dataset.baseHeight);
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+
+  function q(s) {
+    if (s === undefined || s === null) return '""';
+    s = String(s);
+    if (s.indexOf(',') >= 0 || s.indexOf('"') >= 0 || s.indexOf('\n') >= 0) {
+      return '"' + s.replace(/"/g, '""') + '"';
+    }
+    return s;
+  }
+
+  function lerp(a, b, t) {
+    return a + (b - a) * Math.max(0, Math.min(1, t));
+  }
+
+  function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+  // ═══════════════════════════════════════════════════
+  // DATA
+  // ═══════════════════════════════════════════════════
+  var BONDS = [
+    { id:'h-h',   atoms:['H','H'],  order:1, length:74,  energy:436, enDiff:0.0 },
+    { id:'c-h',   atoms:['C','H'],  order:1, length:109, energy:413, enDiff:0.4 },
+    { id:'c-c',   atoms:['C','C'],  order:1, length:154, energy:347, enDiff:0.0 },
+    { id:'c=c',   atoms:['C','C'],  order:2, length:134, energy:614, enDiff:0.0 },
+    { id:'c\u2261c', atoms:['C','C'],  order:3, length:120, energy:839, enDiff:0.0 },
+    { id:'c-n',   atoms:['C','N'],  order:1, length:147, energy:305, enDiff:0.5 },
+    { id:'c=n',   atoms:['C','N'],  order:2, length:127, energy:615, enDiff:0.5 },
+    { id:'c\u2261n', atoms:['C','N'],  order:3, length:116, energy:891, enDiff:0.5 },
+    { id:'c-o',   atoms:['C','O'],  order:1, length:143, energy:360, enDiff:1.0 },
+    { id:'c=o',   atoms:['C','O'],  order:2, length:123, energy:799, enDiff:1.0 },
+    { id:'c-f',   atoms:['C','F'],  order:1, length:135, energy:484, enDiff:1.5 },
+    { id:'c-cl',  atoms:['C','Cl'], order:1, length:177, energy:338, enDiff:0.5 },
+    { id:'o-h',   atoms:['O','H'],  order:1, length:96,  energy:463, enDiff:1.4 },
+    { id:'n-h',   atoms:['N','H'],  order:1, length:101, energy:391, enDiff:0.9 },
+    { id:'n-n',   atoms:['N','N'],  order:1, length:146, energy:163, enDiff:0.0 },
+    { id:'n=n',   atoms:['N','N'],  order:2, length:120, energy:418, enDiff:0.0 },
+    { id:'n\u2261n', atoms:['N','N'],  order:3, length:110, energy:941, enDiff:0.0 },
+    { id:'o-o',   atoms:['O','O'],  order:1, length:148, energy:146, enDiff:0.0 },
+    { id:'o=o',   atoms:['O','O'],  order:2, length:121, energy:498, enDiff:0.0 },
+    { id:'f-f',   atoms:['F','F'],  order:1, length:142, energy:158, enDiff:0.0 },
+    { id:'cl-cl', atoms:['Cl','Cl'],order:1, length:199, energy:242, enDiff:0.0 },
+    { id:'br-br', atoms:['Br','Br'],order:1, length:228, energy:193, enDiff:0.0 },
+    { id:'i-i',   atoms:['I','I'],  order:1, length:267, energy:151, enDiff:0.0 }
+  ];
+
+  var ELEMENTS = {
+    H:  { color:'#E0E0E0', radius:25, en:2.2 },
+    B:  { color:'#F59E0B', radius:38, en:2.0 },
+    C:  { color:'#404040', radius:35, en:2.5 },
+    N:  { color:'#2563EB', radius:33, en:3.0 },
+    O:  { color:'#DC2626', radius:31, en:3.5 },
+    F:  { color:'#16A34A', radius:29, en:4.0 },
+    Cl: { color:'#65A30D', radius:40, en:3.0 },
+    Br: { color:'#92400E', radius:45, en:2.8 },
+    I:  { color:'#7C3AED', radius:50, en:2.5 }
+  };
+
+  var MOLECULES = [
+    { id:'ch4',  label:'CH\u2084', formula:'CH\u2084', hybridization:'sp\u00B3', geometry:'Tetrahedral',
+      bondAngle:'109.5\u00B0', sigma:4, pi:0, lonePairs:0, centralAtom:'C',
+      bonds:[{to:'H',angle:0},{to:'H',angle:109.5},{to:'H',angle:219},{to:'H',angle:290}] },
+    { id:'nh3',  label:'NH\u2083', formula:'NH\u2083', hybridization:'sp\u00B3', geometry:'Trigonal pyramidal',
+      bondAngle:'107\u00B0', sigma:3, pi:0, lonePairs:1, centralAtom:'N',
+      bonds:[{to:'H',angle:0},{to:'H',angle:107},{to:'H',angle:214}] },
+    { id:'h2o',  label:'H\u2082O', formula:'H\u2082O', hybridization:'sp\u00B3', geometry:'Bent',
+      bondAngle:'104.5\u00B0', sigma:2, pi:0, lonePairs:2, centralAtom:'O',
+      bonds:[{to:'H',angle:-52.25},{to:'H',angle:52.25}] },
+    { id:'bf3',  label:'BF\u2083', formula:'BF\u2083', hybridization:'sp\u00B2', geometry:'Trigonal planar',
+      bondAngle:'120\u00B0', sigma:3, pi:0, lonePairs:0, centralAtom:'B',
+      bonds:[{to:'F',angle:0},{to:'F',angle:120},{to:'F',angle:240}] },
+    { id:'c2h4', label:'C\u2082H\u2084', formula:'C\u2082H\u2084', hybridization:'sp\u00B2', geometry:'Trigonal planar',
+      bondAngle:'120\u00B0', sigma:5, pi:1, lonePairs:0, centralAtom:'C',
+      bonds:[{to:'C',angle:0},{to:'H',angle:120},{to:'H',angle:240}] },
+    { id:'c2h2', label:'C\u2082H\u2082', formula:'C\u2082H\u2082', hybridization:'sp', geometry:'Linear',
+      bondAngle:'180\u00B0', sigma:3, pi:2, lonePairs:0, centralAtom:'C',
+      bonds:[{to:'C',angle:0},{to:'H',angle:180}] },
+    { id:'co2',  label:'CO\u2082', formula:'CO\u2082', hybridization:'sp', geometry:'Linear',
+      bondAngle:'180\u00B0', sigma:2, pi:2, lonePairs:0, centralAtom:'C',
+      bonds:[{to:'O',angle:0},{to:'O',angle:180}] }
+  ];
+
+  var TREND_SERIES = [
+    { id:'bond-order-c', label:'C\u2013C bond order', bonds:['c-c','c=c','c\u2261c'] },
+    { id:'bond-order-n', label:'N\u2013N bond order', bonds:['n-n','n=n','n\u2261n'] },
+    { id:'bond-order-cn', label:'C\u2013N bond order', bonds:['c-n','c=n','c\u2261n'] },
+    { id:'en-carbon',    label:'C\u2013X electronegativity', bonds:['c-h','c-c','c-n','c-o','c-f'] },
+    { id:'halogens',     label:'Halogen\u2013halogen', bonds:['f-f','cl-cl','br-br','i-i'] },
+    { id:'hydrides',     label:'X\u2013H bonds', bonds:['h-h','c-h','n-h','o-h'] }
+  ];
+
+  var BOND_GROUPS = [
+    { label: 'C\u2013X bonds', ids: ['c-h','c-c','c=c','c\u2261c','c-n','c=n','c\u2261n','c-o','c=o','c-f','c-cl'] },
+    { label: 'N\u2013X bonds', ids: ['n-h','n-n','n=n','n\u2261n'] },
+    { label: 'O\u2013X bonds', ids: ['o-h','o-o','o=o'] },
+    { label: 'Halogens', ids: ['f-f','cl-cl','br-br','i-i'] },
+    { label: 'Other', ids: ['h-h'] }
+  ];
+
+  var ATOM_LIST = ['H','C','N','O','F','Cl','Br','I'];
+
+  var TEACHER_PRESETS = [
+    { label: 'Bond order: C\u2013C series', tab: 'explorer', atom1: 'C', atom2: 'C', order: 1, series: 'bond-order-c' },
+    { label: 'Electronegativity: C\u2013X', tab: 'explorer', atom1: 'C', atom2: 'F', order: 1, series: 'en-carbon' },
+    { label: 'Halogen bonds', tab: 'explorer', atom1: 'Cl', atom2: 'Cl', order: 1, series: 'halogens' },
+    { label: 'sp\u00B3 hybridization', tab: 'orbitals', molecule: 'ch4' },
+    { label: 'sp\u00B2 with pi bond', tab: 'orbitals', molecule: 'c2h4' },
+    { label: 'sp linear', tab: 'orbitals', molecule: 'co2' },
+    { label: 'Compare C bond orders', tab: 'compare', bonds: ['c-c','c=c','c\u2261c'] },
+    { label: 'Compare polarity', tab: 'compare', bonds: ['c-h','c-o','c-f','c-cl'] }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // STATE
+  // ═══════════════════════════════════════════════════
+  var _activeTab = 'explorer';
+
+  // Tab 1: Explorer
+  var _atom1 = 'C';
+  var _atom2 = 'C';
+  var _bondOrder = 1;
+  var _selectedSeries = TREND_SERIES[0];
+  var _trendProperty = 'energy'; // 'energy' or 'length'
+
+  // Tab 2: Orbitals
+  var _selectedMolecule = MOLECULES[0];
+  var _showSigma = true;
+  var _showPi = true;
+  var _showLonePairs = true;
+
+  // Tab 3: Compare
+  var _compareBonds = []; // array of bond ids, max 4
+  var _sortColumn = 'id';
+  var _sortDir = 1;
+
+
+  // ═══════════════════════════════════════════════════
+  // BOND LOOKUP
+  // ═══════════════════════════════════════════════════
+  function findBond(a1, a2, order) {
+    return BONDS.find(function(b) {
+      return ((b.atoms[0] === a1 && b.atoms[1] === a2) || (b.atoms[0] === a2 && b.atoms[1] === a1)) && b.order === order;
+    });
+  }
+
+  function findBondById(id) {
+    return BONDS.find(function(b) { return b.id === id; });
+  }
+
+  function getAvailableOrders(a1, a2) {
+    var orders = [];
+    BONDS.forEach(function(b) {
+      if ((b.atoms[0] === a1 && b.atoms[1] === a2) || (b.atoms[0] === a2 && b.atoms[1] === a1)) {
+        if (orders.indexOf(b.order) < 0) orders.push(b.order);
+      }
+    });
+    orders.sort();
+    return orders;
+  }
+
+  function polarityLabel(enDiff) {
+    if (enDiff === 0) return 'Nonpolar';
+    if (enDiff < 0.5) return 'Slightly polar';
+    if (enDiff < 1.7) return 'Polar';
+    return 'Ionic character';
+  }
+
+  function bondLabel(b) {
+    var sym = b.order === 1 ? '\u2013' : b.order === 2 ? '=' : '\u2261';
+    return b.atoms[0] + sym + b.atoms[1];
+  }
+
+  // ═══════════════════════════════════════════════════
+  // HEADER TOGGLES
+  // ═══════════════════════════════════════════════════
+  function buildToggles() {
+    var wrap = document.getElementById('headerToggles');
+    wrap.textContent = '';
+
+    var hlGroup = el('div', 'sim-toggle-group');
+    var hlLabel = el('span', 'sim-toggle-label', 'HL');
+    var hlToggle = el('label', 'sim-toggle');
+    var hlInput = document.createElement('input');
+    hlInput.type = 'checkbox';
+    hlInput.setAttribute('aria-label', 'Enable HL content');
+    hlInput.addEventListener('change', function() {
+      document.body.classList.toggle('hl-active', hlInput.checked);
+    });
+    var hlSlider = el('span', 'sim-toggle-slider');
+    hlSlider.style.setProperty('--toggle-on', 'var(--purple)');
+    hlToggle.appendChild(hlInput);
+    hlToggle.appendChild(hlSlider);
+    hlGroup.appendChild(hlLabel);
+    hlGroup.appendChild(hlToggle);
+    wrap.appendChild(hlGroup);
+
+    var tGroup = el('div', 'sim-toggle-group');
+    var tLabel = el('span', 'sim-toggle-label', 'Teacher');
+    var tToggle = el('label', 'sim-toggle');
+    var tInput = document.createElement('input');
+    tInput.type = 'checkbox';
+    tInput.setAttribute('aria-label', 'Enable teacher mode');
+    tInput.addEventListener('change', function() {
+      document.body.classList.toggle('teacher-active', tInput.checked);
+    });
+    var tSlider = el('span', 'sim-toggle-slider');
+    tSlider.style.setProperty('--toggle-on', 'var(--amber)');
+    tToggle.appendChild(tInput);
+    tToggle.appendChild(tSlider);
+    tGroup.appendChild(tLabel);
+    tGroup.appendChild(tToggle);
+    wrap.appendChild(tGroup);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB SWITCHING
+  // ═══════════════════════════════════════════════════
+  function switchTab(tabName) {
+    _activeTab = tabName;
+    document.querySelectorAll('.tab-btn').forEach(function(btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);
+    });
+    document.querySelectorAll('.tab-content').forEach(function(tc) {
+      tc.classList.toggle('active', tc.id === 'tab-' + tabName);
+    });
+    buildSidebar();
+    refreshCurrentTab();
+  }
+
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      switchTab(btn.getAttribute('data-tab'));
+    });
+  });
+
+  function refreshCurrentTab() {
+    if (_activeTab === 'explorer') renderExplorerTab();
+    else if (_activeTab === 'orbitals') renderOrbitalsTab();
+    else if (_activeTab === 'compare') renderCompareTab();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // SIDEBAR
+  // ═══════════════════════════════════════════════════
+  function buildSidebar() {
+    var header = document.getElementById('paletteHeader');
+    var list = document.getElementById('paletteList');
+    var controls = document.getElementById('sidebarControls');
+    list.textContent = '';
+    controls.textContent = '';
+
+    if (_activeTab === 'explorer') {
+      header.textContent = 'Bond Explorer';
+      buildExplorerSidebar(list, controls);
+    } else if (_activeTab === 'orbitals') {
+      header.textContent = 'Molecules';
+      buildOrbitalsSidebar(list, controls);
+    } else if (_activeTab === 'compare') {
+      header.textContent = 'Bond Palette';
+      buildCompareSidebar(list, controls);
+    }
+
+    buildPresets();
+  }
+
+  // ── Explorer sidebar ──
+  function buildExplorerSidebar(list, controls) {
+    // Atom 1 dropdown
+    var f1 = el('div', 'calc-field');
+    var l1 = el('label', '', 'Atom 1');
+    l1.setAttribute('for', 'selAtom1');
+    var s1 = document.createElement('select');
+    s1.id = 'selAtom1';
+    ATOM_LIST.forEach(function(a) {
+      var opt = el('option', '', a);
+      opt.value = a;
+      if (a === _atom1) opt.selected = true;
+      s1.appendChild(opt);
+    });
+    s1.addEventListener('change', function() {
+      _atom1 = s1.value;
+      fixBondOrder();
+      buildSidebar();
+      refreshCurrentTab();
+    });
+    f1.appendChild(l1);
+    f1.appendChild(s1);
+    list.appendChild(f1);
+
+    // Atom 2 dropdown
+    var f2 = el('div', 'calc-field');
+    var l2 = el('label', '', 'Atom 2');
+    l2.setAttribute('for', 'selAtom2');
+    var s2 = document.createElement('select');
+    s2.id = 'selAtom2';
+    ATOM_LIST.forEach(function(a) {
+      var opt = el('option', '', a);
+      opt.value = a;
+      if (a === _atom2) opt.selected = true;
+      s2.appendChild(opt);
+    });
+    s2.addEventListener('change', function() {
+      _atom2 = s2.value;
+      fixBondOrder();
+      buildSidebar();
+      refreshCurrentTab();
+    });
+    f2.appendChild(l2);
+    f2.appendChild(s2);
+    list.appendChild(f2);
+
+    // Bond order
+    var orders = getAvailableOrders(_atom1, _atom2);
+    if (orders.length > 0) {
+      var f3 = el('div', 'calc-field');
+      var l3 = el('label', '', 'Bond Order');
+      l3.setAttribute('for', 'selOrder');
+      var s3 = document.createElement('select');
+      s3.id = 'selOrder';
+      var orderLabels = { 1: 'Single', 2: 'Double', 3: 'Triple' };
+      orders.forEach(function(o) {
+        var opt = el('option', '', orderLabels[o]);
+        opt.value = String(o);
+        if (o === _bondOrder) opt.selected = true;
+        s3.appendChild(opt);
+      });
+      s3.addEventListener('change', function() {
+        _bondOrder = parseInt(s3.value);
+        refreshCurrentTab();
+      });
+      f3.appendChild(l3);
+      f3.appendChild(s3);
+      list.appendChild(f3);
+    }
+
+    // Series dropdown
+    var f4 = el('div', 'calc-field');
+    var l4 = el('label', '', 'Trend Series');
+    l4.setAttribute('for', 'selSeries');
+    var s4 = document.createElement('select');
+    s4.id = 'selSeries';
+    TREND_SERIES.forEach(function(ts) {
+      var opt = el('option', '', ts.label);
+      opt.value = ts.id;
+      if (ts.id === _selectedSeries.id) opt.selected = true;
+      s4.appendChild(opt);
+    });
+    s4.addEventListener('change', function() {
+      _selectedSeries = TREND_SERIES.find(function(t) { return t.id === s4.value; }) || TREND_SERIES[0];
+      refreshCurrentTab();
+    });
+    f4.appendChild(l4);
+    f4.appendChild(s4);
+    list.appendChild(f4);
+
+    // Trend property toggle
+    var f5 = el('div', 'calc-field');
+    var l5 = el('label', '', 'Trend Property');
+    l5.setAttribute('for', 'selTrendProp');
+    var s5 = document.createElement('select');
+    s5.id = 'selTrendProp';
+    [{ v: 'energy', l: 'Bond Energy (kJ/mol)' }, { v: 'length', l: 'Bond Length (pm)' }].forEach(function(p) {
+      var opt = el('option', '', p.l);
+      opt.value = p.v;
+      if (p.v === _trendProperty) opt.selected = true;
+      s5.appendChild(opt);
+    });
+    s5.addEventListener('change', function() {
+      _trendProperty = s5.value;
+      refreshCurrentTab();
+    });
+    f5.appendChild(l5);
+    f5.appendChild(s5);
+    list.appendChild(f5);
+  }
+
+  // ── Orbitals sidebar ──
+  function buildOrbitalsSidebar(list, controls) {
+    var searchVal = document.getElementById('paletteSearch').value.toLowerCase();
+    var groups = [
+      { label: 'sp\u00B3', ids: ['ch4','nh3','h2o'] },
+      { label: 'sp\u00B2', ids: ['bf3','c2h4'] },
+      { label: 'sp', ids: ['c2h2','co2'] }
+    ];
+
+    groups.forEach(function(g) {
+      var mols = g.ids.map(function(id) { return MOLECULES.find(function(m) { return m.id === id; }); }).filter(function(m) {
+        return m && m.label.toLowerCase().indexOf(searchVal) >= 0;
+      });
+      if (mols.length === 0) return;
+      var catEl = el('div', 'palette-category', g.label);
+      list.appendChild(catEl);
+      mols.forEach(function(mol) {
+        var btn = el('button', 'palette-item', mol.label);
+        if (_selectedMolecule.id === mol.id) btn.className += ' active';
+        btn.addEventListener('click', function() {
+          _selectedMolecule = mol;
+          buildSidebar();
+          refreshCurrentTab();
+        });
+        list.appendChild(btn);
+      });
+    });
+
+    // Toggle buttons
+    var toggleWrap = el('div', 'toggle-group');
+
+    var sigRow = el('div', 'toggle-row');
+    var sigCb = document.createElement('input');
+    sigCb.type = 'checkbox';
+    sigCb.id = 'cbSigma';
+    sigCb.checked = _showSigma;
+    sigCb.setAttribute('aria-label', 'Show sigma bonds');
+    sigCb.addEventListener('change', function() { _showSigma = sigCb.checked; refreshCurrentTab(); });
+    var sigLbl = el('label', '', 'Show Sigma');
+    sigLbl.setAttribute('for', 'cbSigma');
+    sigRow.appendChild(sigCb);
+    sigRow.appendChild(sigLbl);
+    toggleWrap.appendChild(sigRow);
+
+    var piRow = el('div', 'toggle-row');
+    var piCb = document.createElement('input');
+    piCb.type = 'checkbox';
+    piCb.id = 'cbPi';
+    piCb.checked = _showPi;
+    piCb.setAttribute('aria-label', 'Show pi bonds');
+    piCb.addEventListener('change', function() { _showPi = piCb.checked; refreshCurrentTab(); });
+    var piLbl = el('label', '', 'Show Pi');
+    piLbl.setAttribute('for', 'cbPi');
+    piRow.appendChild(piCb);
+    piRow.appendChild(piLbl);
+    toggleWrap.appendChild(piRow);
+
+    var lpRow = el('div', 'toggle-row');
+    var lpCb = document.createElement('input');
+    lpCb.type = 'checkbox';
+    lpCb.id = 'cbLP';
+    lpCb.checked = _showLonePairs;
+    lpCb.setAttribute('aria-label', 'Show lone pairs');
+    lpCb.addEventListener('change', function() { _showLonePairs = lpCb.checked; refreshCurrentTab(); });
+    var lpLbl = el('label', '', 'Show Lone Pairs');
+    lpLbl.setAttribute('for', 'cbLP');
+    lpRow.appendChild(lpCb);
+    lpRow.appendChild(lpLbl);
+    toggleWrap.appendChild(lpRow);
+
+    controls.appendChild(toggleWrap);
+  }
+
+  // ── Compare sidebar ──
+  function buildCompareSidebar(list, controls) {
+    var searchVal = document.getElementById('paletteSearch').value.toLowerCase();
+
+    BOND_GROUPS.forEach(function(g) {
+      var bonds = g.ids.map(function(id) { return findBondById(id); }).filter(function(b) {
+        return b && bondLabel(b).toLowerCase().indexOf(searchVal) >= 0;
+      });
+      if (bonds.length === 0) return;
+      var catEl = el('div', 'palette-category', g.label);
+      list.appendChild(catEl);
+      bonds.forEach(function(b) {
+        var btn = el('button', 'palette-item', bondLabel(b));
+        if (_compareBonds.indexOf(b.id) >= 0) btn.className += ' active';
+        btn.addEventListener('click', function() {
+          toggleCompareBond(b.id);
+          buildSidebar();
+          refreshCurrentTab();
+        });
+        list.appendChild(btn);
+      });
+    });
+
+    // Clear all button
+    var clearBtn = el('button', 'check-btn secondary', 'Clear All');
+    clearBtn.style.marginTop = '0.5rem';
+    clearBtn.addEventListener('click', function() {
+      _compareBonds = [];
+      buildSidebar();
+      refreshCurrentTab();
+    });
+    controls.appendChild(clearBtn);
+  }
+
+  function toggleCompareBond(id) {
+    var idx = _compareBonds.indexOf(id);
+    if (idx >= 0) {
+      _compareBonds.splice(idx, 1);
+    } else if (_compareBonds.length < 4) {
+      _compareBonds.push(id);
+    }
+  }
+
+  // ── Presets ──
+  function buildPresets() {
+    var presetSel = document.getElementById('presetSelect');
+    presetSel.textContent = '';
+    var defOpt = el('option', '', 'Teacher Presets...');
+    defOpt.value = '';
+    presetSel.appendChild(defOpt);
+    TEACHER_PRESETS.forEach(function(p, i) {
+      var opt = el('option', '', p.label);
+      opt.value = String(i);
+      presetSel.appendChild(opt);
+    });
+    presetSel.onchange = function() {
+      if (presetSel.value === '') return;
+      var preset = TEACHER_PRESETS[parseInt(presetSel.value)];
+      if (!preset) return;
+      applyPreset(preset);
+      presetSel.value = '';
+    };
+  }
+
+  function applyPreset(p) {
+    if (p.tab) switchTab(p.tab);
+    if (p.atom1) _atom1 = p.atom1;
+    if (p.atom2) _atom2 = p.atom2;
+    if (p.order) _bondOrder = p.order;
+    if (p.series) {
+      var s = TREND_SERIES.find(function(t) { return t.id === p.series; });
+      if (s) _selectedSeries = s;
+    }
+    if (p.molecule) {
+      var m = MOLECULES.find(function(mol) { return mol.id === p.molecule; });
+      if (m) _selectedMolecule = m;
+    }
+    if (p.bonds) {
+      _compareBonds = p.bonds.slice(0, 4);
+    }
+    fixBondOrder();
+    buildSidebar();
+    refreshCurrentTab();
+  }
+
+  function fixBondOrder() {
+    var orders = getAvailableOrders(_atom1, _atom2);
+    if (orders.indexOf(_bondOrder) < 0) {
+      _bondOrder = orders.length > 0 ? orders[0] : 1;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 1: BOND EXPLORER
+  // ═══════════════════════════════════════════════════
+  function renderExplorerTab() {
+    drawBondCanvas();
+    drawTrendCanvas();
+    buildBondProperties();
+  }
+
+  function drawBondCanvas() {
+    var canvas = document.getElementById('bondCanvas');
+    var ctx = setupCanvas(canvas);
+    var W = canvas.offsetWidth;
+    var H = parseInt(canvas.dataset.baseHeight);
+
+    ctx.clearRect(0, 0, W, H);
+
+    var bond = findBond(_atom1, _atom2, _bondOrder);
+    if (!bond) {
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '600 14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('No bond data available for ' + _atom1 + '\u2013' + _atom2, W / 2, H / 2);
+      return;
+    }
+
+    var e1 = ELEMENTS[bond.atoms[0]];
+    var e2 = ELEMENTS[bond.atoms[1]];
+    var cx = W / 2;
+    var cy = H / 2;
+
+    // Scale radius for drawing
+    var r1 = e1.radius * 0.8;
+    var r2 = e2.radius * 0.8;
+
+    // Bond length determines separation
+    var sep = clamp(bond.length * 0.6, 60, 180);
+    var x1 = cx - sep / 2;
+    var x2 = cx + sep / 2;
+
+    // Electron density cloud
+    var grad = ctx.createRadialGradient(cx, cy, 0, cx, cy, sep * 0.6);
+    var cloudAlpha = bond.order === 1 ? 0.12 : bond.order === 2 ? 0.18 : 0.25;
+    grad.addColorStop(0, 'rgba(37, 99, 235, ' + (cloudAlpha + 0.05) + ')');
+    grad.addColorStop(0.5, 'rgba(37, 99, 235, ' + cloudAlpha + ')');
+    grad.addColorStop(1, 'rgba(37, 99, 235, 0)');
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, sep * 0.55, 30 + bond.order * 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bond lines
+    var lineSpacing = 6;
+    var offsets = [];
+    if (bond.order === 1) offsets = [0];
+    else if (bond.order === 2) offsets = [-lineSpacing, lineSpacing];
+    else offsets = [-lineSpacing * 1.5, 0, lineSpacing * 1.5];
+
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 2.5;
+    offsets.forEach(function(off) {
+      ctx.beginPath();
+      ctx.moveTo(x1 + r1 * 0.5, cy + off);
+      ctx.lineTo(x2 - r2 * 0.5, cy + off);
+      ctx.stroke();
+    });
+
+    // Atom circles
+    drawAtomCircle(ctx, x1, cy, r1, e1, bond.atoms[0]);
+    drawAtomCircle(ctx, x2, cy, r2, e2, bond.atoms[1]);
+
+    // Dipole arrow if polar
+    if (bond.enDiff > 0) {
+      var moreEN = ELEMENTS[bond.atoms[0]].en > ELEMENTS[bond.atoms[1]].en ? 0 : 1;
+      var arrowY = cy + r1 + 25;
+      var ax1 = moreEN === 1 ? x1 : x2;
+      var ax2 = moreEN === 1 ? x2 : x1;
+
+      ctx.strokeStyle = '#DC2626';
+      ctx.lineWidth = 2;
+      ctx.fillStyle = '#DC2626';
+
+      // Arrow shaft
+      ctx.beginPath();
+      ctx.moveTo(ax1, arrowY);
+      ctx.lineTo(ax2, arrowY);
+      ctx.stroke();
+
+      // Arrowhead
+      var dir = ax2 > ax1 ? 1 : -1;
+      ctx.beginPath();
+      ctx.moveTo(ax2, arrowY);
+      ctx.lineTo(ax2 - dir * 8, arrowY - 5);
+      ctx.lineTo(ax2 - dir * 8, arrowY + 5);
+      ctx.closePath();
+      ctx.fill();
+
+      // Delta symbols
+      ctx.font = '600 12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillStyle = '#DC2626';
+      ctx.fillText('\u03B4+', ax1, arrowY - 8);
+      ctx.fillText('\u03B4\u2013', ax2, arrowY - 8);
+
+      // Label
+      ctx.font = '500 10px Inter, sans-serif';
+      ctx.fillText('\u0394EN = ' + bond.enDiff.toFixed(1), cx, arrowY + 15);
+    }
+
+    // Bond label at top
+    ctx.font = '700 16px Inter, sans-serif';
+    ctx.fillStyle = '#1E293B';
+    ctx.textAlign = 'center';
+    ctx.fillText(bondLabel(bond), cx, 25);
+  }
+
+  function drawAtomCircle(ctx, x, y, r, elem, symbol) {
+    // Glow
+    var glow = ctx.createRadialGradient(x, y, r * 0.3, x, y, r * 1.2);
+    glow.addColorStop(0, elem.color);
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.globalAlpha = 0.15;
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, r * 1.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Main circle
+    ctx.fillStyle = elem.color;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Highlight
+    var hlGrad = ctx.createRadialGradient(x - r * 0.3, y - r * 0.3, 0, x, y, r);
+    hlGrad.addColorStop(0, 'rgba(255,255,255,0.4)');
+    hlGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = hlGrad;
+    ctx.beginPath();
+    ctx.arc(x, y, r, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Symbol
+    ctx.fillStyle = symbol === 'C' ? '#FFFFFF' : (elem.color === '#E0E0E0' ? '#333' : '#FFFFFF');
+    ctx.font = '700 ' + Math.max(12, r * 0.7) + 'px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(symbol, x, y + 1);
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function buildBondProperties() {
+    var wrap = document.getElementById('bondProperties');
+    wrap.textContent = '';
+
+    var bond = findBond(_atom1, _atom2, _bondOrder);
+    if (!bond) return;
+
+    var cards = [
+      { label: 'Bond Order', value: String(bond.order) },
+      { label: 'Bond Length', value: bond.length + ' pm' },
+      { label: 'Bond Energy', value: bond.energy + ' kJ/mol' },
+      { label: 'Polarity', value: '\u0394EN ' + bond.enDiff.toFixed(1) + ' \u2014 ' + polarityLabel(bond.enDiff) }
+    ];
+
+    cards.forEach(function(c) {
+      var card = el('div', 'prop-card');
+      card.appendChild(el('div', 'prop-card-label', c.label));
+      card.appendChild(el('div', 'prop-card-value', c.value));
+      wrap.appendChild(card);
+    });
+  }
+
+  // ── Trend graph ──
+  function drawTrendCanvas() {
+    var canvas = document.getElementById('trendCanvas');
+    var ctx = setupCanvas(canvas);
+    var W = canvas.offsetWidth;
+    var H = parseInt(canvas.dataset.baseHeight);
+
+    ctx.clearRect(0, 0, W, H);
+
+    var series = _selectedSeries;
+    var bondData = series.bonds.map(function(id) { return findBondById(id); }).filter(Boolean);
+    if (bondData.length === 0) return;
+
+    var prop = _trendProperty;
+    var vals = bondData.map(function(b) { return prop === 'energy' ? b.energy : b.length; });
+    var maxVal = Math.max.apply(null, vals) * 1.15;
+
+    var pad = { top: 40, right: 30, bottom: 50, left: 60 };
+    var chartW = W - pad.left - pad.right;
+    var chartH = H - pad.top - pad.bottom;
+    var barW = Math.min(50, (chartW / bondData.length) * 0.6);
+    var gap = (chartW - barW * bondData.length) / (bondData.length + 1);
+
+    var currentBond = findBond(_atom1, _atom2, _bondOrder);
+
+    // Title
+    ctx.font = '600 13px Inter, sans-serif';
+    ctx.fillStyle = '#1E293B';
+    ctx.textAlign = 'center';
+    ctx.fillText(series.label + ' \u2014 ' + (prop === 'energy' ? 'Bond Energy (kJ/mol)' : 'Bond Length (pm)'), W / 2, 20);
+
+    // Y axis
+    ctx.strokeStyle = '#E2E8F0';
+    ctx.lineWidth = 1;
+    var numTicks = 5;
+    ctx.font = '500 10px Fira Code, monospace';
+    ctx.fillStyle = '#64748B';
+    ctx.textAlign = 'right';
+    for (var i = 0; i <= numTicks; i++) {
+      var yVal = (maxVal / numTicks) * i;
+      var yPos = pad.top + chartH - (chartH * i / numTicks);
+      ctx.beginPath();
+      ctx.moveTo(pad.left, yPos);
+      ctx.lineTo(W - pad.right, yPos);
+      ctx.stroke();
+      ctx.fillText(Math.round(yVal), pad.left - 8, yPos + 4);
+    }
+
+    // Bars
+    bondData.forEach(function(b, idx) {
+      var val = prop === 'energy' ? b.energy : b.length;
+      var barH = (val / maxVal) * chartH;
+      var bx = pad.left + gap + idx * (barW + gap);
+      var by = pad.top + chartH - barH;
+
+      var isHighlighted = currentBond && currentBond.id === b.id;
+      ctx.fillStyle = isHighlighted ? '#0D9488' : '#94A3B8';
+      ctx.roundRect(bx, by, barW, barH, [4, 4, 0, 0]);
+      ctx.fill();
+
+      // Value on top
+      ctx.font = '600 10px Fira Code, monospace';
+      ctx.fillStyle = isHighlighted ? '#0D9488' : '#64748B';
+      ctx.textAlign = 'center';
+      ctx.fillText(String(val), bx + barW / 2, by - 6);
+
+      // Label
+      ctx.font = '600 10px Inter, sans-serif';
+      ctx.fillStyle = '#1E293B';
+      ctx.save();
+      ctx.translate(bx + barW / 2, pad.top + chartH + 10);
+      ctx.fillText(bondLabel(b), 0, 0);
+      ctx.restore();
+    });
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 2: ORBITAL OVERLAP (HL)
+  // ═══════════════════════════════════════════════════
+  function renderOrbitalsTab() {
+    drawOrbitalCanvas();
+    buildOrbitalProperties();
+  }
+
+  function drawOrbitalCanvas() {
+    var canvas = document.getElementById('orbitalCanvas');
+    var ctx = setupCanvas(canvas);
+    var W = canvas.offsetWidth;
+    var H = parseInt(canvas.dataset.baseHeight);
+
+    ctx.clearRect(0, 0, W, H);
+
+    var mol = _selectedMolecule;
+    var cx = W / 2;
+    var cy = H / 2;
+    var bondLen = 80;
+
+    // Title
+    ctx.font = '700 16px Inter, sans-serif';
+    ctx.fillStyle = '#1E293B';
+    ctx.textAlign = 'center';
+    ctx.fillText(mol.formula + ' \u2014 ' + mol.hybridization + ' hybridization', cx, 25);
+
+    var centralElem = ELEMENTS[mol.centralAtom] || ELEMENTS.C;
+
+    // Determine lobe parameters based on hybridization
+    var hyb = mol.hybridization;
+    var lobeAngles = [];
+    var lonePairAngles = [];
+
+    if (hyb === 'sp\u00B3') {
+      // Tetrahedral angles projected into 2D
+      for (var i = 0; i < mol.bonds.length; i++) {
+        lobeAngles.push(mol.bonds[i].angle - 90);
+      }
+      // Lone pairs fill remaining tetrahedral positions
+      if (mol.lonePairs === 1) {
+        lonePairAngles.push(mol.bonds.length === 3 ? 180 - 90 : 0);
+      } else if (mol.lonePairs === 2) {
+        lonePairAngles.push(150);
+        lonePairAngles.push(210);
+      }
+    } else if (hyb === 'sp\u00B2') {
+      for (var i = 0; i < mol.bonds.length; i++) {
+        lobeAngles.push(mol.bonds[i].angle - 90);
+      }
+    } else if (hyb === 'sp') {
+      for (var i = 0; i < mol.bonds.length; i++) {
+        lobeAngles.push(mol.bonds[i].angle - 90);
+      }
+    }
+
+    // Draw sigma bond orbital lobes
+    if (_showSigma) {
+      lobeAngles.forEach(function(angle, idx) {
+        var rad = angle * Math.PI / 180;
+        drawOrbitalLobe(ctx, cx, cy, bondLen, rad, '#2563EB', 0.3);
+      });
+    }
+
+    // Draw lone pair lobes
+    if (_showLonePairs && lonePairAngles.length > 0) {
+      lonePairAngles.forEach(function(angle) {
+        var rad = angle * Math.PI / 180;
+        drawOrbitalLobe(ctx, cx, cy, bondLen * 0.7, rad, '#94A3B8', 0.35);
+        // Label
+        var lx = cx + Math.cos(rad) * (bondLen * 0.7 + 15);
+        var ly = cy + Math.sin(rad) * (bondLen * 0.7 + 15);
+        ctx.font = '500 9px Inter, sans-serif';
+        ctx.fillStyle = '#64748B';
+        ctx.textAlign = 'center';
+        ctx.fillText('LP', lx, ly + 3);
+      });
+    }
+
+    // Draw pi bonds for sp2 and sp molecules
+    if (_showPi && mol.pi > 0) {
+      if (hyb === 'sp\u00B2') {
+        // One pi bond: p orbitals perpendicular to bond plane
+        var piAngle = lobeAngles[0] * Math.PI / 180;
+        var piX = cx + Math.cos(piAngle) * bondLen * 0.4;
+        var piY = cy + Math.sin(piAngle) * bondLen * 0.4;
+        drawPiOrbital(ctx, piX, piY, piAngle + Math.PI / 2, 25, '#7C3AED');
+      } else if (hyb === 'sp') {
+        // Two pi bonds: perpendicular p orbitals
+        var piAngle = lobeAngles[0] * Math.PI / 180;
+        var piX = cx + Math.cos(piAngle) * bondLen * 0.35;
+        var piY = cy + Math.sin(piAngle) * bondLen * 0.35;
+        drawPiOrbital(ctx, piX, piY, piAngle + Math.PI / 2, 25, '#7C3AED');
+        // Second pi (shown slightly offset for visual clarity)
+        drawPiOrbitalCircle(ctx, piX, piY, 18, '#DC2626');
+      }
+    }
+
+    // Draw bonding atoms at end of sigma overlaps
+    lobeAngles.forEach(function(angle, idx) {
+      var rad = angle * Math.PI / 180;
+      var ax = cx + Math.cos(rad) * bondLen;
+      var ay = cy + Math.sin(rad) * bondLen;
+      var bondTo = mol.bonds[idx] ? mol.bonds[idx].to : 'H';
+      var bElem = ELEMENTS[bondTo] || ELEMENTS.H;
+      drawAtomCircle(ctx, ax, ay, bElem.radius * 0.5, bElem, bondTo);
+    });
+
+    // Draw central atom on top
+    drawAtomCircle(ctx, cx, cy, centralElem.radius * 0.6, centralElem, mol.centralAtom);
+
+    // Draw bond angle arc
+    if (lobeAngles.length >= 2) {
+      var a1 = lobeAngles[0] * Math.PI / 180;
+      var a2 = lobeAngles[1] * Math.PI / 180;
+      ctx.strokeStyle = '#D97706';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      // Ensure we draw the shorter arc
+      var startA = Math.min(a1, a2);
+      var endA = Math.max(a1, a2);
+      if (endA - startA > Math.PI) {
+        var temp = startA;
+        startA = endA;
+        endA = temp + Math.PI * 2;
+      }
+      ctx.arc(cx, cy, 35, startA, endA);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Angle label
+      var midA = (startA + endA) / 2;
+      ctx.font = '600 10px Fira Code, monospace';
+      ctx.fillStyle = '#D97706';
+      ctx.textAlign = 'center';
+      ctx.fillText(mol.bondAngle, cx + Math.cos(midA) * 48, cy + Math.sin(midA) * 48 + 4);
+    }
+
+    // Legend
+    var legendY = H - 25;
+    var legendX = 20;
+    ctx.font = '500 10px Inter, sans-serif';
+
+    if (_showSigma) {
+      ctx.fillStyle = 'rgba(37, 99, 235, 0.3)';
+      ctx.fillRect(legendX, legendY - 8, 12, 12);
+      ctx.fillStyle = '#1E293B';
+      ctx.textAlign = 'left';
+      ctx.fillText('\u03C3 bond', legendX + 16, legendY + 2);
+      legendX += 60;
+    }
+    if (_showPi && mol.pi > 0) {
+      ctx.fillStyle = 'rgba(124, 58, 237, 0.3)';
+      ctx.fillRect(legendX, legendY - 8, 12, 12);
+      ctx.fillStyle = '#1E293B';
+      ctx.fillText('\u03C0 bond', legendX + 16, legendY + 2);
+      legendX += 60;
+    }
+    if (_showLonePairs && mol.lonePairs > 0) {
+      ctx.fillStyle = 'rgba(148, 163, 184, 0.35)';
+      ctx.fillRect(legendX, legendY - 8, 12, 12);
+      ctx.fillStyle = '#1E293B';
+      ctx.fillText('Lone pair', legendX + 16, legendY + 2);
+    }
+  }
+
+  function drawOrbitalLobe(ctx, cx, cy, length, angle, color, alpha) {
+    // Teardrop-shaped lobe pointing outward
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
+
+    ctx.fillStyle = color;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    // Teardrop: start narrow at center, widen out
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(length * 0.2, -length * 0.25, length * 0.7, -length * 0.2, length, 0);
+    ctx.bezierCurveTo(length * 0.7, length * 0.2, length * 0.2, length * 0.25, 0, 0);
+    ctx.fill();
+
+    // Outline
+    ctx.globalAlpha = alpha + 0.2;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.bezierCurveTo(length * 0.2, -length * 0.25, length * 0.7, -length * 0.2, length, 0);
+    ctx.bezierCurveTo(length * 0.7, length * 0.2, length * 0.2, length * 0.25, 0, 0);
+    ctx.stroke();
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  function drawPiOrbital(ctx, x, y, angle, size, color) {
+    // Figure-8 shape (two lobes) for pi bond
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.rotate(angle);
+
+    ctx.fillStyle = color;
+    ctx.globalAlpha = 0.2;
+
+    // Top lobe
+    ctx.beginPath();
+    ctx.ellipse(0, -size * 0.6, size * 0.35, size * 0.55, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bottom lobe
+    ctx.beginPath();
+    ctx.ellipse(0, size * 0.6, size * 0.35, size * 0.55, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Outlines
+    ctx.globalAlpha = 0.5;
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(0, -size * 0.6, size * 0.35, size * 0.55, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.ellipse(0, size * 0.6, size * 0.35, size * 0.55, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.globalAlpha = 1;
+    ctx.restore();
+  }
+
+  function drawPiOrbitalCircle(ctx, x, y, size, color) {
+    // Second pi bond shown as dashed circle (coming out of plane)
+    ctx.strokeStyle = color;
+    ctx.globalAlpha = 0.4;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.arc(x, y, size, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.globalAlpha = 1;
+  }
+
+  function buildOrbitalProperties() {
+    var wrap = document.getElementById('orbitalProperties');
+    wrap.textContent = '';
+
+    var mol = _selectedMolecule;
+    var cards = [
+      { label: 'Hybridization', value: mol.hybridization },
+      { label: 'Bond Angles', value: mol.bondAngle },
+      { label: 'Sigma Bonds', value: String(mol.sigma) },
+      { label: 'Pi Bonds', value: String(mol.pi) },
+      { label: 'Geometry', value: mol.geometry },
+      { label: 'Lone Pairs', value: String(mol.lonePairs) }
+    ];
+
+    cards.forEach(function(c) {
+      var card = el('div', 'prop-card');
+      card.appendChild(el('div', 'prop-card-label', c.label));
+      card.appendChild(el('div', 'prop-card-value', c.value));
+      wrap.appendChild(card);
+    });
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 3: BOND COMPARISON
+  // ═══════════════════════════════════════════════════
+  function renderCompareTab() {
+    drawCompareCanvas();
+    buildCompareTable();
+  }
+
+  function drawCompareCanvas() {
+    var canvas = document.getElementById('compareCanvas');
+    var ctx = setupCanvas(canvas);
+    var W = canvas.offsetWidth;
+    var H = parseInt(canvas.dataset.baseHeight);
+
+    ctx.clearRect(0, 0, W, H);
+
+    if (_compareBonds.length === 0) {
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '600 14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Select bonds from the palette to compare (max 4)', W / 2, H / 2);
+      return;
+    }
+
+    var bonds = _compareBonds.map(function(id) { return findBondById(id); }).filter(Boolean);
+    var n = bonds.length;
+    var slotW = W / n;
+
+    // Find max energy and max length for scaling
+    var maxEnergy = Math.max.apply(null, bonds.map(function(b) { return b.energy; }));
+    var maxLength = Math.max.apply(null, bonds.map(function(b) { return b.length; }));
+
+    var colors = ['#0D9488', '#2563EB', '#7C3AED', '#D97706'];
+
+    bonds.forEach(function(bond, idx) {
+      var sx = slotW * idx + slotW / 2;
+      var topY = 50;
+      var bottomY = H - 40;
+      var availH = bottomY - topY;
+
+      // Bar width proportional to energy
+      var barW = clamp((bond.energy / maxEnergy) * (slotW * 0.5), 10, slotW * 0.5);
+      // Bar height proportional to length
+      var barH = clamp((bond.length / maxLength) * (availH * 0.5), 20, availH * 0.5);
+
+      var barY = topY + (availH - barH) / 2;
+
+      // Atom circles
+      var e1 = ELEMENTS[bond.atoms[0]];
+      var e2 = ELEMENTS[bond.atoms[1]];
+      var r1 = e1.radius * 0.45;
+      var r2 = e2.radius * 0.45;
+
+      // Bond bar
+      ctx.fillStyle = colors[idx % colors.length];
+      ctx.globalAlpha = 0.2;
+      ctx.roundRect(sx - barW / 2, barY, barW, barH, 4);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = colors[idx % colors.length];
+      ctx.lineWidth = 2;
+      ctx.roundRect(sx - barW / 2, barY, barW, barH, 4);
+      ctx.stroke();
+
+      // Atoms at top and bottom of bar
+      drawAtomCircle(ctx, sx, barY - r1 - 2, r1, e1, bond.atoms[0]);
+      drawAtomCircle(ctx, sx, barY + barH + r2 + 2, r2, e2, bond.atoms[1]);
+
+      // Bond label
+      ctx.font = '700 12px Inter, sans-serif';
+      ctx.fillStyle = '#1E293B';
+      ctx.textAlign = 'center';
+      ctx.fillText(bondLabel(bond), sx, 25);
+
+      // Energy label
+      ctx.font = '500 10px Fira Code, monospace';
+      ctx.fillStyle = colors[idx % colors.length];
+      ctx.fillText(bond.energy + ' kJ/mol', sx, bottomY + 15);
+
+      // Length label
+      ctx.fillText(bond.length + ' pm', sx, 38);
+    });
+  }
+
+  function buildCompareTable() {
+    var wrap = document.getElementById('compareTableBody');
+    wrap.textContent = '';
+
+    if (_compareBonds.length === 0) {
+      wrap.appendChild(el('div', '', 'No bonds selected for comparison.'));
+      return;
+    }
+
+    var table = document.createElement('table');
+    table.className = 'comparison-table';
+
+    var thead = document.createElement('thead');
+    var headerRow = document.createElement('tr');
+    var columns = [
+      { key: 'id', label: 'Bond' },
+      { key: 'order', label: 'Order' },
+      { key: 'length', label: 'Length (pm)' },
+      { key: 'energy', label: 'Energy (kJ/mol)' },
+      { key: 'enDiff', label: 'EN Diff' },
+      { key: 'polarity', label: 'Polarity' }
+    ];
+
+    columns.forEach(function(col) {
+      var th = document.createElement('th');
+      th.textContent = col.label;
+      if (col.key !== 'polarity') {
+        th.style.cursor = 'pointer';
+        th.setAttribute('tabindex', '0');
+        var sortHandler = (function(k) { return function() {
+          if (_sortColumn === k) { _sortDir *= -1; } else { _sortColumn = k; _sortDir = 1; }
+          renderCompareTab();
+        }; })(col.key);
+        th.addEventListener('click', sortHandler);
+        th.addEventListener('keydown', function(e) {
+          if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); sortHandler(); }
+        });
+        if (_sortColumn === col.key) {
+          th.textContent += _sortDir === 1 ? ' \u25B2' : ' \u25BC';
+        }
+      }
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    var bonds = _compareBonds.map(function(id) { return findBondById(id); }).filter(Boolean);
+
+    // Sort
+    bonds.sort(function(a, b) {
+      var va, vb;
+      if (_sortColumn === 'id') {
+        va = bondLabel(a);
+        vb = bondLabel(b);
+        return va < vb ? -_sortDir : va > vb ? _sortDir : 0;
+      }
+      va = a[_sortColumn];
+      vb = b[_sortColumn];
+      return (va - vb) * _sortDir;
+    });
+
+    bonds.forEach(function(bond) {
+      var tr = document.createElement('tr');
+      var vals = [
+        bondLabel(bond),
+        String(bond.order),
+        String(bond.length),
+        String(bond.energy),
+        bond.enDiff.toFixed(1),
+        polarityLabel(bond.enDiff)
+      ];
+      vals.forEach(function(v) {
+        var td = document.createElement('td');
+        td.textContent = v;
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+
+    table.appendChild(tbody);
+    wrap.appendChild(table);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // KEYBOARD SHORTCUTS
+  // ═══════════════════════════════════════════════════
+  document.addEventListener('keydown', function(evt) {
+    if (evt.target.tagName === 'INPUT' || evt.target.tagName === 'SELECT' || evt.target.tagName === 'TEXTAREA') return;
+    var key = evt.key.toLowerCase();
+    switch (key) {
+      case 'h':
+        var hlInput = document.querySelector('#headerToggles .sim-toggle input');
+        if (hlInput) { hlInput.checked = !hlInput.checked; hlInput.dispatchEvent(new Event('change')); }
+        break;
+      case 't':
+        var tInputs = document.querySelectorAll('#headerToggles .sim-toggle input');
+        if (tInputs.length > 1) { tInputs[1].checked = !tInputs[1].checked; tInputs[1].dispatchEvent(new Event('change')); }
+        break;
+      case '1': switchTab('explorer'); break;
+      case '2': switchTab('orbitals'); break;
+      case '3': switchTab('compare'); break;
+      case 'r':
+        _atom1 = 'C'; _atom2 = 'C'; _bondOrder = 1;
+        _selectedSeries = TREND_SERIES[0];
+        _trendProperty = 'energy';
+        _selectedMolecule = MOLECULES[0];
+        _showSigma = true; _showPi = true; _showLonePairs = true;
+        _compareBonds = [];
+        _sortColumn = 'id'; _sortDir = 1;
+        buildSidebar();
+        refreshCurrentTab();
+        break;
+      case '/':
+        evt.preventDefault();
+        document.getElementById('paletteSearch').focus();
+        break;
+      case 'arrowdown':
+        evt.preventDefault();
+        navigatePalette(1);
+        break;
+      case 'arrowup':
+        evt.preventDefault();
+        navigatePalette(-1);
+        break;
+      case 'e':
+        exportCSV();
+        break;
+    }
+  });
+
+  function navigatePalette(dir) {
+    var items = document.querySelectorAll('.palette-item');
+    if (items.length === 0) return;
+    var activeIdx = -1;
+    items.forEach(function(item, i) {
+      if (item.classList.contains('active')) activeIdx = i;
+    });
+    activeIdx += dir;
+    if (activeIdx < 0) activeIdx = items.length - 1;
+    if (activeIdx >= items.length) activeIdx = 0;
+    items[activeIdx].click();
+    items[activeIdx].scrollIntoView({ block: 'nearest' });
+  }
+
+  // ═══════════════════════════════════════════════════
+  // SEARCH
+  // ═══════════════════════════════════════════════════
+  document.getElementById('paletteSearch').addEventListener('input', function() {
+    buildSidebar();
+  });
+
+  // ═══════════════════════════════════════════════════
+  // DATA EXPORT
+  // ═══════════════════════════════════════════════════
+  function exportCSV() {
+    var rows = [['Tab', 'Context', 'Property', 'Value', 'Timestamp'].map(q).join(',')];
+    var ts = new Date().toISOString();
+
+    if (_activeTab === 'explorer') {
+      var bond = findBond(_atom1, _atom2, _bondOrder);
+      if (bond) {
+        rows.push([q('Bond Explorer'), q(bondLabel(bond)), q('Bond Order'), q(String(bond.order)), q(ts)].join(','));
+        rows.push([q('Bond Explorer'), q(bondLabel(bond)), q('Bond Length'), q(bond.length + ' pm'), q(ts)].join(','));
+        rows.push([q('Bond Explorer'), q(bondLabel(bond)), q('Bond Energy'), q(bond.energy + ' kJ/mol'), q(ts)].join(','));
+        rows.push([q('Bond Explorer'), q(bondLabel(bond)), q('EN Difference'), q(String(bond.enDiff)), q(ts)].join(','));
+        rows.push([q('Bond Explorer'), q(bondLabel(bond)), q('Polarity'), q(polarityLabel(bond.enDiff)), q(ts)].join(','));
+      }
+    }
+
+    if (_activeTab === 'orbitals') {
+      var mol = _selectedMolecule;
+      rows.push([q('Orbital Overlap'), q(mol.formula), q('Hybridization'), q(mol.hybridization), q(ts)].join(','));
+      rows.push([q('Orbital Overlap'), q(mol.formula), q('Geometry'), q(mol.geometry), q(ts)].join(','));
+      rows.push([q('Orbital Overlap'), q(mol.formula), q('Bond Angle'), q(mol.bondAngle), q(ts)].join(','));
+      rows.push([q('Orbital Overlap'), q(mol.formula), q('Sigma Bonds'), q(String(mol.sigma)), q(ts)].join(','));
+      rows.push([q('Orbital Overlap'), q(mol.formula), q('Pi Bonds'), q(String(mol.pi)), q(ts)].join(','));
+      rows.push([q('Orbital Overlap'), q(mol.formula), q('Lone Pairs'), q(String(mol.lonePairs)), q(ts)].join(','));
+    }
+
+    if (_activeTab === 'compare') {
+      _compareBonds.forEach(function(id) {
+        var bond = findBondById(id);
+        if (!bond) return;
+        rows.push([q('Bond Comparison'), q(bondLabel(bond)), q('Order'), q(String(bond.order)), q(ts)].join(','));
+        rows.push([q('Bond Comparison'), q(bondLabel(bond)), q('Length'), q(bond.length + ' pm'), q(ts)].join(','));
+        rows.push([q('Bond Comparison'), q(bondLabel(bond)), q('Energy'), q(bond.energy + ' kJ/mol'), q(ts)].join(','));
+        rows.push([q('Bond Comparison'), q(bondLabel(bond)), q('EN Diff'), q(String(bond.enDiff)), q(ts)].join(','));
+        rows.push([q('Bond Comparison'), q(bondLabel(bond)), q('Polarity'), q(polarityLabel(bond.enDiff)), q(ts)].join(','));
+      });
+    }
+
+    var csv = rows.join('\n');
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'CovalentBonding_export.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // RESIZE HANDLER
+  // ═══════════════════════════════════════════════════
+  var _resizeTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(function() {
+      refreshCurrentTab();
+    }, 200);
+  });
+
+  // ═══════════════════════════════════════════════════
+  // INIT
+  // ═══════════════════════════════════════════════════
+  buildToggles();
+  fixBondOrder();
+  buildSidebar();
+  renderExplorerTab();
+
+})();
+</script>
+</body>
+</html>
