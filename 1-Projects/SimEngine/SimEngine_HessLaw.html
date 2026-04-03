@@ -1,0 +1,1826 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Enthalpy Cycles &amp; Calculations — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --red-bg: #FEF2F2;
+    --green-bg: #F0FDF4;
+    --sim-canvas-bg: #FAFBFC;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
+  }
+  .header-badge.hl { background: var(--hl-badge-bg); display: none; }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* ── Toggle ── */
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s; --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--toggle-on); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+  /* ── Tab Bar ── */
+  .tab-bar {
+    background: white; border-bottom: 2px solid var(--border);
+    display: flex; gap: 0; max-width: 1200px; margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .tab-btn {
+    padding: 0.75rem 1.5rem; font-size: 0.85rem; font-weight: 600;
+    color: var(--text-muted); background: none; border: none;
+    border-bottom: 3px solid transparent; cursor: pointer;
+    transition: all 0.2s; font-family: inherit;
+    margin-bottom: -2px;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--teal-bg); }
+  .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .tab-btn.hl-tab { display: none; }
+  body.hl-active .tab-btn.hl-tab { display: block; }
+  .tab-btn .tab-num {
+    display: inline-block; width: 20px; height: 20px; line-height: 20px;
+    text-align: center; border-radius: 4px; font-size: 0.65rem; font-weight: 700;
+    background: var(--border); color: var(--text-muted); margin-right: 0.4rem;
+  }
+  .tab-btn.active .tab-num { background: var(--teal); color: white; }
+
+  /* ── Layout ── */
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sim-top-row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .sim-card {
+    background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy); color: white; padding: 0.6rem 1rem;
+    font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  /* ── Palette ── */
+  .palette-panel { max-height: 600px; display: flex; flex-direction: column; position: sticky; top: 1rem; align-self: start; }
+  .palette-panel .sim-card-body { padding: 0.5rem; overflow-y: auto; flex: 1; }
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+  .palette-category {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); padding: 0.4rem 0.3rem 0.2rem; margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block; width: 100%; text-align: left; padding: 0.3rem 0.5rem; margin: 0.15rem 0; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .palette-item:hover { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .palette-item.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+  .palette-item.hl-rxn { display: none; }
+  body.hl-active .palette-item.hl-rxn { display: block; }
+  .palette-category.hl-cat { display: none; }
+  body.hl-active .palette-category.hl-cat { display: block; }
+  .preset-section { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); display: none; }
+  .preset-section select {
+    width: 100%; padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.75rem; font-family: inherit; cursor: pointer;
+  }
+
+  /* ── Main Panel ── */
+  .main-panel { display: flex; flex-direction: column; gap: 1rem; align-self: start; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Canvas ── */
+  .sim-canvas { display: block; width: 100%; background: var(--sim-canvas-bg); border-radius: 4px; }
+
+  /* ── Hess's Law Tab ── */
+  .target-rxn {
+    padding: 0.75rem 1rem; background: var(--blue-bg); border-radius: 8px; border: 1px solid #BFDBFE;
+    margin-bottom: 1rem;
+  }
+  .target-rxn-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--blue); margin-bottom: 0.25rem; }
+  .target-rxn-eq { font-size: 1rem; font-weight: 600; font-family: 'Fira Code', monospace; }
+
+  .given-rxn {
+    padding: 0.6rem 0.75rem; background: white; border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 0.6rem; transition: border-color 0.2s;
+  }
+  .given-rxn.modified { border-color: var(--teal); background: var(--teal-bg); }
+  .given-rxn-eq { font-size: 0.85rem; font-family: 'Fira Code', monospace; margin-bottom: 0.4rem; word-break: break-all; }
+  .given-rxn-dh { font-size: 0.8rem; font-family: 'Fira Code', monospace; font-weight: 600; }
+  .given-rxn-dh.neg { color: var(--red); }
+  .given-rxn-dh.pos { color: var(--blue); }
+  .given-rxn-controls { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.4rem; flex-wrap: wrap; }
+  .ctrl-btn {
+    padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.72rem; font-weight: 600;
+    cursor: pointer; border: 1px solid var(--border); background: white; color: var(--text);
+    font-family: inherit; transition: all 0.15s;
+  }
+  .ctrl-btn:hover { background: var(--teal-bg); border-color: var(--teal); }
+  .ctrl-btn.active { background: var(--teal); color: white; border-color: var(--teal); }
+  .ctrl-sep { width: 1px; height: 18px; background: var(--border); }
+  .ctrl-label { font-size: 0.65rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+
+  .sum-bar {
+    padding: 0.75rem 1rem; border-radius: 8px; font-family: 'Fira Code', monospace;
+    font-size: 0.9rem; font-weight: 700; text-align: center; margin-top: 0.5rem;
+    border: 2px solid var(--border); background: white; transition: all 0.3s;
+  }
+  .sum-bar.success { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .sum-bar.error { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+
+  .check-btn {
+    display: block; width: 100%; padding: 0.6rem; margin-top: 0.75rem;
+    background: var(--teal); color: white; border: none; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    transition: background 0.2s;
+  }
+  .check-btn:hover { background: #0B7C73; }
+  .check-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+  .feedback-msg {
+    font-size: 0.78rem; margin-top: 0.5rem; padding: 0.5rem 0.75rem;
+    border-radius: 6px; display: none;
+  }
+  .feedback-msg.show { display: block; }
+  .feedback-msg.success { background: var(--green-bg); color: var(--green); }
+  .feedback-msg.hint { background: #FFFBEB; color: var(--amber); }
+
+  /* ── Bond Enthalpy Tab ── */
+  .bond-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .bond-col { padding: 0.75rem; border-radius: 8px; }
+  .bond-col.broken { background: var(--red-bg); border: 1px solid #FECACA; }
+  .bond-col.formed { background: var(--green-bg); border: 1px solid #BBF7D0; }
+  .bond-col-title { font-size: 0.78rem; font-weight: 700; text-transform: uppercase; margin-bottom: 0.5rem; }
+  .bond-col.broken .bond-col-title { color: var(--red); }
+  .bond-col.formed .bond-col-title { color: var(--green); }
+  .bond-row { display: flex; justify-content: space-between; padding: 0.2rem 0; font-size: 0.78rem; font-family: 'Fira Code', monospace; }
+  .bond-row-label { font-weight: 500; }
+  .bond-row-value { font-weight: 600; }
+  .bond-total {
+    margin-top: 0.5rem; padding-top: 0.5rem; border-top: 2px solid;
+    font-size: 0.85rem; font-weight: 700; font-family: 'Fira Code', monospace;
+    display: flex; justify-content: space-between;
+  }
+  .bond-col.broken .bond-total { border-color: var(--red); color: var(--red); }
+  .bond-col.formed .bond-total { border-color: var(--green); color: var(--green); }
+  .bond-result {
+    margin-top: 1rem; padding: 0.75rem 1rem; border-radius: 8px;
+    font-family: 'Fira Code', monospace; font-size: 0.9rem; font-weight: 700;
+    text-align: center; background: var(--teal-bg); border: 2px solid var(--teal); color: var(--teal);
+  }
+  .bond-comparison {
+    margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted); font-style: italic; text-align: center;
+  }
+  .bond-eq-display {
+    padding: 0.6rem 1rem; background: var(--blue-bg); border-radius: 8px; border: 1px solid #BFDBFE;
+    margin-bottom: 1rem; font-family: 'Fira Code', monospace; font-size: 0.9rem; font-weight: 600;
+  }
+
+  /* ── Born-Haber Tab ── */
+  .bh-info {
+    padding: 0.6rem 1rem; background: var(--blue-bg); border-radius: 8px;
+    border: 1px solid #BFDBFE; margin-bottom: 1rem;
+  }
+  .bh-info-label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--purple); margin-bottom: 0.15rem; }
+  .bh-info-compound { font-size: 1rem; font-weight: 600; font-family: 'Fira Code', monospace; }
+  .bh-info-target { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.15rem; }
+
+  .bh-step-builder {
+    padding: 0.75rem; background: white; border: 1px solid var(--border); border-radius: 8px;
+    margin-bottom: 0.75rem;
+  }
+  .bh-step-row { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+  .bh-step-select {
+    flex: 1; min-width: 200px; padding: 0.4rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit;
+  }
+  .bh-step-value {
+    width: 100px; padding: 0.4rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: 'Fira Code', monospace; text-align: right;
+  }
+  .bh-step-unit { font-size: 0.75rem; color: var(--text-muted); }
+  .bh-add-btn {
+    padding: 0.4rem 1rem; background: var(--teal); color: white; border: none;
+    border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: background 0.2s;
+  }
+  .bh-add-btn:hover { background: #0B7C73; }
+  .bh-add-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+  .bh-steps-list { margin-bottom: 0.75rem; }
+  .bh-step-item {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0.4rem 0.6rem; margin: 0.2rem 0; border-radius: 6px;
+    font-size: 0.78rem; border: 1px solid var(--border); background: white;
+  }
+  .bh-step-item.endo { border-left: 3px solid var(--red); }
+  .bh-step-item.exo { border-left: 3px solid var(--green); }
+  .bh-step-eq { font-family: 'Fira Code', monospace; font-size: 0.72rem; }
+  .bh-step-dh { font-family: 'Fira Code', monospace; font-weight: 600; font-size: 0.78rem; }
+  .bh-step-dh.neg { color: var(--green); }
+  .bh-step-dh.pos { color: var(--red); }
+  .bh-step-remove {
+    background: none; border: none; color: var(--text-muted); cursor: pointer;
+    font-size: 0.8rem; padding: 0.2rem 0.4rem; border-radius: 4px;
+  }
+  .bh-step-remove:hover { color: var(--red); background: var(--red-bg); }
+
+  .bh-result {
+    padding: 0.75rem 1rem; border-radius: 8px; font-family: 'Fira Code', monospace;
+    font-size: 0.9rem; font-weight: 700; text-align: center; display: none;
+  }
+  .bh-result.show { display: block; }
+  .bh-result.success { background: var(--green-bg); border: 2px solid var(--green); color: var(--green); }
+
+  /* ── Teacher Mode ── */
+  .teacher-panel { display: none; }
+  body.teacher-active .teacher-panel { display: block; }
+  body.teacher-active .preset-section { display: block; }
+  .answer-reveal {
+    margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: #FFFBEB;
+    border: 1px solid #FCD34D; border-radius: 6px; font-size: 0.78rem;
+    font-family: 'Fira Code', monospace; display: none;
+  }
+  body.teacher-active .answer-reveal { display: block; }
+
+  /* ── HL Panel ── */
+  .hl-panel { display: none; }
+  body.hl-active .hl-panel { display: block; }
+
+  /* ── Keyboard Hint ── */
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .palette-panel { max-height: 200px; position: static; }
+    .bond-columns { grid-template-columns: 1fr; }
+    .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>Enthalpy Cycles &amp; Calculations</h1>
+    <span class="subtitle">IB Chemistry — R1.1 Enthalpy Changes &amp; R1.2 Energy Cycles</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">R1.1</span>
+    <span class="header-badge">R1.2</span>
+    <span class="header-badge hl">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="hess"><span class="tab-num">1</span>Hess's Law</button>
+  <button class="tab-btn" data-tab="bond"><span class="tab-num">2</span>Bond Enthalpies</button>
+  <button class="tab-btn hl-tab" data-tab="bornhaber"><span class="tab-num">3</span>Born-Haber Cycles</button>
+</div>
+
+<!-- Main Content -->
+<div class="sim-container">
+  <div class="sim-top-row">
+
+    <!-- Left: Palette -->
+    <div class="palette-panel sim-card">
+      <div class="sim-card-header" id="paletteHeader">Problems</div>
+      <div class="sim-card-body">
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search problems">
+        <div id="paletteList"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Main Panel -->
+    <div class="main-panel">
+
+      <!-- Tab 1: Hess's Law -->
+      <div class="tab-content active" id="tab-hess">
+        <div class="sim-card">
+          <div class="sim-card-header">Hess's Law Solver</div>
+          <div class="sim-card-body" id="hessBody">
+            <div id="hessPlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+              Select a problem from the palette to begin.
+            </div>
+          </div>
+        </div>
+        <div class="sim-card" style="margin-top:1rem;">
+          <div class="sim-card-header">Enthalpy Cycle Diagram</div>
+          <div class="sim-card-body" style="padding:0.5rem;">
+            <canvas id="hessCanvas" class="sim-canvas" height="300" role="img" aria-label="Enthalpy cycle diagram"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Bond Enthalpies -->
+      <div class="tab-content" id="tab-bond">
+        <div class="sim-card">
+          <div class="sim-card-header">Bond Enthalpy Calculator</div>
+          <div class="sim-card-body" id="bondBody">
+            <div id="bondPlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+              Select a reaction from the palette to begin.
+            </div>
+          </div>
+        </div>
+        <div class="sim-card" style="margin-top:1rem;">
+          <div class="sim-card-header">Bond Energy Diagram</div>
+          <div class="sim-card-body" style="padding:0.5rem;">
+            <canvas id="bondCanvas" class="sim-canvas" height="280" role="img" aria-label="Bond energy diagram"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Born-Haber Cycles -->
+      <div class="tab-content" id="tab-bornhaber">
+        <div class="sim-card">
+          <div class="sim-card-header">Born-Haber Cycle Builder</div>
+          <div class="sim-card-body" id="bhBody">
+            <div id="bhPlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+              Select an ionic compound from the palette to begin.
+            </div>
+          </div>
+        </div>
+        <div class="sim-card" style="margin-top:1rem;">
+          <div class="sim-card-header">Energy Ladder Diagram</div>
+          <div class="sim-card-body" style="padding:0.5rem;">
+            <canvas id="bhCanvas" class="sim-canvas" height="400" role="img" aria-label="Born-Haber energy ladder diagram"></canvas>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="keyboard-hint">
+    <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp;
+    <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Tabs &nbsp;
+    <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp;
+    <kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate
+  </div>
+</div>
+
+<script>
+// roundedRect polyfill
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    var tl = r[0]||0, tr = r[1]||0, br = r[2]||0, bl = r[3]||0;
+    this.beginPath();
+    this.moveTo(x+tl, y);
+    this.lineTo(x+w-tr, y);
+    this.quadraticCurveTo(x+w, y, x+w, y+tr);
+    this.lineTo(x+w, y+h-br);
+    this.quadraticCurveTo(x+w, y+h, x+w-br, y+h);
+    this.lineTo(x+bl, y+h);
+    this.quadraticCurveTo(x, y+h, x, y+h-bl);
+    this.lineTo(x, y+tl);
+    this.quadraticCurveTo(x, y, x+tl, y);
+    this.closePath();
+    return this;
+  };
+}
+
+(function() {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════
+  // Bond Energies (IB Data Booklet Section 11)
+  // ═══════════════════════════════════════════════════
+  var BOND_ENERGIES = {
+    'C\u2013H': 414, 'O\u2013H': 463, 'C\u2013C': 346, 'O=O': 498,
+    'C=C': 614, 'C\u2261C': 839, 'H\u2013H': 436, 'C\u2013O': 358,
+    'C=O': 804, 'N\u2013H': 391, 'N\u2261N': 945, 'N\u2013N': 158,
+    'N=N': 418, 'C\u2013Cl': 324, 'Cl\u2013Cl': 242, 'C\u2013Br': 285,
+    'Br\u2013Br': 193, 'H\u2013Cl': 432, 'H\u2013Br': 366, 'C\u2013N': 286,
+    'C=N': 615, 'N\u2013O': 201, 'S\u2013H': 363, 'F\u2013F': 158,
+    'H\u2013F': 568, 'C\u2013F': 485, 'O\u2013O': 142, 'C\u2013S': 272,
+    'I\u2013I': 151, 'H\u2013I': 297, 'C\u2013I': 213
+  };
+
+  // ═══════════════════════════════════════════════════
+  // Hess's Law Problems
+  // ═══════════════════════════════════════════════════
+  var HESS_CATEGORIES = [
+    { key: 'formation', label: 'Formation' },
+    { key: 'combustion', label: 'Combustion' },
+    { key: 'mixed', label: 'Mixed' },
+    { key: 'hl', label: 'HL Problems' }
+  ];
+
+  var HESS_PROBLEMS = [
+    {
+      id: 'h1_ch4_form', label: 'Formation of CH\u2084',
+      category: 'formation', hlOnly: false,
+      target: { eq: 'C(s) + 2H\u2082(g) \u2192 CH\u2084(g)', dh: -76 },
+      given: [
+        { eq: 'C(s) + O\u2082(g) \u2192 CO\u2082(g)', dh: -394 },
+        { eq: 'H\u2082(g) + \u00bdO\u2082(g) \u2192 H\u2082O(l)', dh: -286 },
+        { eq: 'CH\u2084(g) + 2O\u2082(g) \u2192 CO\u2082(g) + 2H\u2082O(l)', dh: -890 }
+      ]
+    },
+    {
+      id: 'h2_c2h6_form', label: 'Formation of C\u2082H\u2086',
+      category: 'formation', hlOnly: false,
+      target: { eq: '2C(s) + 3H\u2082(g) \u2192 C\u2082H\u2086(g)', dh: -85 },
+      given: [
+        { eq: 'C(s) + O\u2082(g) \u2192 CO\u2082(g)', dh: -394 },
+        { eq: 'H\u2082(g) + \u00bdO\u2082(g) \u2192 H\u2082O(l)', dh: -286 },
+        { eq: 'C\u2082H\u2086(g) + 3\u00bdO\u2082(g) \u2192 2CO\u2082(g) + 3H\u2082O(l)', dh: -1561 }
+      ]
+    },
+    {
+      id: 'h3_ch3oh_form', label: 'Formation of CH\u2083OH',
+      category: 'formation', hlOnly: false,
+      target: { eq: 'C(s) + 2H\u2082(g) + \u00bdO\u2082(g) \u2192 CH\u2083OH(l)', dh: -240 },
+      given: [
+        { eq: 'C(s) + O\u2082(g) \u2192 CO\u2082(g)', dh: -394 },
+        { eq: 'H\u2082(g) + \u00bdO\u2082(g) \u2192 H\u2082O(l)', dh: -286 },
+        { eq: 'CH\u2083OH(l) + 1\u00bdO\u2082(g) \u2192 CO\u2082(g) + 2H\u2082O(l)', dh: -726 }
+      ]
+    },
+    {
+      id: 'h4_co_comb', label: '\u0394H combustion of CO',
+      category: 'combustion', hlOnly: false,
+      target: { eq: 'CO(g) + \u00bdO\u2082(g) \u2192 CO\u2082(g)', dh: -283 },
+      given: [
+        { eq: 'C(s) + O\u2082(g) \u2192 CO\u2082(g)', dh: -394 },
+        { eq: 'C(s) + \u00bdO\u2082(g) \u2192 CO(g)', dh: -111 }
+      ]
+    },
+    {
+      id: 'h5_c2h4_comb', label: '\u0394H combustion of C\u2082H\u2084',
+      category: 'combustion', hlOnly: false,
+      target: { eq: 'C\u2082H\u2084(g) + 3O\u2082(g) \u2192 2CO\u2082(g) + 2H\u2082O(l)', dh: -1412 },
+      given: [
+        { eq: 'C(s) + O\u2082(g) \u2192 CO\u2082(g)', dh: -394 },
+        { eq: 'H\u2082(g) + \u00bdO\u2082(g) \u2192 H\u2082O(l)', dh: -286 },
+        { eq: '2C(s) + 2H\u2082(g) \u2192 C\u2082H\u2084(g)', dh: 52 }
+      ]
+    },
+    {
+      id: 'h6_neutralization', label: 'Neutralization of NaOH',
+      category: 'mixed', hlOnly: false,
+      target: { eq: 'NaOH(aq) + HCl(aq) \u2192 NaCl(aq) + H\u2082O(l)', dh: -57 },
+      given: [
+        { eq: 'NaOH(s) \u2192 NaOH(aq)', dh: -44 },
+        { eq: 'NaOH(s) + HCl(aq) \u2192 NaCl(aq) + H\u2082O(l)', dh: -101 }
+      ]
+    },
+    {
+      id: 'h7_no2', label: 'Formation of NO\u2082',
+      category: 'mixed', hlOnly: false,
+      target: { eq: 'N\u2082(g) + 2O\u2082(g) \u2192 2NO\u2082(g)', dh: 68 },
+      given: [
+        { eq: 'N\u2082(g) + O\u2082(g) \u2192 2NO(g)', dh: 181 },
+        { eq: '2NO(g) + O\u2082(g) \u2192 2NO\u2082(g)', dh: -113 }
+      ]
+    },
+    {
+      id: 'h8_c_diamond', label: 'C(diamond) \u2192 C(graphite)',
+      category: 'mixed', hlOnly: false,
+      target: { eq: 'C(diamond) \u2192 C(graphite)', dh: -2 },
+      given: [
+        { eq: 'C(graphite) + O\u2082(g) \u2192 CO\u2082(g)', dh: -394 },
+        { eq: 'C(diamond) + O\u2082(g) \u2192 CO\u2082(g)', dh: -396 }
+      ]
+    },
+    {
+      id: 'h9_hl_so3', label: 'Formation of SO\u2083',
+      category: 'hl', hlOnly: true,
+      target: { eq: 'SO\u2082(g) + \u00bdO\u2082(g) \u2192 SO\u2083(g)', dh: -99 },
+      given: [
+        { eq: 'S(s) + O\u2082(g) \u2192 SO\u2082(g)', dh: -297 },
+        { eq: 'S(s) + 1\u00bdO\u2082(g) \u2192 SO\u2083(g)', dh: -396 }
+      ]
+    },
+    {
+      id: 'h10_hl_hydration', label: 'Hydration of CuSO\u2084',
+      category: 'hl', hlOnly: true,
+      target: { eq: 'CuSO\u2084(s) + 5H\u2082O(l) \u2192 CuSO\u2084\u00b75H\u2082O(s)', dh: -78 },
+      given: [
+        { eq: 'CuSO\u2084(s) \u2192 CuSO\u2084(aq)', dh: -67 },
+        { eq: 'CuSO\u2084\u00b75H\u2082O(s) \u2192 CuSO\u2084(aq)', dh: 11 }
+      ]
+    },
+    {
+      id: 'h11_hl_nh3', label: 'Formation of NH\u2083 (half)',
+      category: 'hl', hlOnly: true,
+      target: { eq: '\u00bdN\u2082(g) + 1\u00bdH\u2082(g) \u2192 NH\u2083(g)', dh: -46 },
+      given: [
+        { eq: 'N\u2082(g) + 3H\u2082(g) \u2192 2NH\u2083(g)', dh: -92 }
+      ]
+    },
+    {
+      id: 'h12_hl_benzene', label: '\u0394H hydrogenation of benzene',
+      category: 'hl', hlOnly: true,
+      target: { eq: 'C\u2086H\u2086(l) + 3H\u2082(g) \u2192 C\u2086H\u2081\u2082(l)', dh: -206 },
+      given: [
+        { eq: 'C\u2086H\u2086(l) + 7\u00bdO\u2082(g) \u2192 6CO\u2082(g) + 3H\u2082O(l)', dh: -3268 },
+        { eq: 'C\u2086H\u2081\u2082(l) + 9O\u2082(g) \u2192 6CO\u2082(g) + 6H\u2082O(l)', dh: -3920 },
+        { eq: 'H\u2082(g) + \u00bdO\u2082(g) \u2192 H\u2082O(l)', dh: -286 }
+      ]
+    }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // Bond Enthalpy Reactions
+  // ═══════════════════════════════════════════════════
+  var BOND_CATEGORIES = [
+    { key: 'combustion', label: 'Combustion' },
+    { key: 'halogenation', label: 'Halogenation' },
+    { key: 'hydrogenation', label: 'Hydrogenation' },
+    { key: 'other', label: 'Other' }
+  ];
+
+  var BOND_REACTIONS = [
+    {
+      id: 'b1_ch4', label: 'CH\u2084 combustion',
+      equation: 'CH\u2084(g) + 2O\u2082(g) \u2192 CO\u2082(g) + 2H\u2082O(g)',
+      category: 'combustion', hlOnly: false, litDH: -890,
+      broken: [{ bond: 'C\u2013H', count: 4, energy: 414 }, { bond: 'O=O', count: 2, energy: 498 }],
+      formed: [{ bond: 'C=O', count: 2, energy: 804 }, { bond: 'O\u2013H', count: 4, energy: 463 }]
+    },
+    {
+      id: 'b2_c2h6', label: 'C\u2082H\u2086 combustion',
+      equation: 'C\u2082H\u2086(g) + 3\u00bdO\u2082(g) \u2192 2CO\u2082(g) + 3H\u2082O(g)',
+      category: 'combustion', hlOnly: false, litDH: -1561,
+      broken: [{ bond: 'C\u2013H', count: 6, energy: 414 }, { bond: 'C\u2013C', count: 1, energy: 346 }, { bond: 'O=O', count: 3.5, energy: 498 }],
+      formed: [{ bond: 'C=O', count: 4, energy: 804 }, { bond: 'O\u2013H', count: 6, energy: 463 }]
+    },
+    {
+      id: 'b3_c3h8', label: 'C\u2083H\u2088 combustion',
+      equation: 'C\u2083H\u2088(g) + 5O\u2082(g) \u2192 3CO\u2082(g) + 4H\u2082O(g)',
+      category: 'combustion', hlOnly: false, litDH: -2219,
+      broken: [{ bond: 'C\u2013H', count: 8, energy: 414 }, { bond: 'C\u2013C', count: 2, energy: 346 }, { bond: 'O=O', count: 5, energy: 498 }],
+      formed: [{ bond: 'C=O', count: 6, energy: 804 }, { bond: 'O\u2013H', count: 8, energy: 463 }]
+    },
+    {
+      id: 'b4_ch3oh', label: 'CH\u2083OH combustion',
+      equation: 'CH\u2083OH(g) + 1\u00bdO\u2082(g) \u2192 CO\u2082(g) + 2H\u2082O(g)',
+      category: 'combustion', hlOnly: false, litDH: -726,
+      broken: [{ bond: 'C\u2013H', count: 3, energy: 414 }, { bond: 'C\u2013O', count: 1, energy: 358 }, { bond: 'O\u2013H', count: 1, energy: 463 }, { bond: 'O=O', count: 1.5, energy: 498 }],
+      formed: [{ bond: 'C=O', count: 2, energy: 804 }, { bond: 'O\u2013H', count: 4, energy: 463 }]
+    },
+    {
+      id: 'b5_h2', label: 'H\u2082 combustion',
+      equation: 'H\u2082(g) + \u00bdO\u2082(g) \u2192 H\u2082O(g)',
+      category: 'combustion', hlOnly: false, litDH: -242,
+      broken: [{ bond: 'H\u2013H', count: 1, energy: 436 }, { bond: 'O=O', count: 0.5, energy: 498 }],
+      formed: [{ bond: 'O\u2013H', count: 2, energy: 463 }]
+    },
+    {
+      id: 'b6_ch4cl2', label: 'CH\u2084 + Cl\u2082',
+      equation: 'CH\u2084(g) + Cl\u2082(g) \u2192 CH\u2083Cl(g) + HCl(g)',
+      category: 'halogenation', hlOnly: false, litDH: -100,
+      broken: [{ bond: 'C\u2013H', count: 1, energy: 414 }, { bond: 'Cl\u2013Cl', count: 1, energy: 242 }],
+      formed: [{ bond: 'C\u2013Cl', count: 1, energy: 324 }, { bond: 'H\u2013Cl', count: 1, energy: 432 }]
+    },
+    {
+      id: 'b7_c2h4_h2', label: 'C\u2082H\u2084 + H\u2082',
+      equation: 'C\u2082H\u2084(g) + H\u2082(g) \u2192 C\u2082H\u2086(g)',
+      category: 'hydrogenation', hlOnly: false, litDH: -137,
+      broken: [{ bond: 'C=C', count: 1, energy: 614 }, { bond: 'H\u2013H', count: 1, energy: 436 }],
+      formed: [{ bond: 'C\u2013C', count: 1, energy: 346 }, { bond: 'C\u2013H', count: 2, energy: 414 }]
+    },
+    {
+      id: 'b8_n2_h2', label: 'N\u2082 + 3H\u2082 (Haber)',
+      equation: 'N\u2082(g) + 3H\u2082(g) \u2192 2NH\u2083(g)',
+      category: 'other', hlOnly: false, litDH: -92,
+      broken: [{ bond: 'N\u2261N', count: 1, energy: 945 }, { bond: 'H\u2013H', count: 3, energy: 436 }],
+      formed: [{ bond: 'N\u2013H', count: 6, energy: 391 }]
+    },
+    {
+      id: 'b9_hbr', label: 'HBr formation',
+      equation: 'H\u2082(g) + Br\u2082(g) \u2192 2HBr(g)',
+      category: 'other', hlOnly: false, litDH: -103,
+      broken: [{ bond: 'H\u2013H', count: 1, energy: 436 }, { bond: 'Br\u2013Br', count: 1, energy: 193 }],
+      formed: [{ bond: 'H\u2013Br', count: 2, energy: 366 }]
+    }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // Born-Haber Data (HL)
+  // ═══════════════════════════════════════════════════
+  var BH_CATEGORIES = [
+    { key: 'group1_halide', label: 'Group 1 Halides' },
+    { key: 'group2', label: 'Group 2 Compounds' }
+  ];
+
+  var BH_COMPOUNDS = [
+    {
+      id: 'bh_nacl', label: 'NaCl', category: 'group1_halide', hlOnly: true,
+      formula: 'NaCl', metal: 'Na', nonmetal: 'Cl', nonmetalMolecule: 'Cl\u2082',
+      steps: {
+        atomMetal: { label: 'Atomization of Na', eq: 'Na(s) \u2192 Na(g)', dh: 108 },
+        atomNonmetal: { label: 'Atomization of Cl', eq: '\u00bdCl\u2082(g) \u2192 Cl(g)', dh: 121 },
+        ie1: { label: 'First ionization of Na', eq: 'Na(g) \u2192 Na\u207a(g) + e\u207b', dh: 496 },
+        ea1: { label: 'Electron affinity of Cl', eq: 'Cl(g) + e\u207b \u2192 Cl\u207b(g)', dh: -349 },
+        formation: { label: 'Formation of NaCl', eq: 'Na(s) + \u00bdCl\u2082(g) \u2192 NaCl(s)', dh: -411 },
+        lattice: { label: 'Lattice enthalpy', eq: 'Na\u207a(g) + Cl\u207b(g) \u2192 NaCl(s)', dh: -787 }
+      }
+    },
+    {
+      id: 'bh_nabr', label: 'NaBr', category: 'group1_halide', hlOnly: true,
+      formula: 'NaBr', metal: 'Na', nonmetal: 'Br', nonmetalMolecule: 'Br\u2082',
+      steps: {
+        atomMetal: { label: 'Atomization of Na', eq: 'Na(s) \u2192 Na(g)', dh: 108 },
+        atomNonmetal: { label: 'Atomization of Br', eq: '\u00bdBr\u2082(l) \u2192 Br(g)', dh: 112 },
+        ie1: { label: 'First ionization of Na', eq: 'Na(g) \u2192 Na\u207a(g) + e\u207b', dh: 496 },
+        ea1: { label: 'Electron affinity of Br', eq: 'Br(g) + e\u207b \u2192 Br\u207b(g)', dh: -325 },
+        formation: { label: 'Formation of NaBr', eq: 'Na(s) + \u00bdBr\u2082(l) \u2192 NaBr(s)', dh: -361 },
+        lattice: { label: 'Lattice enthalpy', eq: 'Na\u207a(g) + Br\u207b(g) \u2192 NaBr(s)', dh: -752 }
+      }
+    },
+    {
+      id: 'bh_kcl', label: 'KCl', category: 'group1_halide', hlOnly: true,
+      formula: 'KCl', metal: 'K', nonmetal: 'Cl', nonmetalMolecule: 'Cl\u2082',
+      steps: {
+        atomMetal: { label: 'Atomization of K', eq: 'K(s) \u2192 K(g)', dh: 89 },
+        atomNonmetal: { label: 'Atomization of Cl', eq: '\u00bdCl\u2082(g) \u2192 Cl(g)', dh: 121 },
+        ie1: { label: 'First ionization of K', eq: 'K(g) \u2192 K\u207a(g) + e\u207b', dh: 419 },
+        ea1: { label: 'Electron affinity of Cl', eq: 'Cl(g) + e\u207b \u2192 Cl\u207b(g)', dh: -349 },
+        formation: { label: 'Formation of KCl', eq: 'K(s) + \u00bdCl\u2082(g) \u2192 KCl(s)', dh: -437 },
+        lattice: { label: 'Lattice enthalpy', eq: 'K\u207a(g) + Cl\u207b(g) \u2192 KCl(s)', dh: -717 }
+      }
+    },
+    {
+      id: 'bh_lif', label: 'LiF', category: 'group1_halide', hlOnly: true,
+      formula: 'LiF', metal: 'Li', nonmetal: 'F', nonmetalMolecule: 'F\u2082',
+      steps: {
+        atomMetal: { label: 'Atomization of Li', eq: 'Li(s) \u2192 Li(g)', dh: 161 },
+        atomNonmetal: { label: 'Atomization of F', eq: '\u00bdF\u2082(g) \u2192 F(g)', dh: 79 },
+        ie1: { label: 'First ionization of Li', eq: 'Li(g) \u2192 Li\u207a(g) + e\u207b', dh: 520 },
+        ea1: { label: 'Electron affinity of F', eq: 'F(g) + e\u207b \u2192 F\u207b(g)', dh: -328 },
+        formation: { label: 'Formation of LiF', eq: 'Li(s) + \u00bdF\u2082(g) \u2192 LiF(s)', dh: -617 },
+        lattice: { label: 'Lattice enthalpy', eq: 'Li\u207a(g) + F\u207b(g) \u2192 LiF(s)', dh: -1049 }
+      }
+    },
+    {
+      id: 'bh_licl', label: 'LiCl', category: 'group1_halide', hlOnly: true,
+      formula: 'LiCl', metal: 'Li', nonmetal: 'Cl', nonmetalMolecule: 'Cl\u2082',
+      steps: {
+        atomMetal: { label: 'Atomization of Li', eq: 'Li(s) \u2192 Li(g)', dh: 161 },
+        atomNonmetal: { label: 'Atomization of Cl', eq: '\u00bdCl\u2082(g) \u2192 Cl(g)', dh: 121 },
+        ie1: { label: 'First ionization of Li', eq: 'Li(g) \u2192 Li\u207a(g) + e\u207b', dh: 520 },
+        ea1: { label: 'Electron affinity of Cl', eq: 'Cl(g) + e\u207b \u2192 Cl\u207b(g)', dh: -349 },
+        formation: { label: 'Formation of LiCl', eq: 'Li(s) + \u00bdCl\u2082(g) \u2192 LiCl(s)', dh: -409 },
+        lattice: { label: 'Lattice enthalpy', eq: 'Li\u207a(g) + Cl\u207b(g) \u2192 LiCl(s)', dh: -862 }
+      }
+    },
+    {
+      id: 'bh_kbr', label: 'KBr', category: 'group1_halide', hlOnly: true,
+      formula: 'KBr', metal: 'K', nonmetal: 'Br', nonmetalMolecule: 'Br\u2082',
+      steps: {
+        atomMetal: { label: 'Atomization of K', eq: 'K(s) \u2192 K(g)', dh: 89 },
+        atomNonmetal: { label: 'Atomization of Br', eq: '\u00bdBr\u2082(l) \u2192 Br(g)', dh: 112 },
+        ie1: { label: 'First ionization of K', eq: 'K(g) \u2192 K\u207a(g) + e\u207b', dh: 419 },
+        ea1: { label: 'Electron affinity of Br', eq: 'Br(g) + e\u207b \u2192 Br\u207b(g)', dh: -325 },
+        formation: { label: 'Formation of KBr', eq: 'K(s) + \u00bdBr\u2082(l) \u2192 KBr(s)', dh: -394 },
+        lattice: { label: 'Lattice enthalpy', eq: 'K\u207a(g) + Br\u207b(g) \u2192 KBr(s)', dh: -689 }
+      }
+    },
+    {
+      id: 'bh_mgo', label: 'MgO', category: 'group2', hlOnly: true,
+      formula: 'MgO', metal: 'Mg', nonmetal: 'O', nonmetalMolecule: 'O\u2082',
+      steps: {
+        atomMetal: { label: 'Atomization of Mg', eq: 'Mg(s) \u2192 Mg(g)', dh: 148 },
+        atomNonmetal: { label: 'Atomization of O', eq: '\u00bdO\u2082(g) \u2192 O(g)', dh: 249 },
+        ie1: { label: 'First ionization of Mg', eq: 'Mg(g) \u2192 Mg\u207a(g) + e\u207b', dh: 738 },
+        ie2: { label: 'Second ionization of Mg', eq: 'Mg\u207a(g) \u2192 Mg\u00b2\u207a(g) + e\u207b', dh: 1451 },
+        ea1: { label: 'First electron affinity of O', eq: 'O(g) + e\u207b \u2192 O\u207b(g)', dh: -141 },
+        ea2: { label: 'Second electron affinity of O', eq: 'O\u207b(g) + e\u207b \u2192 O\u00b2\u207b(g)', dh: 744 },
+        formation: { label: 'Formation of MgO', eq: 'Mg(s) + \u00bdO\u2082(g) \u2192 MgO(s)', dh: -602 },
+        lattice: { label: 'Lattice enthalpy', eq: 'Mg\u00b2\u207a(g) + O\u00b2\u207b(g) \u2192 MgO(s)', dh: -3791 }
+      }
+    },
+    {
+      id: 'bh_cao', label: 'CaO', category: 'group2', hlOnly: true,
+      formula: 'CaO', metal: 'Ca', nonmetal: 'O', nonmetalMolecule: 'O\u2082',
+      steps: {
+        atomMetal: { label: 'Atomization of Ca', eq: 'Ca(s) \u2192 Ca(g)', dh: 178 },
+        atomNonmetal: { label: 'Atomization of O', eq: '\u00bdO\u2082(g) \u2192 O(g)', dh: 249 },
+        ie1: { label: 'First ionization of Ca', eq: 'Ca(g) \u2192 Ca\u207a(g) + e\u207b', dh: 590 },
+        ie2: { label: 'Second ionization of Ca', eq: 'Ca\u207a(g) \u2192 Ca\u00b2\u207a(g) + e\u207b', dh: 1145 },
+        ea1: { label: 'First electron affinity of O', eq: 'O(g) + e\u207b \u2192 O\u207b(g)', dh: -141 },
+        ea2: { label: 'Second electron affinity of O', eq: 'O\u207b(g) + e\u207b \u2192 O\u00b2\u207b(g)', dh: 744 },
+        formation: { label: 'Formation of CaO', eq: 'Ca(s) + \u00bdO\u2082(g) \u2192 CaO(s)', dh: -635 },
+        lattice: { label: 'Lattice enthalpy', eq: 'Ca\u00b2\u207a(g) + O\u00b2\u207b(g) \u2192 CaO(s)', dh: -3401 }
+      }
+    },
+    {
+      id: 'bh_mgcl2', label: 'MgCl\u2082', category: 'group2', hlOnly: true,
+      formula: 'MgCl\u2082', metal: 'Mg', nonmetal: 'Cl', nonmetalMolecule: 'Cl\u2082',
+      steps: {
+        atomMetal: { label: 'Atomization of Mg', eq: 'Mg(s) \u2192 Mg(g)', dh: 148 },
+        atomNonmetal: { label: 'Atomization of Cl', eq: 'Cl\u2082(g) \u2192 2Cl(g)', dh: 242 },
+        ie1: { label: 'First ionization of Mg', eq: 'Mg(g) \u2192 Mg\u207a(g) + e\u207b', dh: 738 },
+        ie2: { label: 'Second ionization of Mg', eq: 'Mg\u207a(g) \u2192 Mg\u00b2\u207a(g) + e\u207b', dh: 1451 },
+        ea1: { label: 'Electron affinity of Cl (\u00d72)', eq: '2Cl(g) + 2e\u207b \u2192 2Cl\u207b(g)', dh: -698 },
+        formation: { label: 'Formation of MgCl\u2082', eq: 'Mg(s) + Cl\u2082(g) \u2192 MgCl\u2082(s)', dh: -641 },
+        lattice: { label: 'Lattice enthalpy', eq: 'Mg\u00b2\u207a(g) + 2Cl\u207b(g) \u2192 MgCl\u2082(s)', dh: -2523 }
+      }
+    },
+    {
+      id: 'bh_bao', label: 'BaO', category: 'group2', hlOnly: true,
+      formula: 'BaO', metal: 'Ba', nonmetal: 'O', nonmetalMolecule: 'O\u2082',
+      steps: {
+        atomMetal: { label: 'Atomization of Ba', eq: 'Ba(s) \u2192 Ba(g)', dh: 180 },
+        atomNonmetal: { label: 'Atomization of O', eq: '\u00bdO\u2082(g) \u2192 O(g)', dh: 249 },
+        ie1: { label: 'First ionization of Ba', eq: 'Ba(g) \u2192 Ba\u207a(g) + e\u207b', dh: 503 },
+        ie2: { label: 'Second ionization of Ba', eq: 'Ba\u207a(g) \u2192 Ba\u00b2\u207a(g) + e\u207b', dh: 965 },
+        ea1: { label: 'First electron affinity of O', eq: 'O(g) + e\u207b \u2192 O\u207b(g)', dh: -141 },
+        ea2: { label: 'Second electron affinity of O', eq: 'O\u207b(g) + e\u207b \u2192 O\u00b2\u207b(g)', dh: 744 },
+        formation: { label: 'Formation of BaO', eq: 'Ba(s) + \u00bdO\u2082(g) \u2192 BaO(s)', dh: -554 },
+        lattice: { label: 'Lattice enthalpy', eq: 'Ba\u00b2\u207a(g) + O\u00b2\u207b(g) \u2192 BaO(s)', dh: -3054 }
+      }
+    }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // Teacher Presets
+  // ═══════════════════════════════════════════════════
+  var PRESETS = {
+    hess: [
+      { name: 'Formation Basics', items: ['h1_ch4_form', 'h2_c2h6_form', 'h3_ch3oh_form'] },
+      { name: 'Combustion', items: ['h4_co_comb', 'h5_c2h4_comb'] },
+      { name: 'Mixed Practice', items: ['h6_neutralization', 'h7_no2', 'h8_c_diamond'] },
+      { name: 'HL Challenge', items: ['h9_hl_so3', 'h10_hl_hydration', 'h12_hl_benzene'] }
+    ],
+    bond: [
+      { name: 'Combustion Series', items: ['b1_ch4', 'b2_c2h6', 'b3_c3h8'] },
+      { name: 'Reaction Types', items: ['b6_ch4cl2', 'b7_c2h4_h2', 'b8_n2_h2'] }
+    ],
+    bornhaber: [
+      { name: 'NaCl vs KCl (size)', items: ['bh_nacl', 'bh_kcl'] },
+      { name: 'LiF vs LiCl (halide)', items: ['bh_lif', 'bh_licl'] },
+      { name: 'MgO vs CaO (Group 2)', items: ['bh_mgo', 'bh_cao'] }
+    ]
+  };
+
+  // ═══════════════════════════════════════════════════
+  // State
+  // ═══════════════════════════════════════════════════
+  var _activeTab = 'hess';
+  var _hlEnabled = false;
+  var _teacherMode = false;
+  var _hlInput = null;
+  var _tInput = null;
+
+  var _hessProblem = null;
+  var _hessManipulations = [];
+
+  var _bondReaction = null;
+
+  var _bhCompound = null;
+  var _bhSteps = [];
+  var _bhSolved = false;
+
+  // ═══════════════════════════════════════════════════
+  // DOM Helpers — safe element creation
+  // ═══════════════════════════════════════════════════
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined) e.textContent = text;
+    return e;
+  }
+
+  function formatDH(val) {
+    var rounded = Math.round(val * 10) / 10;
+    return (rounded >= 0 ? '+' : '') + rounded;
+  }
+
+  function formatCount(n) {
+    if (n === 0.5) return '\u00bd';
+    if (n === 1.5) return '1\u00bd';
+    if (n === 2.5) return '2\u00bd';
+    if (n === 3.5) return '3\u00bd';
+    return String(n);
+  }
+
+  function reverseEquation(eq) {
+    var parts = eq.split(' \u2192 ');
+    return parts.length === 2 ? parts[1] + ' \u2192 ' + parts[0] : eq;
+  }
+
+  function truncate(str, max) {
+    return str.length > max ? str.substring(0, max - 1) + '\u2026' : str;
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Tab Switching
+  // ═══════════════════════════════════════════════════
+  function switchTab(tabId) {
+    _activeTab = tabId;
+    var tabs = document.querySelectorAll('.tab-btn');
+    var contents = document.querySelectorAll('.tab-content');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tabId);
+    }
+    for (var j = 0; j < contents.length; j++) {
+      contents[j].classList.toggle('active', contents[j].id === 'tab-' + tabId);
+    }
+    buildPalette();
+    buildPresetDropdown();
+    var h = document.getElementById('paletteHeader');
+    h.textContent = tabId === 'hess' ? 'Problems' : tabId === 'bond' ? 'Reactions' : 'Compounds';
+    // Redraw active canvas after tab switch (may need resize)
+    setTimeout(function() {
+      if (tabId === 'hess') drawHessCanvas();
+      else if (tabId === 'bond') drawBondCanvas();
+      else drawBHCanvas();
+    }, 50);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Palette
+  // ═══════════════════════════════════════════════════
+  function buildPalette() {
+    var list = document.getElementById('paletteList');
+    list.textContent = '';
+    var categories, items;
+
+    if (_activeTab === 'hess') { categories = HESS_CATEGORIES; items = HESS_PROBLEMS; }
+    else if (_activeTab === 'bond') { categories = BOND_CATEGORIES; items = BOND_REACTIONS; }
+    else { categories = BH_CATEGORIES; items = BH_COMPOUNDS; }
+
+    var activeId = getCurrentId();
+
+    for (var c = 0; c < categories.length; c++) {
+      var cat = categories[c];
+      var catItems = [];
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].category === cat.key) catItems.push(items[i]);
+      }
+      if (!catItems.length) continue;
+
+      var catDiv = el('div', 'palette-category' + (cat.key === 'hl' ? ' hl-cat' : ''), cat.label);
+      list.appendChild(catDiv);
+
+      for (var r = 0; r < catItems.length; r++) {
+        var item = catItems[r];
+        var btn = el('button', 'palette-item' + (item.hlOnly ? ' hl-rxn' : '') + (item.id === activeId ? ' active' : ''), item.label);
+        btn.setAttribute('data-id', item.id);
+        btn.addEventListener('click', (function(id) {
+          return function() { selectItem(id); };
+        })(item.id));
+        list.appendChild(btn);
+      }
+    }
+  }
+
+  function filterPalette(query) {
+    var q = query.toLowerCase();
+    var items = document.querySelectorAll('#paletteList .palette-item');
+    for (var i = 0; i < items.length; i++) {
+      items[i].style.display = (!q || items[i].textContent.toLowerCase().indexOf(q) !== -1) ? '' : 'none';
+    }
+  }
+
+  function selectItem(id) {
+    if (_activeTab === 'hess') selectHessProblem(id);
+    else if (_activeTab === 'bond') selectBondReaction(id);
+    else selectBHCompound(id);
+    var items = document.querySelectorAll('#paletteList .palette-item');
+    for (var i = 0; i < items.length; i++) {
+      items[i].classList.toggle('active', items[i].getAttribute('data-id') === id);
+    }
+  }
+
+  function getCurrentId() {
+    if (_activeTab === 'hess' && _hessProblem) return _hessProblem.id;
+    if (_activeTab === 'bond' && _bondReaction) return _bondReaction.id;
+    if (_activeTab === 'bornhaber' && _bhCompound) return _bhCompound.id;
+    return null;
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Hess's Law Solver
+  // ═══════════════════════════════════════════════════
+  function selectHessProblem(id) {
+    for (var i = 0; i < HESS_PROBLEMS.length; i++) {
+      if (HESS_PROBLEMS[i].id === id) { _hessProblem = HESS_PROBLEMS[i]; break; }
+    }
+    if (!_hessProblem) return;
+    _hessManipulations = [];
+    for (var g = 0; g < _hessProblem.given.length; g++) {
+      _hessManipulations.push({ reverse: false, mult: 1 });
+    }
+    renderHess();
+    drawHessCanvas();
+  }
+
+  function renderHess() {
+    var body = document.getElementById('hessBody');
+    body.textContent = '';
+    if (!_hessProblem) return;
+
+    // Target reaction
+    var targetDiv = el('div', 'target-rxn');
+    targetDiv.appendChild(el('div', 'target-rxn-label', 'Find \u0394H for:'));
+    targetDiv.appendChild(el('div', 'target-rxn-eq', _hessProblem.target.eq));
+    var ansReveal = el('div', 'answer-reveal', '\u0394H = ' + _hessProblem.target.dh + ' kJ mol\u207b\u00b9');
+    targetDiv.appendChild(ansReveal);
+    body.appendChild(targetDiv);
+
+    // Given reactions
+    for (var g = 0; g < _hessProblem.given.length; g++) {
+      var given = _hessProblem.given[g];
+      var manip = _hessManipulations[g];
+      var eq = manip.reverse ? reverseEquation(given.eq) : given.eq;
+      var dh = given.dh * manip.mult * (manip.reverse ? -1 : 1);
+      var modified = manip.reverse || manip.mult !== 1;
+
+      var rxnDiv = el('div', 'given-rxn' + (modified ? ' modified' : ''));
+
+      // Equation display
+      var eqText = eq;
+      if (manip.mult !== 1) eqText += '  [\u00d7' + (manip.mult === 0.5 ? '\u00bd' : manip.mult) + ']';
+      rxnDiv.appendChild(el('div', 'given-rxn-eq', eqText));
+      rxnDiv.appendChild(el('div', 'given-rxn-dh ' + (dh < 0 ? 'neg' : 'pos'), '\u0394H = ' + formatDH(dh) + ' kJ mol\u207b\u00b9'));
+
+      // Controls
+      var ctrls = el('div', 'given-rxn-controls');
+      ctrls.appendChild(el('span', 'ctrl-label', 'Direction:'));
+
+      var fwdBtn = el('button', 'ctrl-btn' + (!manip.reverse ? ' active' : ''), 'Forward');
+      fwdBtn.setAttribute('data-g', g);
+      fwdBtn.addEventListener('click', (function(idx) {
+        return function() { _hessManipulations[idx].reverse = false; renderHess(); drawHessCanvas(); };
+      })(g));
+      ctrls.appendChild(fwdBtn);
+
+      var revBtn = el('button', 'ctrl-btn' + (manip.reverse ? ' active' : ''), 'Reverse');
+      revBtn.setAttribute('data-g', g);
+      revBtn.addEventListener('click', (function(idx) {
+        return function() { _hessManipulations[idx].reverse = true; renderHess(); drawHessCanvas(); };
+      })(g));
+      ctrls.appendChild(revBtn);
+
+      ctrls.appendChild(el('span', 'ctrl-sep'));
+      ctrls.appendChild(el('span', 'ctrl-label', 'Multiply:'));
+
+      var mults = [0.5, 1, 2, 3];
+      for (var m = 0; m < mults.length; m++) {
+        var multBtn = el('button', 'ctrl-btn' + (manip.mult === mults[m] ? ' active' : ''),
+          mults[m] === 0.5 ? '\u00bd' : '\u00d7' + mults[m]);
+        multBtn.addEventListener('click', (function(idx, val) {
+          return function() { _hessManipulations[idx].mult = val; renderHess(); drawHessCanvas(); };
+        })(g, mults[m]));
+        ctrls.appendChild(multBtn);
+      }
+
+      rxnDiv.appendChild(ctrls);
+      body.appendChild(rxnDiv);
+    }
+
+    // Check button
+    var checkBtn = el('button', 'check-btn', 'Check Sum \u2192 Calculate \u0394H');
+    checkBtn.addEventListener('click', checkHessSum);
+    body.appendChild(checkBtn);
+
+    // Sum bar + feedback
+    body.appendChild(el('div', 'sum-bar', ''));
+    body.appendChild(el('div', 'feedback-msg'));
+  }
+
+  function checkHessSum() {
+    if (!_hessProblem) return;
+    var sum = 0;
+    for (var g = 0; g < _hessProblem.given.length; g++) {
+      sum += _hessProblem.given[g].dh * _hessManipulations[g].mult * (_hessManipulations[g].reverse ? -1 : 1);
+    }
+    sum = Math.round(sum * 10) / 10;
+    var target = _hessProblem.target.dh;
+
+    var bar = document.querySelector('#hessBody .sum-bar');
+    var fb = document.querySelector('#hessBody .feedback-msg');
+
+    if (Math.abs(sum - target) < 1) {
+      bar.textContent = '\u0394H = ' + formatDH(sum) + ' kJ mol\u207b\u00b9  \u2714';
+      bar.className = 'sum-bar success';
+      fb.textContent = 'Correct! The manipulated reactions sum to give the target reaction.';
+      fb.className = 'feedback-msg show success';
+      drawHessCanvasComplete();
+    } else {
+      bar.textContent = 'Sum = ' + formatDH(sum) + ' kJ mol\u207b\u00b9 (expected ' + formatDH(target) + ')';
+      bar.className = 'sum-bar error';
+      fb.textContent = 'Not quite \u2014 check that species cancel correctly and the manipulated reactions sum to the target.';
+      fb.className = 'feedback-msg show hint';
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Hess Canvas
+  // ═══════════════════════════════════════════════════
+  function setupCanvas(canvas, height) {
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.offsetWidth || 600;
+    canvas.width = w * dpr;
+    canvas.height = height * dpr;
+    canvas.style.height = height + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(dpr, dpr);
+    ctx.clearRect(0, 0, w, height);
+    return { ctx: ctx, W: w, H: height };
+  }
+
+  function drawHessCanvas() {
+    var c = setupCanvas(document.getElementById('hessCanvas'), 300);
+    var ctx = c.ctx, W = c.W, H = c.H;
+
+    if (!_hessProblem) {
+      ctx.fillStyle = '#94A3B8'; ctx.font = '14px Inter, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('Select a problem to see the enthalpy cycle', W / 2, H / 2);
+      return;
+    }
+    drawHessCycle(ctx, W, H, false);
+  }
+
+  function drawHessCanvasComplete() {
+    var c = setupCanvas(document.getElementById('hessCanvas'), 300);
+    drawHessCycle(c.ctx, c.W, c.H, true);
+  }
+
+  function drawHessCycle(ctx, W, H, solved) {
+    var pad = 40;
+    var tParts = _hessProblem.target.eq.split(' \u2192 ');
+    var reactants = tParts[0] || '';
+    var products = tParts[1] || '';
+    var topY = pad + 20;
+    var botY = H - pad - 20;
+
+    var boxColor = solved ? '#F0FDF4' : '#EFF6FF';
+    var boxBorder = solved ? '#BBF7D0' : '#BFDBFE';
+    var textColor = solved ? '#059669' : '#1E293B';
+    var arrowColor = solved ? '#059669' : '#0D9488';
+
+    // Reactants box
+    drawRoundedBox(ctx, pad, topY - 15, 180, 30, boxColor, boxBorder);
+    ctx.fillStyle = textColor; ctx.textAlign = 'center';
+    ctx.font = '500 11px "Fira Code", monospace';
+    ctx.fillText(truncate(reactants, 25), pad + 90, topY + 4);
+
+    // Products box
+    drawRoundedBox(ctx, W - pad - 180, topY - 15, 180, 30, boxColor, boxBorder);
+    ctx.fillStyle = textColor;
+    ctx.fillText(truncate(products, 25), W - pad - 90, topY + 4);
+
+    // Top arrow
+    var ax1 = pad + 185, ax2 = W - pad - 185;
+    drawArrow(ctx, ax1, topY, ax2, topY, arrowColor);
+    ctx.fillStyle = arrowColor;
+    ctx.font = (solved ? '700' : '600') + ' 11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    var topLabel = solved ? '\u0394H = ' + formatDH(_hessProblem.target.dh) + ' kJ mol\u207b\u00b9  \u2714' : '\u0394H = ? (target)';
+    ctx.fillText(topLabel, (ax1 + ax2) / 2, topY - 10);
+
+    // Bottom pathway
+    var nGiven = _hessProblem.given.length;
+    var stepW = (W - 2 * pad) / (nGiven + 1);
+
+    for (var g = 0; g < nGiven; g++) {
+      var manip = _hessManipulations[g];
+      var dh = _hessProblem.given[g].dh * manip.mult * (manip.reverse ? -1 : 1);
+      var x1 = pad + g * stepW + (g === 0 ? 90 : 0);
+      var x2 = pad + (g + 1) * stepW;
+      var y1 = g === 0 ? topY + 15 : botY;
+      var y2 = botY;
+      if (g === nGiven - 1) { x2 = W - pad - 90; y2 = topY + 15; }
+
+      var color = dh < 0 ? '#DC2626' : '#2563EB';
+      drawArrow(ctx, x1, y1, x2, y2, color);
+      ctx.fillStyle = color;
+      ctx.font = '600 10px "Fira Code", monospace';
+      var lx = (x1 + x2) / 2;
+      var ly = (y1 + y2) / 2 + (y1 === y2 ? 16 : 0);
+      ctx.fillText(formatDH(dh) + (solved ? ' kJ' : ''), lx, ly);
+      if (!solved) {
+        ctx.fillStyle = '#94A3B8'; ctx.font = '600 9px Inter, sans-serif';
+        ctx.fillText('Step ' + (g + 1), lx, ly + 14);
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Bond Enthalpy Calculator
+  // ═══════════════════════════════════════════════════
+  function selectBondReaction(id) {
+    for (var i = 0; i < BOND_REACTIONS.length; i++) {
+      if (BOND_REACTIONS[i].id === id) { _bondReaction = BOND_REACTIONS[i]; break; }
+    }
+    if (!_bondReaction) return;
+    renderBond();
+    drawBondCanvas();
+  }
+
+  function renderBond() {
+    var body = document.getElementById('bondBody');
+    body.textContent = '';
+    if (!_bondReaction) return;
+    var rxn = _bondReaction;
+
+    var brokenTotal = 0, formedTotal = 0;
+    for (var b = 0; b < rxn.broken.length; b++) brokenTotal += rxn.broken[b].count * rxn.broken[b].energy;
+    for (var f = 0; f < rxn.formed.length; f++) formedTotal += rxn.formed[f].count * rxn.formed[f].energy;
+    var dh = Math.round(brokenTotal - formedTotal);
+
+    // Equation display
+    body.appendChild(el('div', 'bond-eq-display', rxn.equation));
+
+    // Columns
+    var cols = el('div', 'bond-columns');
+
+    // Broken column
+    var bCol = el('div', 'bond-col broken');
+    bCol.appendChild(el('div', 'bond-col-title', 'Bonds Broken (energy absorbed)'));
+    for (var b2 = 0; b2 < rxn.broken.length; b2++) {
+      var bb = rxn.broken[b2];
+      var sub = Math.round(bb.count * bb.energy);
+      var row = el('div', 'bond-row');
+      row.appendChild(el('span', 'bond-row-label', formatCount(bb.count) + ' \u00d7 ' + bb.bond + ' (' + bb.energy + ')'));
+      row.appendChild(el('span', 'bond-row-value', '+' + sub));
+      bCol.appendChild(row);
+    }
+    var bTotal = el('div', 'bond-total');
+    bTotal.appendChild(el('span', '', 'Total'));
+    bTotal.appendChild(el('span', '', '+' + Math.round(brokenTotal) + ' kJ'));
+    bCol.appendChild(bTotal);
+    cols.appendChild(bCol);
+
+    // Formed column
+    var fCol = el('div', 'bond-col formed');
+    fCol.appendChild(el('div', 'bond-col-title', 'Bonds Formed (energy released)'));
+    for (var f2 = 0; f2 < rxn.formed.length; f2++) {
+      var ff = rxn.formed[f2];
+      var sub2 = Math.round(ff.count * ff.energy);
+      var row2 = el('div', 'bond-row');
+      row2.appendChild(el('span', 'bond-row-label', formatCount(ff.count) + ' \u00d7 ' + ff.bond + ' (' + ff.energy + ')'));
+      row2.appendChild(el('span', 'bond-row-value', '\u2212' + sub2));
+      fCol.appendChild(row2);
+    }
+    var fTotal = el('div', 'bond-total');
+    fTotal.appendChild(el('span', '', 'Total'));
+    fTotal.appendChild(el('span', '', '\u2212' + Math.round(formedTotal) + ' kJ'));
+    fCol.appendChild(fTotal);
+    cols.appendChild(fCol);
+
+    body.appendChild(cols);
+
+    // Result
+    body.appendChild(el('div', 'bond-result',
+      '\u0394H = (+' + Math.round(brokenTotal) + ') + (\u2212' + Math.round(formedTotal) + ') = ' + formatDH(dh) + ' kJ mol\u207b\u00b9'));
+
+    // Comparison
+    if (rxn.litDH) {
+      body.appendChild(el('div', 'bond-comparison',
+        'Literature value: \u0394H = ' + formatDH(rxn.litDH) + ' kJ mol\u207b\u00b9. Difference due to use of mean bond enthalpies (actual bond energies vary with molecular environment).'));
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Bond Canvas — Bar Visualization
+  // ═══════════════════════════════════════════════════
+  function drawBondCanvas() {
+    var c = setupCanvas(document.getElementById('bondCanvas'), 280);
+    var ctx = c.ctx, W = c.W, H = c.H;
+
+    if (!_bondReaction) {
+      ctx.fillStyle = '#94A3B8'; ctx.font = '14px Inter, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('Select a reaction to see bond energy diagram', W / 2, H / 2);
+      return;
+    }
+
+    var rxn = _bondReaction;
+    var brokenTotal = 0, formedTotal = 0;
+    for (var b = 0; b < rxn.broken.length; b++) brokenTotal += rxn.broken[b].count * rxn.broken[b].energy;
+    for (var f = 0; f < rxn.formed.length; f++) formedTotal += rxn.formed[f].count * rxn.formed[f].energy;
+    var dh = brokenTotal - formedTotal;
+    var maxVal = Math.max(brokenTotal, formedTotal) * 1.15;
+
+    var pad = { top: 30, bottom: 40, left: 80, right: 60 };
+    var plotW = W - pad.left - pad.right;
+    var plotH = H - pad.top - pad.bottom;
+    var zeroY = pad.top + plotH * 0.5;
+
+    // Axes
+    ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, H - pad.bottom); ctx.lineTo(W - pad.right, H - pad.bottom); ctx.stroke();
+
+    // Y-axis label
+    ctx.save(); ctx.translate(15, H / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#64748B'; ctx.font = '500 11px Inter, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Energy / kJ mol\u207b\u00b9', 0, 0); ctx.restore();
+
+    // Zero line
+    ctx.strokeStyle = '#94A3B8'; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(pad.left, zeroY); ctx.lineTo(W - pad.right, zeroY); ctx.stroke();
+    ctx.setLineDash([]);
+
+    var barW = plotW * 0.3;
+    var gap = plotW * 0.1;
+
+    // Broken bar
+    var brokenH = (brokenTotal / maxVal) * (plotH * 0.45);
+    var bx = pad.left + gap;
+    var by = zeroY - brokenH;
+    ctx.fillStyle = 'rgba(220, 38, 38, 0.15)'; ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(bx, by, barW, brokenH, 4); ctx.fill(); ctx.stroke();
+
+    // Broken segments
+    var segY = zeroY;
+    for (var bs = rxn.broken.length - 1; bs >= 0; bs--) {
+      var seg = rxn.broken[bs];
+      var segH = (seg.count * seg.energy / maxVal) * (plotH * 0.45);
+      segY -= segH;
+      ctx.fillStyle = 'rgba(220,38,38,' + (0.15 + bs * 0.08) + ')';
+      ctx.fillRect(bx + 2, segY, barW - 4, segH);
+      if (segH > 14) {
+        ctx.fillStyle = '#DC2626'; ctx.font = '500 9px "Fira Code", monospace'; ctx.textAlign = 'center';
+        ctx.fillText(seg.bond, bx + barW / 2, segY + segH / 2 + 3);
+      }
+    }
+    ctx.fillStyle = '#DC2626'; ctx.font = '700 12px "Fira Code", monospace'; ctx.textAlign = 'center';
+    ctx.fillText('+' + Math.round(brokenTotal), bx + barW / 2, by - 8);
+    ctx.font = '600 11px Inter, sans-serif';
+    ctx.fillText('Bonds Broken', bx + barW / 2, H - pad.bottom + 20);
+
+    // Formed bar
+    var formedH = (formedTotal / maxVal) * (plotH * 0.45);
+    var fx = pad.left + gap + barW + gap;
+    var fy = zeroY - formedH;
+    ctx.fillStyle = 'rgba(5, 150, 105, 0.15)'; ctx.strokeStyle = '#059669'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.roundRect(fx, fy, barW, formedH, 4); ctx.fill(); ctx.stroke();
+
+    segY = zeroY;
+    for (var fs = rxn.formed.length - 1; fs >= 0; fs--) {
+      var fseg = rxn.formed[fs];
+      var fSegH = (fseg.count * fseg.energy / maxVal) * (plotH * 0.45);
+      segY -= fSegH;
+      ctx.fillStyle = 'rgba(5,150,105,' + (0.15 + fs * 0.08) + ')';
+      ctx.fillRect(fx + 2, segY, barW - 4, fSegH);
+      if (fSegH > 14) {
+        ctx.fillStyle = '#059669'; ctx.font = '500 9px "Fira Code", monospace'; ctx.textAlign = 'center';
+        ctx.fillText(fseg.bond, fx + barW / 2, segY + fSegH / 2 + 3);
+      }
+    }
+    ctx.fillStyle = '#059669'; ctx.font = '700 12px "Fira Code", monospace'; ctx.textAlign = 'center';
+    ctx.fillText('\u2212' + Math.round(formedTotal), fx + barW / 2, fy - 8);
+    ctx.font = '600 11px Inter, sans-serif';
+    ctx.fillText('Bonds Formed', fx + barW / 2, H - pad.bottom + 20);
+
+    // Result
+    var resultX = W - pad.right + 5;
+    ctx.fillStyle = dh < 0 ? '#DC2626' : '#2563EB';
+    ctx.font = '700 12px "Fira Code", monospace'; ctx.textAlign = 'center';
+    ctx.fillText('\u0394H', resultX, zeroY - 15);
+    ctx.fillText(formatDH(Math.round(dh)), resultX, zeroY + 2);
+    ctx.font = '500 9px Inter, sans-serif';
+    ctx.fillText('kJ/mol', resultX, zeroY + 16);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Born-Haber Cycle Builder (HL)
+  // ═══════════════════════════════════════════════════
+  function selectBHCompound(id) {
+    for (var i = 0; i < BH_COMPOUNDS.length; i++) {
+      if (BH_COMPOUNDS[i].id === id) { _bhCompound = BH_COMPOUNDS[i]; break; }
+    }
+    if (!_bhCompound) return;
+    _bhSteps = [];
+    _bhSolved = false;
+    renderBH();
+    drawBHCanvas();
+  }
+
+  function renderBH() {
+    var body = document.getElementById('bhBody');
+    body.textContent = '';
+    if (!_bhCompound) return;
+    var comp = _bhCompound;
+
+    // Info
+    var info = el('div', 'bh-info');
+    info.appendChild(el('div', 'bh-info-label', 'Born-Haber Cycle'));
+    info.appendChild(el('div', 'bh-info-compound', comp.formula));
+    info.appendChild(el('div', 'bh-info-target', 'Find the lattice enthalpy of ' + comp.formula));
+    info.appendChild(el('div', 'answer-reveal', 'Lattice enthalpy = ' + comp.steps.lattice.dh + ' kJ mol\u207b\u00b9'));
+    body.appendChild(info);
+
+    // Steps added
+    var stepsList = el('div', 'bh-steps-list');
+    for (var s = 0; s < _bhSteps.length; s++) {
+      var step = _bhSteps[s];
+      var item = el('div', 'bh-step-item ' + (step.dh >= 0 ? 'endo' : 'exo'));
+      item.appendChild(el('span', 'bh-step-eq', step.eq));
+      item.appendChild(el('span', 'bh-step-dh ' + (step.dh < 0 ? 'neg' : 'pos'), formatDH(step.dh) + ' kJ'));
+      var removeBtn = el('button', 'bh-step-remove', '\u00d7');
+      removeBtn.addEventListener('click', (function(idx) {
+        return function() { _bhSteps.splice(idx, 1); _bhSolved = false; renderBH(); drawBHCanvas(); };
+      })(s));
+      item.appendChild(removeBtn);
+      stepsList.appendChild(item);
+    }
+    body.appendChild(stepsList);
+
+    if (!_bhSolved) {
+      // Step builder
+      var builder = el('div', 'bh-step-builder');
+      var row1 = el('div', 'bh-step-row');
+
+      var sel = document.createElement('select');
+      sel.className = 'bh-step-select';
+      sel.id = 'bhStepSelect';
+      var defOpt = document.createElement('option');
+      defOpt.value = '';
+      defOpt.textContent = 'Select a step...';
+      sel.appendChild(defOpt);
+
+      var stepKeys = Object.keys(comp.steps);
+      for (var k = 0; k < stepKeys.length; k++) {
+        var key = stepKeys[k];
+        if (key === 'lattice') continue;
+        var already = false;
+        for (var a = 0; a < _bhSteps.length; a++) {
+          if (_bhSteps[a].key === key) { already = true; break; }
+        }
+        if (already) continue;
+        var opt = document.createElement('option');
+        opt.value = key;
+        opt.textContent = comp.steps[key].label;
+        sel.appendChild(opt);
+      }
+
+      var valInput = document.createElement('input');
+      valInput.type = 'text';
+      valInput.className = 'bh-step-value';
+      valInput.id = 'bhStepValue';
+      valInput.placeholder = '\u0394H';
+      valInput.readOnly = true;
+
+      sel.addEventListener('change', function() {
+        var key = this.value;
+        if (key && comp.steps[key]) {
+          valInput.value = comp.steps[key].dh;
+          addBtn.disabled = false;
+        } else {
+          valInput.value = '';
+          addBtn.disabled = true;
+        }
+      });
+
+      row1.appendChild(sel);
+      row1.appendChild(valInput);
+      row1.appendChild(el('span', 'bh-step-unit', 'kJ mol\u207b\u00b9'));
+      builder.appendChild(row1);
+
+      var row2 = el('div', 'bh-step-row');
+      var addBtn = el('button', 'bh-add-btn', 'Add Step');
+      addBtn.disabled = true;
+      addBtn.addEventListener('click', function() {
+        var selEl = document.getElementById('bhStepSelect');
+        var key = selEl.value;
+        if (key && comp.steps[key]) {
+          _bhSteps.push({ key: key, label: comp.steps[key].label, eq: comp.steps[key].eq, dh: comp.steps[key].dh });
+          renderBH();
+          drawBHCanvas();
+        }
+      });
+      row2.appendChild(addBtn);
+      builder.appendChild(row2);
+      body.appendChild(builder);
+
+      // Check if all non-lattice steps added
+      var allAdded = true;
+      for (var kk = 0; kk < stepKeys.length; kk++) {
+        if (stepKeys[kk] === 'lattice') continue;
+        var found = false;
+        for (var aa = 0; aa < _bhSteps.length; aa++) {
+          if (_bhSteps[aa].key === stepKeys[kk]) { found = true; break; }
+        }
+        if (!found) { allAdded = false; break; }
+      }
+      if (allAdded) {
+        var checkBtn = el('button', 'check-btn', 'Calculate Lattice Enthalpy');
+        checkBtn.addEventListener('click', function() {
+          _bhSolved = true;
+          renderBH();
+          drawBHCanvas();
+        });
+        body.appendChild(checkBtn);
+      }
+    }
+
+    // Result
+    if (_bhSolved) {
+      var result = el('div', 'bh-result show success',
+        'Lattice Enthalpy = ' + formatDH(comp.steps.lattice.dh) + ' kJ mol\u207b\u00b9  \u2714');
+      body.appendChild(result);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Born-Haber Canvas — Energy Ladder
+  // ═══════════════════════════════════════════════════
+  function drawBHCanvas() {
+    var c = setupCanvas(document.getElementById('bhCanvas'), 400);
+    var ctx = c.ctx, W = c.W, H = c.H;
+
+    if (!_bhCompound) {
+      ctx.fillStyle = '#94A3B8'; ctx.font = '14px Inter, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('Select a compound to build a Born-Haber cycle', W / 2, H / 2);
+      return;
+    }
+    if (!_bhSteps.length && !_bhSolved) {
+      ctx.fillStyle = '#94A3B8'; ctx.font = '13px Inter, sans-serif'; ctx.textAlign = 'center';
+      ctx.fillText('Add steps to build the energy ladder', W / 2, H / 2);
+      return;
+    }
+
+    var comp = _bhCompound;
+    var pad = { top: 30, bottom: 30, left: 60, right: 30 };
+    var plotW = W - pad.left - pad.right;
+    var plotH = H - pad.top - pad.bottom;
+
+    // Build ordered levels
+    var stepMap = {};
+    for (var s = 0; s < _bhSteps.length; s++) stepMap[_bhSteps[s].key] = _bhSteps[s];
+
+    var levels = [{ label: 'Elements', energy: 0, color: '#1E293B' }];
+    var cumulative = 0;
+    var order = ['atomMetal', 'atomNonmetal', 'ie1', 'ie2', 'ea1', 'ea2'];
+    for (var o = 0; o < order.length; o++) {
+      if (stepMap[order[o]]) {
+        cumulative += stepMap[order[o]].dh;
+        levels.push({ label: stepMap[order[o]].label, energy: cumulative, dh: stepMap[order[o]].dh,
+          color: stepMap[order[o]].dh > 0 ? '#DC2626' : '#059669' });
+      }
+    }
+
+    var formLevel = stepMap['formation'] ? { label: comp.formula + '(s)', energy: stepMap['formation'].dh, dh: stepMap['formation'].dh } : null;
+
+    // Energy range
+    var minE = 0, maxE = 0;
+    for (var l = 0; l < levels.length; l++) {
+      if (levels[l].energy < minE) minE = levels[l].energy;
+      if (levels[l].energy > maxE) maxE = levels[l].energy;
+    }
+    if (formLevel) { if (formLevel.energy < minE) minE = formLevel.energy; }
+    var range = (maxE - minE) || 1;
+    minE -= range * 0.1; maxE += range * 0.1;
+    range = maxE - minE;
+
+    function toY(e) { return pad.top + plotH * (1 - (e - minE) / range); }
+
+    // Y axis
+    ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, H - pad.bottom); ctx.stroke();
+
+    ctx.save(); ctx.translate(15, H / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#64748B'; ctx.font = '500 10px Inter, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Enthalpy / kJ mol\u207b\u00b9', 0, 0); ctx.restore();
+
+    // Zero line
+    var zeroY = toY(0);
+    ctx.strokeStyle = '#CBD5E1'; ctx.setLineDash([3, 3]);
+    ctx.beginPath(); ctx.moveTo(pad.left, zeroY); ctx.lineTo(W - pad.right, zeroY); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#94A3B8'; ctx.font = '500 9px "Fira Code", monospace'; ctx.textAlign = 'right';
+    ctx.fillText('0', pad.left - 5, zeroY + 3);
+
+    var levelX = pad.left + 20;
+    var levelW = plotW * 0.45;
+    var formX = pad.left + plotW * 0.55;
+
+    // Draw ascending levels (left side)
+    for (var nl = 0; nl < levels.length; nl++) {
+      var lev = levels[nl];
+      var y = toY(lev.energy);
+
+      ctx.strokeStyle = lev.color; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(levelX, y); ctx.lineTo(levelX + levelW, y); ctx.stroke();
+
+      ctx.fillStyle = lev.color; ctx.font = '500 9px Inter, sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText(lev.label, levelX + levelW + 5, y + 3);
+
+      ctx.fillStyle = '#94A3B8'; ctx.font = '500 9px "Fira Code", monospace'; ctx.textAlign = 'right';
+      ctx.fillText(Math.round(lev.energy), pad.left - 5, y + 3);
+
+      if (nl > 0) {
+        var prevY = toY(levels[nl - 1].energy);
+        var arrowX = levelX + levelW * 0.3;
+        drawArrow(ctx, arrowX, prevY + 3, arrowX, y - 3, lev.color);
+        if (lev.dh !== undefined) {
+          ctx.fillStyle = lev.color; ctx.font = '600 9px "Fira Code", monospace'; ctx.textAlign = 'left';
+          ctx.fillText(formatDH(lev.dh), arrowX + 6, (prevY + y) / 2 + 3);
+        }
+      }
+    }
+
+    // Formation level (right side)
+    if (formLevel) {
+      var fy = toY(formLevel.energy);
+      ctx.strokeStyle = '#2563EB'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(formX, fy); ctx.lineTo(formX + levelW * 0.7, fy); ctx.stroke();
+
+      ctx.fillStyle = '#2563EB'; ctx.font = '600 9px Inter, sans-serif'; ctx.textAlign = 'left';
+      ctx.fillText(formLevel.label, formX + levelW * 0.7 + 5, fy + 3);
+      ctx.font = '500 9px "Fira Code", monospace';
+      ctx.fillText('\u0394Hf = ' + formLevel.dh, formX + levelW * 0.7 + 5, fy + 15);
+
+      // Arrow from elements to formation
+      drawArrow(ctx, formX + levelW * 0.35, zeroY + 3, formX + levelW * 0.35, fy - 3, '#2563EB');
+
+      ctx.fillStyle = '#94A3B8'; ctx.font = '500 9px "Fira Code", monospace'; ctx.textAlign = 'right';
+      ctx.fillText(Math.round(formLevel.energy), pad.left - 5, fy + 3);
+
+      // Lattice arrow (solved)
+      if (_bhSolved && levels.length > 1) {
+        var topLev = levels[levels.length - 1];
+        var topY2 = toY(topLev.energy);
+        ctx.setLineDash([5, 3]);
+        drawArrow(ctx, formX + levelW * 0.15, topY2 + 3, formX + levelW * 0.15, fy - 3, '#7C3AED');
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#7C3AED'; ctx.font = '700 10px "Fira Code", monospace'; ctx.textAlign = 'left';
+        ctx.fillText('\u0394H_latt = ' + comp.steps.lattice.dh, formX + levelW * 0.15 + 8, (topY2 + fy) / 2 + 3);
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Drawing Utilities
+  // ═══════════════════════════════════════════════════
+  function drawArrow(ctx, x1, y1, x2, y2, color) {
+    var headLen = 8;
+    var angle = Math.atan2(y2 - y1, x2 - x1);
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(x2, y2);
+    ctx.lineTo(x2 - headLen * Math.cos(angle - Math.PI / 6), y2 - headLen * Math.sin(angle - Math.PI / 6));
+    ctx.lineTo(x2 - headLen * Math.cos(angle + Math.PI / 6), y2 - headLen * Math.sin(angle + Math.PI / 6));
+    ctx.closePath(); ctx.fill();
+  }
+
+  function drawRoundedBox(ctx, x, y, w, h, fill, stroke) {
+    ctx.fillStyle = fill; ctx.strokeStyle = stroke; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.roundRect(x, y, w, h, 6); ctx.fill(); ctx.stroke();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // HL / Teacher Toggles
+  // ═══════════════════════════════════════════════════
+  function toggleHL() {
+    _hlEnabled = !_hlEnabled;
+    document.body.classList.toggle('hl-active', _hlEnabled);
+    if (_hlInput) _hlInput.checked = _hlEnabled;
+    if (!_hlEnabled && _activeTab === 'bornhaber') switchTab('hess');
+    buildPalette();
+  }
+
+  function toggleTeacher() {
+    _teacherMode = !_teacherMode;
+    document.body.classList.toggle('teacher-active', _teacherMode);
+    if (_tInput) _tInput.checked = _teacherMode;
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Presets
+  // ═══════════════════════════════════════════════════
+  function buildPresetDropdown() {
+    var sel = document.getElementById('presetSelect');
+    sel.textContent = '';
+    var defOpt = document.createElement('option');
+    defOpt.value = '';
+    defOpt.textContent = 'Teacher Presets...';
+    sel.appendChild(defOpt);
+
+    var presets = PRESETS[_activeTab] || [];
+    for (var p = 0; p < presets.length; p++) {
+      var opt = document.createElement('option');
+      opt.value = p;
+      opt.textContent = presets[p].name;
+      sel.appendChild(opt);
+    }
+    sel.onchange = function() {
+      var idx = parseInt(this.value);
+      if (isNaN(idx)) return;
+      var preset = presets[idx];
+      if (preset && preset.items.length) selectItem(preset.items[0]);
+    };
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Navigation
+  // ═══════════════════════════════════════════════════
+  function navigateItem(dir) {
+    var items;
+    if (_activeTab === 'hess') items = HESS_PROBLEMS;
+    else if (_activeTab === 'bond') items = BOND_REACTIONS;
+    else items = BH_COMPOUNDS;
+
+    var visible = [];
+    for (var i = 0; i < items.length; i++) {
+      if (!items[i].hlOnly || _hlEnabled) visible.push(items[i]);
+    }
+    if (!visible.length) return;
+    var curId = getCurrentId();
+    var idx = -1;
+    for (var j = 0; j < visible.length; j++) {
+      if (visible[j].id === curId) { idx = j; break; }
+    }
+    idx += dir;
+    if (idx < 0) idx = visible.length - 1;
+    if (idx >= visible.length) idx = 0;
+    selectItem(visible[idx].id);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Keyboard Shortcuts
+  // ═══════════════════════════════════════════════════
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+      if (e.key === 'Escape') {
+        e.target.blur();
+        document.getElementById('paletteSearch').value = '';
+        filterPalette('');
+      }
+      return;
+    }
+    switch (e.key.toLowerCase()) {
+      case 'h': e.preventDefault(); toggleHL(); break;
+      case 't': e.preventDefault(); toggleTeacher(); break;
+      case 'r': e.preventDefault(); var cid = getCurrentId(); if (cid) selectItem(cid); break;
+      case '/': e.preventDefault(); document.getElementById('paletteSearch').focus(); break;
+      case 'escape': document.getElementById('paletteSearch').value = ''; filterPalette(''); break;
+      case 'arrowup': e.preventDefault(); navigateItem(-1); break;
+      case 'arrowdown': e.preventDefault(); navigateItem(1); break;
+      case '1': e.preventDefault(); switchTab('hess'); break;
+      case '2': e.preventDefault(); switchTab('bond'); break;
+      case '3': if (_hlEnabled) { e.preventDefault(); switchTab('bornhaber'); } break;
+    }
+  });
+
+  // ═══════════════════════════════════════════════════
+  // Header Toggles
+  // ═══════════════════════════════════════════════════
+  function buildHeaderToggles() {
+    var container = document.getElementById('headerToggles');
+
+    // HL toggle
+    var hlGroup = el('div', 'sim-toggle-group');
+    hlGroup.appendChild(el('span', 'sim-toggle-label', 'HL'));
+    var hlToggle = el('label', 'sim-toggle');
+    _hlInput = document.createElement('input');
+    _hlInput.type = 'checkbox';
+    _hlInput.setAttribute('aria-label', 'Enable HL mode');
+    _hlInput.addEventListener('change', function() { _hlEnabled = !_hlInput.checked; toggleHL(); });
+    var hlSlider = el('span', 'sim-toggle-slider');
+    hlSlider.style.setProperty('--toggle-on', 'var(--purple)');
+    hlToggle.appendChild(_hlInput);
+    hlToggle.appendChild(hlSlider);
+    hlGroup.appendChild(hlToggle);
+    container.appendChild(hlGroup);
+
+    // Teacher toggle
+    var tGroup = el('div', 'sim-toggle-group');
+    tGroup.appendChild(el('span', 'sim-toggle-label', 'Teacher'));
+    var tToggle = el('label', 'sim-toggle');
+    _tInput = document.createElement('input');
+    _tInput.type = 'checkbox';
+    _tInput.setAttribute('aria-label', 'Enable Teacher mode');
+    _tInput.addEventListener('change', function() { _teacherMode = !_tInput.checked; toggleTeacher(); });
+    var tSlider = el('span', 'sim-toggle-slider');
+    tToggle.appendChild(_tInput);
+    tToggle.appendChild(tSlider);
+    tGroup.appendChild(tToggle);
+    container.appendChild(tGroup);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Canvas Resize
+  // ═══════════════════════════════════════════════════
+  var _resizeTimer = null;
+  window.addEventListener('resize', function() {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(function() {
+      if (_activeTab === 'hess') drawHessCanvas();
+      else if (_activeTab === 'bond') drawBondCanvas();
+      else drawBHCanvas();
+    }, 150);
+  });
+
+  // ═══════════════════════════════════════════════════
+  // Init
+  // ═══════════════════════════════════════════════════
+  function init() {
+    buildHeaderToggles();
+    buildPalette();
+    buildPresetDropdown();
+
+    var tabBtns = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < tabBtns.length; i++) {
+      tabBtns[i].addEventListener('click', function() {
+        var tab = this.getAttribute('data-tab');
+        if (tab === 'bornhaber' && !_hlEnabled) return;
+        switchTab(tab);
+      });
+    }
+
+    document.getElementById('paletteSearch').addEventListener('input', function() {
+      filterPalette(this.value);
+    });
+
+    drawHessCanvas();
+    drawBondCanvas();
+    drawBHCanvas();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+</body>
+</html>
