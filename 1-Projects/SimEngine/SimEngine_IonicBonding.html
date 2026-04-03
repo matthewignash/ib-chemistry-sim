@@ -1,0 +1,2148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ionic Bonding — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --red-bg: #FEF2F2;
+    --green-bg: #F0FDF4;
+    --amber-bg: #FFFBEB;
+    --sim-canvas-bg: #FAFBFC;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  .header {
+    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
+  }
+  .header-badge.hl { background: var(--hl-badge-bg); display: none; }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s; --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--toggle-on); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+  .tab-bar {
+    background: white; border-bottom: 2px solid var(--border);
+    display: flex; gap: 0; max-width: 1200px; margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .tab-btn {
+    padding: 0.75rem 1.5rem; font-size: 0.85rem; font-weight: 600;
+    color: var(--text-muted); background: none; border: none;
+    border-bottom: 3px solid transparent; cursor: pointer;
+    transition: all 0.2s; font-family: inherit; margin-bottom: -2px;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--teal-bg); }
+  .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .tab-btn .tab-num {
+    display: inline-block; width: 20px; height: 20px; line-height: 20px;
+    text-align: center; border-radius: 4px; font-size: 0.65rem; font-weight: 700;
+    background: var(--border); color: var(--text-muted); margin-right: 0.4rem;
+  }
+  .tab-btn.active .tab-num { background: var(--teal); color: white; }
+  .hl-tab { display: none; }
+  body.hl-active .hl-tab { display: inline-block; }
+
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sim-top-row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+
+  .sim-card {
+    background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy); color: white; padding: 0.6rem 1rem;
+    font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  .palette-panel { max-height: 600px; display: flex; flex-direction: column; position: sticky; top: 1rem; align-self: start; grid-column: 1; grid-row: 1; }
+  .tab-content { grid-column: 2; grid-row: 1; }
+  .palette-panel .sim-card-body { padding: 0.5rem; overflow-y: auto; flex: 1; }
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+  .palette-category {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); padding: 0.4rem 0.3rem 0.2rem; margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block; width: 100%; text-align: left; padding: 0.3rem 0.5rem; margin: 0.15rem 0; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .palette-item:hover { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .palette-item.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+  .palette-item.hl-rxn { display: none; }
+  body.hl-active .palette-item.hl-rxn { display: block; }
+  .palette-category.hl-cat { display: none; }
+  body.hl-active .palette-category.hl-cat { display: block; }
+  .preset-section { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); display: none; }
+  .preset-section select {
+    width: 100%; padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.75rem; font-family: inherit; cursor: pointer;
+  }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .sim-canvas { display: block; width: 100%; background: var(--sim-canvas-bg); border-radius: 4px; }
+  .sim-canvas-dark { background: #1E293B; }
+
+  .check-btn {
+    display: inline-block; padding: 0.5rem 1.2rem; margin-top: 0.75rem;
+    background: var(--teal); color: white; border: none; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    transition: background 0.2s;
+  }
+  .check-btn:hover { background: #0B7C73; }
+  .check-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+  .score-bar {
+    display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem;
+    background: var(--blue-bg); border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  .score-bar .score-val { font-family: 'Fira Code', monospace; color: var(--teal); }
+
+  .hl-panel { display: none; }
+  body.hl-active .hl-panel { display: block; }
+  .hl-card {
+    margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px;
+    border: 1px solid var(--hl-border); background: #F5F3FF;
+  }
+  .hl-card-title {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 0.3rem;
+  }
+
+  .teacher-panel { display: none; }
+  body.teacher-active .teacher-panel { display: block; }
+  body.teacher-active .preset-section { display: block; }
+  .answer-reveal {
+    margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: var(--amber-bg);
+    border: 1px solid #FCD34D; border-radius: 6px; font-size: 0.78rem;
+    font-family: 'Fira Code', monospace; display: none;
+  }
+  body.teacher-active .answer-reveal { display: block; }
+
+  .mode-btn {
+    padding: 0.3rem 0.6rem; font-size: 0.72rem; font-weight: 600; border-radius: 6px;
+    border: 1px solid var(--border); background: white; cursor: pointer;
+    font-family: inherit; transition: all 0.15s;
+  }
+  .mode-btn.active { background: var(--teal); color: white; border-color: var(--teal); }
+  .mode-btn:hover:not(.active) { background: var(--teal-bg); }
+
+  .step-indicator {
+    padding: 0.5rem 0.75rem; background: var(--blue-bg); border-radius: 6px;
+    font-size: 0.78rem; font-weight: 600; margin-bottom: 0.75rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+
+  .config-row {
+    font-family: 'Fira Code', monospace; font-size: 0.8rem; padding: 0.25rem 0;
+    display: flex; gap: 0.75rem; align-items: center;
+  }
+  .config-before { color: var(--text-muted); }
+  .config-after { color: var(--teal); font-weight: 600; }
+  .config-arrow { color: var(--amber); }
+
+  .collapsible-header {
+    cursor: pointer; font-size: 0.8rem; font-weight: 600; padding: 0.5rem 0;
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .collapsible-header:hover { color: var(--teal); }
+  .collapsible-body { display: none; font-size: 0.78rem; padding: 0.25rem 0 0.5rem 1.2rem; line-height: 1.7; }
+  .collapsible-body.open { display: block; }
+
+  .data-table {
+    width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 0.5rem;
+  }
+  .data-table th {
+    background: var(--navy); color: white; padding: 0.4rem 0.6rem; text-align: left;
+    font-size: 0.72rem; font-weight: 600;
+  }
+  .data-table td {
+    padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--border);
+  }
+  .data-table tr:nth-child(even) td { background: #F8FAFC; }
+
+  .slider-group { margin: 0.5rem 0; }
+  .slider-label { font-size: 0.72rem; font-weight: 600; margin-bottom: 0.2rem; display: flex; justify-content: space-between; }
+  .slider-value { font-family: 'Fira Code', monospace; color: var(--teal); }
+
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .palette-panel { max-height: 200px; position: static; }
+    .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Ionic Bonding</h1>
+    <span class="subtitle">IB Chemistry — S2.1 The Ionic Model</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">S2.1</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <span class="sim-toggle-label">SL</span>
+      <label class="sim-toggle"><input type="checkbox" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <span class="sim-toggle-label">Student</span>
+      <label class="sim-toggle"><input type="checkbox" id="teacherToggle"><span class="sim-toggle-slider" style="--toggle-on: var(--amber);"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="transfer"><span class="tab-num">1</span>Electron Transfer</button>
+  <button class="tab-btn" data-tab="lattice"><span class="tab-num">2</span>Crystal Lattice</button>
+  <button class="tab-btn" data-tab="properties"><span class="tab-num">3</span>Properties Lab</button>
+  <button class="tab-btn hl-tab" data-tab="latticeEnergy"><span class="tab-num">4</span>Lattice Energy</button>
+</div>
+
+<div class="sim-container">
+  <div class="sim-top-row">
+
+    <div class="sim-card palette-panel">
+      <div class="sim-card-header" id="paletteHeader">Compounds</div>
+      <div class="sim-card-body">
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search compounds">
+        <div id="paletteList"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect" aria-label="Teacher presets">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content active" id="tab-transfer">
+      <div id="transferBody"></div>
+    </div>
+
+    <div class="tab-content" id="tab-lattice">
+      <div id="latticeBody"></div>
+    </div>
+
+    <div class="tab-content" id="tab-properties">
+      <div id="propertiesBody"></div>
+    </div>
+
+    <div class="tab-content" id="tab-latticeEnergy">
+      <div id="latticeEnergyBody"></div>
+    </div>
+
+  </div>
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL toggle &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd>–<kbd>4</kbd> Tabs &nbsp;
+  <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>↑↓</kbd> Navigate &nbsp;
+  <kbd>Enter</kbd> Next/Submit &nbsp; <kbd>Space</kbd> Play/Pause &nbsp; <kbd>E</kbd> Export
+</div>
+
+<script>
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    var tl = r[0]||0, tr = r[1]||0, br = r[2]||0, bl = r[3]||0;
+    this.beginPath();
+    this.moveTo(x+tl, y);
+    this.lineTo(x+w-tr, y);
+    this.quadraticCurveTo(x+w, y, x+w, y+tr);
+    this.lineTo(x+w, y+h-br);
+    this.quadraticCurveTo(x+w, y+h, x+w-br, y+h);
+    this.lineTo(x+bl, y+h);
+    this.quadraticCurveTo(x, y+h, x, y+h-bl);
+    this.lineTo(x, y+tl);
+    this.quadraticCurveTo(x, y, x+tl, y);
+    this.closePath();
+    return this;
+  };
+}
+
+(function() {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════
+  // HELPERS
+  // ═══════════════════════════════════════════════════
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined && text !== null) e.textContent = text;
+    return e;
+  }
+  function round(v, d) { if (d === undefined) d = 3; var m = Math.pow(10, d); return Math.round(v * m) / m; }
+  function setupCanvas(canvas) {
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.offsetWidth;
+    if (!canvas.dataset.baseHeight) canvas.dataset.baseHeight = canvas.getAttribute('height') || '300';
+    var h = parseInt(canvas.dataset.baseHeight);
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+
+  // ═══════════════════════════════════════════════════
+  // DATA LAYER
+  // ═══════════════════════════════════════════════════
+  var ELEMENTS = {
+    Li: { z:3, symbol:'Li', name:'Lithium', atomicRadius:152, electronConfig:[2,1], valence:1, ionCharge:1, ionSymbol:'Li\u207A', ionicRadius:76, en:1.0, type:'metal' },
+    Na: { z:11, symbol:'Na', name:'Sodium', atomicRadius:186, electronConfig:[2,8,1], valence:1, ionCharge:1, ionSymbol:'Na\u207A', ionicRadius:102, en:0.9, type:'metal' },
+    K:  { z:19, symbol:'K', name:'Potassium', atomicRadius:227, electronConfig:[2,8,8,1], valence:1, ionCharge:1, ionSymbol:'K\u207A', ionicRadius:138, en:0.8, type:'metal' },
+    Mg: { z:12, symbol:'Mg', name:'Magnesium', atomicRadius:160, electronConfig:[2,8,2], valence:2, ionCharge:2, ionSymbol:'Mg\u00B2\u207A', ionicRadius:72, en:1.2, type:'metal' },
+    Ca: { z:20, symbol:'Ca', name:'Calcium', atomicRadius:197, electronConfig:[2,8,8,2], valence:2, ionCharge:2, ionSymbol:'Ca\u00B2\u207A', ionicRadius:100, en:1.0, type:'metal' },
+    Ba: { z:56, symbol:'Ba', name:'Barium', atomicRadius:222, electronConfig:[2,8,18,18,8,2], valence:2, ionCharge:2, ionSymbol:'Ba\u00B2\u207A', ionicRadius:135, en:0.9, type:'metal' },
+    Al: { z:13, symbol:'Al', name:'Aluminium', atomicRadius:143, electronConfig:[2,8,3], valence:3, ionCharge:3, ionSymbol:'Al\u00B3\u207A', ionicRadius:53.5, en:1.5, type:'metal' },
+    Sr: { z:38, symbol:'Sr', name:'Strontium', atomicRadius:215, electronConfig:[2,8,18,8,2], valence:2, ionCharge:2, ionSymbol:'Sr\u00B2\u207A', ionicRadius:118, en:1.0, type:'metal' },
+    Cs: { z:55, symbol:'Cs', name:'Caesium', atomicRadius:265, electronConfig:[2,8,18,18,8,1], valence:1, ionCharge:1, ionSymbol:'Cs\u207A', ionicRadius:167, en:0.7, type:'metal' },
+    F:  { z:9, symbol:'F', name:'Fluorine', atomicRadius:64, electronConfig:[2,7], valence:7, needed:1, ionCharge:-1, ionSymbol:'F\u207B', ionicRadius:133, en:4.0, type:'nonmetal' },
+    Cl: { z:17, symbol:'Cl', name:'Chlorine', atomicRadius:99, electronConfig:[2,8,7], valence:7, needed:1, ionCharge:-1, ionSymbol:'Cl\u207B', ionicRadius:181, en:3.0, type:'nonmetal' },
+    Br: { z:35, symbol:'Br', name:'Bromine', atomicRadius:114, electronConfig:[2,8,18,7], valence:7, needed:1, ionCharge:-1, ionSymbol:'Br\u207B', ionicRadius:196, en:2.8, type:'nonmetal' },
+    O:  { z:8, symbol:'O', name:'Oxygen', atomicRadius:66, electronConfig:[2,6], valence:6, needed:2, ionCharge:-2, ionSymbol:'O\u00B2\u207B', ionicRadius:140, en:3.5, type:'nonmetal' },
+    S:  { z:16, symbol:'S', name:'Sulfur', atomicRadius:104, electronConfig:[2,8,6], valence:6, needed:2, ionCharge:-2, ionSymbol:'S\u00B2\u207B', ionicRadius:184, en:2.5, type:'nonmetal' }
+  };
+
+  var NOBLE_GASES = { 2:'He', 10:'Ne', 18:'Ar', 36:'Kr', 54:'Xe' };
+
+  var COMPOUNDS = {
+    NaCl: { id:'NaCl', formula:'NaCl', name:'Sodium chloride', cation:'Na', anion:'Cl', ratio:[1,1], group:'1:1', le:787, mp:801, struct:'NaCl-type', cn:6, sol:36, solClass:'soluble' },
+    LiF:  { id:'LiF', formula:'LiF', name:'Lithium fluoride', cation:'Li', anion:'F', ratio:[1,1], group:'1:1', le:1037, mp:845, struct:'NaCl-type', cn:6, sol:0.13, solClass:'slightly soluble' },
+    KBr:  { id:'KBr', formula:'KBr', name:'Potassium bromide', cation:'K', anion:'Br', ratio:[1,1], group:'1:1', le:689, mp:734, struct:'NaCl-type', cn:6, sol:65, solClass:'soluble' },
+    MgO:  { id:'MgO', formula:'MgO', name:'Magnesium oxide', cation:'Mg', anion:'O', ratio:[1,1], group:'1:1', le:3850, mp:2852, struct:'NaCl-type', cn:6, sol:0.0086, solClass:'insoluble' },
+    CaS:  { id:'CaS', formula:'CaS', name:'Calcium sulfide', cation:'Ca', anion:'S', ratio:[1,1], group:'1:1', le:3119, mp:2524, struct:'NaCl-type', cn:6, sol:0.2, solClass:'slightly soluble' },
+    CaF2: { id:'CaF2', formula:'CaF\u2082', name:'Calcium fluoride', cation:'Ca', anion:'F', ratio:[1,2], group:'1:2', le:2630, mp:1418, struct:'Fluorite', cn:8, sol:0.0016, solClass:'insoluble' },
+    MgCl2:{ id:'MgCl2', formula:'MgCl\u2082', name:'Magnesium chloride', cation:'Mg', anion:'Cl', ratio:[1,2], group:'1:2', le:2523, mp:714, struct:'CdCl\u2082-type', cn:6, sol:54, solClass:'soluble' },
+    BaCl2:{ id:'BaCl2', formula:'BaCl\u2082', name:'Barium chloride', cation:'Ba', anion:'Cl', ratio:[1,2], group:'1:2', le:2056, mp:963, struct:'Fluorite', cn:8, sol:36, solClass:'soluble' },
+    Na2O: { id:'Na2O', formula:'Na\u2082O', name:'Sodium oxide', cation:'Na', anion:'O', ratio:[2,1], group:'2:1', le:2478, mp:1275, struct:'Anti-fluorite', cn:4, sol:null, solClass:'reacts' },
+    K2O:  { id:'K2O', formula:'K\u2082O', name:'Potassium oxide', cation:'K', anion:'O', ratio:[2,1], group:'2:1', le:2232, mp:740, struct:'Anti-fluorite', cn:4, sol:null, solClass:'reacts' },
+    Li2O: { id:'Li2O', formula:'Li\u2082O', name:'Lithium oxide', cation:'Li', anion:'O', ratio:[2,1], group:'2:1', le:2814, mp:1438, struct:'Anti-fluorite', cn:4, sol:null, solClass:'reacts' },
+    Al2O3:{ id:'Al2O3', formula:'Al\u2082O\u2083', name:'Aluminium oxide', cation:'Al', anion:'O', ratio:[2,3], group:'Complex', le:15916, mp:2072, struct:'Corundum', cn:6, sol:0, solClass:'insoluble' },
+    NaF:  { id:'NaF', formula:'NaF', name:'Sodium fluoride', cation:'Na', anion:'F', ratio:[1,1], group:'1:1', le:923, mp:993, struct:'NaCl-type', cn:6, sol:4.1, solClass:'soluble' },
+    NaBr: { id:'NaBr', formula:'NaBr', name:'Sodium bromide', cation:'Na', anion:'Br', ratio:[1,1], group:'1:1', le:747, mp:747, struct:'NaCl-type', cn:6, sol:94, solClass:'soluble' },
+    LiCl: { id:'LiCl', formula:'LiCl', name:'Lithium chloride', cation:'Li', anion:'Cl', ratio:[1,1], group:'1:1', le:852, mp:605, struct:'NaCl-type', cn:6, sol:83, solClass:'soluble' },
+    LiBr: { id:'LiBr', formula:'LiBr', name:'Lithium bromide', cation:'Li', anion:'Br', ratio:[1,1], group:'1:1', le:807, mp:552, struct:'NaCl-type', cn:6, sol:167, solClass:'soluble' },
+    KF:   { id:'KF', formula:'KF', name:'Potassium fluoride', cation:'K', anion:'F', ratio:[1,1], group:'1:1', le:821, mp:858, struct:'NaCl-type', cn:6, sol:92, solClass:'soluble' },
+    KCl:  { id:'KCl', formula:'KCl', name:'Potassium chloride', cation:'K', anion:'Cl', ratio:[1,1], group:'1:1', le:717, mp:770, struct:'NaCl-type', cn:6, sol:34, solClass:'soluble' },
+    CaO:  { id:'CaO', formula:'CaO', name:'Calcium oxide', cation:'Ca', anion:'O', ratio:[1,1], group:'1:1', le:3401, mp:2614, struct:'NaCl-type', cn:6, sol:1.2, solClass:'slightly soluble' },
+    SrO:  { id:'SrO', formula:'SrO', name:'Strontium oxide', cation:'Sr', anion:'O', ratio:[1,1], group:'1:1', le:3223, mp:2531, struct:'NaCl-type', cn:6, sol:0.1, solClass:'slightly soluble' },
+    BaO:  { id:'BaO', formula:'BaO', name:'Barium oxide', cation:'Ba', anion:'O', ratio:[1,1], group:'1:1', le:3054, mp:1923, struct:'NaCl-type', cn:6, sol:3.5, solClass:'soluble' },
+    CsCl: { id:'CsCl', formula:'CsCl', name:'Caesium chloride', cation:'Cs', anion:'Cl', ratio:[1,1], group:'1:1', le:657, mp:645, struct:'CsCl-type', cn:8, sol:186, solClass:'soluble' },
+    MgF2: { id:'MgF2', formula:'MgF\u2082', name:'Magnesium fluoride', cation:'Mg', anion:'F', ratio:[1,2], group:'1:2', le:2957, mp:1261, struct:'Rutile', cn:6, sol:0.013, solClass:'insoluble' }
+  };
+
+  var LATTICE_GROUPS = {
+    'Group 1 halides': ['LiF','LiCl','LiBr','NaF','NaCl','NaBr','KF','KCl','KBr'],
+    'Group 2 oxides': ['MgO','CaO','SrO','BaO'],
+    'Charge comparison': ['NaCl','MgO','Al2O3']
+  };
+
+  var COMPARISONS = {
+    diamond: { name:'Diamond (covalent network)', mp:3550, type:'covalent' },
+    ice:     { name:'Ice (molecular)', mp:0, type:'molecular' }
+  };
+
+  // ═══════════════════════════════════════════════════
+  // STATE
+  // ═══════════════════════════════════════════════════
+  var _activeTab = 'transfer';
+  var _selectedCompound = 'NaCl';
+  // Tab 1
+  var _transferMode = 'step'; // 'auto' or 'step'
+  var _transferStep = 0;
+  var _transferAnimT = 0;
+  var _transferInterval = null;
+  var _transferPaused = false;
+  // Tab 2
+  var _latticeMode = 'auto';
+  var _latticeGridSize = 3;
+  var _latticeHighlight = true;
+  var _latticeSelectedIon = null;
+  var _latticeBuildT = 0;
+  var _latticeBuildInterval = null;
+  // Tab 3
+  var _propsProperty = 'conductivity';
+  var _condState = 'solid';
+  var _condParticles = [];
+  var _condInterval = null;
+  // Tab 4
+  var _leGroup = 'Group 1 halides';
+  var _leCharge = 1;
+  var _leSep = 200;
+  var _challengeMode = false;
+  var _challengeScore = 0;
+  var _challengeTotal = 0;
+  var _challengePair = null;
+  var _challengeGuess = null;
+
+  var paletteSearch = document.getElementById('paletteSearch');
+  var paletteList = document.getElementById('paletteList');
+  var presetSelect = document.getElementById('presetSelect');
+
+  // ═══════════════════════════════════════════════════
+  // TAB SWITCHING
+  // ═══════════════════════════════════════════════════
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabContents = document.querySelectorAll('.tab-content');
+
+  function switchTab(tabId) {
+    if (tabId === 'latticeEnergy' && !document.body.classList.contains('hl-active')) return;
+    stopAllAnimations();
+    _activeTab = tabId;
+    for (var i = 0; i < tabBtns.length; i++) {
+      tabBtns[i].classList.toggle('active', tabBtns[i].getAttribute('data-tab') === tabId);
+    }
+    for (var j = 0; j < tabContents.length; j++) {
+      tabContents[j].classList.toggle('active', tabContents[j].id === 'tab-' + tabId);
+    }
+    buildPalette();
+    refreshTab();
+  }
+
+  for (var i = 0; i < tabBtns.length; i++) {
+    tabBtns[i].addEventListener('click', function() { switchTab(this.getAttribute('data-tab')); });
+  }
+
+  function stopAllAnimations() {
+    if (_transferInterval) { clearInterval(_transferInterval); _transferInterval = null; }
+    if (_latticeBuildInterval) { clearInterval(_latticeBuildInterval); _latticeBuildInterval = null; }
+    if (_condInterval) { clearInterval(_condInterval); _condInterval = null; }
+  }
+
+  function refreshTab() {
+    setTimeout(function() {
+      if (_activeTab === 'transfer') renderTransferTab();
+      else if (_activeTab === 'lattice') renderLatticeTab();
+      else if (_activeTab === 'properties') renderPropertiesTab();
+      else if (_activeTab === 'latticeEnergy') renderLatticeEnergyTab();
+    }, 20);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // PALETTE
+  // ═══════════════════════════════════════════════════
+  function buildPalette() {
+    paletteList.textContent = '';
+    var filter = paletteSearch.value.toLowerCase();
+    updatePresets();
+
+    if (_activeTab === 'transfer') {
+      document.getElementById('paletteHeader').textContent = 'Compounds';
+      var groups = { '1:1':[], '1:2':[], '2:1':[], 'Complex':[] };
+      var transferCompounds = ['NaCl','LiF','KBr','MgO','CaS','CaF2','MgCl2','BaCl2','MgF2','Na2O','K2O','Li2O','Al2O3'];
+      for (var i = 0; i < transferCompounds.length; i++) {
+        var c = COMPOUNDS[transferCompounds[i]];
+        if (filter && c.name.toLowerCase().indexOf(filter) < 0 && c.formula.toLowerCase().indexOf(filter) < 0) continue;
+        if (groups[c.group]) groups[c.group].push(c);
+      }
+      var catOrder = ['1:1','1:2','2:1','Complex'];
+      for (var g = 0; g < catOrder.length; g++) {
+        var items = groups[catOrder[g]];
+        if (items.length === 0) continue;
+        paletteList.appendChild(el('div', 'palette-category', catOrder[g]));
+        for (var j = 0; j < items.length; j++) {
+          var btn = el('button', 'palette-item' + (items[j].id === _selectedCompound ? ' active' : ''), items[j].formula + ' — ' + items[j].name);
+          btn.setAttribute('data-id', items[j].id);
+          btn.addEventListener('click', function() {
+            _selectedCompound = this.getAttribute('data-id');
+            _transferStep = 0; _transferAnimT = 0;
+            stopAllAnimations();
+            buildPalette(); refreshTab();
+          });
+          paletteList.appendChild(btn);
+        }
+      }
+    } else if (_activeTab === 'lattice') {
+      document.getElementById('paletteHeader').textContent = 'Lattice';
+      var latticeCompounds = ['NaCl','MgO','CsCl','LiF','KBr','CaO'];
+      var catLabel = el('div', 'palette-category', 'Compounds');
+      paletteList.appendChild(catLabel);
+      for (var k = 0; k < latticeCompounds.length; k++) {
+        var lc = COMPOUNDS[latticeCompounds[k]];
+        if (filter && lc.name.toLowerCase().indexOf(filter) < 0 && lc.formula.toLowerCase().indexOf(filter) < 0) continue;
+        var lbtn = el('button', 'palette-item' + (lc.id === _selectedCompound ? ' active' : ''), lc.formula);
+        lbtn.setAttribute('data-id', lc.id);
+        lbtn.addEventListener('click', function() {
+          _selectedCompound = this.getAttribute('data-id');
+          _latticeSelectedIon = null; _latticeBuildT = 0;
+          stopAllAnimations();
+          buildPalette(); refreshTab();
+        });
+        paletteList.appendChild(lbtn);
+      }
+      // Controls
+      var ctrlLabel = el('div', 'palette-category', 'Controls');
+      paletteList.appendChild(ctrlLabel);
+
+      var modeDiv = el('div', '');
+      modeDiv.style.cssText = 'display:flex;gap:4px;margin:4px 0;';
+      var autoBtn = el('button', 'mode-btn' + (_latticeMode === 'auto' ? ' active' : ''), 'Auto-build');
+      autoBtn.addEventListener('click', function() { _latticeMode = 'auto'; _latticeBuildT = 0; buildPalette(); refreshTab(); });
+      var placeBtn = el('button', 'mode-btn' + (_latticeMode === 'place' ? ' active' : ''), 'Place ions');
+      placeBtn.addEventListener('click', function() { _latticeMode = 'place'; _latticeBuildT = 0; buildPalette(); refreshTab(); });
+      modeDiv.appendChild(autoBtn);
+      modeDiv.appendChild(placeBtn);
+      paletteList.appendChild(modeDiv);
+
+      var sizeDiv = el('div', 'slider-group');
+      var sizeLabel = el('div', 'slider-label');
+      sizeLabel.appendChild(el('span', '', 'Grid size'));
+      var sizeVal = el('span', 'slider-value', _latticeGridSize + '\u00B3');
+      sizeLabel.appendChild(sizeVal);
+      sizeDiv.appendChild(sizeLabel);
+      var sizeInput = document.createElement('input');
+      sizeInput.type = 'range'; sizeInput.min = '2'; sizeInput.max = '5'; sizeInput.value = _latticeGridSize; sizeInput.step = '1';
+      sizeInput.style.width = '100%';
+      sizeInput.addEventListener('input', function() {
+        _latticeGridSize = parseInt(this.value); _latticeBuildT = 0; _latticeSelectedIon = null;
+        sizeVal.textContent = _latticeGridSize + '\u00B3';
+        stopAllAnimations(); refreshTab();
+      });
+      sizeDiv.appendChild(sizeInput);
+      paletteList.appendChild(sizeDiv);
+    } else if (_activeTab === 'properties') {
+      document.getElementById('paletteHeader').textContent = 'Properties';
+      var propCompounds = ['NaCl','LiF','KBr','MgO','CaF2','Na2O','MgCl2'];
+      paletteList.appendChild(el('div', 'palette-category', 'Ionic Compounds'));
+      for (var p = 0; p < propCompounds.length; p++) {
+        var pc = COMPOUNDS[propCompounds[p]];
+        if (filter && pc.name.toLowerCase().indexOf(filter) < 0) continue;
+        var pbtn = el('button', 'palette-item' + (pc.id === _selectedCompound ? ' active' : ''), pc.formula + ' — ' + pc.name);
+        pbtn.setAttribute('data-id', pc.id);
+        pbtn.addEventListener('click', function() {
+          _selectedCompound = this.getAttribute('data-id');
+          buildPalette(); refreshTab();
+        });
+        paletteList.appendChild(pbtn);
+      }
+      // Property selector
+      paletteList.appendChild(el('div', 'palette-category', 'Property'));
+      var props = [['conductivity','Conductivity'],['meltingPoint','Melting Point'],['solubility','Solubility']];
+      for (var pp = 0; pp < props.length; pp++) {
+        var propBtn = el('button', 'mode-btn' + (_propsProperty === props[pp][0] ? ' active' : ''), props[pp][1]);
+        propBtn.setAttribute('data-prop', props[pp][0]);
+        propBtn.style.cssText = 'display:block;width:100%;margin:3px 0;';
+        propBtn.addEventListener('click', function() {
+          _propsProperty = this.getAttribute('data-prop');
+          stopAllAnimations();
+          buildPalette(); refreshTab();
+        });
+        paletteList.appendChild(propBtn);
+      }
+    } else if (_activeTab === 'latticeEnergy') {
+      document.getElementById('paletteHeader').textContent = 'Lattice Energy';
+      var groupNames = Object.keys(LATTICE_GROUPS);
+      paletteList.appendChild(el('div', 'palette-category', 'Compound Groups'));
+      for (var lg = 0; lg < groupNames.length; lg++) {
+        var gBtn = el('button', 'palette-item' + (_leGroup === groupNames[lg] ? ' active' : ''), groupNames[lg]);
+        gBtn.setAttribute('data-group', groupNames[lg]);
+        gBtn.addEventListener('click', function() {
+          _leGroup = this.getAttribute('data-group');
+          buildPalette(); refreshTab();
+        });
+        paletteList.appendChild(gBtn);
+      }
+      // Challenge toggle
+      paletteList.appendChild(el('div', 'palette-category', 'Mode'));
+      var challBtn = el('button', 'mode-btn' + (_challengeMode ? ' active' : ''), _challengeMode ? 'Challenge: ON' : 'Challenge: OFF');
+      challBtn.style.cssText = 'display:block;width:100%;margin:3px 0;';
+      challBtn.addEventListener('click', function() {
+        _challengeMode = !_challengeMode;
+        _challengeScore = 0; _challengeTotal = 0; _challengeGuess = null;
+        generateChallengePair();
+        buildPalette(); refreshTab();
+      });
+      paletteList.appendChild(challBtn);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // PRESETS
+  // ═══════════════════════════════════════════════════
+  function updatePresets() {
+    presetSelect.textContent = '';
+    var def = document.createElement('option');
+    def.value = ''; def.textContent = 'Teacher Presets...';
+    presetSelect.appendChild(def);
+
+    var presets = [];
+    if (_activeTab === 'transfer') {
+      presets = [{ name:'NaCl step-by-step', value:'NaCl_step' }, { name:'MgO 2+ charge', value:'MgO_step' }, { name:'Na\u2082O multi-atom', value:'Na2O_step' }];
+    } else if (_activeTab === 'lattice') {
+      presets = [{ name:'NaCl coordination', value:'NaCl_coord' }, { name:'CsCl comparison', value:'CsCl_coord' }];
+    } else if (_activeTab === 'properties') {
+      presets = [{ name:'Conductivity demo', value:'cond_demo' }, { name:'Melting point trends', value:'mp_trends' }];
+    } else if (_activeTab === 'latticeEnergy') {
+      presets = [{ name:'Group 1 halide trends', value:'g1_trends' }, { name:'Charge effect', value:'charge_fx' }];
+    }
+    for (var i = 0; i < presets.length; i++) {
+      var o = document.createElement('option');
+      o.value = presets[i].value; o.textContent = presets[i].name;
+      presetSelect.appendChild(o);
+    }
+  }
+
+  presetSelect.addEventListener('change', function() {
+    var val = this.value;
+    if (!val) return;
+    if (val === 'NaCl_step') { _selectedCompound = 'NaCl'; _transferMode = 'step'; _transferStep = 0; }
+    else if (val === 'MgO_step') { _selectedCompound = 'MgO'; _transferMode = 'step'; _transferStep = 0; }
+    else if (val === 'Na2O_step') { _selectedCompound = 'Na2O'; _transferMode = 'step'; _transferStep = 0; }
+    else if (val === 'NaCl_coord') { _selectedCompound = 'NaCl'; _latticeHighlight = true; _latticeMode = 'auto'; }
+    else if (val === 'CsCl_coord') { _selectedCompound = 'CsCl'; _latticeHighlight = true; _latticeMode = 'auto'; }
+    else if (val === 'cond_demo') { _selectedCompound = 'NaCl'; _propsProperty = 'conductivity'; }
+    else if (val === 'mp_trends') { _propsProperty = 'meltingPoint'; }
+    else if (val === 'g1_trends') { _leGroup = 'Group 1 halides'; _challengeMode = false; }
+    else if (val === 'charge_fx') { _leGroup = 'Charge comparison'; _challengeMode = false; }
+    stopAllAnimations();
+    buildPalette(); refreshTab();
+  });
+
+  paletteSearch.addEventListener('input', function() { buildPalette(); });
+
+  // ═══════════════════════════════════════════════════
+  // TAB 1: ELECTRON TRANSFER
+  // ═══════════════════════════════════════════════════
+  function renderTransferTab() {
+    var body = document.getElementById('transferBody');
+    body.textContent = '';
+    var comp = COMPOUNDS[_selectedCompound];
+    if (!comp || !ELEMENTS[comp.cation]) {
+      body.appendChild(el('p', '', 'Select a compound from the palette.'));
+      return;
+    }
+
+    var cat = ELEMENTS[comp.cation];
+    var an = ELEMENTS[comp.anion];
+
+    // Mode toggle
+    var modeRow = el('div', '');
+    modeRow.style.cssText = 'display:flex;gap:8px;margin-bottom:12px;align-items:center;';
+    var autoBtn = el('button', 'mode-btn' + (_transferMode === 'auto' ? ' active' : ''), 'Auto-play');
+    autoBtn.addEventListener('click', function() { _transferMode = 'auto'; _transferStep = 0; _transferAnimT = 0; stopAllAnimations(); buildPalette(); renderTransferTab(); });
+    var stepBtn = el('button', 'mode-btn' + (_transferMode === 'step' ? ' active' : ''), 'Step-by-step');
+    stepBtn.addEventListener('click', function() { _transferMode = 'step'; _transferStep = 0; _transferAnimT = 0; stopAllAnimations(); buildPalette(); renderTransferTab(); });
+    modeRow.appendChild(autoBtn);
+    modeRow.appendChild(stepBtn);
+    body.appendChild(modeRow);
+
+    // Step indicator / controls
+    var stepNames = ['Show atoms', 'Highlight valence', 'Transfer electrons', 'Show ions', 'Ionic formula'];
+    if (_transferMode === 'step') {
+      var stepDiv = el('div', 'step-indicator', 'Step ' + (_transferStep + 1) + '/5: ' + stepNames[_transferStep]);
+      body.appendChild(stepDiv);
+
+      var ctrlRow = el('div', '');
+      ctrlRow.style.cssText = 'display:flex;gap:8px;margin-bottom:12px;';
+      if (_transferStep < 4) {
+        var nextBtn = el('button', 'check-btn', 'Next Step \u2192');
+        nextBtn.style.marginTop = '0';
+        nextBtn.addEventListener('click', function() { advanceTransferStep(); });
+        ctrlRow.appendChild(nextBtn);
+      }
+      if (_transferStep > 0) {
+        var resetBtn = el('button', 'check-btn', 'Reset');
+        resetBtn.style.cssText = 'margin-top:0;background:var(--text-muted);';
+        resetBtn.addEventListener('click', function() { _transferStep = 0; _transferAnimT = 0; stopAllAnimations(); renderTransferTab(); });
+        ctrlRow.appendChild(resetBtn);
+      }
+      body.appendChild(ctrlRow);
+    } else {
+      var autoCtrl = el('div', '');
+      autoCtrl.style.cssText = 'display:flex;gap:8px;margin-bottom:12px;';
+      var playBtn = el('button', 'check-btn', _transferInterval ? 'Pause' : 'Play');
+      playBtn.style.marginTop = '0';
+      playBtn.addEventListener('click', function() {
+        if (_transferInterval) { stopAllAnimations(); _transferPaused = true; renderTransferTab(); }
+        else { startAutoTransfer(); }
+      });
+      autoCtrl.appendChild(playBtn);
+      var arBtn = el('button', 'check-btn', 'Restart');
+      arBtn.style.cssText = 'margin-top:0;background:var(--text-muted);';
+      arBtn.addEventListener('click', function() { _transferStep = 0; _transferAnimT = 0; stopAllAnimations(); startAutoTransfer(); });
+      autoCtrl.appendChild(arBtn);
+      body.appendChild(autoCtrl);
+    }
+
+    // Transfer canvas
+    var transferCard = el('div', 'sim-card');
+    transferCard.style.marginBottom = '1rem';
+    var tHeader = el('div', 'sim-card-header', 'Electron Transfer — ' + comp.formula);
+    transferCard.appendChild(tHeader);
+    var tBody = el('div', 'sim-card-body');
+    tBody.style.padding = '0.5rem';
+    var canvas = document.createElement('canvas');
+    canvas.className = 'sim-canvas';
+    canvas.setAttribute('height', '380');
+    canvas.setAttribute('role', 'img');
+    canvas.setAttribute('aria-label', 'Electron transfer animation for ' + comp.formula);
+    tBody.appendChild(canvas);
+    transferCard.appendChild(tBody);
+    body.appendChild(transferCard);
+
+    setTimeout(function() { drawTransferCanvas(canvas); }, 30);
+
+    // Radius comparison bar chart
+    var radCard = el('div', 'sim-card');
+    radCard.style.marginBottom = '1rem';
+    radCard.appendChild(el('div', 'sim-card-header', 'Atomic vs Ionic Radius'));
+    var radBody = el('div', 'sim-card-body');
+    radBody.style.padding = '0.5rem';
+    var radCanvas = document.createElement('canvas');
+    radCanvas.className = 'sim-canvas';
+    radCanvas.setAttribute('height', '180');
+    radCanvas.setAttribute('role', 'img');
+    radCanvas.setAttribute('aria-label', 'Radius comparison bar chart');
+    radBody.appendChild(radCanvas);
+    radCard.appendChild(radBody);
+    body.appendChild(radCard);
+
+    setTimeout(function() { drawRadiusChart(radCanvas); }, 30);
+
+    // Electron config card
+    var configCard = el('div', 'sim-card');
+    configCard.appendChild(el('div', 'sim-card-header', 'Electron Configuration'));
+    var configBody = el('div', 'sim-card-body');
+
+    var catIonElectrons = totalElectrons(cat) - cat.ionCharge;
+    var anIonElectrons = totalElectrons(an) + Math.abs(an.ionCharge);
+    var catNoble = NOBLE_GASES[catIonElectrons] || '';
+    var anNoble = NOBLE_GASES[anIonElectrons] || '';
+
+    // Cation config
+    var r1 = el('div', 'config-row');
+    r1.appendChild(el('span', 'config-before', cat.symbol + ': ' + cat.electronConfig.join(',')));
+    r1.appendChild(el('span', 'config-arrow', '\u2192'));
+    var ionConfig = removeValence(cat.electronConfig, cat.ionCharge);
+    r1.appendChild(el('span', 'config-after', cat.ionSymbol + ': ' + ionConfig.join(',')));
+    if (catNoble) r1.appendChild(el('span', '', ' (isoelectronic with ' + catNoble + ')'));
+    configBody.appendChild(r1);
+
+    // Anion config
+    var r2 = el('div', 'config-row');
+    r2.appendChild(el('span', 'config-before', an.symbol + ': ' + an.electronConfig.join(',')));
+    r2.appendChild(el('span', 'config-arrow', '\u2192'));
+    var anIonConfig = addElectrons(an.electronConfig, Math.abs(an.ionCharge));
+    r2.appendChild(el('span', 'config-after', an.ionSymbol + ': ' + anIonConfig.join(',')));
+    if (anNoble) r2.appendChild(el('span', '', ' (isoelectronic with ' + anNoble + ')'));
+    configBody.appendChild(r2);
+
+    configCard.appendChild(configBody);
+    body.appendChild(configCard);
+
+    // HL: Polarization card
+    var hlCard = el('div', 'hl-panel');
+    var polCard = el('div', 'hl-card');
+    polCard.appendChild(el('div', 'hl-card-title', 'HL — Polarization & Fajans\' Rules'));
+    var chargeDensity = cat.ionCharge / (cat.ionicRadius * cat.ionicRadius);
+    var polText = 'Charge density of ' + cat.ionSymbol + ': q/r\u00B2 = ' + cat.ionCharge + '/' + cat.ionicRadius + '\u00B2 = ' + round(chargeDensity * 10000, 2) + ' (relative)';
+    polCard.appendChild(el('p', '', polText));
+    polCard.style.fontSize = '0.78rem';
+    var polRules = el('div', '');
+    polRules.style.cssText = 'font-size:0.75rem;margin-top:0.5rem;line-height:1.7;';
+    polRules.appendChild(el('div', '', '\u2022 Small, highly charged cation \u2192 high charge density \u2192 more polarizing'));
+    polRules.appendChild(el('div', '', '\u2022 Large anion with many electrons \u2192 more polarizable'));
+    polRules.appendChild(el('div', '', '\u2022 Greater polarization \u2192 more covalent character'));
+    polCard.appendChild(polRules);
+    hlCard.appendChild(polCard);
+    body.appendChild(hlCard);
+  }
+
+  function totalElectrons(elem) { var s = 0; for (var i = 0; i < elem.electronConfig.length; i++) s += elem.electronConfig[i]; return s; }
+  function removeValence(config, n) { var c = config.slice(); var rem = n; while (rem > 0 && c.length > 0) { var last = c[c.length - 1]; if (last <= rem) { rem -= last; c.pop(); } else { c[c.length - 1] -= rem; rem = 0; } } return c; }
+  function addElectrons(config, n) { var c = config.slice(); c[c.length - 1] += n; return c; }
+
+  function advanceTransferStep() {
+    if (_transferStep < 4) {
+      _transferStep++;
+      _transferAnimT = 0;
+      if (_transferStep === 2) {
+        // Start bezier animation
+        _transferInterval = setInterval(function() {
+          _transferAnimT += 0.025;
+          if (_transferAnimT >= 1) { _transferAnimT = 1; clearInterval(_transferInterval); _transferInterval = null; }
+          var canvas = document.querySelector('#tab-transfer canvas');
+          if (canvas) drawTransferCanvas(canvas);
+        }, 33);
+      } else if (_transferStep === 3) {
+        // Start resize animation
+        _transferAnimT = 0;
+        _transferInterval = setInterval(function() {
+          _transferAnimT += 0.03;
+          if (_transferAnimT >= 1) { _transferAnimT = 1; clearInterval(_transferInterval); _transferInterval = null; }
+          var canvas = document.querySelector('#tab-transfer canvas');
+          if (canvas) drawTransferCanvas(canvas);
+        }, 33);
+      }
+      renderTransferTab();
+    }
+  }
+
+  function startAutoTransfer() {
+    _transferStep = 0; _transferAnimT = 0; _transferPaused = false;
+    var stageFrames = [30, 30, 40, 30, 30]; // frames per stage
+    var frame = 0;
+    var stageStart = 0;
+    _transferInterval = setInterval(function() {
+      frame++;
+      var elapsed = frame - stageStart;
+      _transferAnimT = Math.min(elapsed / stageFrames[_transferStep], 1);
+      if (_transferAnimT >= 1 && _transferStep < 4) {
+        _transferStep++;
+        stageStart = frame;
+        _transferAnimT = 0;
+      }
+      var canvas = document.querySelector('#tab-transfer canvas');
+      if (canvas) drawTransferCanvas(canvas);
+      if (_transferStep >= 4 && _transferAnimT >= 1) {
+        clearInterval(_transferInterval); _transferInterval = null;
+        renderTransferTab();
+      }
+    }, 33);
+    renderTransferTab();
+  }
+
+  function drawTransferCanvas(canvas) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var comp = COMPOUNDS[_selectedCompound];
+    if (!comp || !ELEMENTS[comp.cation]) return;
+    var cat = ELEMENTS[comp.cation];
+    var an = ELEMENTS[comp.anion];
+
+    var numCat = comp.ratio[0];
+    var numAn = comp.ratio[1];
+    var scale = 0.55;
+    var maxShells = Math.max(cat.electronConfig.length, an.electronConfig.length);
+    var atomSize = Math.min(70, (h * 0.35) / maxShells);
+
+    // Position atoms
+    var catPositions = [];
+    var anPositions = [];
+    var leftCenter = w * 0.3;
+    var rightCenter = w * 0.7;
+
+    for (var ci = 0; ci < numCat; ci++) {
+      var cy = h / 2 + (ci - (numCat - 1) / 2) * (atomSize * 2.5);
+      catPositions.push({ x: leftCenter, y: cy });
+    }
+    for (var ai = 0; ai < numAn; ai++) {
+      var ay = h / 2 + (ai - (numAn - 1) / 2) * (atomSize * 2.5);
+      anPositions.push({ x: rightCenter, y: ay });
+    }
+
+    // Determine display state based on step
+    var showShells = true;
+    var highlightValence = _transferStep >= 1;
+    var transferProgress = _transferStep === 2 ? _transferAnimT : (_transferStep > 2 ? 1 : 0);
+    var resizeProgress = _transferStep === 3 ? _transferAnimT : (_transferStep > 3 ? 1 : 0);
+    var showFormula = _transferStep >= 4;
+
+    // Draw each atom/ion
+    for (var c = 0; c < catPositions.length; c++) {
+      drawAtom(ctx, catPositions[c].x, catPositions[c].y, cat, atomSize, true,
+        highlightValence, transferProgress, resizeProgress, showFormula);
+    }
+    for (var a = 0; a < anPositions.length; a++) {
+      drawAtom(ctx, anPositions[a].x, anPositions[a].y, an, atomSize, false,
+        highlightValence, transferProgress, resizeProgress, showFormula);
+    }
+
+    // Transfer animation: draw flying electrons
+    if (_transferStep === 2 && _transferAnimT < 1) {
+      for (var ci2 = 0; ci2 < catPositions.length; ci2++) {
+        var cp = catPositions[ci2];
+        // Find target anion (distribute evenly)
+        var targetAn = anPositions[Math.min(ci2, anPositions.length - 1)];
+        var numTransfer = cat.ionCharge;
+        for (var e = 0; e < numTransfer; e++) {
+          var angle = (e / numTransfer) * Math.PI * 2 - Math.PI / 2;
+          var startX = cp.x + Math.cos(angle) * atomSize * cat.electronConfig.length * 0.45;
+          var startY = cp.y + Math.sin(angle) * atomSize * cat.electronConfig.length * 0.45;
+          var endX = targetAn.x;
+          var endY = targetAn.y - atomSize * an.electronConfig.length * 0.45;
+          var ctrlX = (startX + endX) / 2;
+          var ctrlY = Math.min(startY, endY) - 50;
+          var t = _transferAnimT;
+          var bx = (1 - t) * (1 - t) * startX + 2 * (1 - t) * t * ctrlX + t * t * endX;
+          var by = (1 - t) * (1 - t) * startY + 2 * (1 - t) * t * ctrlY + t * t * endY;
+          ctx.beginPath();
+          ctx.arc(bx, by, 5, 0, Math.PI * 2);
+          ctx.fillStyle = '#D97706';
+          ctx.fill();
+          ctx.strokeStyle = '#92400E';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Electrostatic attraction arrow (step 4)
+    if (showFormula) {
+      ctx.setLineDash([5, 5]);
+      ctx.strokeStyle = '#DC2626';
+      ctx.lineWidth = 2;
+      for (var fi = 0; fi < Math.min(catPositions.length, anPositions.length); fi++) {
+        ctx.beginPath();
+        ctx.moveTo(catPositions[fi].x + 30, catPositions[fi].y);
+        ctx.lineTo(anPositions[fi].x - 30, anPositions[fi].y);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+
+      // Formula text
+      ctx.fillStyle = '#1E293B';
+      ctx.font = 'bold 16px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Ionic compound: ' + comp.formula, w / 2, h - 20);
+    }
+
+    // Labels
+    ctx.font = '12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = '#64748B';
+    if (_transferStep <= 2) {
+      for (var cl = 0; cl < catPositions.length; cl++) {
+        ctx.fillText(cat.symbol + ' (' + cat.electronConfig.join(',') + ')', catPositions[cl].x, catPositions[cl].y + atomSize * maxShells * 0.55 + 20);
+      }
+      for (var al = 0; al < anPositions.length; al++) {
+        ctx.fillText(an.symbol + ' (' + an.electronConfig.join(',') + ')', anPositions[al].x, anPositions[al].y + atomSize * maxShells * 0.55 + 20);
+      }
+    } else {
+      var catIonCfg = removeValence(cat.electronConfig, cat.ionCharge);
+      var anIonCfg = addElectrons(an.electronConfig, Math.abs(an.ionCharge));
+      for (var cl2 = 0; cl2 < catPositions.length; cl2++) {
+        ctx.fillText(cat.ionSymbol + ' (' + catIonCfg.join(',') + ')', catPositions[cl2].x, catPositions[cl2].y + atomSize * maxShells * 0.55 + 20);
+      }
+      for (var al2 = 0; al2 < anPositions.length; al2++) {
+        ctx.fillText(an.ionSymbol + ' (' + anIonCfg.join(',') + ')', anPositions[al2].x, anPositions[al2].y + atomSize * maxShells * 0.55 + 20);
+      }
+    }
+  }
+
+  function drawAtom(ctx, cx, cy, elem, baseSize, isMetal, highlightValence, transferProg, resizeProg, showCharge) {
+    var config = elem.electronConfig;
+    var nShells = config.length;
+    var color = isMetal ? '#D97706' : '#0D9488';
+    var lightColor = isMetal ? '#FEF3C7' : '#CCFBF1';
+
+    // If post-transfer, modify display
+    var displayConfig = config.slice();
+    if (transferProg >= 1) {
+      if (isMetal) displayConfig = removeValence(config, elem.ionCharge);
+      else displayConfig = addElectrons(config, Math.abs(elem.ionCharge));
+    }
+
+    // Size interpolation for resize step
+    var displayRadius = baseSize;
+    if (resizeProg > 0) {
+      var atomR = elem.atomicRadius;
+      var ionR = elem.ionicRadius;
+      var factor = atomR + (ionR - atomR) * resizeProg;
+      displayRadius = baseSize * (factor / atomR);
+    }
+
+    var displayShells = displayConfig.length;
+
+    // Draw shells
+    for (var s = 0; s < displayShells; s++) {
+      var r = displayRadius * (s + 1) / displayShells * 0.9;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = 0.4;
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    }
+
+    // Nucleus
+    ctx.beginPath();
+    ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.fillStyle = 'white';
+    ctx.font = 'bold 8px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(elem.symbol, cx, cy);
+    ctx.textBaseline = 'alphabetic';
+
+    // Electrons on shells
+    for (var s2 = 0; s2 < displayShells; s2++) {
+      var shellR = displayRadius * (s2 + 1) / displayShells * 0.9;
+      var numE = displayConfig[s2];
+      var isValenceShell = (s2 === displayShells - 1);
+      // During transfer, don't draw valence electrons on metal (they're flying)
+      if (isMetal && isValenceShell && transferProg > 0 && transferProg < 1) continue;
+
+      for (var e = 0; e < numE; e++) {
+        var angle = (e / Math.max(numE, 1)) * Math.PI * 2 - Math.PI / 2;
+        var ex = cx + Math.cos(angle) * shellR;
+        var ey = cy + Math.sin(angle) * shellR;
+
+        ctx.beginPath();
+        ctx.arc(ex, ey, 4, 0, Math.PI * 2);
+
+        if (highlightValence && isValenceShell && transferProg === 0) {
+          // Pulsing glow
+          var glow = 0.5 + 0.5 * Math.sin(Date.now() / 200);
+          ctx.fillStyle = isMetal ? 'rgba(217,119,6,' + glow + ')' : 'rgba(13,148,136,' + glow + ')';
+          ctx.shadowColor = isMetal ? '#D97706' : '#0D9488';
+          ctx.shadowBlur = 8;
+        } else {
+          ctx.fillStyle = isValenceShell ? color : '#64748B';
+          ctx.shadowBlur = 0;
+        }
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    // Charge label (during resize and after)
+    if (resizeProg > 0) {
+      ctx.globalAlpha = resizeProg;
+      ctx.font = 'bold 18px Fira Code, monospace';
+      ctx.fillStyle = isMetal ? '#DC2626' : '#2563EB';
+      ctx.textAlign = 'center';
+      var chargeText = isMetal ? (elem.ionCharge + '+') : (Math.abs(elem.ionCharge) + '\u2212');
+      if (elem.ionCharge === 1 || elem.ionCharge === -1) chargeText = isMetal ? '+' : '\u2212';
+      ctx.fillText(chargeText, cx, cy - displayRadius * 0.9 - 12);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  function drawRadiusChart(canvas) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var comp = COMPOUNDS[_selectedCompound];
+    if (!comp || !ELEMENTS[comp.cation]) return;
+    var cat = ELEMENTS[comp.cation];
+    var an = ELEMENTS[comp.anion];
+
+    var data = [
+      { label: cat.symbol, value: cat.atomicRadius, color: '#D97706' },
+      { label: cat.ionSymbol, value: cat.ionicRadius, color: '#F59E0B' },
+      { label: an.symbol, value: an.atomicRadius, color: '#0D9488' },
+      { label: an.ionSymbol, value: an.ionicRadius, color: '#14B8A6' }
+    ];
+
+    var maxVal = 0;
+    for (var i = 0; i < data.length; i++) if (data[i].value > maxVal) maxVal = data[i].value;
+
+    var pad = { left: 60, right: 20, top: 25, bottom: 40 };
+    var plotW = w - pad.left - pad.right;
+    var plotH = h - pad.top - pad.bottom;
+    var barW = plotW / data.length * 0.6;
+    var gap = plotW / data.length;
+
+    // Y-axis
+    ctx.strokeStyle = '#E2E8F0';
+    ctx.lineWidth = 1;
+    ctx.fillStyle = '#64748B';
+    ctx.font = '10px Fira Code, monospace';
+    ctx.textAlign = 'right';
+    for (var y = 0; y <= 4; y++) {
+      var yVal = (maxVal * 1.1) * y / 4;
+      var yPos = pad.top + plotH - (plotH * y / 4);
+      ctx.beginPath();
+      ctx.moveTo(pad.left, yPos);
+      ctx.lineTo(w - pad.right, yPos);
+      ctx.stroke();
+      ctx.fillText(Math.round(yVal) + '', pad.left - 5, yPos + 3);
+    }
+
+    // Bars
+    for (var b = 0; b < data.length; b++) {
+      var bx = pad.left + b * gap + (gap - barW) / 2;
+      var bh = (data[b].value / (maxVal * 1.1)) * plotH;
+      var by = pad.top + plotH - bh;
+
+      ctx.fillStyle = data[b].color;
+      ctx.beginPath();
+      ctx.roundRect(bx, by, barW, bh, [4, 4, 0, 0]);
+      ctx.fill();
+
+      // Value label
+      ctx.fillStyle = '#1E293B';
+      ctx.font = 'bold 11px Fira Code, monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(data[b].value + ' pm', bx + barW / 2, by - 6);
+
+      // X-axis label
+      ctx.fillStyle = '#64748B';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(data[b].label, bx + barW / 2, pad.top + plotH + 18);
+    }
+
+    // Annotations
+    ctx.fillStyle = '#64748B';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Cation shrinks (lost shell)', pad.left + gap, h - 4);
+    ctx.fillText('Anion grows (added electrons)', pad.left + gap * 3, h - 4);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 2: CRYSTAL LATTICE
+  // ═══════════════════════════════════════════════════
+  function renderLatticeTab() {
+    var body = document.getElementById('latticeBody');
+    body.textContent = '';
+    var comp = COMPOUNDS[_selectedCompound];
+    if (!comp) { body.appendChild(el('p', '', 'Select a compound.')); return; }
+
+    // Lattice canvas
+    var latticeCard = el('div', 'sim-card');
+    latticeCard.style.marginBottom = '1rem';
+    latticeCard.appendChild(el('div', 'sim-card-header', 'Crystal Lattice — ' + comp.formula));
+    var lcBody = el('div', 'sim-card-body');
+    lcBody.style.padding = '0.5rem';
+    var lCanvas = document.createElement('canvas');
+    lCanvas.className = 'sim-canvas sim-canvas-dark';
+    lCanvas.setAttribute('height', '420');
+    lCanvas.id = 'latticeCanvas';
+    lCanvas.setAttribute('role', 'img');
+    lCanvas.setAttribute('aria-label', 'Crystal lattice of ' + comp.formula);
+    lcBody.appendChild(lCanvas);
+    latticeCard.appendChild(lcBody);
+    body.appendChild(latticeCard);
+
+    // Lattice info card
+    var infoCard = el('div', 'sim-card');
+    infoCard.appendChild(el('div', 'sim-card-header', 'Lattice Information'));
+    var infoBody = el('div', 'sim-card-body');
+
+    var catEl = ELEMENTS[comp.cation];
+    var anEl = ELEMENTS[comp.anion];
+    var rRatio = catEl ? round(catEl.ionicRadius / anEl.ionicRadius, 3) : '—';
+
+    var infoRows = [
+      ['Compound', comp.formula + ' (' + comp.name + ')'],
+      ['Structure type', comp.struct],
+      ['Coordination number', comp.cn + ''],
+      ['Cation', catEl ? catEl.ionSymbol + ' (r = ' + catEl.ionicRadius + ' pm)' : comp.cation],
+      ['Anion', anEl.ionSymbol + ' (r = ' + anEl.ionicRadius + ' pm)'],
+      ['Radius ratio (r\u207A/r\u207B)', rRatio + '']
+    ];
+
+    var geom = 'Tetrahedral (CN=4)';
+    if (rRatio >= 0.414) geom = 'Octahedral (CN=6)';
+    if (rRatio >= 0.732) geom = 'Cubic (CN=8)';
+    infoRows.push(['Predicted geometry', geom]);
+
+    for (var r = 0; r < infoRows.length; r++) {
+      var row = el('div', '');
+      row.style.cssText = 'display:flex;gap:8px;padding:3px 0;font-size:0.78rem;border-bottom:1px solid #f1f5f9;';
+      var label = el('span', '', infoRows[r][0] + ':');
+      label.style.cssText = 'font-weight:600;min-width:140px;color:var(--text-muted);';
+      var val = el('span', '', infoRows[r][1]);
+      val.style.fontFamily = "'Fira Code', monospace";
+      row.appendChild(label);
+      row.appendChild(val);
+      infoBody.appendChild(row);
+    }
+    infoCard.appendChild(infoBody);
+    body.appendChild(infoCard);
+
+    // Click handler for lattice canvas
+    setTimeout(function() {
+      drawLatticeCanvas(lCanvas);
+      lCanvas.addEventListener('click', function(e) {
+        handleLatticeClick(e, lCanvas);
+      });
+    }, 30);
+
+    // Auto-build animation
+    if (_latticeMode === 'auto') {
+      _latticeBuildT = 0;
+      _latticeBuildInterval = setInterval(function() {
+        _latticeBuildT += 0.02;
+        if (_latticeBuildT >= 1) { _latticeBuildT = 1; clearInterval(_latticeBuildInterval); _latticeBuildInterval = null; }
+        drawLatticeCanvas(lCanvas);
+      }, 33);
+    }
+  }
+
+  function isoProject(gx, gy, gz, tileW, tileH, offsetX, offsetY) {
+    return {
+      x: (gx - gy) * tileW / 2 + offsetX,
+      y: (gx + gy) * tileH / 2 - gz * tileH + offsetY
+    };
+  }
+
+  var _latticeIonPositions = []; // for click detection
+
+  function drawLatticeCanvas(canvas) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    // Dark background
+    ctx.fillStyle = '#1E293B';
+    ctx.fillRect(0, 0, w, h);
+
+    var comp = COMPOUNDS[_selectedCompound];
+    if (!comp) return;
+
+    var n = _latticeGridSize;
+    var tileW = Math.min(60, (w * 0.5) / n);
+    var tileH = tileW * 0.5;
+    var offsetX = w / 2;
+    var offsetY = h * 0.55;
+
+    var isCsCl = comp.struct === 'CsCl-type';
+    var catEl = ELEMENTS[comp.cation];
+    var anEl = ELEMENTS[comp.anion];
+    var maxIonicR = Math.max(catEl ? catEl.ionicRadius : 100, anEl.ionicRadius);
+    var catR = catEl ? Math.max(6, (catEl.ionicRadius / maxIonicR) * tileW * 0.25) : 8;
+    var anR = Math.max(6, (anEl.ionicRadius / maxIonicR) * tileW * 0.25);
+
+    // Generate ions
+    var ions = [];
+    for (var x = 0; x < n; x++) {
+      for (var y = 0; y < n; y++) {
+        for (var z = 0; z < n; z++) {
+          var isCation = (x + y + z) % 2 === 0;
+          if (isCsCl) isCation = (x + y + z) % 2 === 0; // same logic, different CN
+          var pos = isoProject(x, y, z, tileW, tileH, offsetX, offsetY);
+          var dist = Math.sqrt(Math.pow(x - n / 2, 2) + Math.pow(y - n / 2, 2) + Math.pow(z - n / 2, 2));
+          ions.push({ gx: x, gy: y, gz: z, sx: pos.x, sy: pos.y, isCation: isCation, dist: dist, r: isCation ? catR : anR });
+        }
+      }
+    }
+
+    // Sort back-to-front
+    ions.sort(function(a, b) { return (a.gx + a.gy + a.gz) - (b.gx + b.gy + b.gz); });
+
+    _latticeIonPositions = [];
+
+    var totalIons = ions.length;
+    var revealCount = _latticeMode === 'auto' ? Math.floor(_latticeBuildT * totalIons) : totalIons;
+
+    // Sort by distance for progressive reveal
+    var revealOrder = ions.slice().sort(function(a, b) { return a.dist - b.dist; });
+    var revealSet = {};
+    for (var ri = 0; ri < Math.min(revealCount, revealOrder.length); ri++) {
+      var key = revealOrder[ri].gx + ',' + revealOrder[ri].gy + ',' + revealOrder[ri].gz;
+      revealSet[key] = true;
+    }
+
+    for (var i = 0; i < ions.length; i++) {
+      var ion = ions[i];
+      var ik = ion.gx + ',' + ion.gy + ',' + ion.gz;
+      if (!revealSet[ik]) continue;
+
+      var r = ion.r;
+      var isSelected = _latticeSelectedIon && _latticeSelectedIon.gx === ion.gx && _latticeSelectedIon.gy === ion.gy && _latticeSelectedIon.gz === ion.gz;
+
+      // Draw sphere with gradient
+      var grad = ctx.createRadialGradient(ion.sx - r * 0.3, ion.sy - r * 0.3, r * 0.1, ion.sx, ion.sy, r);
+      if (ion.isCation) {
+        grad.addColorStop(0, '#FDE68A');
+        grad.addColorStop(1, '#D97706');
+      } else {
+        grad.addColorStop(0, '#99F6E4');
+        grad.addColorStop(1, '#0D9488');
+      }
+
+      ctx.beginPath();
+      ctx.arc(ion.sx, ion.sy, r, 0, Math.PI * 2);
+      ctx.fillStyle = grad;
+      ctx.fill();
+      ctx.strokeStyle = isSelected ? '#FFFFFF' : 'rgba(0,0,0,0.3)';
+      ctx.lineWidth = isSelected ? 2 : 0.5;
+      ctx.stroke();
+
+      _latticeIonPositions.push({ x: ion.sx, y: ion.sy, r: r, gx: ion.gx, gy: ion.gy, gz: ion.gz, isCation: ion.isCation });
+
+      // Highlight coordination
+      if (isSelected && _latticeHighlight) {
+        var neighbors = getNeighbors(ion, ions, isCsCl);
+        ctx.setLineDash([3, 3]);
+        ctx.strokeStyle = '#FFFFFF';
+        ctx.lineWidth = 1;
+        for (var ni = 0; ni < neighbors.length; ni++) {
+          var nk = neighbors[ni].gx + ',' + neighbors[ni].gy + ',' + neighbors[ni].gz;
+          if (!revealSet[nk]) continue;
+          ctx.beginPath();
+          ctx.moveTo(ion.sx, ion.sy);
+          ctx.lineTo(neighbors[ni].sx, neighbors[ni].sy);
+          ctx.stroke();
+        }
+        ctx.setLineDash([]);
+
+        // CN label
+        ctx.fillStyle = '#FFFFFF';
+        ctx.font = 'bold 12px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('CN = ' + neighbors.length, ion.sx, ion.sy - r - 8);
+      }
+    }
+
+    // Legend
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.beginPath(); ctx.arc(15, h - 20, 5, 0, Math.PI * 2); ctx.fillStyle = '#D97706'; ctx.fill();
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillText((catEl ? catEl.ionSymbol : comp.cation) + ' (cation)', 25, h - 16);
+
+    ctx.beginPath(); ctx.arc(w / 2, h - 20, 7, 0, Math.PI * 2); ctx.fillStyle = '#0D9488'; ctx.fill();
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillText(anEl.ionSymbol + ' (anion)', w / 2 + 12, h - 16);
+
+    ctx.fillText('Click an ion to see coordination', w - 220, h - 16);
+  }
+
+  function getNeighbors(ion, allIons, isCsCl) {
+    var neighbors = [];
+    for (var i = 0; i < allIons.length; i++) {
+      var o = allIons[i];
+      if (o.isCation === ion.isCation) continue;
+      var dx = Math.abs(o.gx - ion.gx);
+      var dy = Math.abs(o.gy - ion.gy);
+      var dz = Math.abs(o.gz - ion.gz);
+      if (isCsCl) {
+        // CN=8: neighbors at (±1,±1,±1) relative — but in our simple model, adjacent opposite ions
+        if (dx <= 1 && dy <= 1 && dz <= 1 && (dx + dy + dz) > 0) neighbors.push(o);
+      } else {
+        // NaCl CN=6: face-adjacent (manhattan distance = 1)
+        if (dx + dy + dz === 1) neighbors.push(o);
+      }
+    }
+    return neighbors;
+  }
+
+  function handleLatticeClick(e, canvas) {
+    var rect = canvas.getBoundingClientRect();
+    var dpr = window.devicePixelRatio || 1;
+    var mx = (e.clientX - rect.left);
+    var my = (e.clientY - rect.top);
+
+    var closest = null;
+    var closestDist = Infinity;
+    for (var i = 0; i < _latticeIonPositions.length; i++) {
+      var ion = _latticeIonPositions[i];
+      var d = Math.sqrt(Math.pow(mx - ion.x, 2) + Math.pow(my - ion.y, 2));
+      if (d < ion.r + 5 && d < closestDist) {
+        closest = ion;
+        closestDist = d;
+      }
+    }
+
+    if (closest) {
+      _latticeSelectedIon = { gx: closest.gx, gy: closest.gy, gz: closest.gz };
+    } else {
+      _latticeSelectedIon = null;
+    }
+    drawLatticeCanvas(canvas);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 3: PROPERTIES LAB
+  // ═══════════════════════════════════════════════════
+  function renderPropertiesTab() {
+    var body = document.getElementById('propertiesBody');
+    body.textContent = '';
+    var comp = COMPOUNDS[_selectedCompound];
+    if (!comp) { body.appendChild(el('p', '', 'Select a compound.')); return; }
+
+    if (_propsProperty === 'conductivity') renderConductivity(body, comp);
+    else if (_propsProperty === 'meltingPoint') renderMeltingPoint(body);
+    else if (_propsProperty === 'solubility') renderSolubility(body);
+
+    // Explanation cards
+    var explCard = el('div', 'sim-card');
+    explCard.style.marginTop = '1rem';
+    explCard.appendChild(el('div', 'sim-card-header', 'Why do ionic compounds behave this way?'));
+    var explBody = el('div', 'sim-card-body');
+
+    var explanations = [
+      { q: 'Why are ionic compounds brittle?', a: 'When force is applied, ion layers shift. Like-charged ions align, causing strong repulsion that shatters the crystal.' },
+      { q: 'Why do they have high melting points?', a: 'Strong electrostatic attraction between oppositely charged ions in a 3D lattice requires a lot of energy to overcome.' },
+      { q: 'Why do they conduct when molten or dissolved?', a: 'In the solid state, ions are locked in fixed positions. When melted or dissolved, ions become free to move and carry charge.' }
+    ];
+
+    for (var e = 0; e < explanations.length; e++) {
+      var header = el('div', 'collapsible-header', '\u25B6 ' + explanations[e].q);
+      var bodyDiv = el('div', 'collapsible-body', explanations[e].a);
+      (function(h, b) {
+        h.addEventListener('click', function() {
+          var isOpen = b.classList.contains('open');
+          b.classList.toggle('open');
+          h.textContent = (isOpen ? '\u25B6 ' : '\u25BC ') + h.textContent.substring(2);
+        });
+      })(header, bodyDiv);
+      explBody.appendChild(header);
+      explBody.appendChild(bodyDiv);
+    }
+    explCard.appendChild(explBody);
+    body.appendChild(explCard);
+  }
+
+  function renderConductivity(body, comp) {
+    var condCard = el('div', 'sim-card');
+    condCard.style.marginBottom = '1rem';
+    condCard.appendChild(el('div', 'sim-card-header', 'Conductivity Test — ' + comp.formula));
+    var condBody = el('div', 'sim-card-body');
+    condBody.style.padding = '0.5rem';
+
+    // State buttons
+    var stateRow = el('div', '');
+    stateRow.style.cssText = 'display:flex;gap:8px;margin-bottom:12px;';
+    var states = ['solid', 'molten', 'aqueous'];
+    var stateLabels = ['Solid', 'Molten', 'Aqueous'];
+    for (var s = 0; s < states.length; s++) {
+      var sb = el('button', 'mode-btn' + (_condState === states[s] ? ' active' : ''), stateLabels[s]);
+      sb.setAttribute('data-state', states[s]);
+      sb.addEventListener('click', function() {
+        _condState = this.getAttribute('data-state');
+        stopAllAnimations();
+        renderPropertiesTab();
+      });
+      stateRow.appendChild(sb);
+    }
+    condBody.appendChild(stateRow);
+
+    var condCanvas = document.createElement('canvas');
+    condCanvas.className = 'sim-canvas';
+    condCanvas.setAttribute('height', '300');
+    condCanvas.setAttribute('role', 'img');
+    condCanvas.setAttribute('aria-label', 'Conductivity test showing ' + _condState + ' state');
+    condBody.appendChild(condCanvas);
+    condCard.appendChild(condBody);
+    body.appendChild(condCard);
+
+    setTimeout(function() { drawConductivityCanvas(condCanvas, comp); }, 30);
+  }
+
+  function drawConductivityCanvas(canvas, comp) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var conducts = _condState !== 'solid';
+
+    // Title
+    ctx.fillStyle = '#1E293B';
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(comp.formula + ' — ' + _condState.charAt(0).toUpperCase() + _condState.slice(1), w / 2, 22);
+
+    // Circuit
+    var cx = w / 2;
+    var battX = cx, battY = 50;
+
+    // Battery
+    ctx.strokeStyle = '#64748B';
+    ctx.lineWidth = 2;
+    ctx.fillStyle = '#F1F5F9';
+    ctx.beginPath(); ctx.roundRect(battX - 25, battY - 12, 50, 24, 4); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1E293B';
+    ctx.font = '10px Fira Code, monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('+  \u2212', battX, battY + 4);
+
+    // Wires from battery to electrodes
+    var elecL = cx - 80, elecR = cx + 80;
+    var containerTop = 140, containerBot = 250;
+
+    ctx.strokeStyle = '#64748B';
+    ctx.lineWidth = 2;
+    // Left wire
+    ctx.beginPath(); ctx.moveTo(battX - 25, battY); ctx.lineTo(elecL, battY); ctx.lineTo(elecL, containerTop); ctx.stroke();
+    // Right wire (through bulb)
+    var bulbX = cx + 140, bulbY = battY;
+    ctx.beginPath(); ctx.moveTo(battX + 25, battY); ctx.lineTo(bulbX, battY); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(bulbX, battY); ctx.lineTo(elecR, battY); ctx.lineTo(elecR, containerTop); ctx.stroke();
+
+    // Bulb
+    ctx.beginPath();
+    ctx.arc(bulbX, bulbY, 15, 0, Math.PI * 2);
+    if (conducts) {
+      ctx.fillStyle = '#FDE047';
+      ctx.shadowColor = '#FDE047';
+      ctx.shadowBlur = 15;
+    } else {
+      ctx.fillStyle = '#E2E8F0';
+      ctx.shadowBlur = 0;
+    }
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.strokeStyle = '#64748B';
+    ctx.stroke();
+
+    // Container
+    ctx.fillStyle = _condState === 'aqueous' ? '#DBEAFE' : '#F8FAFC';
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.roundRect(cx - 120, containerTop, 240, containerBot - containerTop, [0, 0, 12, 12]);
+    ctx.fill(); ctx.stroke();
+
+    // Electrodes
+    ctx.fillStyle = '#475569';
+    ctx.fillRect(elecL - 3, containerTop - 5, 6, 70);
+    ctx.fillRect(elecR - 3, containerTop - 5, 6, 70);
+
+    // Ions in container
+    if (_condState === 'solid') {
+      // Fixed grid
+      var gridCols = 8, gridRows = 4;
+      var cellW = 200 / gridCols, cellH = 80 / gridRows;
+      for (var gy = 0; gy < gridRows; gy++) {
+        for (var gx = 0; gx < gridCols; gx++) {
+          var ix = cx - 100 + gx * cellW + cellW / 2;
+          var iy = containerTop + 40 + gy * cellH + cellH / 2;
+          var isCat = (gx + gy) % 2 === 0;
+          ctx.beginPath();
+          ctx.arc(ix, iy, isCat ? 5 : 7, 0, Math.PI * 2);
+          ctx.fillStyle = isCat ? '#D97706' : '#0D9488';
+          ctx.fill();
+        }
+      }
+    } else {
+      // Animated particles
+      if (_condParticles.length === 0 || _condParticles[0].state !== _condState) {
+        _condParticles = [];
+        for (var pi = 0; pi < 20; pi++) {
+          _condParticles.push({
+            x: cx - 100 + Math.random() * 200,
+            y: containerTop + 30 + Math.random() * 70,
+            vx: (Math.random() - 0.5) * 2,
+            vy: (Math.random() - 0.5) * 2,
+            isCat: pi % 2 === 0,
+            state: _condState
+          });
+        }
+        if (_condState === 'aqueous') {
+          for (var wi = 0; wi < 10; wi++) {
+            _condParticles.push({
+              x: cx - 100 + Math.random() * 200,
+              y: containerTop + 30 + Math.random() * 70,
+              vx: (Math.random() - 0.5) * 1,
+              vy: (Math.random() - 0.5) * 1,
+              isWater: true,
+              state: _condState
+            });
+          }
+        }
+      }
+
+      // Draw particles
+      for (var dp = 0; dp < _condParticles.length; dp++) {
+        var p = _condParticles[dp];
+        ctx.beginPath();
+        if (p.isWater) {
+          ctx.arc(p.x, p.y, 4, 0, Math.PI * 2);
+          ctx.fillStyle = '#93C5FD';
+        } else {
+          ctx.arc(p.x, p.y, p.isCat ? 5 : 7, 0, Math.PI * 2);
+          ctx.fillStyle = p.isCat ? '#D97706' : '#0D9488';
+        }
+        ctx.fill();
+      }
+
+      // Start animation if not running
+      if (!_condInterval) {
+        _condInterval = setInterval(function() {
+          for (var ci = 0; ci < _condParticles.length; ci++) {
+            var cp = _condParticles[ci];
+            cp.x += cp.vx;
+            cp.y += cp.vy;
+            if (cp.x < cx - 110 || cp.x > cx + 110) cp.vx *= -1;
+            if (cp.y < containerTop + 25 || cp.y > containerBot - 10) cp.vy *= -1;
+            cp.x = Math.max(cx - 110, Math.min(cx + 110, cp.x));
+            cp.y = Math.max(containerTop + 25, Math.min(containerBot - 10, cp.y));
+          }
+          drawConductivityCanvas(canvas, comp);
+        }, 50);
+      }
+    }
+
+    // Label
+    ctx.fillStyle = conducts ? '#059669' : '#DC2626';
+    ctx.font = 'bold 14px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    var msg = conducts ? 'Conducts: free ions carry charge' : 'Does not conduct: ions fixed in lattice';
+    ctx.fillText(msg, cx, containerBot + 25);
+  }
+
+  function renderMeltingPoint(body) {
+    var mpCard = el('div', 'sim-card');
+    mpCard.style.marginBottom = '1rem';
+    mpCard.appendChild(el('div', 'sim-card-header', 'Melting Point Comparison'));
+    var mpBody = el('div', 'sim-card-body');
+    mpBody.style.padding = '0.5rem';
+
+    var mpCanvas = document.createElement('canvas');
+    mpCanvas.className = 'sim-canvas';
+    mpCanvas.setAttribute('height', '280');
+    mpCanvas.setAttribute('role', 'img');
+    mpCanvas.setAttribute('aria-label', 'Melting point comparison bar chart');
+    mpBody.appendChild(mpCanvas);
+    mpCard.appendChild(mpBody);
+    body.appendChild(mpCard);
+
+    setTimeout(function() { drawMeltingPointChart(mpCanvas); }, 30);
+  }
+
+  function drawMeltingPointChart(canvas) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var items = [
+      { label: 'Ice', value: 0, color: '#3B82F6' },
+      { label: 'NaCl', value: 801, color: '#0D9488' },
+      { label: 'LiF', value: 845, color: '#0D9488' },
+      { label: 'CaF\u2082', value: 1418, color: '#0D9488' },
+      { label: 'MgO', value: 2852, color: '#0D9488' },
+      { label: 'Diamond', value: 3550, color: '#D97706' }
+    ];
+
+    var maxVal = 3600;
+    var pad = { left: 55, right: 20, top: 30, bottom: 50 };
+    var plotW = w - pad.left - pad.right;
+    var plotH = h - pad.top - pad.bottom;
+    var barW = plotW / items.length * 0.6;
+    var gap = plotW / items.length;
+
+    // Grid
+    ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 1;
+    ctx.fillStyle = '#64748B'; ctx.font = '10px Fira Code, monospace'; ctx.textAlign = 'right';
+    for (var g = 0; g <= 4; g++) {
+      var gv = maxVal * g / 4;
+      var gy = pad.top + plotH - (plotH * g / 4);
+      ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(w - pad.right, gy); ctx.stroke();
+      ctx.fillText(Math.round(gv) + '\u00B0C', pad.left - 5, gy + 3);
+    }
+
+    for (var b = 0; b < items.length; b++) {
+      var bx = pad.left + b * gap + (gap - barW) / 2;
+      var bh = Math.max(2, (items[b].value / maxVal) * plotH);
+      var by = pad.top + plotH - bh;
+      ctx.fillStyle = items[b].color;
+      ctx.beginPath(); ctx.roundRect(bx, by, barW, bh, [4, 4, 0, 0]); ctx.fill();
+      ctx.fillStyle = '#1E293B'; ctx.font = 'bold 10px Fira Code, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(items[b].value + '\u00B0C', bx + barW / 2, by - 5);
+      ctx.fillStyle = '#64748B'; ctx.font = '10px Inter, sans-serif';
+      ctx.fillText(items[b].label, bx + barW / 2, pad.top + plotH + 18);
+    }
+
+    // Legend
+    ctx.font = '10px Inter, sans-serif'; ctx.textAlign = 'left';
+    var ly = h - 8;
+    ctx.beginPath(); ctx.roundRect(pad.left, ly - 8, 10, 10, 2); ctx.fillStyle = '#0D9488'; ctx.fill();
+    ctx.fillStyle = '#64748B'; ctx.fillText('Ionic', pad.left + 14, ly);
+    ctx.beginPath(); ctx.roundRect(pad.left + 55, ly - 8, 10, 10, 2); ctx.fillStyle = '#D97706'; ctx.fill();
+    ctx.fillStyle = '#64748B'; ctx.fillText('Covalent network', pad.left + 69, ly);
+    ctx.beginPath(); ctx.roundRect(pad.left + 175, ly - 8, 10, 10, 2); ctx.fillStyle = '#3B82F6'; ctx.fill();
+    ctx.fillStyle = '#64748B'; ctx.fillText('Molecular', pad.left + 189, ly);
+  }
+
+  function renderSolubility(body) {
+    var solCard = el('div', 'sim-card');
+    solCard.style.marginBottom = '1rem';
+    solCard.appendChild(el('div', 'sim-card-header', 'Solubility Data'));
+    var solBody = el('div', 'sim-card-body');
+
+    var table = el('table', 'data-table');
+    var thead = document.createElement('thead');
+    var hr = document.createElement('tr');
+    var headers = ['Compound', 'Solubility (g/100mL)', 'Classification'];
+    for (var hi = 0; hi < headers.length; hi++) {
+      hr.appendChild(el('th', '', headers[hi]));
+    }
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    var solCompounds = ['NaCl', 'LiF', 'KBr', 'MgO', 'CaF2', 'MgCl2', 'BaCl2', 'KCl', 'LiCl'];
+    for (var si = 0; si < solCompounds.length; si++) {
+      var sc = COMPOUNDS[solCompounds[si]];
+      if (!sc) continue;
+      var tr = document.createElement('tr');
+      tr.appendChild(el('td', '', sc.formula));
+      var solVal = sc.sol !== null ? sc.sol + '' : 'Reacts with water';
+      tr.appendChild(el('td', '', solVal));
+      var classTd = el('td', '', sc.solClass);
+      if (sc.solClass === 'soluble') classTd.style.cssText = 'color:#059669;font-weight:600;';
+      else if (sc.solClass === 'insoluble') classTd.style.cssText = 'color:#DC2626;font-weight:600;';
+      else if (sc.solClass === 'slightly soluble') classTd.style.cssText = 'color:#D97706;font-weight:600;';
+      else classTd.style.cssText = 'color:#64748B;font-weight:600;';
+      tr.appendChild(classTd);
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    solBody.appendChild(table);
+    solCard.appendChild(solBody);
+    body.appendChild(solCard);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 4: LATTICE ENERGY TRENDS (HL)
+  // ═══════════════════════════════════════════════════
+  function renderLatticeEnergyTab() {
+    var body = document.getElementById('latticeEnergyBody');
+    body.textContent = '';
+
+    if (_challengeMode) {
+      renderChallenge(body);
+      return;
+    }
+
+    // Bar chart
+    var chartCard = el('div', 'sim-card');
+    chartCard.style.marginBottom = '1rem';
+    chartCard.appendChild(el('div', 'sim-card-header', 'Lattice Enthalpies — ' + _leGroup));
+    var chartBody = el('div', 'sim-card-body');
+    chartBody.style.padding = '0.5rem';
+    var leCanvas = document.createElement('canvas');
+    leCanvas.className = 'sim-canvas';
+    leCanvas.setAttribute('height', '280');
+    leCanvas.setAttribute('role', 'img');
+    leCanvas.setAttribute('aria-label', 'Lattice enthalpy bar chart');
+    chartBody.appendChild(leCanvas);
+    chartCard.appendChild(chartBody);
+    body.appendChild(chartCard);
+
+    setTimeout(function() { drawLatticeEnergyChart(leCanvas); }, 30);
+
+    // Coulomb's law explorer
+    var coulCard = el('div', 'sim-card');
+    coulCard.style.marginBottom = '1rem';
+    coulCard.appendChild(el('div', 'sim-card-header', 'Coulomb\'s Law Explorer'));
+    var coulBody = el('div', 'sim-card-body');
+
+    var formulaDiv = el('div', '');
+    formulaDiv.style.cssText = 'font-family:Fira Code, monospace;font-size:0.9rem;text-align:center;padding:0.5rem;background:#F0FDFA;border-radius:6px;margin-bottom:0.75rem;';
+    formulaDiv.textContent = 'E \u221D (q\u207A \u00D7 q\u207B) / (r\u207A + r\u207B)  [q\u207B = 1 for simplicity]';
+    coulBody.appendChild(formulaDiv);
+
+    // Charge slider
+    var chargeGroup = el('div', 'slider-group');
+    var chargeLbl = el('div', 'slider-label');
+    chargeLbl.appendChild(el('span', '', 'Cation charge'));
+    var chargeVal = el('span', 'slider-value', _leCharge + '+');
+    chargeLbl.appendChild(chargeVal);
+    chargeGroup.appendChild(chargeLbl);
+    var chargeInput = document.createElement('input');
+    chargeInput.type = 'range'; chargeInput.min = '1'; chargeInput.max = '3'; chargeInput.value = _leCharge; chargeInput.step = '1';
+    chargeInput.style.width = '100%';
+    chargeInput.addEventListener('input', function() {
+      _leCharge = parseInt(this.value);
+      chargeVal.textContent = _leCharge + '+';
+      updateCoulombResult();
+    });
+    chargeGroup.appendChild(chargeInput);
+    coulBody.appendChild(chargeGroup);
+
+    // Separation slider
+    var sepGroup = el('div', 'slider-group');
+    var sepLbl = el('div', 'slider-label');
+    sepLbl.appendChild(el('span', '', 'Ion separation (r\u207A + r\u207B)'));
+    var sepVal = el('span', 'slider-value', _leSep + ' pm');
+    sepLbl.appendChild(sepVal);
+    sepGroup.appendChild(sepLbl);
+    var sepInput = document.createElement('input');
+    sepInput.type = 'range'; sepInput.min = '100'; sepInput.max = '400'; sepInput.value = _leSep; sepInput.step = '10';
+    sepInput.style.width = '100%';
+    sepInput.addEventListener('input', function() {
+      _leSep = parseInt(this.value);
+      sepVal.textContent = _leSep + ' pm';
+      updateCoulombResult();
+    });
+    sepGroup.appendChild(sepInput);
+    coulBody.appendChild(sepGroup);
+
+    var resultDiv = el('div', '');
+    resultDiv.id = 'coulombResult';
+    resultDiv.style.cssText = 'text-align:center;padding:0.75rem;font-family:Fira Code, monospace;font-size:1rem;font-weight:600;color:var(--teal);background:#F0FDFA;border-radius:6px;margin-top:0.5rem;';
+    coulBody.appendChild(resultDiv);
+    coulCard.appendChild(coulBody);
+    body.appendChild(coulCard);
+
+    updateCoulombResult();
+
+    // Trend analysis cards
+    var trendCard = el('div', 'sim-card');
+    trendCard.appendChild(el('div', 'sim-card-header', 'Trend Analysis'));
+    var trendBody = el('div', 'sim-card-body');
+    trendBody.style.fontSize = '0.78rem';
+
+    var trend1 = el('div', '');
+    trend1.style.cssText = 'padding:0.5rem;background:#F0FDFA;border-radius:6px;margin-bottom:0.5rem;';
+    trend1.appendChild(el('div', '', '\u25B6 Down a group: same charge, increasing ionic radius'));
+    var t1detail = el('div', '', 'LiF (1037) > NaF (923) > KF (821) kJ/mol');
+    t1detail.style.cssText = 'font-family:Fira Code, monospace;font-size:0.75rem;margin-top:0.25rem;color:var(--teal);';
+    trend1.appendChild(t1detail);
+    trend1.appendChild(el('div', '', 'Larger ions \u2192 weaker electrostatic attraction \u2192 lower lattice enthalpy'));
+    trendBody.appendChild(trend1);
+
+    var trend2 = el('div', '');
+    trend2.style.cssText = 'padding:0.5rem;background:#FFFBEB;border-radius:6px;';
+    trend2.appendChild(el('div', '', '\u25B6 Increasing charge: stronger attraction'));
+    var t2detail = el('div', '', 'NaCl (787) < MgO (3850) < Al\u2082O\u2083 (15916) kJ/mol');
+    t2detail.style.cssText = 'font-family:Fira Code, monospace;font-size:0.75rem;margin-top:0.25rem;color:var(--amber);';
+    trend2.appendChild(t2detail);
+    trend2.appendChild(el('div', '', 'Higher charges + smaller ions \u2192 much stronger attraction'));
+    trendBody.appendChild(trend2);
+
+    trendCard.appendChild(trendBody);
+    body.appendChild(trendCard);
+  }
+
+  function updateCoulombResult() {
+    var resultDiv = document.getElementById('coulombResult');
+    if (!resultDiv) return;
+    var anionCharge = 1; // simplified; anion charge assumed 1 for slider
+    var energy = (_leCharge * anionCharge) / _leSep;
+    var normalized = round(energy * 1000, 1);
+    resultDiv.textContent = 'Relative lattice energy: ' + normalized + ' (arbitrary units)';
+  }
+
+  function drawLatticeEnergyChart(canvas) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var group = LATTICE_GROUPS[_leGroup];
+    if (!group) return;
+
+    var items = [];
+    for (var i = 0; i < group.length; i++) {
+      var c = COMPOUNDS[group[i]];
+      if (c) items.push({ label: c.formula, value: c.le });
+    }
+    items.sort(function(a, b) { return b.value - a.value; });
+
+    var maxVal = items[0] ? items[0].value * 1.1 : 1000;
+    var pad = { left: 65, right: 20, top: 25, bottom: 45 };
+    var plotW = w - pad.left - pad.right;
+    var plotH = h - pad.top - pad.bottom;
+    var barW = Math.min(50, plotW / items.length * 0.65);
+    var gap = plotW / items.length;
+
+    // Grid
+    ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 1;
+    ctx.fillStyle = '#64748B'; ctx.font = '10px Fira Code, monospace'; ctx.textAlign = 'right';
+    var nGridLines = 5;
+    for (var g = 0; g <= nGridLines; g++) {
+      var gv = maxVal * g / nGridLines;
+      var gy = pad.top + plotH - (plotH * g / nGridLines);
+      ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(w - pad.right, gy); ctx.stroke();
+      ctx.fillText(Math.round(gv) + '', pad.left - 5, gy + 3);
+    }
+
+    var colors = ['#0D9488', '#14B8A6', '#2DD4BF', '#5EEAD4', '#99F6E4', '#0F766E', '#115E59', '#134E4A', '#042F2E'];
+    for (var b = 0; b < items.length; b++) {
+      var bx = pad.left + b * gap + (gap - barW) / 2;
+      var bh = (items[b].value / maxVal) * plotH;
+      var by = pad.top + plotH - bh;
+      ctx.fillStyle = colors[b % colors.length];
+      ctx.beginPath(); ctx.roundRect(bx, by, barW, bh, [4, 4, 0, 0]); ctx.fill();
+      ctx.fillStyle = '#1E293B'; ctx.font = 'bold 9px Fira Code, monospace'; ctx.textAlign = 'center';
+      ctx.fillText(items[b].value + '', bx + barW / 2, by - 5);
+      ctx.fillStyle = '#64748B'; ctx.font = '10px Inter, sans-serif';
+      ctx.fillText(items[b].label, bx + barW / 2, pad.top + plotH + 18);
+    }
+
+    // Y-axis label
+    ctx.save();
+    ctx.translate(12, h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#64748B'; ctx.font = '10px Inter, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('Lattice enthalpy (kJ/mol)', 0, 0);
+    ctx.restore();
+  }
+
+  // Challenge mode
+  function generateChallengePair() {
+    var group = LATTICE_GROUPS[_leGroup];
+    if (!group || group.length < 2) return;
+    var a = Math.floor(Math.random() * group.length);
+    var b;
+    do { b = Math.floor(Math.random() * group.length); } while (b === a);
+    _challengePair = [group[a], group[b]];
+    _challengeGuess = null;
+  }
+
+  function renderChallenge(body) {
+    if (!_challengePair) generateChallengePair();
+    if (!_challengePair) return;
+
+    var scoreDiv = el('div', 'score-bar');
+    scoreDiv.appendChild(el('span', '', 'Score:'));
+    scoreDiv.appendChild(el('span', 'score-val', _challengeScore + '/' + _challengeTotal));
+    body.appendChild(scoreDiv);
+
+    var c1 = COMPOUNDS[_challengePair[0]];
+    var c2 = COMPOUNDS[_challengePair[1]];
+    if (!c1 || !c2) return;
+
+    var qCard = el('div', 'sim-card');
+    qCard.appendChild(el('div', 'sim-card-header', 'Which has the higher lattice enthalpy?'));
+    var qBody = el('div', 'sim-card-body');
+    qBody.style.textAlign = 'center';
+
+    var btnRow = el('div', '');
+    btnRow.style.cssText = 'display:flex;gap:16px;justify-content:center;margin:1.5rem 0;';
+
+    var btn1 = el('button', 'check-btn', c1.formula);
+    btn1.style.cssText = 'font-size:1.2rem;padding:1rem 2rem;margin:0;';
+    btn1.addEventListener('click', function() { _challengeGuess = _challengePair[0]; checkChallenge(body); });
+    var btn2 = el('button', 'check-btn', c2.formula);
+    btn2.style.cssText = 'font-size:1.2rem;padding:1rem 2rem;margin:0;background:var(--amber);';
+    btn2.addEventListener('click', function() { _challengeGuess = _challengePair[1]; checkChallenge(body); });
+
+    btnRow.appendChild(btn1);
+    btnRow.appendChild(btn2);
+    qBody.appendChild(btnRow);
+
+    qCard.appendChild(qBody);
+    body.appendChild(qCard);
+  }
+
+  function checkChallenge(body) {
+    if (!_challengeGuess || !_challengePair) return;
+    _challengeTotal++;
+    var c1 = COMPOUNDS[_challengePair[0]];
+    var c2 = COMPOUNDS[_challengePair[1]];
+    var correct = c1.le > c2.le ? _challengePair[0] : _challengePair[1];
+    var isCorrect = _challengeGuess === correct;
+    if (isCorrect) _challengeScore++;
+
+    var feedbackDiv = el('div', 'sim-card');
+    feedbackDiv.style.marginTop = '1rem';
+    var fbBody = el('div', 'sim-card-body');
+    fbBody.style.textAlign = 'center';
+
+    var winner = COMPOUNDS[correct];
+    var loser = COMPOUNDS[correct === _challengePair[0] ? _challengePair[1] : _challengePair[0]];
+
+    if (isCorrect) {
+      fbBody.style.background = '#F0FDF4';
+      fbBody.appendChild(el('div', '', 'Correct!'));
+      fbBody.firstChild.style.cssText = 'color:#059669;font-weight:700;font-size:1.1rem;';
+    } else {
+      fbBody.style.background = '#FEF2F2';
+      fbBody.appendChild(el('div', '', 'Incorrect'));
+      fbBody.firstChild.style.cssText = 'color:#DC2626;font-weight:700;font-size:1.1rem;';
+    }
+
+    var explain = el('p', '', winner.formula + ' (' + winner.le + ' kJ/mol) > ' + loser.formula + ' (' + loser.le + ' kJ/mol)');
+    explain.style.cssText = 'font-family:Fira Code, monospace;font-size:0.85rem;margin-top:0.5rem;';
+    fbBody.appendChild(explain);
+
+    var nextBtn = el('button', 'check-btn', 'Next Question');
+    nextBtn.addEventListener('click', function() {
+      generateChallengePair();
+      renderLatticeEnergyTab();
+    });
+    fbBody.appendChild(nextBtn);
+    feedbackDiv.appendChild(fbBody);
+
+    // Append to existing body
+    var leBody = document.getElementById('latticeEnergyBody');
+    leBody.appendChild(feedbackDiv);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // DATA EXPORT
+  // ═══════════════════════════════════════════════════
+  function exportCSV() {
+    var rows = [['Tab','Compound','Detail','Value','Timestamp']];
+    var ts = new Date().toISOString();
+    var comp = COMPOUNDS[_selectedCompound];
+    if (_activeTab === 'transfer') {
+      rows.push(['Electron Transfer', comp ? comp.formula : '', 'Mode: ' + _transferMode, 'Step: ' + (_transferStep + 1), ts]);
+    } else if (_activeTab === 'lattice') {
+      rows.push(['Crystal Lattice', comp ? comp.formula : '', 'Grid: ' + _latticeGridSize, 'CN: ' + (comp ? comp.cn : ''), ts]);
+    } else if (_activeTab === 'properties') {
+      rows.push(['Properties', comp ? comp.formula : '', 'Property: ' + _propsProperty, '', ts]);
+    } else if (_activeTab === 'latticeEnergy') {
+      rows.push(['Lattice Energy', _leGroup, 'Challenge score', _challengeScore + '/' + _challengeTotal, ts]);
+    }
+    var csv = rows.map(function(r) { return r.join(','); }).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'IonicBonding_export.csv';
+    a.click();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // KEYBOARD SHORTCUTS
+  // ═══════════════════════════════════════════════════
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.key.toLowerCase()) {
+      case 'h':
+        var hlCheck = document.getElementById('hlToggle');
+        hlCheck.checked = !hlCheck.checked;
+        document.body.classList.toggle('hl-active', hlCheck.checked);
+        if (!hlCheck.checked && _activeTab === 'latticeEnergy') switchTab('transfer');
+        break;
+      case 't':
+        var tCheck = document.getElementById('teacherToggle');
+        tCheck.checked = !tCheck.checked;
+        document.body.classList.toggle('teacher-active', tCheck.checked);
+        break;
+      case '1': switchTab('transfer'); break;
+      case '2': switchTab('lattice'); break;
+      case '3': switchTab('properties'); break;
+      case '4': switchTab('latticeEnergy'); break;
+      case 'r':
+        _transferStep = 0; _transferAnimT = 0;
+        _latticeSelectedIon = null; _latticeBuildT = 0;
+        _challengeScore = 0; _challengeTotal = 0; _challengeGuess = null;
+        stopAllAnimations();
+        refreshTab();
+        break;
+      case '/':
+        e.preventDefault();
+        paletteSearch.focus();
+        break;
+      case ' ':
+        e.preventDefault();
+        if (_activeTab === 'transfer' && _transferMode === 'auto') {
+          if (_transferInterval) { stopAllAnimations(); renderTransferTab(); }
+          else startAutoTransfer();
+        }
+        break;
+      case 'enter':
+        if (_activeTab === 'transfer' && _transferMode === 'step') advanceTransferStep();
+        break;
+      case 'e':
+        exportCSV();
+        break;
+      case 'arrowup':
+      case 'arrowdown':
+        e.preventDefault();
+        var items = paletteList.querySelectorAll('.palette-item');
+        if (items.length === 0) return;
+        var activeIdx = -1;
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].classList.contains('active')) { activeIdx = i; break; }
+        }
+        if (e.key === 'ArrowUp') activeIdx = (activeIdx <= 0) ? items.length - 1 : activeIdx - 1;
+        else activeIdx = (activeIdx >= items.length - 1) ? 0 : activeIdx + 1;
+        items[activeIdx].click();
+        items[activeIdx].scrollIntoView({ block: 'nearest' });
+        break;
+    }
+  });
+
+  // HL toggle
+  document.getElementById('hlToggle').addEventListener('change', function() {
+    document.body.classList.toggle('hl-active', this.checked);
+    if (!this.checked && _activeTab === 'latticeEnergy') switchTab('transfer');
+  });
+
+  // Teacher toggle
+  document.getElementById('teacherToggle').addEventListener('change', function() {
+    document.body.classList.toggle('teacher-active', this.checked);
+  });
+
+  // Window resize
+  window.addEventListener('resize', function() { refreshTab(); });
+
+  // ═══════════════════════════════════════════════════
+  // INIT
+  // ═══════════════════════════════════════════════════
+  buildPalette();
+  renderTransferTab();
+})();
+</script>
+</body>
+</html>
