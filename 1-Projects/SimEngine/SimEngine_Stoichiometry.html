@@ -1,0 +1,2729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stoichiometry &amp; Quantitative Analysis — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --red-bg: #FEF2F2;
+    --green-bg: #F0FDF4;
+    --amber-bg: #FFFBEB;
+    --sim-canvas-bg: #FAFBFC;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
+  }
+  .header-badge.hl { background: var(--hl-badge-bg); display: none; }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* ── Toggle ── */
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s; --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--toggle-on); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+  /* ── Tab Bar ── */
+  .tab-bar {
+    background: white; border-bottom: 2px solid var(--border);
+    display: flex; gap: 0; max-width: 1200px; margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .tab-btn {
+    padding: 0.75rem 1.5rem; font-size: 0.85rem; font-weight: 600;
+    color: var(--text-muted); background: none; border: none;
+    border-bottom: 3px solid transparent; cursor: pointer;
+    transition: all 0.2s; font-family: inherit;
+    margin-bottom: -2px;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--teal-bg); }
+  .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .tab-btn.hl-tab { display: none; }
+  body.hl-active .tab-btn.hl-tab { display: block; }
+  .tab-btn .tab-num {
+    display: inline-block; width: 20px; height: 20px; line-height: 20px;
+    text-align: center; border-radius: 4px; font-size: 0.65rem; font-weight: 700;
+    background: var(--border); color: var(--text-muted); margin-right: 0.4rem;
+  }
+  .tab-btn.active .tab-num { background: var(--teal); color: white; }
+
+  /* ── Layout ── */
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sim-top-row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .sim-card {
+    background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy); color: white; padding: 0.6rem 1rem;
+    font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  /* ── Palette ── */
+  .palette-panel { max-height: 600px; display: flex; flex-direction: column; position: sticky; top: 1rem; align-self: start; grid-column: 1; grid-row: 1; }
+  .tab-content { grid-column: 2; grid-row: 1; }
+  .palette-panel .sim-card-body { padding: 0.5rem; overflow-y: auto; flex: 1; }
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+  .palette-category {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); padding: 0.4rem 0.3rem 0.2rem; margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block; width: 100%; text-align: left; padding: 0.3rem 0.5rem; margin: 0.15rem 0; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .palette-item:hover { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .palette-item.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+  .palette-item.hl-rxn { display: none; }
+  body.hl-active .palette-item.hl-rxn { display: block; }
+  .palette-category.hl-cat { display: none; }
+  body.hl-active .palette-category.hl-cat { display: block; }
+  .preset-section { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); display: none; }
+  .preset-section select {
+    width: 100%; padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.75rem; font-family: inherit; cursor: pointer;
+  }
+
+  /* ── Main Panel ── */
+  .main-panel { display: flex; flex-direction: column; gap: 1rem; align-self: start; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Canvas ── */
+  .sim-canvas { display: block; width: 100%; background: var(--sim-canvas-bg); border-radius: 4px; }
+
+  /* ── Common Components ── */
+  .eq-display {
+    padding: 0.6rem 1rem; background: var(--blue-bg); border-radius: 8px; border: 1px solid #BFDBFE;
+    margin-bottom: 1rem; font-family: 'Fira Code', monospace; font-size: 0.9rem; font-weight: 600;
+  }
+  .check-btn {
+    display: block; width: 100%; padding: 0.6rem; margin-top: 0.75rem;
+    background: var(--teal); color: white; border: none; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    transition: background 0.2s;
+  }
+  .check-btn:hover { background: #0B7C73; }
+  .check-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+  .result-bar {
+    padding: 0.75rem 1rem; border-radius: 8px; font-family: 'Fira Code', monospace;
+    font-size: 0.9rem; font-weight: 700; text-align: center; margin-top: 0.5rem;
+    border: 2px solid var(--border); background: white;
+  }
+  .result-bar.success { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .result-bar.exo { background: var(--green-bg); border-color: var(--green); color: var(--green); }
+  .result-bar.endo { background: var(--red-bg); border-color: var(--red); color: var(--red); }
+
+  /* ── Tab 1: Stoichiometry ── */
+  .molar-mass-ref {
+    display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem;
+  }
+  .mm-chip {
+    padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.72rem;
+    font-family: 'Fira Code', monospace; border: 1px solid var(--border); background: white;
+  }
+  .input-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .input-row select, .input-row input {
+    padding: 0.4rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit;
+  }
+  .input-row input { width: 100px; font-family: 'Fira Code', monospace; text-align: right; }
+  .input-row select { min-width: 120px; }
+  .input-label { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); }
+
+  .results-table {
+    width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 0.75rem;
+  }
+  .results-table th {
+    background: var(--navy); color: white; padding: 0.4rem 0.6rem;
+    text-align: left; font-weight: 600; font-size: 0.72rem;
+  }
+  .results-table td {
+    padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border);
+    font-family: 'Fira Code', monospace; font-size: 0.75rem;
+  }
+  .results-table tr.reactant td { background: #FEF2F2; }
+  .results-table tr.product td { background: #F0FDF4; }
+  .results-table tr.reactant td:first-child { border-left: 3px solid var(--red); }
+  .results-table tr.product td:first-child { border-left: 3px solid var(--green); }
+
+  .yield-section {
+    margin-top: 1rem; padding: 0.75rem; border-radius: 8px;
+    border: 1px solid var(--border); background: white;
+  }
+  .yield-section-title { font-size: 0.78rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .yield-indicator {
+    display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 0.3rem;
+    vertical-align: middle;
+  }
+
+  .atom-economy-card {
+    margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px;
+    border: 1px solid var(--hl-border); background: #F5F3FF; display: none;
+  }
+  body.hl-active .atom-economy-card { display: block; }
+  .atom-economy-title {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 0.3rem;
+  }
+
+  /* ── Tab 2: Limiting Reagent ── */
+  .slider-group { margin-bottom: 0.75rem; }
+  .slider-label {
+    display: flex; justify-content: space-between; align-items: center;
+    font-size: 0.78rem; font-weight: 600; margin-bottom: 0.25rem;
+  }
+  .slider-value { font-family: 'Fira Code', monospace; font-weight: 700; }
+  .mol-slider {
+    width: 100%; height: 6px; -webkit-appearance: none; appearance: none;
+    border-radius: 3px; outline: none; background: var(--border);
+  }
+  .mol-slider::-webkit-slider-thumb {
+    -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%;
+    cursor: pointer; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .analysis-card {
+    padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border);
+    background: white; margin-top: 0.5rem;
+  }
+  .analysis-row {
+    display: flex; justify-content: space-between; padding: 0.2rem 0;
+    font-size: 0.78rem;
+  }
+  .analysis-label { font-weight: 500; }
+  .analysis-value { font-family: 'Fira Code', monospace; font-weight: 600; }
+  .limiting-badge {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    background: var(--red-bg); color: var(--red);
+  }
+  .excess-badge {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    background: var(--green-bg); color: var(--green);
+  }
+
+  /* ── Tab 3: Titration ── */
+  .setup-card {
+    padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border);
+    background: white; margin-bottom: 1rem;
+  }
+  .setup-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem; }
+  .setup-label { font-size: 0.75rem; font-weight: 600; min-width: 80px; }
+  .setup-input {
+    padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: 'Fira Code', monospace; width: 80px; text-align: right;
+  }
+  .setup-unit { font-size: 0.72rem; color: var(--text-muted); }
+  .setup-select {
+    padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit;
+  }
+  .titration-controls {
+    display: flex; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap;
+  }
+  .add-btn {
+    padding: 0.4rem 0.8rem; background: var(--teal); color: white; border: none;
+    border-radius: 6px; font-size: 0.78rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; transition: background 0.2s;
+  }
+  .add-btn:hover { background: #0B7C73; }
+  .add-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+  .ph-readout {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.4rem 0.8rem; background: var(--navy); color: #4ADE80;
+    border-radius: 6px; font-family: 'Fira Code', monospace; font-size: 0.9rem; font-weight: 700;
+  }
+  .vol-readout {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.4rem 0.8rem; background: white; border: 1px solid var(--border);
+    border-radius: 6px; font-family: 'Fira Code', monospace; font-size: 0.8rem; font-weight: 600;
+  }
+  .titration-layout { display: grid; grid-template-columns: 200px 1fr; gap: 1rem; }
+  .titr-results {
+    margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px;
+    background: var(--green-bg); border: 1px solid #BBF7D0; display: none;
+  }
+  .titr-results.show { display: block; }
+  .titr-results-title { font-size: 0.78rem; font-weight: 700; color: var(--green); margin-bottom: 0.3rem; }
+  .indicator-check { font-size: 0.75rem; margin-top: 0.3rem; }
+  .indicator-check.suitable { color: var(--green); }
+  .indicator-check.unsuitable { color: var(--red); }
+
+  /* ── Tab 4: Gravimetric ── */
+  .grav-step {
+    padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border);
+    background: white; margin-bottom: 0.75rem;
+  }
+  .grav-step-header {
+    display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;
+  }
+  .grav-step-num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 50%; background: var(--teal);
+    color: white; font-size: 0.72rem; font-weight: 700; flex-shrink: 0;
+  }
+  .grav-step-title { font-size: 0.85rem; font-weight: 600; }
+  .grav-step.completed { border-color: var(--green); background: var(--green-bg); }
+  .grav-step.completed .grav-step-num { background: var(--green); }
+  .grav-step.current { border-color: var(--teal); border-width: 2px; }
+  .grav-step-content { font-size: 0.8rem; }
+  .grav-input-row { display: flex; gap: 0.5rem; align-items: center; margin-top: 0.4rem; }
+  .grav-input {
+    padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: 'Fira Code', monospace; width: 100px; text-align: right;
+  }
+  .grav-unit { font-size: 0.72rem; color: var(--text-muted); }
+  .grav-calc-row {
+    display: flex; justify-content: space-between; padding: 0.3rem 0;
+    font-size: 0.78rem; border-bottom: 1px solid var(--border);
+  }
+  .grav-calc-label { font-weight: 500; }
+  .grav-calc-value { font-family: 'Fira Code', monospace; font-weight: 600; }
+  .grav-final {
+    margin-top: 0.5rem; padding: 0.5rem 0.75rem; border-radius: 6px;
+    background: var(--green-bg); border: 1px solid #BBF7D0;
+    font-family: 'Fira Code', monospace; font-weight: 700; text-align: center;
+  }
+  .next-step-btn {
+    padding: 0.4rem 1rem; background: var(--teal); color: white; border: none;
+    border-radius: 6px; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+    font-family: inherit; margin-top: 0.5rem;
+  }
+  .next-step-btn:hover { background: #0B7C73; }
+
+  /* ── Teacher Mode ── */
+  .teacher-panel { display: none; }
+  body.teacher-active .teacher-panel { display: block; }
+  body.teacher-active .preset-section { display: block; }
+  .answer-reveal {
+    margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: var(--amber-bg);
+    border: 1px solid #FCD34D; border-radius: 6px; font-size: 0.78rem;
+    font-family: 'Fira Code', monospace; display: none;
+  }
+  body.teacher-active .answer-reveal { display: block; }
+
+  /* ── HL Panel ── */
+  .hl-panel { display: none; }
+  body.hl-active .hl-panel { display: block; }
+
+  /* ── Keyboard Hint ── */
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .palette-panel { max-height: 200px; position: static; }
+    .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
+    .titration-layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>Stoichiometry &amp; Quantitative Analysis</h1>
+    <span class="subtitle">IB Chemistry — R2.1 How Much? The Amount of Chemical Change</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">R2.1</span>
+    <span class="header-badge hl">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="stoich"><span class="tab-num">1</span>Stoichiometry</button>
+  <button class="tab-btn" data-tab="limiting"><span class="tab-num">2</span>Limiting Reagent</button>
+  <button class="tab-btn" data-tab="titration"><span class="tab-num">3</span>Titration Lab</button>
+  <button class="tab-btn hl-tab" data-tab="gravimetric"><span class="tab-num">4</span>Gravimetric Analysis</button>
+</div>
+
+<!-- Main Content -->
+<div class="sim-container">
+  <div class="sim-top-row">
+
+    <!-- Sidebar (shared) -->
+    <div class="sim-card palette-panel">
+      <div class="sim-card-header" id="paletteHeader">Reactions</div>
+      <div class="sim-card-body">
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search reactions">
+        <div id="paletteList"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 1: Stoichiometry Workspace -->
+    <div class="tab-content active" id="tab-stoich">
+      <div class="sim-card">
+        <div class="sim-card-header">Stoichiometry Workspace</div>
+        <div class="sim-card-body" id="stoichBody">
+          <div id="stoichPlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+            Select a reaction from the palette to begin.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Limiting Reagent -->
+    <div class="tab-content" id="tab-limiting">
+      <div class="sim-card">
+        <div class="sim-card-header">Limiting Reagent Visualizer</div>
+        <div class="sim-card-body" id="limitingBody">
+          <div id="limitingPlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+            Select a reaction from the palette to begin.
+          </div>
+        </div>
+      </div>
+      <div class="sim-card" style="margin-top:1rem;">
+        <div class="sim-card-header">Particle Animation</div>
+        <div class="sim-card-body" style="padding:0.5rem;">
+          <canvas id="limitingCanvas" class="sim-canvas" height="280" role="img" aria-label="Limiting reagent particle animation"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Titration Lab -->
+    <div class="tab-content" id="tab-titration">
+      <div class="sim-card">
+        <div class="sim-card-header">Titration Lab</div>
+        <div class="sim-card-body" id="titrationBody">
+          <div id="titrationPlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+            Select a titration from the palette to begin.
+          </div>
+        </div>
+      </div>
+      <div class="sim-card" style="margin-top:1rem;">
+        <div class="sim-card-header">Titration Apparatus &amp; pH Curve</div>
+        <div class="sim-card-body" style="padding:0.5rem;">
+          <canvas id="titrationCanvas" class="sim-canvas" height="350" role="img" aria-label="Titration apparatus and pH curve"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 4: Gravimetric Analysis (HL) -->
+    <div class="tab-content" id="tab-gravimetric">
+      <div class="sim-card">
+        <div class="sim-card-header">Gravimetric Analysis</div>
+        <div class="sim-card-body" id="gravBody">
+          <div id="gravPlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+            Select a precipitation reaction from the palette to begin.
+          </div>
+        </div>
+      </div>
+      <div class="sim-card" style="margin-top:1rem;">
+        <div class="sim-card-header">Apparatus Diagram</div>
+        <div class="sim-card-body" style="padding:0.5rem;">
+          <canvas id="gravCanvas" class="sim-canvas" height="250" role="img" aria-label="Gravimetric analysis apparatus diagram"></canvas>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="keyboard-hint">
+    <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp;
+    <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> Tabs &nbsp;
+    <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp;
+    <kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate
+  </div>
+</div>
+
+<script>
+// roundRect polyfill
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    var tl = r[0]||0, tr = r[1]||0, br = r[2]||0, bl = r[3]||0;
+    this.beginPath();
+    this.moveTo(x+tl, y);
+    this.lineTo(x+w-tr, y);
+    this.quadraticCurveTo(x+w, y, x+w, y+tr);
+    this.lineTo(x+w, y+h-br);
+    this.quadraticCurveTo(x+w, y+h, x+w-br, y+h);
+    this.lineTo(x+bl, y+h);
+    this.quadraticCurveTo(x, y+h, x, y+h-bl);
+    this.lineTo(x, y+tl);
+    this.quadraticCurveTo(x, y, x+tl, y);
+    this.closePath();
+    return this;
+  };
+}
+
+(function() {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════
+  // Element Molar Masses (IB Data Booklet)
+  // ═══════════════════════════════════════════════════
+  var ELEMENTS = {
+    H: 1.008, C: 12.011, N: 14.007, O: 15.999, F: 18.998,
+    Na: 22.990, Mg: 24.305, Al: 26.982, P: 30.974, S: 32.065,
+    Cl: 35.453, K: 39.098, Ca: 40.078, Fe: 55.845, Cu: 63.546,
+    Zn: 65.380, Br: 79.904, Ag: 107.868, Ba: 137.327, I: 126.904
+  };
+
+  // ═══════════════════════════════════════════════════
+  // Stoichiometry Reactions (Tab 1 & Tab 2)
+  // ═══════════════════════════════════════════════════
+  var STOICH_CATEGORIES = [
+    { id: 'combustion', name: 'Combustion' },
+    { id: 'neutralization', name: 'Neutralization' },
+    { id: 'synthesis', name: 'Synthesis' },
+    { id: 'decomposition', name: 'Decomposition' },
+    { id: 'redox', name: 'Redox' },
+    { id: 'hl', name: 'HL Problems', hl: true }
+  ];
+
+  var STOICH_REACTIONS = [
+    { id: 's1', cat: 'combustion', name: 'CH\u2084 combustion', eq: 'CH\u2084(g) + 2O\u2082(g) \u2192 CO\u2082(g) + 2H\u2082O(l)',
+      species: [
+        { formula: 'CH\u2084', M: 16.043, coeff: 1, role: 'reactant', state: 'g' },
+        { formula: 'O\u2082', M: 31.998, coeff: 2, role: 'reactant', state: 'g' },
+        { formula: 'CO\u2082', M: 44.009, coeff: 1, role: 'product', state: 'g' },
+        { formula: 'H\u2082O', M: 18.015, coeff: 2, role: 'product', state: 'l' }
+      ]
+    },
+    { id: 's2', cat: 'combustion', name: 'C\u2082H\u2086 combustion', eq: '2C\u2082H\u2086(g) + 7O\u2082(g) \u2192 4CO\u2082(g) + 6H\u2082O(l)',
+      species: [
+        { formula: 'C\u2082H\u2086', M: 30.069, coeff: 2, role: 'reactant', state: 'g' },
+        { formula: 'O\u2082', M: 31.998, coeff: 7, role: 'reactant', state: 'g' },
+        { formula: 'CO\u2082', M: 44.009, coeff: 4, role: 'product', state: 'g' },
+        { formula: 'H\u2082O', M: 18.015, coeff: 6, role: 'product', state: 'l' }
+      ]
+    },
+    { id: 's3', cat: 'combustion', name: 'C\u2083H\u2088 combustion', eq: 'C\u2083H\u2088(g) + 5O\u2082(g) \u2192 3CO\u2082(g) + 4H\u2082O(l)',
+      species: [
+        { formula: 'C\u2083H\u2088', M: 44.096, coeff: 1, role: 'reactant', state: 'g' },
+        { formula: 'O\u2082', M: 31.998, coeff: 5, role: 'reactant', state: 'g' },
+        { formula: 'CO\u2082', M: 44.009, coeff: 3, role: 'product', state: 'g' },
+        { formula: 'H\u2082O', M: 18.015, coeff: 4, role: 'product', state: 'l' }
+      ]
+    },
+    { id: 's4', cat: 'neutralization', name: 'HCl + NaOH', eq: 'HCl(aq) + NaOH(aq) \u2192 NaCl(aq) + H\u2082O(l)',
+      species: [
+        { formula: 'HCl', M: 36.461, coeff: 1, role: 'reactant', state: 'aq' },
+        { formula: 'NaOH', M: 39.997, coeff: 1, role: 'reactant', state: 'aq' },
+        { formula: 'NaCl', M: 58.443, coeff: 1, role: 'product', state: 'aq' },
+        { formula: 'H\u2082O', M: 18.015, coeff: 1, role: 'product', state: 'l' }
+      ]
+    },
+    { id: 's5', cat: 'neutralization', name: 'H\u2082SO\u2084 + NaOH', eq: 'H\u2082SO\u2084(aq) + 2NaOH(aq) \u2192 Na\u2082SO\u2084(aq) + 2H\u2082O(l)',
+      species: [
+        { formula: 'H\u2082SO\u2084', M: 98.079, coeff: 1, role: 'reactant', state: 'aq' },
+        { formula: 'NaOH', M: 39.997, coeff: 2, role: 'reactant', state: 'aq' },
+        { formula: 'Na\u2082SO\u2084', M: 142.042, coeff: 1, role: 'product', state: 'aq' },
+        { formula: 'H\u2082O', M: 18.015, coeff: 2, role: 'product', state: 'l' }
+      ]
+    },
+    { id: 's6', cat: 'neutralization', name: 'CH\u2083COOH + NaOH', eq: 'CH\u2083COOH(aq) + NaOH(aq) \u2192 CH\u2083COONa(aq) + H\u2082O(l)',
+      species: [
+        { formula: 'CH\u2083COOH', M: 60.052, coeff: 1, role: 'reactant', state: 'aq' },
+        { formula: 'NaOH', M: 39.997, coeff: 1, role: 'reactant', state: 'aq' },
+        { formula: 'CH\u2083COONa', M: 82.034, coeff: 1, role: 'product', state: 'aq' },
+        { formula: 'H\u2082O', M: 18.015, coeff: 1, role: 'product', state: 'l' }
+      ]
+    },
+    { id: 's7', cat: 'synthesis', name: 'N\u2082 + H\u2082 \u2192 NH\u2083', eq: 'N\u2082(g) + 3H\u2082(g) \u2192 2NH\u2083(g)',
+      species: [
+        { formula: 'N\u2082', M: 28.014, coeff: 1, role: 'reactant', state: 'g' },
+        { formula: 'H\u2082', M: 2.016, coeff: 3, role: 'reactant', state: 'g' },
+        { formula: 'NH\u2083', M: 17.031, coeff: 2, role: 'product', state: 'g' }
+      ]
+    },
+    { id: 's8', cat: 'synthesis', name: '2Mg + O\u2082 \u2192 2MgO', eq: '2Mg(s) + O\u2082(g) \u2192 2MgO(s)',
+      species: [
+        { formula: 'Mg', M: 24.305, coeff: 2, role: 'reactant', state: 's' },
+        { formula: 'O\u2082', M: 31.998, coeff: 1, role: 'reactant', state: 'g' },
+        { formula: 'MgO', M: 40.304, coeff: 2, role: 'product', state: 's' }
+      ]
+    },
+    { id: 's9', cat: 'decomposition', name: 'CaCO\u2083 decomposition', eq: 'CaCO\u2083(s) \u2192 CaO(s) + CO\u2082(g)',
+      species: [
+        { formula: 'CaCO\u2083', M: 100.087, coeff: 1, role: 'reactant', state: 's' },
+        { formula: 'CaO', M: 56.077, coeff: 1, role: 'product', state: 's' },
+        { formula: 'CO\u2082', M: 44.009, coeff: 1, role: 'product', state: 'g' }
+      ]
+    },
+    { id: 's10', cat: 'decomposition', name: 'H\u2082O\u2082 decomposition', eq: '2H\u2082O\u2082(aq) \u2192 2H\u2082O(l) + O\u2082(g)',
+      species: [
+        { formula: 'H\u2082O\u2082', M: 34.015, coeff: 2, role: 'reactant', state: 'aq' },
+        { formula: 'H\u2082O', M: 18.015, coeff: 2, role: 'product', state: 'l' },
+        { formula: 'O\u2082', M: 31.998, coeff: 1, role: 'product', state: 'g' }
+      ]
+    },
+    { id: 's11', cat: 'redox', name: 'Zn + CuSO\u2084', eq: 'Zn(s) + CuSO\u2084(aq) \u2192 ZnSO\u2084(aq) + Cu(s)',
+      species: [
+        { formula: 'Zn', M: 65.380, coeff: 1, role: 'reactant', state: 's' },
+        { formula: 'CuSO\u2084', M: 159.607, coeff: 1, role: 'reactant', state: 'aq' },
+        { formula: 'ZnSO\u2084', M: 161.441, coeff: 1, role: 'product', state: 'aq' },
+        { formula: 'Cu', M: 63.546, coeff: 1, role: 'product', state: 's' }
+      ]
+    },
+    { id: 's12', cat: 'redox', name: 'Fe\u2082O\u2083 + CO', eq: 'Fe\u2082O\u2083(s) + 3CO(g) \u2192 2Fe(s) + 3CO\u2082(g)',
+      species: [
+        { formula: 'Fe\u2082O\u2083', M: 159.688, coeff: 1, role: 'reactant', state: 's' },
+        { formula: 'CO', M: 28.010, coeff: 3, role: 'reactant', state: 'g' },
+        { formula: 'Fe', M: 55.845, coeff: 2, role: 'product', state: 's' },
+        { formula: 'CO\u2082', M: 44.009, coeff: 3, role: 'product', state: 'g' }
+      ]
+    },
+    { id: 's13', cat: 'hl', name: 'C\u2082H\u2085OH combustion', eq: 'C\u2082H\u2085OH(l) + 3O\u2082(g) \u2192 2CO\u2082(g) + 3H\u2082O(l)', hl: true,
+      species: [
+        { formula: 'C\u2082H\u2085OH', M: 46.068, coeff: 1, role: 'reactant', state: 'l' },
+        { formula: 'O\u2082', M: 31.998, coeff: 3, role: 'reactant', state: 'g' },
+        { formula: 'CO\u2082', M: 44.009, coeff: 2, role: 'product', state: 'g' },
+        { formula: 'H\u2082O', M: 18.015, coeff: 3, role: 'product', state: 'l' }
+      ]
+    },
+    { id: 's14', cat: 'hl', name: '4NH\u2083 + 5O\u2082', eq: '4NH\u2083(g) + 5O\u2082(g) \u2192 4NO(g) + 6H\u2082O(g)', hl: true,
+      species: [
+        { formula: 'NH\u2083', M: 17.031, coeff: 4, role: 'reactant', state: 'g' },
+        { formula: 'O\u2082', M: 31.998, coeff: 5, role: 'reactant', state: 'g' },
+        { formula: 'NO', M: 30.006, coeff: 4, role: 'product', state: 'g' },
+        { formula: 'H\u2082O', M: 18.015, coeff: 6, role: 'product', state: 'g' }
+      ]
+    }
+  ];
+
+  // Limiting reagent subset IDs
+  var LIMITING_IDS = ['s1', 's4', 's5', 's7', 's8', 's11', 's13'];
+
+  // ═══════════════════════════════════════════════════
+  // Titration Data (Tab 3)
+  // ═══════════════════════════════════════════════════
+  var TITR_CATEGORIES = [
+    { id: 'strong-strong', name: 'Strong Acid + Strong Base' },
+    { id: 'weak-strong', name: 'Weak Acid + Strong Base' },
+    { id: 'strong-weak', name: 'Strong Acid + Weak Base' },
+    { id: 'polyprotic', name: 'Polyprotic (HL)', hl: true }
+  ];
+
+  var TITRATIONS = [
+    { id: 't1', cat: 'strong-strong', name: 'HCl + NaOH',
+      acid: { formula: 'HCl', conc: 0.10, vol: 25.0, Ka: null, strong: true },
+      base: { formula: 'NaOH', conc: 0.10, strong: true },
+      stoich: 1, eqPH: 7.0
+    },
+    { id: 't2', cat: 'strong-strong', name: 'H\u2082SO\u2084 + NaOH',
+      acid: { formula: 'H\u2082SO\u2084', conc: 0.10, vol: 25.0, Ka: null, strong: true },
+      base: { formula: 'NaOH', conc: 0.10, strong: true },
+      stoich: 2, eqPH: 7.0
+    },
+    { id: 't3', cat: 'weak-strong', name: 'CH\u2083COOH + NaOH',
+      acid: { formula: 'CH\u2083COOH', conc: 0.10, vol: 25.0, Ka: 1.8e-5, strong: false },
+      base: { formula: 'NaOH', conc: 0.10, strong: true },
+      stoich: 1, eqPH: 8.72
+    },
+    { id: 't4', cat: 'weak-strong', name: 'H\u2082CO\u2083 + NaOH',
+      acid: { formula: 'H\u2082CO\u2083', conc: 0.10, vol: 25.0, Ka: 4.3e-7, strong: false },
+      base: { formula: 'NaOH', conc: 0.10, strong: true },
+      stoich: 1, eqPH: 10.33
+    },
+    { id: 't5', cat: 'strong-weak', name: 'HCl + NH\u2083',
+      acid: { formula: 'HCl', conc: 0.10, vol: 25.0, Ka: null, strong: true },
+      base: { formula: 'NH\u2083', conc: 0.10, strong: false, Kb: 1.8e-5 },
+      stoich: 1, eqPH: 5.28
+    },
+    // H₃PO₄ polyprotic titration — disabled until polyprotic calcPH() branch is implemented
+    // { id: 't6', cat: 'polyprotic', name: 'H\u2083PO\u2084 + NaOH', hl: true,
+    //   acid: { formula: 'H\u2083PO\u2084', conc: 0.10, vol: 25.0, Ka: 7.5e-3, Ka2: 6.2e-8, Ka3: 4.8e-13, strong: false, polyprotic: true },
+    //   base: { formula: 'NaOH', conc: 0.10, strong: true },
+    //   stoich: 3, eqPH: 9.0
+    // }
+  ];
+
+  var INDICATORS = [
+    { id: 'none', name: 'pH Probe (no indicator)', range: null, colorBelow: null, colorAbove: null },
+    { id: 'phenolphthalein', name: 'Phenolphthalein', range: [8.2, 10.0], colorBelow: 'rgba(0,0,0,0)', colorAbove: '#FF1493', Ka: 1e-9 },
+    { id: 'methyl_orange', name: 'Methyl Orange', range: [3.1, 4.4], colorBelow: '#FF4500', colorAbove: '#FFA500', Ka: 3.5e-4 },
+    { id: 'bromothymol', name: 'Bromothymol Blue', range: [6.0, 7.6], colorBelow: '#FFD700', colorAbove: '#0000CD', Ka: 7.1e-8 }
+  ];
+
+  var KW = 1.0e-14;
+
+  // ═══════════════════════════════════════════════════
+  // Gravimetric Data (Tab 4)
+  // ═══════════════════════════════════════════════════
+  var GRAV_CATEGORIES = [
+    { id: 'halide', name: 'Halide Analysis' },
+    { id: 'sulfate', name: 'Sulfate Analysis' },
+    { id: 'carbonate', name: 'Carbonate Analysis' },
+    { id: 'hydroxide', name: 'Metal Hydroxides' }
+  ];
+
+  var GRAV_REACTIONS = [
+    { id: 'g1', cat: 'halide', name: 'NaCl + AgNO\u2083',
+      eq: 'NaCl(aq) + AgNO\u2083(aq) \u2192 AgCl(s) + NaNO\u2083(aq)',
+      sample: { formula: 'NaCl', M: 58.443, ion: 'Cl\u207b', ionM: 35.453 },
+      precipitate: { formula: 'AgCl', M: 143.321, color: '#F5F5DC' },
+      reagent: 'AgNO\u2083', stoich: 1,
+      sampleMass: 2.500, pptMass: 6.125
+    },
+    { id: 'g2', cat: 'halide', name: 'KBr + AgNO\u2083',
+      eq: 'KBr(aq) + AgNO\u2083(aq) \u2192 AgBr(s) + KNO\u2083(aq)',
+      sample: { formula: 'KBr', M: 119.002, ion: 'Br\u207b', ionM: 79.904 },
+      precipitate: { formula: 'AgBr', M: 187.772, color: '#FFFFCC' },
+      reagent: 'AgNO\u2083', stoich: 1,
+      sampleMass: 3.000, pptMass: 4.735
+    },
+    { id: 'g3', cat: 'sulfate', name: 'Na\u2082SO\u2084 + BaCl\u2082',
+      eq: 'Na\u2082SO\u2084(aq) + BaCl\u2082(aq) \u2192 BaSO\u2084(s) + 2NaCl(aq)',
+      sample: { formula: 'Na\u2082SO\u2084', M: 142.041, ion: 'SO\u2084\u00B2\u207b', ionM: 96.064 },
+      precipitate: { formula: 'BaSO\u2084', M: 233.388, color: '#FFFFFF' },
+      reagent: 'BaCl\u2082', stoich: 1,
+      sampleMass: 2.000, pptMass: 3.285
+    },
+    { id: 'g4', cat: 'carbonate', name: 'Na\u2082CO\u2083 + CaCl\u2082',
+      eq: 'Na\u2082CO\u2083(aq) + CaCl\u2082(aq) \u2192 CaCO\u2083(s) + 2NaCl(aq)',
+      sample: { formula: 'Na\u2082CO\u2083', M: 105.989, ion: 'CO\u2083\u00B2\u207b', ionM: 60.009 },
+      precipitate: { formula: 'CaCO\u2083', M: 100.087, color: '#FFFFFF' },
+      reagent: 'CaCl\u2082', stoich: 1,
+      sampleMass: 1.500, pptMass: 1.416
+    },
+    { id: 'g5', cat: 'hydroxide', name: 'CuSO\u2084 + NaOH',
+      eq: 'CuSO\u2084(aq) + 2NaOH(aq) \u2192 Cu(OH)\u2082(s) + Na\u2082SO\u2084(aq)',
+      sample: { formula: 'CuSO\u2084', M: 159.607, ion: 'Cu\u00B2\u207a', ionM: 63.546 },
+      precipitate: { formula: 'Cu(OH)\u2082', M: 97.560, color: '#87CEEB' },
+      reagent: 'NaOH', stoich: 1,
+      sampleMass: 2.500, pptMass: 1.528
+    }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // Teacher Presets
+  // ═══════════════════════════════════════════════════
+  var PRESETS = {
+    stoich: [
+      { name: 'Combustion Series', ids: ['s1', 's2', 's3'] },
+      { name: 'Neutralization', ids: ['s4', 's5', 's6'] },
+      { name: 'Mixed Practice', ids: ['s7', 's9', 's11'] },
+      { name: 'HL Challenge', ids: ['s13', 's14', 's12'] }
+    ],
+    limiting: [
+      { name: 'Basic Limiting', ids: ['s7', 's8', 's4'] },
+      { name: 'Combustion', ids: ['s1', 's13'] }
+    ],
+    titration: [
+      { name: 'Strong/Strong', ids: ['t1', 't2'] },
+      { name: 'Weak/Strong', ids: ['t3', 't4'] },
+      { name: 'All Types', ids: ['t1', 't3', 't5'] }
+    ],
+    gravimetric: [
+      { name: 'Halide Tests', ids: ['g1', 'g2'] },
+      { name: 'Full Analysis', ids: ['g1', 'g3', 'g5'] }
+    ]
+  };
+
+  // ═══════════════════════════════════════════════════
+  // State
+  // ═══════════════════════════════════════════════════
+  var _activeTab = 'stoich';
+  var _hlEnabled = false;
+  var _teacherMode = false;
+  var _hlInput = null;
+  var _tInput = null;
+  var _resizeTimer = null;
+
+  // Tab-specific state
+  var _stoichRxn = null;
+  var _limitingRxn = null;
+  var _limitingMoles = {};
+  var _limitingAnimState = null;
+  var _limitingAnimId = null;
+
+  var _titration = null;
+  var _titrVolAdded = 0;
+  var _titrDataPoints = [];
+  var _titrIndicator = INDICATORS[0];
+  var _titrAnalyteVol = 25.0;
+  var _titrAnalyteConc = 0.10;
+  var _titrTitrantConc = 0.10;
+  var _titrDone = false;
+
+  var _gravRxn = null;
+  var _gravStep = 0;
+  var _gravInputs = {};
+
+  // ═══════════════════════════════════════════════════
+  // Utility
+  // ═══════════════════════════════════════════════════
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined && text !== null) e.textContent = text;
+    return e;
+  }
+
+  function round(val, dp) {
+    if (dp === undefined) dp = 3;
+    var f = Math.pow(10, dp);
+    return Math.round(val * f) / f;
+  }
+
+  function setupCanvas(canvas) {
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.offsetWidth;
+    if (!canvas.dataset.baseHeight) {
+      canvas.dataset.baseHeight = canvas.getAttribute('height') || '300';
+    }
+    var h = parseInt(canvas.dataset.baseHeight);
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+
+  function getCurrentId() {
+    if (_activeTab === 'stoich') return _stoichRxn ? _stoichRxn.id : null;
+    if (_activeTab === 'limiting') return _limitingRxn ? _limitingRxn.id : null;
+    if (_activeTab === 'titration') return _titration ? _titration.id : null;
+    if (_activeTab === 'gravimetric') return _gravRxn ? _gravRxn.id : null;
+    return null;
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Tab Switching
+  // ═══════════════════════════════════════════════════
+  function switchTab(tabId) {
+    _activeTab = tabId;
+    var tabs = document.querySelectorAll('.tab-btn');
+    var contents = document.querySelectorAll('.tab-content');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].classList.toggle('active', tabs[i].getAttribute('data-tab') === tabId);
+    }
+    for (var j = 0; j < contents.length; j++) {
+      contents[j].classList.toggle('active', contents[j].id === 'tab-' + tabId);
+    }
+    buildPalette();
+    buildPresetDropdown();
+    var h = document.getElementById('paletteHeader');
+    if (tabId === 'stoich' || tabId === 'limiting') h.textContent = 'Reactions';
+    else if (tabId === 'titration') h.textContent = 'Titrations';
+    else h.textContent = 'Reactions';
+    setTimeout(function() {
+      if (tabId === 'limiting') drawLimitingCanvas();
+      else if (tabId === 'titration') drawTitrationCanvas();
+      else if (tabId === 'gravimetric') drawGravCanvas();
+    }, 50);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Palette
+  // ═══════════════════════════════════════════════════
+  function buildPalette() {
+    var list = document.getElementById('paletteList');
+    list.textContent = '';
+    var categories, items;
+
+    if (_activeTab === 'stoich') { categories = STOICH_CATEGORIES; items = STOICH_REACTIONS; }
+    else if (_activeTab === 'limiting') {
+      categories = STOICH_CATEGORIES.filter(function(c) { return c.id !== 'decomposition'; });
+      items = STOICH_REACTIONS.filter(function(r) { return LIMITING_IDS.indexOf(r.id) >= 0; });
+    }
+    else if (_activeTab === 'titration') { categories = TITR_CATEGORIES; items = TITRATIONS; }
+    else { categories = GRAV_CATEGORIES; items = GRAV_REACTIONS; }
+
+    var activeId = getCurrentId();
+
+    for (var c = 0; c < categories.length; c++) {
+      var cat = categories[c];
+      var catItems = [];
+      for (var i = 0; i < items.length; i++) {
+        if (items[i].cat === cat.id) catItems.push(items[i]);
+      }
+      if (catItems.length === 0) continue;
+
+      var catEl = el('div', 'palette-category' + (cat.hl ? ' hl-cat' : ''), cat.name);
+      list.appendChild(catEl);
+
+      for (var k = 0; k < catItems.length; k++) {
+        var item = catItems[k];
+        var btn = el('button', 'palette-item' + (item.hl ? ' hl-rxn' : ''), item.name);
+        if (item.id === activeId) btn.classList.add('active');
+        btn.setAttribute('data-id', item.id);
+        btn.addEventListener('click', (function(itm) {
+          return function() { selectItem(itm); };
+        })(item));
+        list.appendChild(btn);
+      }
+    }
+  }
+
+  function filterPalette(query) {
+    var items = document.querySelectorAll('#paletteList .palette-item');
+    var cats = document.querySelectorAll('#paletteList .palette-category');
+    var q = query.toLowerCase();
+    for (var i = 0; i < items.length; i++) {
+      var show = !q || items[i].textContent.toLowerCase().indexOf(q) >= 0;
+      items[i].style.display = show ? '' : 'none';
+    }
+    for (var j = 0; j < cats.length; j++) {
+      cats[j].style.display = q ? 'none' : '';
+    }
+  }
+
+  function selectItem(item) {
+    if (_activeTab === 'stoich') { _stoichRxn = item; renderStoich(); }
+    else if (_activeTab === 'limiting') { _limitingRxn = item; initLimitingMoles(); renderLimiting(); }
+    else if (_activeTab === 'titration') { _titration = item; resetTitration(); renderTitration(); }
+    else if (_activeTab === 'gravimetric') { _gravRxn = item; _gravStep = 0; _gravInputs = {}; renderGrav(); }
+    buildPalette();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Presets
+  // ═══════════════════════════════════════════════════
+  function buildPresetDropdown() {
+    var sel = document.getElementById('presetSelect');
+    sel.textContent = '';
+    var defOpt = document.createElement('option');
+    defOpt.value = '';
+    defOpt.textContent = 'Teacher Presets...';
+    sel.appendChild(defOpt);
+
+    var presets = PRESETS[_activeTab] || [];
+    for (var i = 0; i < presets.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = presets[i].name;
+      sel.appendChild(opt);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Tab 1: Stoichiometry Workspace
+  // ═══════════════════════════════════════════════════
+  function renderStoich() {
+    var body = document.getElementById('stoichBody');
+    body.textContent = '';
+    if (!_stoichRxn) {
+      body.appendChild(el('div', '', 'Select a reaction from the palette to begin.'));
+      return;
+    }
+    var rxn = _stoichRxn;
+
+    // Equation display
+    var eqDiv = el('div', 'eq-display', rxn.eq);
+    body.appendChild(eqDiv);
+
+    // Molar mass chips
+    var mmDiv = el('div', 'molar-mass-ref');
+    for (var i = 0; i < rxn.species.length; i++) {
+      var sp = rxn.species[i];
+      var chip = el('span', 'mm-chip', 'M(' + sp.formula + ') = ' + round(sp.M, 2) + ' g/mol');
+      mmDiv.appendChild(chip);
+    }
+    body.appendChild(mmDiv);
+
+    // Input section
+    var inputCard = el('div', 'yield-section');
+    var inputTitle = el('div', 'yield-section-title', 'Enter Known Quantity');
+    inputCard.appendChild(inputTitle);
+
+    var row1 = el('div', 'input-row');
+    var speciesSelect = document.createElement('select');
+    speciesSelect.className = 'input-row';
+    speciesSelect.setAttribute('aria-label', 'Select species');
+    speciesSelect.style.cssText = 'padding:0.4rem;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;font-family:inherit;min-width:120px;';
+    for (var j = 0; j < rxn.species.length; j++) {
+      var opt = document.createElement('option');
+      opt.value = j;
+      opt.textContent = rxn.species[j].formula;
+      speciesSelect.appendChild(opt);
+    }
+    row1.appendChild(el('span', 'input-label', 'Species:'));
+    row1.appendChild(speciesSelect);
+
+    var valInput = document.createElement('input');
+    valInput.type = 'number';
+    valInput.step = 'any';
+    valInput.min = '0';
+    valInput.placeholder = '0.00';
+    valInput.style.cssText = 'padding:0.4rem;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;font-family:Fira Code,monospace;width:100px;text-align:right;';
+    row1.appendChild(el('span', 'input-label', 'Amount:'));
+    row1.appendChild(valInput);
+
+    var unitSelect = document.createElement('select');
+    unitSelect.setAttribute('aria-label', 'Select unit');
+    unitSelect.style.cssText = 'padding:0.4rem;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;font-family:inherit;';
+    var units = ['mol', 'g', 'dm\u00B3 (STP)', 'cm\u00B3 solution'];
+    for (var u = 0; u < units.length; u++) {
+      var uo = document.createElement('option');
+      uo.value = u;
+      uo.textContent = units[u];
+      unitSelect.appendChild(uo);
+    }
+    row1.appendChild(unitSelect);
+    inputCard.appendChild(row1);
+
+    // Concentration row (hidden unless cm³ solution selected)
+    var concRow = el('div', 'input-row');
+    concRow.style.display = 'none';
+    concRow.appendChild(el('span', 'input-label', 'Concentration:'));
+    var concInput = document.createElement('input');
+    concInput.type = 'number';
+    concInput.step = 'any';
+    concInput.min = '0';
+    concInput.placeholder = '0.10';
+    concInput.value = '0.10';
+    concInput.setAttribute('aria-label', 'Concentration in mol per dm cubed');
+    concInput.style.cssText = 'padding:0.4rem;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;font-family:Fira Code,monospace;width:100px;text-align:right;';
+    concRow.appendChild(concInput);
+    concRow.appendChild(el('span', 'setup-unit', 'mol dm\u207b\u00B3'));
+    inputCard.appendChild(concRow);
+
+    unitSelect.addEventListener('change', function() {
+      concRow.style.display = unitSelect.value === '3' ? 'flex' : 'none';
+    });
+
+    body.appendChild(inputCard);
+
+    // Calculate button
+    var calcBtn = el('button', 'check-btn', 'Calculate All Species');
+    body.appendChild(calcBtn);
+
+    // Results container
+    var resultsDiv = el('div', '');
+    resultsDiv.id = 'stoichResults';
+    body.appendChild(resultsDiv);
+
+    // Percentage yield section
+    var yieldDiv = el('div', 'yield-section');
+    yieldDiv.style.display = 'none';
+    yieldDiv.id = 'yieldSection';
+    var yieldTitle = el('div', 'yield-section-title', 'Percentage Yield');
+    yieldDiv.appendChild(yieldTitle);
+    var yieldRow = el('div', 'input-row');
+    yieldRow.appendChild(el('span', 'input-label', 'Actual yield:'));
+    var yieldInput = document.createElement('input');
+    yieldInput.type = 'number';
+    yieldInput.step = 'any';
+    yieldInput.min = '0';
+    yieldInput.placeholder = '0.00';
+    yieldInput.id = 'yieldInput';
+    yieldInput.style.cssText = 'padding:0.4rem;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;font-family:Fira Code,monospace;width:100px;text-align:right;';
+    yieldRow.appendChild(yieldInput);
+    yieldRow.appendChild(el('span', 'setup-unit', 'g'));
+    var yieldResult = el('div', '');
+    yieldResult.id = 'yieldResult';
+    yieldDiv.appendChild(yieldRow);
+    yieldDiv.appendChild(yieldResult);
+    body.appendChild(yieldDiv);
+
+    // Atom economy (HL)
+    var aeCard = el('div', 'atom-economy-card');
+    aeCard.id = 'atomEconomy';
+    var aeTitle = el('div', 'atom-economy-title', 'Atom Economy (HL)');
+    aeCard.appendChild(aeTitle);
+    body.appendChild(aeCard);
+
+    // Answer reveal (teacher)
+    var ansReveal = el('div', 'answer-reveal');
+    ansReveal.id = 'stoichAnswer';
+    body.appendChild(ansReveal);
+
+    // Event handlers
+    calcBtn.addEventListener('click', function() {
+      var si = parseInt(speciesSelect.value);
+      var val = parseFloat(valInput.value);
+      var unit = parseInt(unitSelect.value);
+      if (isNaN(val) || val <= 0) return;
+      var sp = rxn.species[si];
+      var moles;
+      if (unit === 0) moles = val;
+      else if (unit === 1) moles = val / sp.M;
+      else if (unit === 2) moles = val / 22.7;
+      else {
+        var conc = parseFloat(concInput.value);
+        if (isNaN(conc) || conc <= 0) return;
+        moles = (conc * val) / 1000;
+      }
+      displayStoichResults(rxn, si, moles);
+    });
+
+    yieldInput.addEventListener('input', function() {
+      computeYield();
+    });
+  }
+
+  function displayStoichResults(rxn, knownIdx, knownMoles) {
+    var container = document.getElementById('stoichResults');
+    container.textContent = '';
+
+    var table = document.createElement('table');
+    table.className = 'results-table';
+    var thead = document.createElement('thead');
+    var hr = document.createElement('tr');
+    var headers = ['Species', 'Coefficient', 'Moles', 'Mass (g)', 'Volume (dm\u00B3, STP)'];
+    for (var h = 0; h < headers.length; h++) {
+      var th = document.createElement('th');
+      th.textContent = headers[h];
+      hr.appendChild(th);
+    }
+    thead.appendChild(hr);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    var knownSp = rxn.species[knownIdx];
+    var baseMoles = knownMoles / knownSp.coeff;
+
+    for (var i = 0; i < rxn.species.length; i++) {
+      var sp = rxn.species[i];
+      var spMoles = baseMoles * sp.coeff;
+      var tr = document.createElement('tr');
+      tr.className = sp.role;
+
+      var tdFormula = document.createElement('td');
+      tdFormula.textContent = sp.formula + '(' + sp.state + ')';
+      if (i === knownIdx) tdFormula.style.fontWeight = '700';
+      tr.appendChild(tdFormula);
+
+      var tdCoeff = document.createElement('td');
+      tdCoeff.textContent = sp.coeff;
+      tr.appendChild(tdCoeff);
+
+      var tdMoles = document.createElement('td');
+      tdMoles.textContent = round(spMoles, 4);
+      tr.appendChild(tdMoles);
+
+      var tdMass = document.createElement('td');
+      tdMass.textContent = round(spMoles * sp.M, 3);
+      tr.appendChild(tdMass);
+
+      var tdVol = document.createElement('td');
+      tdVol.textContent = (sp.state === 'g') ? round(spMoles * 22.7, 3) : '\u2014';
+      tr.appendChild(tdVol);
+
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    container.appendChild(table);
+
+    // Store results for yield calculation
+    container._results = { rxn: rxn, baseMoles: baseMoles };
+
+    // Show yield section
+    document.getElementById('yieldSection').style.display = '';
+
+    // Atom economy
+    computeAtomEconomy(rxn);
+
+    // Teacher answer
+    var ans = document.getElementById('stoichAnswer');
+    var lines = [];
+    for (var k = 0; k < rxn.species.length; k++) {
+      var s = rxn.species[k];
+      var m = baseMoles * s.coeff;
+      lines.push(s.formula + ': ' + round(m, 4) + ' mol = ' + round(m * s.M, 3) + ' g');
+    }
+    ans.textContent = lines.join(' | ');
+  }
+
+  function computeYield() {
+    var container = document.getElementById('stoichResults');
+    var resultDiv = document.getElementById('yieldResult');
+    if (!container._results) return;
+    var val = parseFloat(document.getElementById('yieldInput').value);
+    if (isNaN(val) || val <= 0) { resultDiv.textContent = ''; return; }
+
+    var rxn = container._results.rxn;
+    var baseMoles = container._results.baseMoles;
+    // Find first product for theoretical yield
+    var products = rxn.species.filter(function(s) { return s.role === 'product'; });
+    if (products.length === 0) return;
+    var prod = products[0];
+    var theoretical = baseMoles * prod.coeff * prod.M;
+    var pct = (val / theoretical) * 100;
+
+    resultDiv.textContent = '';
+    var line = el('div', '', 'Theoretical yield of ' + prod.formula + ': ' + round(theoretical, 2) + ' g');
+    line.style.fontSize = '0.78rem';
+    resultDiv.appendChild(line);
+
+    var pctLine = el('div', '');
+    pctLine.style.cssText = 'font-size:0.85rem;font-weight:700;font-family:Fira Code,monospace;margin-top:0.3rem;';
+    var dot = el('span', 'yield-indicator');
+    var label;
+    if (pct >= 90) { dot.style.background = 'var(--green)'; pctLine.style.color = 'var(--green)'; label = 'Excellent'; }
+    else if (pct >= 60) { dot.style.background = 'var(--amber)'; pctLine.style.color = 'var(--amber)'; label = 'Acceptable'; }
+    else { dot.style.background = 'var(--red)'; pctLine.style.color = 'var(--red)'; label = 'Low yield'; }
+    dot.setAttribute('aria-label', label);
+    pctLine.appendChild(dot);
+    pctLine.appendChild(document.createTextNode('% Yield = ' + round(pct, 1) + '% (' + label + ')'));
+    resultDiv.appendChild(pctLine);
+  }
+
+  function computeAtomEconomy(rxn) {
+    var aeCard = document.getElementById('atomEconomy');
+    // Clear existing content after title
+    while (aeCard.children.length > 1) aeCard.removeChild(aeCard.lastChild);
+
+    var products = rxn.species.filter(function(s) { return s.role === 'product'; });
+    if (products.length === 0) return;
+
+    var totalProductMass = 0;
+    for (var i = 0; i < products.length; i++) {
+      totalProductMass += products[i].M * products[i].coeff;
+    }
+    // Desired product = first product
+    var desiredMass = products[0].M * products[0].coeff;
+    var ae = (desiredMass / totalProductMass) * 100;
+
+    var formula = el('div', '', 'Atom Economy = M(' + products[0].formula + ') \u00D7 ' + products[0].coeff + ' / \u03A3(M \u00D7 coeff of all products) \u00D7 100');
+    formula.style.cssText = 'font-size:0.75rem;color:var(--text-muted);margin-bottom:0.3rem;';
+    aeCard.appendChild(formula);
+
+    var result = el('div', '', 'Atom Economy = ' + round(ae, 1) + '%');
+    result.style.cssText = 'font-size:0.85rem;font-weight:700;font-family:Fira Code,monospace;color:var(--purple);';
+    aeCard.appendChild(result);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Tab 2: Limiting Reagent
+  // ═══════════════════════════════════════════════════
+  function initLimitingMoles() {
+    _limitingMoles = {};
+    if (!_limitingRxn) return;
+    var reactants = _limitingRxn.species.filter(function(s) { return s.role === 'reactant'; });
+    for (var i = 0; i < reactants.length; i++) {
+      _limitingMoles[reactants[i].formula] = 1.0;
+    }
+  }
+
+  function renderLimiting() {
+    var body = document.getElementById('limitingBody');
+    body.textContent = '';
+    if (!_limitingRxn) {
+      body.appendChild(el('div', '', 'Select a reaction from the palette to begin.'));
+      drawLimitingCanvas();
+      return;
+    }
+    var rxn = _limitingRxn;
+
+    // Equation
+    body.appendChild(el('div', 'eq-display', rxn.eq));
+
+    // Sliders for each reactant
+    var reactants = rxn.species.filter(function(s) { return s.role === 'reactant'; });
+    var colors = ['#EF4444', '#3B82F6', '#F59E0B', '#8B5CF6'];
+
+    for (var i = 0; i < reactants.length; i++) {
+      (function(idx, sp) {
+        var group = el('div', 'slider-group');
+        var label = el('div', 'slider-label');
+        var nameSpan = el('span', '', sp.formula);
+        nameSpan.style.color = colors[idx % colors.length];
+        var valSpan = el('span', 'slider-value', round(_limitingMoles[sp.formula], 1) + ' mol');
+        valSpan.id = 'slider-val-' + idx;
+        label.appendChild(nameSpan);
+        label.appendChild(valSpan);
+        group.appendChild(label);
+
+        var slider = document.createElement('input');
+        slider.type = 'range';
+        slider.className = 'mol-slider';
+        slider.min = '0';
+        slider.max = '5';
+        slider.step = '0.1';
+        slider.value = _limitingMoles[sp.formula];
+        slider.style.setProperty('--thumb-color', colors[idx % colors.length]);
+        // Style the thumb
+        slider.style.background = 'linear-gradient(to right, ' + colors[idx % colors.length] + ' ' + ((_limitingMoles[sp.formula] / 5) * 100) + '%, var(--border) ' + ((_limitingMoles[sp.formula] / 5) * 100) + '%)';
+        slider.addEventListener('input', function() {
+          _limitingMoles[sp.formula] = parseFloat(this.value);
+          document.getElementById('slider-val-' + idx).textContent = round(parseFloat(this.value), 1) + ' mol';
+          this.style.background = 'linear-gradient(to right, ' + colors[idx % colors.length] + ' ' + ((this.value / 5) * 100) + '%, var(--border) ' + ((this.value / 5) * 100) + '%)';
+          updateLimitingAnalysis();
+        });
+        group.appendChild(slider);
+        body.appendChild(group);
+      })(i, reactants[i]);
+    }
+
+    // Analysis card
+    var analysis = el('div', 'analysis-card');
+    analysis.id = 'limitingAnalysis';
+    body.appendChild(analysis);
+
+    // React button
+    var reactBtn = el('button', 'check-btn', 'React \u2192 Animate');
+    reactBtn.addEventListener('click', function() { animateLimiting(); });
+    body.appendChild(reactBtn);
+
+    // Teacher answer
+    var ansReveal = el('div', 'answer-reveal');
+    ansReveal.id = 'limitingAnswer';
+    body.appendChild(ansReveal);
+
+    updateLimitingAnalysis();
+    drawLimitingCanvas();
+  }
+
+  function updateLimitingAnalysis() {
+    var analysis = document.getElementById('limitingAnalysis');
+    if (!analysis || !_limitingRxn) return;
+    analysis.textContent = '';
+
+    var rxn = _limitingRxn;
+    var reactants = rxn.species.filter(function(s) { return s.role === 'reactant'; });
+    var products = rxn.species.filter(function(s) { return s.role === 'product'; });
+
+    // Find limiting reagent
+    var minRatio = Infinity;
+    var limitingFormula = '';
+    for (var i = 0; i < reactants.length; i++) {
+      var sp = reactants[i];
+      var ratio = (_limitingMoles[sp.formula] || 0) / sp.coeff;
+      if (ratio < minRatio) {
+        minRatio = ratio;
+        limitingFormula = sp.formula;
+      }
+    }
+
+    // Header
+    analysis.appendChild(el('div', 'yield-section-title', 'Analysis'));
+
+    for (var j = 0; j < reactants.length; j++) {
+      var r = reactants[j];
+      var moles = _limitingMoles[r.formula] || 0;
+      var row = el('div', 'analysis-row');
+      var labelSpan = el('span', 'analysis-label', r.formula + ': ' + round(moles, 1) + ' mol');
+      row.appendChild(labelSpan);
+      if (r.formula === limitingFormula) {
+        row.appendChild(el('span', 'limiting-badge', 'Limiting'));
+      } else {
+        row.appendChild(el('span', 'excess-badge', 'Excess'));
+      }
+      analysis.appendChild(row);
+    }
+
+    // Separator
+    var sep = el('div', '');
+    sep.style.cssText = 'border-top:1px solid var(--border);margin:0.5rem 0;';
+    analysis.appendChild(sep);
+
+    // Products formed
+    for (var k = 0; k < products.length; k++) {
+      var p = products[k];
+      var pMoles = minRatio * p.coeff;
+      var pRow = el('div', 'analysis-row');
+      pRow.appendChild(el('span', 'analysis-label', p.formula + ' produced'));
+      pRow.appendChild(el('span', 'analysis-value', round(pMoles, 3) + ' mol'));
+      analysis.appendChild(pRow);
+    }
+
+    // Excess remaining
+    for (var m = 0; m < reactants.length; m++) {
+      if (reactants[m].formula !== limitingFormula) {
+        var excess = (_limitingMoles[reactants[m].formula] || 0) - (minRatio * reactants[m].coeff);
+        var eRow = el('div', 'analysis-row');
+        eRow.appendChild(el('span', 'analysis-label', reactants[m].formula + ' excess'));
+        eRow.appendChild(el('span', 'analysis-value', round(excess, 3) + ' mol'));
+        analysis.appendChild(eRow);
+      }
+    }
+
+    // Teacher answer
+    var ans = document.getElementById('limitingAnswer');
+    if (ans) {
+      ans.textContent = 'Limiting: ' + limitingFormula + ' | Products: ' +
+        products.map(function(p) { return p.formula + ' = ' + round(minRatio * p.coeff, 3) + ' mol'; }).join(', ');
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Tab 2: Particle Animation
+  // ═══════════════════════════════════════════════════
+  function drawLimitingCanvas() {
+    var canvas = document.getElementById('limitingCanvas');
+    if (!canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.getAttribute('height'));
+    ctx.clearRect(0, 0, w, h);
+
+    if (!_limitingRxn) {
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Select a reaction to see particle animation', w / 2, h / 2);
+      return;
+    }
+
+    var rxn = _limitingRxn;
+    var reactants = rxn.species.filter(function(s) { return s.role === 'reactant'; });
+    var products = rxn.species.filter(function(s) { return s.role === 'product'; });
+    var colors = ['#EF4444', '#3B82F6', '#F59E0B', '#8B5CF6', '#10B981', '#EC4899'];
+
+    // If animation is running, draw animation state
+    if (_limitingAnimState) {
+      drawAnimFrame(ctx, w, h, _limitingAnimState, rxn, colors);
+      return;
+    }
+
+    // Draw "before" state — particles for each reactant
+    var scale = 10; // 1 mol = 10 particles
+    var groups = [];
+    var totalParticles = 0;
+    for (var i = 0; i < reactants.length; i++) {
+      var count = Math.round((_limitingMoles[reactants[i].formula] || 0) * scale);
+      if (count > 50) count = 50;
+      groups.push({ formula: reactants[i].formula, count: count, color: colors[i], particles: [] });
+      totalParticles += count;
+    }
+
+    var groupWidth = w / groups.length;
+    for (var g = 0; g < groups.length; g++) {
+      var gx = g * groupWidth + groupWidth / 2;
+      // Label
+      ctx.fillStyle = groups[g].color;
+      ctx.font = 'bold 13px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(groups[g].formula, gx, h - 15);
+      ctx.fillText(round(_limitingMoles[groups[g].formula] || 0, 1) + ' mol', gx, h - 2);
+
+      // Draw particles
+      var radius = 8;
+      var cols = Math.ceil(Math.sqrt(groups[g].count));
+      for (var p = 0; p < groups[g].count; p++) {
+        var col = p % cols;
+        var row = Math.floor(p / cols);
+        var px = gx - (cols * radius * 2.5) / 2 + col * radius * 2.5 + radius;
+        var py = 30 + row * radius * 2.5;
+        ctx.beginPath();
+        ctx.arc(px, py, radius, 0, Math.PI * 2);
+        ctx.fillStyle = groups[g].color;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(0,0,0,0.15)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+    }
+  }
+
+  function animateLimiting() {
+    if (!_limitingRxn) return;
+    if (_limitingAnimId) { cancelAnimationFrame(_limitingAnimId); _limitingAnimId = null; }
+
+    var rxn = _limitingRxn;
+    var reactants = rxn.species.filter(function(s) { return s.role === 'reactant'; });
+    var products = rxn.species.filter(function(s) { return s.role === 'product'; });
+    var colors = ['#EF4444', '#3B82F6', '#F59E0B', '#8B5CF6', '#10B981', '#EC4899'];
+
+    // Find limiting
+    var minRatio = Infinity;
+    for (var i = 0; i < reactants.length; i++) {
+      var ratio = (_limitingMoles[reactants[i].formula] || 0) / reactants[i].coeff;
+      if (ratio < minRatio) minRatio = ratio;
+    }
+
+    var scale = 10;
+    _limitingAnimState = {
+      phase: 'react', // react -> done
+      progress: 0,
+      reactants: [],
+      products: [],
+      minRatio: minRatio
+    };
+
+    // Create reactant particle groups
+    for (var r = 0; r < reactants.length; r++) {
+      var totalMoles = _limitingMoles[reactants[r].formula] || 0;
+      var reactedMoles = minRatio * reactants[r].coeff;
+      var excessMoles = totalMoles - reactedMoles;
+      _limitingAnimState.reactants.push({
+        formula: reactants[r].formula,
+        total: Math.round(totalMoles * scale),
+        reacted: Math.round(reactedMoles * scale),
+        excess: Math.round(excessMoles * scale),
+        color: colors[r]
+      });
+    }
+
+    // Create product groups
+    for (var p = 0; p < products.length; p++) {
+      var pMoles = minRatio * products[p].coeff;
+      _limitingAnimState.products.push({
+        formula: products[p].formula,
+        count: Math.round(pMoles * scale),
+        color: colors[reactants.length + p]
+      });
+    }
+
+    var startTime = performance.now();
+    var duration = 3000;
+
+    function step(now) {
+      var elapsed = now - startTime;
+      _limitingAnimState.progress = Math.min(elapsed / duration, 1);
+      if (_limitingAnimState.progress >= 1) _limitingAnimState.phase = 'done';
+      drawLimitingCanvas();
+      if (_limitingAnimState.progress < 1) {
+        _limitingAnimId = requestAnimationFrame(step);
+      }
+    }
+    _limitingAnimId = requestAnimationFrame(step);
+  }
+
+  function drawAnimFrame(ctx, w, h, state, rxn, colors) {
+    ctx.clearRect(0, 0, w, h);
+    var t = state.progress;
+    var ease = t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+
+    var reactants = state.reactants;
+    var products = state.products;
+    var allGroups = reactants.length + products.length;
+    var groupW = w / (allGroups + 1);
+
+    // Draw reactant particles
+    for (var r = 0; r < reactants.length; r++) {
+      var rg = reactants[r];
+      var gx = (r + 0.5) * groupW;
+      var radius = 7;
+
+      // Label
+      ctx.fillStyle = rg.color;
+      ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(rg.formula, gx, h - 8);
+
+      // Excess particles (stay)
+      var cols = Math.ceil(Math.sqrt(Math.max(rg.total, 1)));
+      for (var p = 0; p < rg.total; p++) {
+        var isReacted = p < rg.reacted;
+        var col = p % cols;
+        var row = Math.floor(p / cols);
+        var px = gx - (cols * radius * 2.2) / 2 + col * radius * 2.2 + radius;
+        var py = 25 + row * radius * 2.2;
+
+        if (isReacted) {
+          // Fade out
+          ctx.globalAlpha = Math.max(0, 1 - ease * 1.5);
+        } else {
+          ctx.globalAlpha = 1;
+        }
+        ctx.beginPath();
+        ctx.arc(px, py, radius, 0, Math.PI * 2);
+        ctx.fillStyle = rg.color;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Draw product particles (fade in)
+    for (var q = 0; q < products.length; q++) {
+      var pg = products[q];
+      var pgx = (reactants.length + q + 1) * groupW;
+      var pradius = 7;
+
+      // Label
+      ctx.fillStyle = pg.color;
+      ctx.font = 'bold 12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(pg.formula, pgx, h - 8);
+
+      var pcols = Math.ceil(Math.sqrt(Math.max(pg.count, 1)));
+      ctx.globalAlpha = Math.min(1, ease * 2 - 0.5);
+      if (ctx.globalAlpha < 0) ctx.globalAlpha = 0;
+      for (var pp = 0; pp < pg.count; pp++) {
+        var pcol = pp % pcols;
+        var prow = Math.floor(pp / pcols);
+        var ppx = pgx - (pcols * pradius * 2.2) / 2 + pcol * pradius * 2.2 + pradius;
+        var ppy = 25 + prow * pradius * 2.2;
+        ctx.beginPath();
+        ctx.arc(ppx, ppy, pradius, 0, Math.PI * 2);
+        ctx.fillStyle = pg.color;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
+
+    // Arrow in center
+    if (ease > 0.3) {
+      var arrowX = w / 2;
+      var arrowY = h / 2;
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = 'bold 24px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.globalAlpha = Math.min(1, (ease - 0.3) * 3);
+      ctx.fillText('\u2192', arrowX, arrowY);
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Tab 3: Titration Lab
+  // ═══════════════════════════════════════════════════
+  function resetTitration() {
+    _titrVolAdded = 0;
+    _titrDataPoints = [];
+    _titrDone = false;
+    if (_titration) {
+      _titrAnalyteVol = _titration.acid.vol;
+      _titrAnalyteConc = _titration.acid.conc;
+      _titrTitrantConc = _titration.base.conc;
+    }
+    _titrIndicator = INDICATORS[0];
+  }
+
+  function renderTitration() {
+    var body = document.getElementById('titrationBody');
+    body.textContent = '';
+    if (!_titration) {
+      body.appendChild(el('div', '', 'Select a titration from the palette to begin.'));
+      drawTitrationCanvas();
+      return;
+    }
+    var titr = _titration;
+
+    // Equation
+    var eqText = titr.acid.formula + '(aq) + ' + (titr.stoich > 1 ? titr.stoich : '') + titr.base.formula + '(aq) \u2192 products';
+    body.appendChild(el('div', 'eq-display', eqText));
+
+    // Setup card
+    var setup = el('div', 'setup-card');
+    setup.appendChild(el('div', 'yield-section-title', 'Setup'));
+
+    // Analyte row
+    var aRow = el('div', 'setup-row');
+    aRow.appendChild(el('span', 'setup-label', 'Analyte:'));
+    aRow.appendChild(el('span', '', titr.acid.formula));
+    var aVolIn = document.createElement('input');
+    aVolIn.className = 'setup-input';
+    aVolIn.type = 'number';
+    aVolIn.value = _titrAnalyteVol;
+    aVolIn.min = '1';
+    aVolIn.max = '100';
+    aRow.appendChild(aVolIn);
+    aRow.appendChild(el('span', 'setup-unit', 'cm\u00B3'));
+    var aConcIn = document.createElement('input');
+    aConcIn.className = 'setup-input';
+    aConcIn.type = 'number';
+    aConcIn.value = _titrAnalyteConc;
+    aConcIn.step = '0.01';
+    aConcIn.min = '0.01';
+    aRow.appendChild(aConcIn);
+    aRow.appendChild(el('span', 'setup-unit', 'mol dm\u207b\u00B3'));
+    setup.appendChild(aRow);
+
+    // Titrant row
+    var bRow = el('div', 'setup-row');
+    bRow.appendChild(el('span', 'setup-label', 'Titrant:'));
+    bRow.appendChild(el('span', '', titr.base.formula));
+    var bConcIn = document.createElement('input');
+    bConcIn.className = 'setup-input';
+    bConcIn.type = 'number';
+    bConcIn.value = _titrTitrantConc;
+    bConcIn.step = '0.01';
+    bConcIn.min = '0.01';
+    bRow.appendChild(bConcIn);
+    bRow.appendChild(el('span', 'setup-unit', 'mol dm\u207b\u00B3'));
+    setup.appendChild(bRow);
+
+    // Indicator row
+    var iRow = el('div', 'setup-row');
+    iRow.appendChild(el('span', 'setup-label', 'Indicator:'));
+    var iSel = document.createElement('select');
+    iSel.className = 'setup-select';
+    for (var ind = 0; ind < INDICATORS.length; ind++) {
+      var iOpt = document.createElement('option');
+      iOpt.value = ind;
+      iOpt.textContent = INDICATORS[ind].name;
+      iSel.appendChild(iOpt);
+    }
+    iRow.appendChild(iSel);
+    setup.appendChild(iRow);
+
+    // Reset button
+    var resetBtn = el('button', 'check-btn', 'Reset Titration');
+    resetBtn.style.cssText = 'margin-top:0.5rem;background:var(--amber);';
+    resetBtn.addEventListener('click', function() {
+      _titrAnalyteVol = parseFloat(aVolIn.value) || 25;
+      _titrAnalyteConc = parseFloat(aConcIn.value) || 0.10;
+      _titrTitrantConc = parseFloat(bConcIn.value) || 0.10;
+      _titrIndicator = INDICATORS[parseInt(iSel.value)];
+      resetTitration();
+      _titrAnalyteVol = parseFloat(aVolIn.value) || 25;
+      _titrAnalyteConc = parseFloat(aConcIn.value) || 0.10;
+      _titrTitrantConc = parseFloat(bConcIn.value) || 0.10;
+      _titrIndicator = INDICATORS[parseInt(iSel.value)];
+      renderTitrationControls();
+      drawTitrationCanvas();
+    });
+    setup.appendChild(resetBtn);
+    body.appendChild(setup);
+
+    // Initialize with setup values
+    _titrAnalyteVol = parseFloat(aVolIn.value);
+    _titrAnalyteConc = parseFloat(aConcIn.value);
+    _titrTitrantConc = parseFloat(bConcIn.value);
+    _titrIndicator = INDICATORS[parseInt(iSel.value)];
+
+    // Add initial pH data point
+    if (_titrDataPoints.length === 0) {
+      _titrDataPoints.push({ vol: 0, pH: calcPH(0) });
+    }
+
+    // Controls container
+    var controlsDiv = el('div', '');
+    controlsDiv.id = 'titrationControls';
+    body.appendChild(controlsDiv);
+    renderTitrationControls();
+
+    // Results area
+    var resultsDiv = el('div', 'titr-results');
+    resultsDiv.id = 'titrationResults';
+    body.appendChild(resultsDiv);
+
+    // Teacher answer
+    var eqVol = (_titrAnalyteConc * _titrAnalyteVol * _titration.stoich) / _titrTitrantConc;
+    var ansReveal = el('div', 'answer-reveal', 'Eq. point: ' + round(eqVol, 2) + ' cm\u00B3 | pH at eq: ' + _titration.eqPH);
+    body.appendChild(ansReveal);
+
+    drawTitrationCanvas();
+  }
+
+  function renderTitrationControls() {
+    var div = document.getElementById('titrationControls');
+    if (!div) return;
+    div.textContent = '';
+
+    var controls = el('div', 'titration-controls');
+
+    // Add buttons
+    var amounts = [{ label: 'Add 1.0 mL', vol: 1.0 }, { label: 'Add 0.1 mL', vol: 0.1 }, { label: 'Add drop', vol: 0.028 }];
+    for (var i = 0; i < amounts.length; i++) {
+      (function(amt) {
+        var btn = el('button', 'add-btn', amt.label);
+        if (_titrDone) btn.disabled = true;
+        btn.addEventListener('click', function() {
+          addTitrant(amt.vol);
+        });
+        controls.appendChild(btn);
+      })(amounts[i]);
+    }
+
+    // pH readout
+    var currentPH = _titrDataPoints.length > 0 ? _titrDataPoints[_titrDataPoints.length - 1].pH : calcPH(0);
+    var phSpan = el('span', 'ph-readout', 'pH ' + round(currentPH, 2));
+    controls.appendChild(phSpan);
+
+    // Volume readout
+    var volSpan = el('span', 'vol-readout', 'Vol: ' + round(_titrVolAdded, 2) + ' cm\u00B3');
+    controls.appendChild(volSpan);
+
+    div.appendChild(controls);
+  }
+
+  function addTitrant(vol) {
+    if (_titrDone) return;
+    _titrVolAdded += vol;
+    var pH = calcPH(_titrVolAdded);
+    _titrDataPoints.push({ vol: _titrVolAdded, pH: pH });
+
+    // Check if we passed equivalence point
+    var eqVol = (_titrAnalyteConc * _titrAnalyteVol * _titration.stoich) / _titrTitrantConc;
+    if (_titrVolAdded >= eqVol * 2) {
+      _titrDone = true;
+      showTitrationResults(eqVol);
+    }
+
+    renderTitrationControls();
+    drawTitrationCanvas();
+  }
+
+  function calcPH(volBase) {
+    if (!_titration) return 7;
+    var titr = _titration;
+    var molesAcid = (_titrAnalyteConc * _titrAnalyteVol) / 1000;
+    var molesBase = (_titrTitrantConc * volBase) / 1000;
+    var totalVol = (_titrAnalyteVol + volBase) / 1000; // in L
+
+    // molesAcidForBase = moles of base needed to fully neutralize the acid
+    // For H2SO4 + 2NaOH: stoich=2, so molesAcidForBase = molesAcid * 2
+    var molesAcidForBase = molesAcid * titr.stoich;
+
+    if (titr.acid.strong && titr.base.strong) {
+      // Strong acid + strong base
+      if (molesBase < molesAcidForBase) {
+        // Excess acid
+        var excessH = (molesAcidForBase - molesBase) / titr.stoich;
+        var concH = excessH / totalVol;
+        return -Math.log10(Math.max(concH, 1e-14));
+      } else if (Math.abs(molesBase - molesAcidForBase) < 1e-10) {
+        return 7.0;
+      } else {
+        // Excess base
+        var excessOH = (molesBase - molesAcidForBase) / totalVol;
+        var pOH = -Math.log10(Math.max(excessOH, 1e-14));
+        return 14 - pOH;
+      }
+    } else if (!titr.acid.strong && titr.base.strong) {
+      // Weak acid + strong base
+      var Ka = titr.acid.Ka;
+      if (molesBase < molesAcid - 1e-10) {
+        // Buffer region
+        var molesHA = molesAcid - molesBase;
+        var molesA = molesBase;
+        if (molesA < 1e-12) {
+          // Before any base added — pure weak acid
+          var concHA = molesAcid / totalVol;
+          var H = Math.sqrt(Ka * concHA);
+          return -Math.log10(H);
+        }
+        // Henderson-Hasselbalch
+        return -Math.log10(Ka) + Math.log10(molesA / molesHA);
+      } else if (Math.abs(molesBase - molesAcid) < 1e-10) {
+        // Equivalence point — hydrolysis of conjugate base
+        var concSalt = molesAcid / totalVol;
+        var Kb = KW / Ka;
+        var OH = Math.sqrt(Kb * concSalt);
+        return 14 + Math.log10(OH);
+      } else {
+        // Excess base
+        var exOH = (molesBase - molesAcid) / totalVol;
+        return 14 + Math.log10(exOH);
+      }
+    } else if (titr.acid.strong && !titr.base.strong) {
+      // Strong acid + weak base
+      var Kb2 = titr.base.Kb;
+      var Ka2 = KW / Kb2;
+      if (molesBase < molesAcid - 1e-10) {
+        // Excess strong acid
+        var exH2 = (molesAcid - molesBase) / totalVol;
+        return -Math.log10(Math.max(exH2, 1e-14));
+      } else if (Math.abs(molesBase - molesAcid) < 1e-10) {
+        // Equivalence — conjugate acid hydrolysis
+        var concConj = molesAcid / totalVol;
+        var H2 = Math.sqrt(Ka2 * concConj);
+        return -Math.log10(H2);
+      } else {
+        // Buffer region (excess weak base)
+        var molesBH = molesAcid;
+        var molesB = molesBase - molesAcid;
+        if (molesB < 1e-12) {
+          return -Math.log10(Math.sqrt(Ka2 * (molesAcid / totalVol)));
+        }
+        return -Math.log10(Ka2) + Math.log10(molesB / molesBH);
+      }
+    }
+    return 7.0;
+  }
+
+  function showTitrationResults(eqVol) {
+    var div = document.getElementById('titrationResults');
+    if (!div) return;
+    div.textContent = '';
+    div.classList.add('show');
+
+    div.appendChild(el('div', 'titr-results-title', 'Titration Results'));
+
+    var r1 = el('div', 'analysis-row');
+    r1.appendChild(el('span', 'analysis-label', 'Equivalence volume'));
+    r1.appendChild(el('span', 'analysis-value', round(eqVol, 2) + ' cm\u00B3'));
+    div.appendChild(r1);
+
+    // Calculate analyte concentration (pretend we're finding it)
+    var calcConc = (_titrTitrantConc * eqVol) / (_titrAnalyteVol * _titration.stoich);
+    var r2 = el('div', 'analysis-row');
+    r2.appendChild(el('span', 'analysis-label', 'Analyte concentration'));
+    r2.appendChild(el('span', 'analysis-value', round(calcConc, 4) + ' mol dm\u207b\u00B3'));
+    div.appendChild(r2);
+
+    // Indicator suitability
+    if (_titrIndicator.range) {
+      var suitable = _titration.eqPH >= _titrIndicator.range[0] && _titration.eqPH <= _titrIndicator.range[1];
+      var indCheck = el('div', 'indicator-check ' + (suitable ? 'suitable' : 'unsuitable'));
+      indCheck.textContent = _titrIndicator.name + ': ' + (suitable ? '\u2714 Suitable' : '\u2718 Not suitable') +
+        ' (endpoint pH ' + _titration.eqPH + ', range ' + _titrIndicator.range[0] + '\u2013' + _titrIndicator.range[1] + ')';
+      div.appendChild(indCheck);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Tab 3: Titration Canvas
+  // ═══════════════════════════════════════════════════
+  function drawTitrationCanvas() {
+    var canvas = document.getElementById('titrationCanvas');
+    if (!canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.getAttribute('height'));
+    ctx.clearRect(0, 0, w, h);
+
+    if (!_titration) {
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Select a titration to see apparatus and pH curve', w / 2, h / 2);
+      return;
+    }
+
+    // Split canvas: left = apparatus, right = pH curve
+    var splitX = 180;
+
+    // ── Draw Burette & Flask ──
+    drawApparatus(ctx, splitX, h);
+
+    // ── Draw pH Curve ──
+    drawPHCurve(ctx, splitX + 20, 0, w - splitX - 30, h);
+  }
+
+  function drawApparatus(ctx, maxX, h) {
+    var cx = maxX / 2;
+
+    // Burette
+    var bx = cx - 12, by = 15, bw = 24, bh = 160;
+    ctx.strokeStyle = '#64748B';
+    ctx.lineWidth = 1.5;
+    ctx.fillStyle = '#E0F2FE';
+
+    // Burette body
+    ctx.strokeRect(bx, by, bw, bh);
+
+    // Liquid level based on volume added
+    var eqVol = (_titrAnalyteConc * _titrAnalyteVol * _titration.stoich) / _titrTitrantConc;
+    var maxVol = eqVol * 2;
+    var fillFrac = Math.min(_titrVolAdded / Math.max(maxVol, 1), 1);
+    var liquidH = bh * (1 - fillFrac);
+    ctx.fillStyle = '#93C5FD';
+    ctx.fillRect(bx + 1, by + 1 + (bh - liquidH), bw - 2, liquidH - 1);
+
+    // Burette graduations
+    ctx.fillStyle = '#475569';
+    ctx.font = '9px Fira Code, monospace';
+    ctx.textAlign = 'right';
+    for (var v = 0; v <= 5; v++) {
+      var gy = by + (v / 5) * bh;
+      ctx.strokeStyle = '#94A3B8';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(bx, gy);
+      ctx.lineTo(bx + 5, gy);
+      ctx.stroke();
+      ctx.fillText(round(maxVol * v / 5, 0), bx - 3, gy + 3);
+    }
+
+    // Tap
+    ctx.strokeStyle = '#64748B';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx, by + bh);
+    ctx.lineTo(cx, by + bh + 15);
+    ctx.stroke();
+
+    // Drops (if adding)
+    if (_titrVolAdded > 0) {
+      ctx.fillStyle = '#93C5FD';
+      ctx.beginPath();
+      ctx.arc(cx, by + bh + 22, 3, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // Conical flask
+    var fy = by + bh + 35;
+    var fw = 70, fh = 55;
+    var flaskCx = cx;
+
+    // Flask body (trapezoid shape)
+    ctx.beginPath();
+    ctx.moveTo(flaskCx - 12, fy);
+    ctx.lineTo(flaskCx - fw / 2, fy + fh);
+    ctx.lineTo(flaskCx + fw / 2, fy + fh);
+    ctx.lineTo(flaskCx + 12, fy);
+    ctx.closePath();
+    ctx.strokeStyle = '#64748B';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Flask solution
+    var pH = _titrDataPoints.length > 0 ? _titrDataPoints[_titrDataPoints.length - 1].pH : calcPH(0);
+    var flaskColor = getFlaskColor(pH);
+    ctx.fillStyle = flaskColor;
+    ctx.beginPath();
+    var solH = fh * 0.7;
+    var solY = fy + fh - solH;
+    var topW = 12 + (fw / 2 - 12) * (solH / fh);
+    ctx.moveTo(flaskCx - topW, solY);
+    ctx.lineTo(flaskCx - fw / 2, fy + fh);
+    ctx.lineTo(flaskCx + fw / 2, fy + fh);
+    ctx.lineTo(flaskCx + topW, solY);
+    ctx.closePath();
+    ctx.fill();
+
+    // Flask labels
+    ctx.fillStyle = '#475569';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(_titration.acid.formula, flaskCx, fy + fh + 15);
+    ctx.fillText('pH: ' + round(pH, 2), flaskCx, fy + fh + 27);
+  }
+
+  function getFlaskColor(pH) {
+    if (!_titrIndicator.range) {
+      // pH probe mode — color by pH
+      if (pH < 3) return 'rgba(239, 68, 68, 0.3)';
+      if (pH < 6) return 'rgba(251, 191, 36, 0.3)';
+      if (pH < 8) return 'rgba(34, 197, 94, 0.3)';
+      if (pH < 11) return 'rgba(59, 130, 246, 0.3)';
+      return 'rgba(139, 92, 246, 0.3)';
+    }
+    // Indicator-based color
+    var mid = (_titrIndicator.range[0] + _titrIndicator.range[1]) / 2;
+    if (pH < _titrIndicator.range[0]) return _titrIndicator.colorBelow || 'rgba(200,200,200,0.2)';
+    if (pH > _titrIndicator.range[1]) return _titrIndicator.colorAbove;
+    // Transition
+    var frac = (pH - _titrIndicator.range[0]) / (_titrIndicator.range[1] - _titrIndicator.range[0]);
+    // Simple mix — use colorAbove with increasing opacity
+    return _titrIndicator.colorAbove ? _titrIndicator.colorAbove.replace(')', ',' + (frac * 0.8) + ')').replace('rgb', 'rgba') : 'rgba(200,200,200,0.3)';
+  }
+
+  function drawPHCurve(ctx, ox, oy, w, h) {
+    var pad = 35;
+    var gx = ox + pad, gy = oy + 15;
+    var gw = w - pad - 10, gh = h - pad - 25;
+
+    // Axes
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(gx, gy);
+    ctx.lineTo(gx, gy + gh);
+    ctx.lineTo(gx + gw, gy + gh);
+    ctx.stroke();
+
+    // Y-axis labels (pH 0-14)
+    ctx.fillStyle = '#475569';
+    ctx.font = '10px Fira Code, monospace';
+    ctx.textAlign = 'right';
+    for (var p = 0; p <= 14; p += 2) {
+      var py = gy + gh - (p / 14) * gh;
+      ctx.fillText(p, gx - 5, py + 3);
+      ctx.strokeStyle = '#E2E8F0';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(gx, py);
+      ctx.lineTo(gx + gw, py);
+      ctx.stroke();
+    }
+
+    // Y-axis title
+    ctx.save();
+    ctx.translate(ox + 8, gy + gh / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillStyle = '#475569';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('pH', 0, 0);
+    ctx.restore();
+
+    // X-axis
+    var eqVol = (_titrAnalyteConc * _titrAnalyteVol * _titration.stoich) / _titrTitrantConc;
+    var maxX = Math.max(eqVol * 2, _titrVolAdded + 5);
+    ctx.textAlign = 'center';
+    ctx.font = '10px Fira Code, monospace';
+    ctx.fillStyle = '#475569';
+    var step = maxX <= 20 ? 5 : maxX <= 60 ? 10 : 20;
+    for (var xv = 0; xv <= maxX; xv += step) {
+      var xx = gx + (xv / maxX) * gw;
+      ctx.fillText(round(xv, 0), xx, gy + gh + 15);
+      ctx.strokeStyle = '#E2E8F0';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.moveTo(xx, gy);
+      ctx.lineTo(xx, gy + gh);
+      ctx.stroke();
+    }
+    ctx.font = '11px Inter, sans-serif';
+    ctx.fillText('Volume of ' + _titration.base.formula + ' (cm\u00B3)', gx + gw / 2, gy + gh + 30);
+
+    // Plot theoretical curve (light line)
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    var first = true;
+    for (var tv = 0; tv <= maxX; tv += maxX / 200) {
+      var tpH = calcPH(tv);
+      var tx = gx + (tv / maxX) * gw;
+      var ty = gy + gh - (Math.min(Math.max(tpH, 0), 14) / 14) * gh;
+      if (first) { ctx.moveTo(tx, ty); first = false; }
+      else ctx.lineTo(tx, ty);
+    }
+    ctx.stroke();
+
+    // Plot data points
+    if (_titrDataPoints.length > 1) {
+      ctx.strokeStyle = '#0D9488';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (var d = 0; d < _titrDataPoints.length; d++) {
+        var dp = _titrDataPoints[d];
+        var dx = gx + (dp.vol / maxX) * gw;
+        var dy = gy + gh - (Math.min(Math.max(dp.pH, 0), 14) / 14) * gh;
+        if (d === 0) ctx.moveTo(dx, dy);
+        else ctx.lineTo(dx, dy);
+      }
+      ctx.stroke();
+
+      // Draw points
+      for (var e = 0; e < _titrDataPoints.length; e++) {
+        var ep = _titrDataPoints[e];
+        var ex = gx + (ep.vol / maxX) * gw;
+        var ey = gy + gh - (Math.min(Math.max(ep.pH, 0), 14) / 14) * gh;
+        ctx.beginPath();
+        ctx.arc(ex, ey, 3, 0, Math.PI * 2);
+        ctx.fillStyle = '#0D9488';
+        ctx.fill();
+      }
+    }
+
+    // Equivalence point line
+    var eqX = gx + (eqVol / maxX) * gw;
+    ctx.strokeStyle = '#DC2626';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.beginPath();
+    ctx.moveTo(eqX, gy);
+    ctx.lineTo(eqX, gy + gh);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#DC2626';
+    ctx.font = '9px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('eq. point', eqX, gy - 3);
+
+    // Half-equivalence for weak acid
+    if (_titration.acid.Ka && !_titration.acid.strong) {
+      var halfVol = eqVol / 2;
+      var halfX = gx + (halfVol / maxX) * gw;
+      var halfPH = -Math.log10(_titration.acid.Ka);
+      ctx.strokeStyle = '#7C3AED';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([3, 3]);
+      ctx.beginPath();
+      ctx.moveTo(halfX, gy);
+      ctx.lineTo(halfX, gy + gh);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#7C3AED';
+      ctx.font = '9px Inter, sans-serif';
+      ctx.fillText('pH=pKa=' + round(halfPH, 2), halfX, gy + gh + 42);
+
+      // Buffer region label
+      ctx.fillStyle = 'rgba(124, 58, 237, 0.1)';
+      var bufStart = gx + (eqVol * 0.1 / maxX) * gw;
+      var bufEnd = gx + (eqVol * 0.9 / maxX) * gw;
+      ctx.fillRect(bufStart, gy, bufEnd - bufStart, gh);
+      ctx.fillStyle = '#7C3AED';
+      ctx.font = '9px Inter, sans-serif';
+      ctx.globalAlpha = 0.6;
+      ctx.fillText('buffer region', (bufStart + bufEnd) / 2, gy + 12);
+      ctx.globalAlpha = 1;
+    }
+
+    // Indicator range band
+    if (_titrIndicator.range) {
+      var indY1 = gy + gh - (_titrIndicator.range[1] / 14) * gh;
+      var indY2 = gy + gh - (_titrIndicator.range[0] / 14) * gh;
+      ctx.fillStyle = 'rgba(251, 191, 36, 0.15)';
+      ctx.fillRect(gx, indY1, gw, indY2 - indY1);
+      ctx.fillStyle = '#D97706';
+      ctx.font = '8px Inter, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(_titrIndicator.name, gx + gw, indY1 - 2);
+    }
+  }
+
+
+  // ═══════════════════════════════════════════════════
+  // Tab 4: Gravimetric Analysis
+  // ═══════════════════════════════════════════════════
+  function renderGrav() {
+    var body = document.getElementById('gravBody');
+    body.textContent = '';
+    if (!_gravRxn) {
+      body.appendChild(el('div', '', 'Select a precipitation reaction from the palette to begin.'));
+      drawGravCanvas();
+      return;
+    }
+    var rxn = _gravRxn;
+
+    // Equation
+    body.appendChild(el('div', 'eq-display', rxn.eq));
+
+    // Steps
+    var steps = [
+      { title: 'Dissolve Sample', desc: 'Dissolve the sample in water.' },
+      { title: 'Add Excess Reagent', desc: 'Add excess ' + rxn.reagent + ' to precipitate ' + rxn.precipitate.formula + '.' },
+      { title: 'Filter', desc: 'Filter to collect the precipitate.' },
+      { title: 'Dry & Weigh', desc: 'Dry the precipitate and weigh.' },
+      { title: 'Calculate', desc: 'Calculate the percentage composition.' }
+    ];
+
+    for (var i = 0; i < steps.length; i++) {
+      var stepDiv = el('div', 'grav-step');
+      if (i < _gravStep) stepDiv.classList.add('completed');
+      if (i === _gravStep) stepDiv.classList.add('current');
+      if (i > _gravStep) stepDiv.style.opacity = '0.4';
+
+      var header = el('div', 'grav-step-header');
+      header.appendChild(el('span', 'grav-step-num', (i + 1).toString()));
+      header.appendChild(el('span', 'grav-step-title', steps[i].title));
+      stepDiv.appendChild(header);
+
+      var content = el('div', 'grav-step-content');
+      content.appendChild(el('div', '', steps[i].desc));
+
+      if (i === _gravStep) {
+        buildGravStepInputs(content, i, rxn);
+      } else if (i < _gravStep) {
+        // Show completed values
+        showGravCompletedStep(content, i, rxn);
+      }
+
+      stepDiv.appendChild(content);
+      body.appendChild(stepDiv);
+    }
+
+    // Teacher answer
+    var pptMoles = rxn.pptMass / rxn.precipitate.M;
+    var ionMoles = pptMoles * rxn.stoich;
+    var ionMass = ionMoles * rxn.sample.ionM;
+    var pct = (ionMass / rxn.sampleMass) * 100;
+    var ansReveal = el('div', 'answer-reveal',
+      'Ppt mass: ' + round(rxn.pptMass, 3) + ' g | ' +
+      rxn.sample.ion + ': ' + round(ionMass, 3) + ' g | ' +
+      '% = ' + round(pct, 1) + '%');
+    body.appendChild(ansReveal);
+
+    drawGravCanvas();
+  }
+
+  function buildGravStepInputs(container, stepIdx, rxn) {
+    if (stepIdx === 0) {
+      var row = el('div', 'grav-input-row');
+      row.appendChild(el('span', 'input-label', 'Mass of sample:'));
+      var inp = document.createElement('input');
+      inp.className = 'grav-input';
+      inp.type = 'number';
+      inp.step = '0.001';
+      inp.value = _gravInputs.sampleMass || rxn.sampleMass;
+      inp.addEventListener('change', function() { _gravInputs.sampleMass = parseFloat(this.value); });
+      row.appendChild(inp);
+      row.appendChild(el('span', 'grav-unit', 'g'));
+      container.appendChild(row);
+
+      var btn = el('button', 'next-step-btn', 'Next Step \u2192');
+      btn.addEventListener('click', function() {
+        _gravInputs.sampleMass = parseFloat(inp.value) || rxn.sampleMass;
+        _gravStep = 1;
+        renderGrav();
+      });
+      container.appendChild(btn);
+    } else if (stepIdx === 1) {
+      var pptRow = el('div', 'grav-input-row');
+      pptRow.appendChild(el('span', 'input-label', 'Precipitate formed:'));
+      var pptSel = document.createElement('select');
+      pptSel.className = 'setup-select';
+      var options = [rxn.precipitate.formula, 'NaCl', 'BaCl\u2082', 'AgNO\u2083'];
+      // Shuffle so correct answer isn't always first
+      for (var si = options.length - 1; si > 0; si--) {
+        var sj = Math.floor(Math.random() * (si + 1));
+        var tmp = options[si]; options[si] = options[sj]; options[sj] = tmp;
+      }
+      for (var o = 0; o < options.length; o++) {
+        var opt = document.createElement('option');
+        opt.value = options[o];
+        opt.textContent = options[o];
+        pptSel.appendChild(opt);
+      }
+      pptRow.appendChild(pptSel);
+      container.appendChild(pptRow);
+
+      var btn2 = el('button', 'next-step-btn', 'Next Step \u2192');
+      btn2.addEventListener('click', function() {
+        _gravInputs.pptChoice = pptSel.value;
+        _gravStep = 2;
+        renderGrav();
+      });
+      container.appendChild(btn2);
+    } else if (stepIdx === 2) {
+      var fpRow = el('div', 'grav-input-row');
+      fpRow.appendChild(el('span', 'input-label', 'Mass of filter paper:'));
+      var fpInp = document.createElement('input');
+      fpInp.className = 'grav-input';
+      fpInp.type = 'number';
+      fpInp.step = '0.001';
+      fpInp.value = _gravInputs.filterPaper || '1.250';
+      fpInp.addEventListener('change', function() { _gravInputs.filterPaper = parseFloat(this.value); });
+      fpRow.appendChild(fpInp);
+      fpRow.appendChild(el('span', 'grav-unit', 'g'));
+      container.appendChild(fpRow);
+
+      var btn3 = el('button', 'next-step-btn', 'Next Step \u2192');
+      btn3.addEventListener('click', function() {
+        _gravInputs.filterPaper = parseFloat(fpInp.value) || 1.250;
+        _gravStep = 3;
+        renderGrav();
+      });
+      container.appendChild(btn3);
+    } else if (stepIdx === 3) {
+      var wpRow = el('div', 'grav-input-row');
+      wpRow.appendChild(el('span', 'input-label', 'Mass (paper + ppt):'));
+      var wpInp = document.createElement('input');
+      wpInp.className = 'grav-input';
+      wpInp.type = 'number';
+      wpInp.step = '0.001';
+      var expectedTotal = (_gravInputs.filterPaper || 1.250) + rxn.pptMass;
+      wpInp.value = _gravInputs.totalMass || round(expectedTotal, 3);
+      wpInp.addEventListener('change', function() { _gravInputs.totalMass = parseFloat(this.value); });
+      wpRow.appendChild(wpInp);
+      wpRow.appendChild(el('span', 'grav-unit', 'g'));
+      container.appendChild(wpRow);
+
+      var btn4 = el('button', 'next-step-btn', 'Calculate Results \u2192');
+      btn4.addEventListener('click', function() {
+        _gravInputs.totalMass = parseFloat(wpInp.value) || expectedTotal;
+        _gravStep = 4;
+        renderGrav();
+      });
+      container.appendChild(btn4);
+    } else if (stepIdx === 4) {
+      // Final calculation
+      var fp = _gravInputs.filterPaper || 1.250;
+      var tm = _gravInputs.totalMass || (fp + rxn.pptMass);
+      var pptMass = tm - fp;
+      var pptMoles = pptMass / rxn.precipitate.M;
+      var ionMoles = pptMoles * rxn.stoich;
+      var ionMass = ionMoles * rxn.sample.ionM;
+      var sampleMass = _gravInputs.sampleMass || rxn.sampleMass;
+      var pct = (ionMass / sampleMass) * 100;
+
+      var calcs = [
+        { label: 'Mass of precipitate (' + rxn.precipitate.formula + ')', value: round(pptMass, 3) + ' g' },
+        { label: 'Moles of ' + rxn.precipitate.formula, value: round(pptMoles, 5) + ' mol' },
+        { label: 'Moles of ' + rxn.sample.ion, value: round(ionMoles, 5) + ' mol' },
+        { label: 'Mass of ' + rxn.sample.ion, value: round(ionMass, 3) + ' g' }
+      ];
+
+      for (var c = 0; c < calcs.length; c++) {
+        var cRow = el('div', 'grav-calc-row');
+        cRow.appendChild(el('span', 'grav-calc-label', calcs[c].label));
+        cRow.appendChild(el('span', 'grav-calc-value', calcs[c].value));
+        container.appendChild(cRow);
+      }
+
+      var finalDiv = el('div', 'grav-final', '% ' + rxn.sample.ion + ' = ' + round(pct, 1) + '%');
+      container.appendChild(finalDiv);
+    }
+  }
+
+  function showGravCompletedStep(container, stepIdx, rxn) {
+    if (stepIdx === 0) {
+      container.appendChild(el('div', '', 'Sample mass: ' + round(_gravInputs.sampleMass || rxn.sampleMass, 3) + ' g'));
+    } else if (stepIdx === 1) {
+      var choice = _gravInputs.pptChoice || rxn.precipitate.formula;
+      var correct = choice === rxn.precipitate.formula;
+      var text = el('div', '', 'Precipitate: ' + choice + (correct ? ' \u2714' : ' \u2718 (should be ' + rxn.precipitate.formula + ')'));
+      if (!correct) text.style.color = 'var(--red)';
+      container.appendChild(text);
+    } else if (stepIdx === 2) {
+      container.appendChild(el('div', '', 'Filter paper: ' + round(_gravInputs.filterPaper || 1.250, 3) + ' g'));
+    } else if (stepIdx === 3) {
+      container.appendChild(el('div', '', 'Paper + ppt: ' + round(_gravInputs.totalMass || 0, 3) + ' g'));
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Tab 4: Gravimetric Canvas
+  // ═══════════════════════════════════════════════════
+  function drawGravCanvas() {
+    var canvas = document.getElementById('gravCanvas');
+    if (!canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.getAttribute('height'));
+    ctx.clearRect(0, 0, w, h);
+
+    if (!_gravRxn) {
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Select a reaction to see apparatus diagram', w / 2, h / 2);
+      return;
+    }
+
+    var icons = ['Dissolve', 'Precipitate', 'Filter', 'Dry & Weigh', 'Calculate'];
+    var stepW = w / 5;
+    var colors = ['#3B82F6', '#F59E0B', '#64748B', '#EF4444', '#10B981'];
+
+    for (var i = 0; i < 5; i++) {
+      var cx = stepW * i + stepW / 2;
+      var cy = h / 2;
+      var active = i <= _gravStep;
+
+      // Circle
+      ctx.beginPath();
+      ctx.arc(cx, cy - 20, 25, 0, Math.PI * 2);
+      ctx.fillStyle = active ? colors[i] : '#E2E8F0';
+      ctx.fill();
+
+      // Icon number
+      ctx.fillStyle = active ? 'white' : '#94A3B8';
+      ctx.font = 'bold 16px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText((i + 1).toString(), cx, cy - 15);
+
+      // Label
+      ctx.fillStyle = active ? '#1E293B' : '#94A3B8';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(icons[i], cx, cy + 20);
+
+      // Connecting arrow
+      if (i < 4) {
+        ctx.strokeStyle = i < _gravStep ? colors[i] : '#E2E8F0';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(cx + 30, cy - 20);
+        ctx.lineTo(cx + stepW - 30, cy - 20);
+        ctx.stroke();
+        // Arrowhead
+        ctx.beginPath();
+        ctx.moveTo(cx + stepW - 30, cy - 25);
+        ctx.lineTo(cx + stepW - 25, cy - 20);
+        ctx.lineTo(cx + stepW - 30, cy - 15);
+        ctx.fillStyle = i < _gravStep ? colors[i] : '#E2E8F0';
+        ctx.fill();
+      }
+    }
+
+    // Draw apparatus for current step
+    drawGravApparatus(ctx, w, h, _gravStep);
+  }
+
+  function drawGravApparatus(ctx, w, h, step) {
+    var cy = h * 0.75;
+    var cx = w / 2;
+
+    if (step === 0) {
+      // Beaker with dissolving solid
+      ctx.strokeStyle = '#64748B';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(cx - 30, cy - 20, 60, 40);
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
+      ctx.fillRect(cx - 29, cy - 5, 58, 24);
+      // Particles
+      ctx.fillStyle = '#94A3B8';
+      for (var p = 0; p < 5; p++) {
+        ctx.beginPath();
+        ctx.arc(cx - 15 + p * 8, cy + 5, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    } else if (step === 1) {
+      // Beaker with precipitate forming
+      ctx.strokeStyle = '#64748B';
+      ctx.lineWidth = 1.5;
+      ctx.strokeRect(cx - 30, cy - 20, 60, 40);
+      ctx.fillStyle = 'rgba(59, 130, 246, 0.2)';
+      ctx.fillRect(cx - 29, cy - 5, 58, 24);
+      // Precipitate particles
+      ctx.fillStyle = _gravRxn.precipitate.color;
+      ctx.strokeStyle = '#CBD5E1';
+      for (var q = 0; q < 8; q++) {
+        ctx.beginPath();
+        ctx.arc(cx - 20 + q * 6, cy + 12, 3, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+      }
+    } else if (step === 2) {
+      // Filter funnel
+      ctx.strokeStyle = '#64748B';
+      ctx.lineWidth = 1.5;
+      // Funnel
+      ctx.beginPath();
+      ctx.moveTo(cx - 25, cy - 20);
+      ctx.lineTo(cx - 5, cy + 10);
+      ctx.lineTo(cx + 5, cy + 10);
+      ctx.lineTo(cx + 25, cy - 20);
+      ctx.stroke();
+      // Filter paper
+      ctx.fillStyle = '#E2E8F0';
+      ctx.beginPath();
+      ctx.moveTo(cx - 20, cy - 15);
+      ctx.lineTo(cx, cy + 5);
+      ctx.lineTo(cx + 20, cy - 15);
+      ctx.fill();
+      ctx.stroke();
+      // Beaker below
+      ctx.strokeRect(cx - 15, cy + 12, 30, 20);
+    } else if (step >= 3) {
+      // Balance
+      ctx.strokeStyle = '#64748B';
+      ctx.lineWidth = 1.5;
+      ctx.fillStyle = '#E2E8F0';
+      ctx.fillRect(cx - 35, cy - 5, 70, 8);
+      ctx.strokeRect(cx - 35, cy - 5, 70, 8);
+      // Base
+      ctx.fillRect(cx - 15, cy + 3, 30, 15);
+      ctx.strokeRect(cx - 15, cy + 3, 30, 15);
+      // Display
+      ctx.fillStyle = '#1E293B';
+      ctx.fillRect(cx - 12, cy + 6, 24, 9);
+      ctx.fillStyle = '#4ADE80';
+      ctx.font = '7px Fira Code, monospace';
+      ctx.textAlign = 'center';
+      var displayMass = step === 4 ? round((_gravInputs.totalMass || 0) - (_gravInputs.filterPaper || 1.250), 3) : '0.000';
+      ctx.fillText(displayMass + 'g', cx, cy + 13);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // HL / Teacher Toggles
+  // ═══════════════════════════════════════════════════
+  function toggleHL() {
+    _hlEnabled = !_hlEnabled;
+    document.body.classList.toggle('hl-active', _hlEnabled);
+    if (_hlInput) _hlInput.checked = _hlEnabled;
+    if (!_hlEnabled && _activeTab === 'gravimetric') switchTab('stoich');
+    buildPalette();
+  }
+
+  function toggleTeacher() {
+    _teacherMode = !_teacherMode;
+    document.body.classList.toggle('teacher-active', _teacherMode);
+    if (_tInput) _tInput.checked = _teacherMode;
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Header Toggles
+  // ═══════════════════════════════════════════════════
+  function buildHeaderToggles() {
+    var container = document.getElementById('headerToggles');
+    container.textContent = '';
+
+    // HL toggle
+    var hlGroup = el('div', 'sim-toggle-group');
+    hlGroup.appendChild(el('span', 'sim-toggle-label', 'HL'));
+    var hlToggle = el('label', 'sim-toggle');
+    _hlInput = document.createElement('input');
+    _hlInput.type = 'checkbox';
+    _hlInput.setAttribute('aria-label', 'Enable HL mode');
+    _hlInput.addEventListener('change', function() { _hlEnabled = !_hlInput.checked; toggleHL(); });
+    var hlSlider = el('span', 'sim-toggle-slider');
+    hlSlider.style.setProperty('--toggle-on', 'var(--purple)');
+    hlToggle.appendChild(_hlInput);
+    hlToggle.appendChild(hlSlider);
+    hlGroup.appendChild(hlToggle);
+    container.appendChild(hlGroup);
+
+    // Teacher toggle
+    var tGroup = el('div', 'sim-toggle-group');
+    tGroup.appendChild(el('span', 'sim-toggle-label', 'Teacher'));
+    var tToggle = el('label', 'sim-toggle');
+    _tInput = document.createElement('input');
+    _tInput.type = 'checkbox';
+    _tInput.setAttribute('aria-label', 'Enable Teacher mode');
+    _tInput.addEventListener('change', function() { _teacherMode = !_tInput.checked; toggleTeacher(); });
+    var tSlider = el('span', 'sim-toggle-slider');
+    tToggle.appendChild(_tInput);
+    tToggle.appendChild(tSlider);
+    tGroup.appendChild(tToggle);
+    container.appendChild(tGroup);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Canvas Resize
+  // ═══════════════════════════════════════════════════
+  window.addEventListener('resize', function() {
+    clearTimeout(_resizeTimer);
+    _resizeTimer = setTimeout(function() {
+      if (_activeTab === 'limiting') drawLimitingCanvas();
+      else if (_activeTab === 'titration') drawTitrationCanvas();
+      else if (_activeTab === 'gravimetric') drawGravCanvas();
+    }, 100);
+  });
+
+  // ═══════════════════════════════════════════════════
+  // Keyboard Shortcuts
+  // ═══════════════════════════════════════════════════
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    switch (e.key.toLowerCase()) {
+      case 'h': e.preventDefault(); toggleHL(); break;
+      case 't': e.preventDefault(); toggleTeacher(); break;
+      case '1': e.preventDefault(); switchTab('stoich'); break;
+      case '2': e.preventDefault(); switchTab('limiting'); break;
+      case '3': e.preventDefault(); switchTab('titration'); break;
+      case '4': if (_hlEnabled) { e.preventDefault(); switchTab('gravimetric'); } break;
+      case 'r':
+        e.preventDefault();
+        if (_activeTab === 'stoich') { _stoichRxn = null; renderStoich(); }
+        else if (_activeTab === 'limiting') { initLimitingMoles(); renderLimiting(); }
+        else if (_activeTab === 'titration') { resetTitration(); renderTitration(); }
+        else if (_activeTab === 'gravimetric') { _gravStep = 0; _gravInputs = {}; renderGrav(); }
+        break;
+      case '/':
+        e.preventDefault();
+        document.getElementById('paletteSearch').focus();
+        break;
+      case 'arrowdown':
+      case 'arrowup':
+        e.preventDefault();
+        navigatePalette(e.key === 'ArrowDown' ? 1 : -1);
+        break;
+    }
+  });
+
+  function navigatePalette(dir) {
+    var items = document.querySelectorAll('#paletteList .palette-item');
+    var visible = [];
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].offsetParent !== null) visible.push(items[i]);
+    }
+    if (visible.length === 0) return;
+    var current = -1;
+    for (var j = 0; j < visible.length; j++) {
+      if (visible[j].classList.contains('active')) { current = j; break; }
+    }
+    var next = current + dir;
+    if (next < 0) next = visible.length - 1;
+    if (next >= visible.length) next = 0;
+    visible[next].click();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // Initialization
+  // ═══════════════════════════════════════════════════
+  function init() {
+    buildHeaderToggles();
+    buildPalette();
+    buildPresetDropdown();
+
+    var tabBtns = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < tabBtns.length; i++) {
+      tabBtns[i].addEventListener('click', function() {
+        var tab = this.getAttribute('data-tab');
+        if (tab === 'gravimetric' && !_hlEnabled) return;
+        switchTab(tab);
+      });
+    }
+
+    document.getElementById('paletteSearch').addEventListener('input', function() {
+      filterPalette(this.value);
+    });
+
+    document.getElementById('presetSelect').addEventListener('change', function() {
+      var idx = parseInt(this.value);
+      if (isNaN(idx)) return;
+      var presets = PRESETS[_activeTab] || [];
+      if (idx >= 0 && idx < presets.length) {
+        var ids = presets[idx].ids;
+        if (ids.length > 0) {
+          var allItems = _activeTab === 'titration' ? TITRATIONS :
+                         _activeTab === 'gravimetric' ? GRAV_REACTIONS : STOICH_REACTIONS;
+          for (var i = 0; i < allItems.length; i++) {
+            if (allItems[i].id === ids[0]) {
+              selectItem(allItems[i]);
+              break;
+            }
+          }
+        }
+      }
+    });
+
+    drawLimitingCanvas();
+    drawTitrationCanvas();
+    drawGravCanvas();
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+</body>
+</html>
