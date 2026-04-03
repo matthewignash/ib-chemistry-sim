@@ -1,0 +1,2152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Entropy &amp; Gibbs Free Energy — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --red-bg: #FEF2F2;
+    --green-bg: #F0FDF4;
+    --amber-bg: #FFFBEB;
+    --sim-canvas-bg: #FAFBFC;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    color: white;
+    padding: 1.5rem 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
+  }
+
+  /* ── Toggle ── */
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s;
+  }
+  .sim-toggle-slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--teal); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+  /* ── Tab Bar ── */
+  .tab-bar {
+    background: white; border-bottom: 2px solid var(--border);
+    display: flex; gap: 0; max-width: 1200px; margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .tab-btn {
+    padding: 0.75rem 1.5rem; font-size: 0.85rem; font-weight: 600;
+    color: var(--text-muted); background: none; border: none;
+    border-bottom: 3px solid transparent; cursor: pointer;
+    transition: all 0.2s; font-family: inherit; margin-bottom: -2px;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--teal-bg); }
+  .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .tab-btn .tab-num {
+    display: inline-block; width: 20px; height: 20px; line-height: 20px;
+    text-align: center; border-radius: 4px; font-size: 0.65rem; font-weight: 700;
+    background: var(--border); color: var(--text-muted); margin-right: 0.4rem;
+  }
+  .tab-btn.active .tab-num { background: var(--teal); color: white; }
+
+  /* ── Layout ── */
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sim-top-row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .sim-card {
+    background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy); color: white; padding: 0.6rem 1rem;
+    font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  /* ── Palette ── */
+  .palette-panel { max-height: 600px; display: flex; flex-direction: column; position: sticky; top: 1rem; align-self: start; grid-column: 1; grid-row: 1; }
+  .tab-content { grid-column: 2; grid-row: 1; }
+  .palette-panel .sim-card-body { padding: 0.5rem; overflow-y: auto; flex: 1; }
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+  .palette-category {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); padding: 0.4rem 0.3rem 0.2rem; margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block; width: 100%; text-align: left; padding: 0.3rem 0.5rem; margin: 0.15rem 0; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .palette-item:hover { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .palette-item.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+  .preset-section { margin-top: 0.5rem; padding-top: 0.5rem; border-top: 1px solid var(--border); display: none; }
+  .preset-section select {
+    width: 100%; padding: 0.35rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.75rem; font-family: inherit; cursor: pointer;
+  }
+
+  /* ── Main Panel ── */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* ── Canvas ── */
+  .sim-canvas { display: block; width: 100%; background: var(--sim-canvas-bg); border-radius: 4px; }
+  .sim-canvas-dark { display: block; width: 100%; background: #1E293B; border-radius: 4px; }
+
+  /* ── Common ── */
+  .check-btn {
+    display: inline-block; padding: 0.5rem 1.2rem; margin-top: 0.75rem;
+    background: var(--teal); color: white; border: none; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    transition: background 0.2s;
+  }
+  .check-btn:hover { background: #0B7C73; }
+  .check-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+  /* ── Tab 1: Entropy Visualizer ── */
+  .particle-controls { display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .particle-controls label { font-size: 0.78rem; font-weight: 600; }
+  .particle-controls select, .particle-controls input[type="range"] { font-family: inherit; }
+  .particle-controls select { padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.78rem; }
+  .state-btn {
+    padding: 0.3rem 0.7rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.75rem; font-weight: 600; cursor: pointer; background: white; color: var(--text);
+    transition: all 0.15s;
+  }
+  .state-btn.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .state-btn:hover { border-color: var(--teal); }
+  .entropy-bar-section { margin-top: 0.75rem; }
+
+  /* ── Tab 2: Gibbs Calculator ── */
+  .calc-input-row { display: flex; gap: 0.75rem; align-items: center; margin: 0.3rem 0; flex-wrap: wrap; }
+  .calc-input-row label { font-size: 0.78rem; font-weight: 600; min-width: 100px; }
+  .calc-input-row input {
+    width: 100px; padding: 0.3rem 0.5rem; border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'Fira Code', monospace; font-size: 0.8rem; text-align: right;
+  }
+  .calc-input-row .unit { font-size: 0.72rem; color: var(--text-muted); }
+  .calc-step { font-family: 'Fira Code', monospace; font-size: 0.78rem; line-height: 1.8; margin: 0.2rem 0; }
+  .calc-result {
+    font-family: 'Fira Code', monospace; font-size: 1rem; font-weight: 700; margin-top: 0.5rem; padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+  }
+  .calc-result.spontaneous { background: var(--green-bg); color: var(--green); border: 1px solid rgba(5,150,105,0.2); }
+  .calc-result.nonspontaneous { background: var(--red-bg); color: var(--red); border: 1px solid rgba(220,38,38,0.2); }
+  .calc-result.equilibrium { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(217,119,6,0.2); }
+
+  /* ── Tab 3: Spontaneity Predictor ── */
+  .quadrant-layout { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  .reaction-card {
+    padding: 0.75rem; border-radius: 8px; border: 1px solid var(--border); background: white; margin-top: 0.75rem;
+  }
+  .reaction-card .eq { font-family: 'Fira Code', monospace; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.3rem; }
+  .reaction-card .context { font-size: 0.75rem; color: var(--text-muted); font-style: italic; }
+  .reaction-card .vals { font-family: 'Fira Code', monospace; font-size: 0.78rem; margin-top: 0.3rem; }
+  .challenge-score {
+    display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 0.75rem;
+    background: var(--blue-bg); border-radius: 6px; font-size: 0.78rem; font-weight: 600;
+    margin-bottom: 0.75rem;
+  }
+  .challenge-score .score-val { font-family: 'Fira Code', monospace; color: var(--teal); }
+  .challenge-feedback { font-size: 0.85rem; font-weight: 600; margin-top: 0.5rem; min-height: 1.5rem; }
+
+  /* ── Tab 4: DGf ── */
+  .dgf-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; margin: 0.75rem 0; }
+  .dgf-table th { background: var(--navy); color: white; padding: 0.4rem 0.6rem; text-align: left; font-weight: 600; }
+  .dgf-table td { padding: 0.4rem 0.6rem; border-bottom: 1px solid var(--border); font-family: 'Fira Code', monospace; }
+  .dgf-table tr.product { background: var(--green-bg); }
+  .dgf-table tr.reactant { background: var(--red-bg); }
+  .dgf-sum { font-family: 'Fira Code', monospace; font-size: 0.85rem; margin: 0.3rem 0; }
+  .cross-ref { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; padding: 0.5rem; background: var(--blue-bg); border-radius: 6px; }
+
+  /* ── Teacher Mode ── */
+  .teacher-panel { display: none; }
+  body.teacher-active .teacher-panel { display: block; }
+  body.teacher-active .preset-section { display: block; }
+  .answer-reveal {
+    margin-top: 0.5rem; padding: 0.5rem 0.75rem; background: var(--amber-bg);
+    border: 1px solid #FCD34D; border-radius: 6px; font-size: 0.78rem;
+    font-family: 'Fira Code', monospace; display: none;
+  }
+  body.teacher-active .answer-reveal { display: block; }
+
+  /* ── Keyboard Hint ── */
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .palette-panel { max-height: 200px; position: static; }
+    .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
+    .quadrant-layout { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body class="hl-active">
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <h1>Entropy &amp; Gibbs Free Energy</h1>
+    <span class="subtitle">IB Chemistry — R1.4 Entropy and Spontaneity (HL)</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">R1.4</span>
+    <span class="header-badge" style="background:var(--hl-badge-bg);">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="entropy"><span class="tab-num">1</span>Entropy Visualizer</button>
+  <button class="tab-btn" data-tab="gibbs"><span class="tab-num">2</span>Gibbs Calculator</button>
+  <button class="tab-btn" data-tab="spontaneity"><span class="tab-num">3</span>Spontaneity Predictor</button>
+  <button class="tab-btn" data-tab="dgf"><span class="tab-num">4</span>&Delta;G&deg; from &Delta;G<sub>f</sub>&deg;</button>
+</div>
+
+<!-- Main Content -->
+<div class="sim-container">
+  <div class="sim-top-row">
+
+    <!-- Sidebar -->
+    <div class="sim-card palette-panel">
+      <div class="sim-card-header" id="paletteHeader">Substances</div>
+      <div class="sim-card-body">
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search">
+        <div id="paletteList"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect" aria-label="Teacher presets">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 1: Entropy Visualizer -->
+    <div class="tab-content active" id="tab-entropy">
+      <div class="sim-card">
+        <div class="sim-card-header">Particle Simulation</div>
+        <div class="sim-card-body">
+          <div class="particle-controls" id="particleControls"></div>
+          <canvas id="particleCanvas" class="sim-canvas-dark" height="400" role="img" aria-label="Particle simulation showing entropy"></canvas>
+        </div>
+      </div>
+      <div class="sim-card" style="margin-top:1rem;">
+        <div class="sim-card-header">Standard Entropy Values (S&deg;)</div>
+        <div class="sim-card-body" id="entropyBody">
+          <div style="text-align:center;color:var(--text-muted);padding:1rem;font-size:0.85rem;">
+            Select a substance from the palette to view entropy data.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 2: Gibbs Calculator -->
+    <div class="tab-content" id="tab-gibbs">
+      <div class="sim-card">
+        <div class="sim-card-header">Gibbs Free Energy Calculator</div>
+        <div class="sim-card-body" id="gibbsBody">
+          <div style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+            Select a reaction from the palette or enter custom values.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Spontaneity Predictor -->
+    <div class="tab-content" id="tab-spontaneity">
+      <div class="sim-card">
+        <div class="sim-card-header">Spontaneity Predictor — Four Quadrants</div>
+        <div class="sim-card-body" id="spontaneityBody"></div>
+      </div>
+    </div>
+
+    <!-- Tab 4: DGf -->
+    <div class="tab-content" id="tab-dgf">
+      <div class="sim-card">
+        <div class="sim-card-header">&Delta;G&deg; from Standard Gibbs Energies of Formation</div>
+        <div class="sim-card-body" id="dgfBody">
+          <div style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
+            Select a reaction from the palette to begin.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Keyboard Hint -->
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp;|&nbsp; <kbd>T</kbd> Teacher &nbsp;|&nbsp;
+  <kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd> Tabs &nbsp;|&nbsp;
+  <kbd>R</kbd> Reset &nbsp;|&nbsp; <kbd>/</kbd> Search &nbsp;|&nbsp;
+  <kbd>&uarr;</kbd><kbd>&darr;</kbd> Navigate &nbsp;|&nbsp;
+  <kbd>Space</kbd> Pause/Play &nbsp;|&nbsp; <kbd>E</kbd> Export CSV
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  // ═══════════════════════════════════════════════════
+  // HELPERS
+  // ═══════════════════════════════════════════════════
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined && text !== null) e.textContent = text;
+    return e;
+  }
+  function round(v, d) { var m = Math.pow(10, d); return Math.round(v * m) / m; }
+  function setupCanvas(canvas) {
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.offsetWidth;
+    if (!canvas.dataset.baseHeight) {
+      canvas.dataset.baseHeight = canvas.getAttribute('height') || '300';
+    }
+    var h = parseInt(canvas.dataset.baseHeight);
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+
+  // ═══════════════════════════════════════════════════
+  // DATA LAYER
+  // ═══════════════════════════════════════════════════
+
+  // Standard entropy values S° (J mol⁻¹ K⁻¹) — IB Data Booklet & standard sources
+  var ENTROPY_DATA = {
+    'H2O':      { name: 'Water (H\u2082O)', solid: 48.0, liquid: 69.9, gas: 188.8, color: '#3B82F6' },
+    'CO2':      { name: 'Carbon dioxide (CO\u2082)', gas: 213.7, color: '#6B7280' },
+    'NaCl':     { name: 'Sodium chloride (NaCl)', solid: 72.1, liquid: 95.1, gas: 229.8, color: '#F59E0B' },
+    'C_diamond':{ name: 'Carbon (diamond)', solid: 2.4, color: '#A78BFA' },
+    'C_graphite':{ name: 'Carbon (graphite)', solid: 5.7, color: '#374151' },
+    'O2':       { name: 'Oxygen (O\u2082)', gas: 205.1, color: '#EF4444' },
+    'N2':       { name: 'Nitrogen (N\u2082)', gas: 191.6, color: '#10B981' },
+    'CH4':      { name: 'Methane (CH\u2084)', gas: 186.3, color: '#8B5CF6' },
+    'NH3':      { name: 'Ammonia (NH\u2083)', gas: 192.5, liquid: 111.3, color: '#06B6D4' },
+    'Fe':       { name: 'Iron (Fe)', solid: 27.3, liquid: 34.8, color: '#78716C' }
+  };
+
+  // Reaction library — ΔH° in kJ/mol, ΔS° in J/(mol·K)
+  var REACTIONS = [
+    { id: 'ch4_comb', eq: 'CH\u2084(g) + 2O\u2082(g) \u2192 CO\u2082(g) + 2H\u2082O(l)', dH: -890.4, dS: -242.8, context: 'Burning natural gas for heating', quadrant: 'q3' },
+    { id: 'fe_rust', eq: '4Fe(s) + 3O\u2082(g) \u2192 2Fe\u2082O\u2083(s)', dH: -1648.4, dS: -549.4, context: 'Iron rusting in moist air', quadrant: 'q3' },
+    { id: 'caco3_decomp', eq: 'CaCO\u2083(s) \u2192 CaO(s) + CO\u2082(g)', dH: 178.3, dS: 160.5, context: 'Limestone decomposition in a kiln', quadrant: 'q2' },
+    { id: 'nh3_synth', eq: 'N\u2082(g) + 3H\u2082(g) \u2192 2NH\u2083(g)', dH: -92.2, dS: -198.7, context: 'Haber process for fertilizer', quadrant: 'q3' },
+    { id: 'ice_melt', eq: 'H\u2082O(s) \u2192 H\u2082O(l)', dH: 6.01, dS: 22.0, context: 'Ice melting on a warm day', quadrant: 'q2' },
+    { id: 'water_freeze', eq: 'H\u2082O(l) \u2192 H\u2082O(s)', dH: -6.01, dS: -22.0, context: 'Water freezing in a freezer', quadrant: 'q3' },
+    { id: 'nh4no3_dissolve', eq: 'NH\u2084NO\u2083(s) \u2192 NH\u2084\u207A(aq) + NO\u2083\u207B(aq)', dH: 25.7, dS: 108.7, context: 'Cold pack dissolving', quadrant: 'q2' },
+    { id: 'photosynthesis', eq: '6CO\u2082(g) + 6H\u2082O(l) \u2192 C\u2086H\u2081\u2082O\u2086(s) + 6O\u2082(g)', dH: 2803, dS: -259.0, context: 'Photosynthesis (driven by sunlight)', quadrant: 'q4' },
+    { id: 'propane_comb', eq: 'C\u2083H\u2088(g) + 5O\u2082(g) \u2192 3CO\u2082(g) + 4H\u2082O(l)', dH: -2220, dS: -374.5, context: 'Propane barbecue', quadrant: 'q3' },
+    { id: 'mg_comb', eq: '2Mg(s) + O\u2082(g) \u2192 2MgO(s)', dH: -1203.4, dS: -216.7, context: 'Magnesium sparkler burning', quadrant: 'q3' },
+    { id: 'nacl_dissolve', eq: 'NaCl(s) \u2192 Na\u207A(aq) + Cl\u207B(aq)', dH: 3.88, dS: 43.1, context: 'Dissolving table salt in water', quadrant: 'q2' },
+    { id: 'c_comb', eq: 'C(s) + O\u2082(g) \u2192 CO\u2082(g)', dH: -393.5, dS: 2.9, context: 'Charcoal burning', quadrant: 'q1' }
+  ];
+
+  // ΔGf° values in kJ/mol — IB Data Booklet
+  var DGF_DATA = {
+    'CO2(g)': -394.4, 'H2O(l)': -237.1, 'H2O(g)': -228.6,
+    'CH4(g)': -50.7, 'C2H5OH(l)': -174.8, 'C3H8(g)': -23.4,
+    'NH3(g)': -16.4, 'CaCO3(s)': -1128.8, 'CaO(s)': -604.0,
+    'NaCl(s)': -384.1, 'MgO(s)': -569.4, 'Fe2O3(s)': -742.2,
+    'H2O2(l)': -120.4, 'NaOH(s)': -379.5, 'HCl(g)': -95.3,
+    'NaCl(aq)': -393.1, 'C6H12O6(s)': -910.0,
+    // Elements in standard state
+    'C(s)': 0, 'O2(g)': 0, 'N2(g)': 0, 'H2(g)': 0,
+    'Fe(s)': 0, 'Mg(s)': 0, 'Na(s)': 0, 'Cl2(g)': 0
+  };
+
+  // Reactions for Tab 4 — ΔG° from ΔGf°
+  var DGF_REACTIONS = [
+    { id: 'dgf_ch4', eq: 'CH\u2084(g) + 2O\u2082(g) \u2192 CO\u2082(g) + 2H\u2082O(l)', cat: 'Combustion',
+      products: [{ species: 'CO2(g)', n: 1 }, { species: 'H2O(l)', n: 2 }],
+      reactants: [{ species: 'CH4(g)', n: 1 }, { species: 'O2(g)', n: 2 }],
+      dH: -890.4, dS: -242.8 },
+    { id: 'dgf_c2h5oh', eq: 'C\u2082H\u2085OH(l) + 3O\u2082(g) \u2192 2CO\u2082(g) + 3H\u2082O(l)', cat: 'Combustion',
+      products: [{ species: 'CO2(g)', n: 2 }, { species: 'H2O(l)', n: 3 }],
+      reactants: [{ species: 'C2H5OH(l)', n: 1 }, { species: 'O2(g)', n: 3 }],
+      dH: -1367, dS: -138.9 },
+    { id: 'dgf_c3h8', eq: 'C\u2083H\u2088(g) + 5O\u2082(g) \u2192 3CO\u2082(g) + 4H\u2082O(l)', cat: 'Combustion',
+      products: [{ species: 'CO2(g)', n: 3 }, { species: 'H2O(l)', n: 4 }],
+      reactants: [{ species: 'C3H8(g)', n: 1 }, { species: 'O2(g)', n: 5 }],
+      dH: -2220, dS: -374.5 },
+    { id: 'dgf_caco3', eq: 'CaCO\u2083(s) \u2192 CaO(s) + CO\u2082(g)', cat: 'Decomposition',
+      products: [{ species: 'CaO(s)', n: 1 }, { species: 'CO2(g)', n: 1 }],
+      reactants: [{ species: 'CaCO3(s)', n: 1 }],
+      dH: 178.3, dS: 160.5 },
+    { id: 'dgf_h2o2', eq: '2H\u2082O\u2082(l) \u2192 2H\u2082O(l) + O\u2082(g)', cat: 'Decomposition',
+      products: [{ species: 'H2O(l)', n: 2 }, { species: 'O2(g)', n: 1 }],
+      reactants: [{ species: 'H2O2(l)', n: 2 }],
+      dH: -196.1, dS: 125.6 },
+    { id: 'dgf_nh3', eq: 'N\u2082(g) + 3H\u2082(g) \u2192 2NH\u2083(g)', cat: 'Synthesis',
+      products: [{ species: 'NH3(g)', n: 2 }],
+      reactants: [{ species: 'N2(g)', n: 1 }, { species: 'H2(g)', n: 3 }],
+      dH: -92.2, dS: -198.7 },
+    { id: 'dgf_mgo', eq: '2Mg(s) + O\u2082(g) \u2192 2MgO(s)', cat: 'Synthesis',
+      products: [{ species: 'MgO(s)', n: 2 }],
+      reactants: [{ species: 'Mg(s)', n: 2 }, { species: 'O2(g)', n: 1 }],
+      dH: -1203.4, dS: -216.7 },
+    { id: 'dgf_fe2o3', eq: '4Fe(s) + 3O\u2082(g) \u2192 2Fe\u2082O\u2083(s)', cat: 'Synthesis',
+      products: [{ species: 'Fe2O3(s)', n: 2 }],
+      reactants: [{ species: 'Fe(s)', n: 4 }, { species: 'O2(g)', n: 3 }],
+      dH: -1648.4, dS: -549.4 },
+    { id: 'dgf_nacl', eq: 'NaOH(s) + HCl(g) \u2192 NaCl(s) + H\u2082O(l)', cat: 'Neutralization',
+      products: [{ species: 'NaCl(s)', n: 1 }, { species: 'H2O(l)', n: 1 }],
+      reactants: [{ species: 'NaOH(s)', n: 1 }, { species: 'HCl(g)', n: 1 }],
+      dH: -179.1, dS: -5.2 }
+  ];
+
+  // ═══════════════════════════════════════════════════
+  // STATE
+  // ═══════════════════════════════════════════════════
+  var _activeTab = 'entropy';
+  var _selectedSubstance = 'H2O';
+  var _particleState = 'gas';
+  var _particleTemp = 400; // K
+  var _partitionPresent = false;
+  var _animRunning = true;
+  var _animInterval = null;
+  var _particles = [];
+
+  var _selectedReaction = null;  // for Tab 2
+  var _gibbsTemp = 298;
+
+  var _selectedSpontReaction = null;  // for Tab 3
+  var _challengeMode = false;
+  var _challengeScore = 0;
+  var _challengeTotal = 0;
+  var _challengeGuess = null;
+
+  var _selectedDgfReaction = null;  // for Tab 4
+
+  // ═══════════════════════════════════════════════════
+  // DOM REFERENCES
+  // ═══════════════════════════════════════════════════
+  var paletteList = document.getElementById('paletteList');
+  var paletteSearch = document.getElementById('paletteSearch');
+  var paletteHeader = document.getElementById('paletteHeader');
+  var presetSelect = document.getElementById('presetSelect');
+
+  // ═══════════════════════════════════════════════════
+  // TOGGLES
+  // ═══════════════════════════════════════════════════
+  var toggleContainer = document.getElementById('headerToggles');
+  function makeToggle(labelLeft, labelRight, id) {
+    var g = el('div', 'sim-toggle-group');
+    var ll = el('span', 'sim-toggle-label', labelLeft);
+    var wrap = el('label', 'sim-toggle');
+    var inp = document.createElement('input');
+    inp.type = 'checkbox';
+    inp.id = id;
+    var slider = el('span', 'sim-toggle-slider');
+    wrap.appendChild(inp);
+    wrap.appendChild(slider);
+    var lr = el('span', 'sim-toggle-label', labelRight);
+    g.appendChild(ll);
+    g.appendChild(wrap);
+    g.appendChild(lr);
+    return g;
+  }
+  var hlToggle = makeToggle('SL', 'HL', 'hlToggle');
+  var teacherToggle = makeToggle('Student', 'Teacher', 'teacherToggle');
+  toggleContainer.appendChild(hlToggle);
+  toggleContainer.appendChild(teacherToggle);
+  // Default HL on since entire sim is HL
+  document.getElementById('hlToggle').checked = true;
+  document.getElementById('hlToggle').addEventListener('change', function() {
+    document.body.classList.toggle('hl-active', this.checked);
+  });
+  document.getElementById('teacherToggle').addEventListener('change', function() {
+    document.body.classList.toggle('teacher-active', this.checked);
+  });
+
+  // ═══════════════════════════════════════════════════
+  // TAB SWITCHING
+  // ═══════════════════════════════════════════════════
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabContents = document.querySelectorAll('.tab-content');
+
+  function switchTab(tabId) {
+    _activeTab = tabId;
+    for (var i = 0; i < tabBtns.length; i++) {
+      tabBtns[i].classList.toggle('active', tabBtns[i].getAttribute('data-tab') === tabId);
+    }
+    for (var i = 0; i < tabContents.length; i++) {
+      tabContents[i].classList.toggle('active', tabContents[i].id === 'tab-' + tabId);
+    }
+    buildPalette();
+    refreshTab();
+  }
+
+  for (var i = 0; i < tabBtns.length; i++) {
+    tabBtns[i].addEventListener('click', (function(btn) {
+      return function() { switchTab(btn.getAttribute('data-tab')); };
+    })(tabBtns[i]));
+  }
+
+  // ═══════════════════════════════════════════════════
+  // PALETTE
+  // ═══════════════════════════════════════════════════
+  function buildPalette() {
+    paletteList.textContent = '';
+    var search = paletteSearch.value.toLowerCase();
+
+    if (_activeTab === 'entropy') {
+      paletteHeader.textContent = 'Substances';
+      var cats = [
+        { name: 'Common', items: ['H2O', 'CO2', 'NaCl'] },
+        { name: 'Elements', items: ['O2', 'N2', 'Fe', 'C_diamond', 'C_graphite'] },
+        { name: 'Compounds', items: ['CH4', 'NH3'] }
+      ];
+      for (var c = 0; c < cats.length; c++) {
+        var catItems = [];
+        for (var j = 0; j < cats[c].items.length; j++) {
+          var key = cats[c].items[j];
+          var d = ENTROPY_DATA[key];
+          if (!d) continue;
+          if (search && d.name.toLowerCase().indexOf(search) === -1) continue;
+          var btn = el('button', 'palette-item', d.name);
+          if (_selectedSubstance === key) btn.classList.add('active');
+          btn.addEventListener('click', (function(k) {
+            return function() { _selectedSubstance = k; buildPalette(); renderEntropyTab(); };
+          })(key));
+          catItems.push(btn);
+        }
+        if (catItems.length > 0) {
+          paletteList.appendChild(el('div', 'palette-category', cats[c].name));
+          for (var j = 0; j < catItems.length; j++) paletteList.appendChild(catItems[j]);
+        }
+      }
+    } else if (_activeTab === 'gibbs') {
+      paletteHeader.textContent = 'Reactions';
+      var gibbsCats = [
+        { name: '\u0394H<0, \u0394S>0 (Always)', ids: ['c_comb'] },
+        { name: '\u0394H>0, \u0394S>0 (High T)', ids: ['caco3_decomp', 'ice_melt', 'nh4no3_dissolve', 'nacl_dissolve'] },
+        { name: '\u0394H<0, \u0394S<0 (Low T)', ids: ['ch4_comb', 'nh3_synth', 'water_freeze', 'fe_rust', 'propane_comb', 'mg_comb'] },
+        { name: '\u0394H>0, \u0394S<0 (Never)', ids: ['photosynthesis'] }
+      ];
+      for (var c = 0; c < gibbsCats.length; c++) {
+        var catItems = [];
+        for (var j = 0; j < gibbsCats[c].ids.length; j++) {
+          var rxn = findReaction(gibbsCats[c].ids[j]);
+          if (!rxn) continue;
+          if (search && rxn.context.toLowerCase().indexOf(search) === -1 && rxn.eq.toLowerCase().indexOf(search) === -1) continue;
+          var btn = el('button', 'palette-item', rxn.context);
+          if (_selectedReaction && _selectedReaction.id === rxn.id) btn.classList.add('active');
+          btn.addEventListener('click', (function(r) {
+            return function() { _selectedReaction = r; _gibbsTemp = 298; buildPalette(); renderGibbsTab(); };
+          })(rxn));
+          catItems.push(btn);
+        }
+        if (catItems.length > 0) {
+          paletteList.appendChild(el('div', 'palette-category', gibbsCats[c].name));
+          for (var j = 0; j < catItems.length; j++) paletteList.appendChild(catItems[j]);
+        }
+      }
+      // Custom entry option
+      paletteList.appendChild(el('div', 'palette-category', 'Custom'));
+      var customBtn = el('button', 'palette-item', 'Enter custom values');
+      if (_selectedReaction && _selectedReaction.id === 'custom') customBtn.classList.add('active');
+      customBtn.addEventListener('click', function() {
+        _selectedReaction = { id: 'custom', eq: 'Custom reaction', dH: 0, dS: 0, context: 'Enter your own values', quadrant: '' };
+        _gibbsTemp = 298;
+        buildPalette();
+        renderGibbsTab();
+      });
+      paletteList.appendChild(customBtn);
+    } else if (_activeTab === 'spontaneity') {
+      paletteHeader.textContent = 'Reactions';
+      var spontCats = [
+        { name: 'Q1: Always (\u0394H<0, \u0394S>0)', ids: ['c_comb'] },
+        { name: 'Q2: High T (\u0394H>0, \u0394S>0)', ids: ['caco3_decomp', 'ice_melt', 'nh4no3_dissolve', 'nacl_dissolve'] },
+        { name: 'Q3: Low T (\u0394H<0, \u0394S<0)', ids: ['ch4_comb', 'nh3_synth', 'water_freeze', 'fe_rust', 'mg_comb'] },
+        { name: 'Q4: Never (\u0394H>0, \u0394S<0)', ids: ['photosynthesis'] },
+        { name: 'Challenge', ids: ['propane_comb', 'nacl_dissolve', 'mg_comb', 'caco3_decomp'] }
+      ];
+      for (var c = 0; c < spontCats.length; c++) {
+        var catItems = [];
+        for (var j = 0; j < spontCats[c].ids.length; j++) {
+          var rxn = findReaction(spontCats[c].ids[j]);
+          if (!rxn) continue;
+          if (search && rxn.context.toLowerCase().indexOf(search) === -1) continue;
+          var isChallenge = spontCats[c].name === 'Challenge';
+          var btn = el('button', 'palette-item', rxn.context);
+          if (_selectedSpontReaction && _selectedSpontReaction.id === rxn.id) btn.classList.add('active');
+          btn.addEventListener('click', (function(r, ch) {
+            return function() {
+              _selectedSpontReaction = r;
+              _challengeMode = ch;
+              _challengeGuess = null;
+              buildPalette();
+              renderSpontaneityTab();
+            };
+          })(rxn, isChallenge));
+          catItems.push(btn);
+        }
+        if (catItems.length > 0) {
+          paletteList.appendChild(el('div', 'palette-category', spontCats[c].name));
+          for (var j = 0; j < catItems.length; j++) paletteList.appendChild(catItems[j]);
+        }
+      }
+    } else if (_activeTab === 'dgf') {
+      paletteHeader.textContent = 'Reactions';
+      var dgfCats = {};
+      for (var i = 0; i < DGF_REACTIONS.length; i++) {
+        var r = DGF_REACTIONS[i];
+        if (!dgfCats[r.cat]) dgfCats[r.cat] = [];
+        dgfCats[r.cat].push(r);
+      }
+      var catOrder = ['Combustion', 'Decomposition', 'Synthesis', 'Neutralization'];
+      for (var c = 0; c < catOrder.length; c++) {
+        var items = dgfCats[catOrder[c]];
+        if (!items) continue;
+        var catItems = [];
+        for (var j = 0; j < items.length; j++) {
+          var r = items[j];
+          var label = r.eq.length > 35 ? r.eq.substring(0, 32) + '...' : r.eq;
+          if (search && r.eq.toLowerCase().indexOf(search) === -1) continue;
+          var btn = el('button', 'palette-item', label);
+          if (_selectedDgfReaction && _selectedDgfReaction.id === r.id) btn.classList.add('active');
+          btn.addEventListener('click', (function(rxn) {
+            return function() { _selectedDgfReaction = rxn; buildPalette(); renderDgfTab(); };
+          })(r));
+          catItems.push(btn);
+        }
+        if (catItems.length > 0) {
+          paletteList.appendChild(el('div', 'palette-category', catOrder[c]));
+          for (var j = 0; j < catItems.length; j++) paletteList.appendChild(catItems[j]);
+        }
+      }
+    }
+
+    // Teacher presets
+    presetSelect.textContent = '';
+    var def = document.createElement('option');
+    def.value = '';
+    def.textContent = 'Teacher Presets...';
+    presetSelect.appendChild(def);
+
+    var presets = [];
+    if (_activeTab === 'entropy') {
+      presets = [
+        { name: 'Compare states (H\u2082O)', value: 'H2O' },
+        { name: 'Diamond vs Graphite', value: 'C_diamond' },
+        { name: 'Gases comparison', value: 'O2' }
+      ];
+    } else if (_activeTab === 'gibbs') {
+      presets = [
+        { name: 'CH\u2084 combustion', value: 'ch4_comb' },
+        { name: 'CaCO\u2083 decomposition', value: 'caco3_decomp' },
+        { name: 'Ice melting', value: 'ice_melt' }
+      ];
+    } else if (_activeTab === 'spontaneity') {
+      presets = [
+        { name: 'All four quadrants tour', value: 'tour' },
+        { name: 'Temperature-dependent pair', value: 'pair' }
+      ];
+    } else if (_activeTab === 'dgf') {
+      presets = [
+        { name: 'CH\u2084 combustion', value: 'dgf_ch4' },
+        { name: 'NH\u2083 synthesis', value: 'dgf_nh3' }
+      ];
+    }
+    for (var i = 0; i < presets.length; i++) {
+      var o = document.createElement('option');
+      o.value = presets[i].value;
+      o.textContent = presets[i].name;
+      presetSelect.appendChild(o);
+    }
+  }
+
+  presetSelect.addEventListener('change', function() {
+    var val = this.value;
+    if (!val) return;
+    if (_activeTab === 'entropy') {
+      _selectedSubstance = val;
+      buildPalette(); renderEntropyTab();
+    } else if (_activeTab === 'gibbs') {
+      var r = findReaction(val);
+      if (r) { _selectedReaction = r; _gibbsTemp = 298; buildPalette(); renderGibbsTab(); }
+    } else if (_activeTab === 'spontaneity') {
+      if (val === 'tour') {
+        _selectedReaction = findReaction('c_comb');
+        _challengeMode = false;
+        buildPalette(); renderSpontaneityTab();
+        var tourInfo = el('div', 'card');
+        tourInfo.style.cssText = 'margin-top:12px;padding:12px;background:#f0fdf4;border:1px solid #059669;';
+        var p1 = el('p', '', 'Quadrant Tour: 1 of 4');
+        p1.style.cssText = 'margin:0 0 6px;font-weight:600;';
+        var p2 = el('p', '', 'Click reactions in the palette to visit each quadrant: Q1 (always), Q2 (high T), Q3 (low T), Q4 (never)');
+        p2.style.cssText = 'margin:0;font-size:0.85rem;';
+        tourInfo.appendChild(p1);
+        tourInfo.appendChild(p2);
+        document.getElementById('tab-spontaneity').appendChild(tourInfo);
+      } else if (val === 'pair') {
+        _selectedReaction = findReaction('ice_melt');
+        _challengeMode = false;
+        buildPalette(); renderSpontaneityTab();
+        var pairInfo = el('div', 'card');
+        pairInfo.style.cssText = 'margin-top:12px;padding:12px;background:#eff6ff;border:1px solid #3b82f6;';
+        var q1 = el('p', '', 'Temperature-Dependent Pair');
+        q1.style.cssText = 'margin:0 0 6px;font-weight:600;';
+        var q2 = el('p', '', 'Compare ice melting (Q2) and water freezing (Q3) \u2014 the same process in reverse. Note how the crossover temperature T* = 273 K is the melting/freezing point.');
+        q2.style.cssText = 'margin:0;font-size:0.85rem;';
+        pairInfo.appendChild(q1);
+        pairInfo.appendChild(q2);
+        document.getElementById('tab-spontaneity').appendChild(pairInfo);
+      }
+    } else if (_activeTab === 'dgf') {
+      for (var i = 0; i < DGF_REACTIONS.length; i++) {
+        if (DGF_REACTIONS[i].id === val) {
+          _selectedDgfReaction = DGF_REACTIONS[i];
+          buildPalette(); renderDgfTab();
+          break;
+        }
+      }
+    }
+  });
+
+  paletteSearch.addEventListener('input', function() { buildPalette(); });
+
+  function findReaction(id) {
+    for (var i = 0; i < REACTIONS.length; i++) {
+      if (REACTIONS[i].id === id) return REACTIONS[i];
+    }
+    return null;
+  }
+
+  // ═══════════════════════════════════════════════════
+  // REFRESH TAB
+  // ═══════════════════════════════════════════════════
+  function refreshTab() {
+    if (_activeTab === 'entropy') renderEntropyTab();
+    else if (_activeTab === 'gibbs') renderGibbsTab();
+    else if (_activeTab === 'spontaneity') renderSpontaneityTab();
+    else if (_activeTab === 'dgf') renderDgfTab();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 1: ENTROPY VISUALIZER
+  // ═══════════════════════════════════════════════════
+  var particleCanvas = document.getElementById('particleCanvas');
+  var particleControls = document.getElementById('particleControls');
+
+  // Build particle controls
+  function buildParticleControls() {
+    particleControls.textContent = '';
+
+    // State buttons
+    var stateLabel = el('label', '', 'State:');
+    particleControls.appendChild(stateLabel);
+    var states = ['solid', 'liquid', 'gas'];
+    for (var i = 0; i < states.length; i++) {
+      var btn = el('button', 'state-btn', states[i].charAt(0).toUpperCase() + states[i].slice(1));
+      if (_particleState === states[i]) btn.classList.add('active');
+      btn.addEventListener('click', (function(s) {
+        return function() { _particleState = s; initParticles(); buildParticleControls(); };
+      })(states[i]));
+      particleControls.appendChild(btn);
+    }
+
+    // Temperature slider
+    var tempLabel = el('label', '', 'T: ' + _particleTemp + ' K');
+    tempLabel.id = 'tempLabel';
+    var tempSlider = document.createElement('input');
+    tempSlider.type = 'range';
+    tempSlider.min = '100';
+    tempSlider.max = '1000';
+    tempSlider.value = String(_particleTemp);
+    tempSlider.style.cssText = 'width:120px;';
+    tempSlider.setAttribute('aria-label', 'Temperature');
+    tempSlider.addEventListener('input', function() {
+      _particleTemp = parseInt(this.value);
+      var lbl = document.getElementById('tempLabel');
+      if (lbl) lbl.textContent = 'T: ' + _particleTemp + ' K';
+      rescaleVelocities();
+    });
+    particleControls.appendChild(tempLabel);
+    particleControls.appendChild(tempSlider);
+
+    // Partition button
+    var partBtn = el('button', 'check-btn', _partitionPresent ? 'Remove Partition' : 'Add Partition');
+    partBtn.style.cssText = 'padding:0.3rem 0.7rem;font-size:0.75rem;margin:0;';
+    partBtn.addEventListener('click', function() {
+      _partitionPresent = !_partitionPresent;
+      if (_partitionPresent) {
+        // Move all particles to left half
+        var w = particleCanvas.offsetWidth;
+        for (var i = 0; i < _particles.length; i++) {
+          if (_particles[i].x > w / 2 - 10) {
+            _particles[i].x = Math.random() * (w / 2 - 20) + 10;
+          }
+        }
+      }
+      buildParticleControls();
+    });
+    particleControls.appendChild(partBtn);
+  }
+
+  // Particle simulation
+  var PARTICLE_COUNT = 40;
+  var PARTICLE_RADIUS = 6;
+
+  function initParticles() {
+    _particles = [];
+    var w = particleCanvas.offsetWidth || 600;
+    var h = parseInt(particleCanvas.dataset.baseHeight || '400');
+    var maxX = _partitionPresent ? w / 2 - PARTICLE_RADIUS : w - PARTICLE_RADIUS;
+    var speed = getBaseSpeed();
+    var data = ENTROPY_DATA[_selectedSubstance];
+    var color = data ? data.color : '#3B82F6';
+
+    if (_particleState === 'solid') {
+      // Grid lattice with small vibrations
+      var cols = Math.ceil(Math.sqrt(PARTICLE_COUNT));
+      var rows = Math.ceil(PARTICLE_COUNT / cols);
+      var spacingX = (maxX - PARTICLE_RADIUS) / (cols + 1);
+      var spacingY = (h - 2 * PARTICLE_RADIUS) / (rows + 1);
+      var cx = _partitionPresent ? maxX / 2 : w / 2;
+      var cy = h / 2;
+      var startX = cx - (cols - 1) * spacingX / 2;
+      var startY = cy - (rows - 1) * spacingY / 2;
+      for (var i = 0; i < PARTICLE_COUNT; i++) {
+        var col = i % cols;
+        var row = Math.floor(i / cols);
+        var lx = startX + col * spacingX;
+        var ly = startY + row * spacingY;
+        _particles.push({
+          x: lx, y: ly,
+          vx: (Math.random() - 0.5) * speed * 0.3,
+          vy: (Math.random() - 0.5) * speed * 0.3,
+          latticeX: lx, latticeY: ly,
+          radius: PARTICLE_RADIUS, color: color
+        });
+      }
+    } else if (_particleState === 'liquid') {
+      // Cluster in bottom half
+      var cx = _partitionPresent ? maxX / 2 : w / 2;
+      var cy = h * 0.65;
+      for (var i = 0; i < PARTICLE_COUNT; i++) {
+        var angle = Math.random() * Math.PI * 2;
+        var dist = Math.random() * 60 + 10;
+        _particles.push({
+          x: cx + Math.cos(angle) * dist,
+          y: cy + Math.sin(angle) * dist * 0.6,
+          vx: (Math.random() - 0.5) * speed * 0.7,
+          vy: (Math.random() - 0.5) * speed * 0.7,
+          radius: PARTICLE_RADIUS, color: color
+        });
+      }
+    } else {
+      // Gas — random positions
+      for (var i = 0; i < PARTICLE_COUNT; i++) {
+        _particles.push({
+          x: Math.random() * (maxX - 2 * PARTICLE_RADIUS) + PARTICLE_RADIUS,
+          y: Math.random() * (h - 2 * PARTICLE_RADIUS) + PARTICLE_RADIUS,
+          vx: (Math.random() - 0.5) * speed,
+          vy: (Math.random() - 0.5) * speed,
+          radius: PARTICLE_RADIUS, color: color
+        });
+      }
+    }
+  }
+
+  function getBaseSpeed() {
+    return Math.sqrt(_particleTemp / 300) * 3;
+  }
+
+  function rescaleVelocities() {
+    var target = getBaseSpeed();
+    for (var i = 0; i < _particles.length; i++) {
+      var p = _particles[i];
+      var spd = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+      if (spd > 0.001) {
+        var scale = target / spd;
+        if (_particleState === 'solid') scale *= 0.3;
+        else if (_particleState === 'liquid') scale *= 0.7;
+        p.vx *= scale;
+        p.vy *= scale;
+      }
+    }
+  }
+
+  function updateParticles() {
+    var w = particleCanvas.offsetWidth || 600;
+    var h = parseInt(particleCanvas.dataset.baseHeight || '400');
+    var wallRight = _partitionPresent ? w / 2 : w;
+    var r = PARTICLE_RADIUS;
+
+    for (var i = 0; i < _particles.length; i++) {
+      var p = _particles[i];
+
+      if (_particleState === 'solid' && p.latticeX !== undefined) {
+        // Spring force back to lattice position
+        var dx = p.latticeX - p.x;
+        var dy = p.latticeY - p.y;
+        p.vx += dx * 0.05;
+        p.vy += dy * 0.05;
+        p.vx *= 0.95;
+        p.vy *= 0.95;
+      }
+
+      if (_particleState === 'liquid') {
+        // Gentle attraction to cluster center
+        var cx = _partitionPresent ? wallRight / 2 : w / 2;
+        var cy = h * 0.65;
+        var dx = cx - p.x;
+        var dy = cy - p.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > 80) {
+          p.vx += dx * 0.002;
+          p.vy += dy * 0.002;
+        }
+      }
+
+      p.x += p.vx;
+      p.y += p.vy;
+
+      // Wall bounces
+      if (p.x - r < 0) { p.x = r; p.vx = Math.abs(p.vx); }
+      if (p.x + r > wallRight) { p.x = wallRight - r; p.vx = -Math.abs(p.vx); }
+      if (p.y - r < 0) { p.y = r; p.vy = Math.abs(p.vy); }
+      if (p.y + r > h) { p.y = h - r; p.vy = -Math.abs(p.vy); }
+    }
+
+    // Inter-particle elastic collisions
+    for (var i = 0; i < _particles.length; i++) {
+      for (var j = i + 1; j < _particles.length; j++) {
+        var a = _particles[i];
+        var b = _particles[j];
+        var dx = b.x - a.x;
+        var dy = b.y - a.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        var minDist = a.radius + b.radius;
+        if (dist < minDist && dist > 0) {
+          // Normal vector
+          var nx = dx / dist;
+          var ny = dy / dist;
+          // Relative velocity
+          var dvx = a.vx - b.vx;
+          var dvy = a.vy - b.vy;
+          var dvn = dvx * nx + dvy * ny;
+          if (dvn > 0) {
+            a.vx -= dvn * nx;
+            a.vy -= dvn * ny;
+            b.vx += dvn * nx;
+            b.vy += dvn * ny;
+          }
+          // Separate overlapping particles
+          var overlap = (minDist - dist) / 2;
+          a.x -= overlap * nx;
+          a.y -= overlap * ny;
+          b.x += overlap * nx;
+          b.y += overlap * ny;
+        }
+      }
+    }
+  }
+
+  function drawParticles() {
+    var ctx = setupCanvas(particleCanvas);
+    var w = particleCanvas.offsetWidth;
+    var h = parseInt(particleCanvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    // Background
+    ctx.fillStyle = '#1E293B';
+    ctx.fillRect(0, 0, w, h);
+
+    // Partition wall
+    if (_partitionPresent) {
+      ctx.strokeStyle = '#F59E0B';
+      ctx.lineWidth = 3;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(w / 2, 0);
+      ctx.lineTo(w / 2, h);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Labels
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Confined', w / 4, h - 10);
+      ctx.fillText('Empty', w * 3 / 4, h - 10);
+    }
+
+    // Particles
+    for (var i = 0; i < _particles.length; i++) {
+      var p = _particles[i];
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      ctx.fillStyle = p.color;
+      ctx.fill();
+      ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // State label
+    ctx.fillStyle = 'rgba(255,255,255,0.6)';
+    ctx.font = '600 13px Inter, sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(_particleState.charAt(0).toUpperCase() + _particleState.slice(1) + ' state', 10, 20);
+
+    // Temperature
+    ctx.textAlign = 'right';
+    ctx.fillText('T = ' + _particleTemp + ' K', w - 10, 20);
+  }
+
+  function startAnimation() {
+    stopAnimation();
+    _animRunning = true;
+    _animInterval = setInterval(function() {
+      updateParticles();
+      drawParticles();
+    }, 33); // ~30fps
+  }
+
+  function stopAnimation() {
+    if (_animInterval) {
+      clearInterval(_animInterval);
+      _animInterval = null;
+    }
+    _animRunning = false;
+  }
+
+  function renderEntropyTab() {
+    buildParticleControls();
+    initParticles();
+    startAnimation();
+
+    var body = document.getElementById('entropyBody');
+    body.textContent = '';
+
+    var data = ENTROPY_DATA[_selectedSubstance];
+    if (!data) return;
+
+    // S° bar chart
+    var chartTitle = el('div', '', 'Standard Entropy S\u00B0 for ' + data.name);
+    chartTitle.style.cssText = 'font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;';
+    body.appendChild(chartTitle);
+
+    var chartCanvas = document.createElement('canvas');
+    chartCanvas.className = 'sim-canvas';
+    chartCanvas.setAttribute('height', '150');
+    chartCanvas.setAttribute('role', 'img');
+    chartCanvas.setAttribute('aria-label', 'Standard entropy bar chart for ' + data.name);
+    body.appendChild(chartCanvas);
+
+    // Data table
+    var states = ['solid', 'liquid', 'gas'];
+    var tableDiv = el('div');
+    tableDiv.style.cssText = 'margin-top:0.75rem;font-size:0.78rem;';
+    for (var i = 0; i < states.length; i++) {
+      var val = data[states[i]];
+      if (val === undefined) continue;
+      var row = el('div');
+      row.style.cssText = 'display:flex;gap:0.5rem;align-items:center;padding:0.2rem 0;';
+      var label = el('span', '', states[i].charAt(0).toUpperCase() + states[i].slice(1) + ':');
+      label.style.cssText = 'min-width:60px;font-weight:600;';
+      var valSpan = el('span', '', round(val, 1) + ' J mol\u207B\u00B9 K\u207B\u00B9');
+      valSpan.style.cssText = 'font-family:"Fira Code",monospace;';
+      row.appendChild(label);
+      row.appendChild(valSpan);
+      tableDiv.appendChild(row);
+    }
+    body.appendChild(tableDiv);
+
+    // Explanation
+    var explainDiv = el('div');
+    explainDiv.style.cssText = 'margin-top:0.75rem;padding:0.75rem;background:var(--blue-bg);border-radius:8px;font-size:0.75rem;line-height:1.6;';
+    var factors = [
+      'State: S\u00B0(gas) > S\u00B0(liquid) > S\u00B0(solid) \u2014 more positional freedom means higher entropy.',
+      'Complexity: More atoms per molecule \u2192 more ways to vibrate \u2192 higher S\u00B0.',
+      'Temperature: Higher T \u2192 more accessible microstates \u2192 higher S.'
+    ];
+    for (var i = 0; i < factors.length; i++) {
+      var p = el('div', '', factors[i]);
+      p.style.cssText = 'margin-bottom:0.3rem;';
+      explainDiv.appendChild(p);
+    }
+    body.appendChild(explainDiv);
+
+    // Substance comparison section
+    var compTitle = el('div', '', 'Compare S\u00B0 (gas) across substances:');
+    compTitle.style.cssText = 'font-size:0.85rem;font-weight:600;margin-top:1rem;margin-bottom:0.5rem;';
+    body.appendChild(compTitle);
+
+    var compCanvas = document.createElement('canvas');
+    compCanvas.className = 'sim-canvas';
+    compCanvas.setAttribute('height', '160');
+    compCanvas.setAttribute('role', 'img');
+    compCanvas.setAttribute('aria-label', 'Gas entropy comparison chart');
+    body.appendChild(compCanvas);
+
+    // Teacher reveal
+    var revealDiv = el('div', 'answer-reveal');
+    var allVals = [];
+    for (var s in states) {
+      if (data[states[s]] !== undefined) allVals.push(states[s] + ': ' + data[states[s]]);
+    }
+    revealDiv.textContent = data.name + ' \u2014 S\u00B0: ' + allVals.join(', ') + ' J mol\u207B\u00B9 K\u207B\u00B9';
+    body.appendChild(revealDiv);
+
+    setTimeout(function() {
+      drawEntropyChart(chartCanvas, data);
+      drawComparisonChart(compCanvas);
+    });
+  }
+
+  function drawEntropyChart(canvas, data) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var states = ['solid', 'liquid', 'gas'];
+    var colors = ['#3B82F6', '#06B6D4', '#EF4444'];
+    var vals = [];
+    var labels = [];
+    for (var i = 0; i < states.length; i++) {
+      if (data[states[i]] !== undefined) {
+        vals.push(data[states[i]]);
+        labels.push(states[i].charAt(0).toUpperCase() + states[i].slice(1));
+      }
+    }
+    if (vals.length === 0) return;
+
+    var pad = { top: 15, right: 30, bottom: 30, left: 50 };
+    var chartW = w - pad.left - pad.right;
+    var chartH = h - pad.top - pad.bottom;
+    var maxVal = Math.max.apply(null, vals) * 1.15;
+    var barW = Math.min(50, chartW / vals.length - 20);
+
+    // Y axis
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, pad.top + chartH);
+    ctx.lineTo(pad.left + chartW, pad.top + chartH);
+    ctx.stroke();
+
+    // Y-axis label
+    ctx.fillStyle = '#64748B';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.save();
+    ctx.translate(12, pad.top + chartH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('S\u00B0 / J mol\u207B\u00B9 K\u207B\u00B9', 0, 0);
+    ctx.restore();
+
+    // Bars
+    var totalBarSpace = chartW / vals.length;
+    for (var i = 0; i < vals.length; i++) {
+      var barH = (vals[i] / maxVal) * chartH;
+      var x = pad.left + i * totalBarSpace + (totalBarSpace - barW) / 2;
+      var y = pad.top + chartH - barH;
+
+      ctx.fillStyle = colors[i % colors.length];
+      ctx.fillRect(x, y, barW, barH);
+
+      // Value label
+      ctx.fillStyle = '#1E293B';
+      ctx.font = '600 11px "Fira Code", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(round(vals[i], 1), x + barW / 2, y - 5);
+
+      // State label
+      ctx.fillStyle = '#64748B';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(labels[i], x + barW / 2, pad.top + chartH + 18);
+    }
+  }
+
+  function drawComparisonChart(canvas) {
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    // Get all substances with gas S° values
+    var items = [];
+    var keys = Object.keys(ENTROPY_DATA);
+    for (var i = 0; i < keys.length; i++) {
+      var d = ENTROPY_DATA[keys[i]];
+      if (d.gas !== undefined) {
+        items.push({ name: keys[i], label: d.name.split('(')[0].trim(), val: d.gas, color: d.color });
+      }
+    }
+    items.sort(function(a, b) { return a.val - b.val; });
+
+    var pad = { top: 10, right: 40, bottom: 15, left: 120 };
+    var chartW = w - pad.left - pad.right;
+    var chartH = h - pad.top - pad.bottom;
+    var maxVal = items.length > 0 ? items[items.length - 1].val * 1.1 : 250;
+    var barH = Math.min(16, (chartH - 4 * items.length) / items.length);
+
+    for (var i = 0; i < items.length; i++) {
+      var y = pad.top + i * (barH + 4);
+      var barW = (items[i].val / maxVal) * chartW;
+
+      // Label
+      ctx.fillStyle = '#1E293B';
+      ctx.font = '10px Inter, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(items[i].label, pad.left - 5, y + barH / 2 + 4);
+
+      // Bar
+      ctx.fillStyle = items[i].name === _selectedSubstance ? items[i].color : (items[i].color + '80');
+      ctx.fillRect(pad.left, y, barW, barH);
+
+      // Value
+      ctx.fillStyle = '#64748B';
+      ctx.font = '10px "Fira Code", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(round(items[i].val, 1), pad.left + barW + 4, y + barH / 2 + 4);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 2: GIBBS CALCULATOR
+  // ═══════════════════════════════════════════════════
+  function renderGibbsTab() {
+    var body = document.getElementById('gibbsBody');
+    body.textContent = '';
+
+    if (!_selectedReaction) {
+      var ph = el('div', '', 'Select a reaction from the palette or enter custom values.');
+      ph.style.cssText = 'text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;';
+      body.appendChild(ph);
+      return;
+    }
+
+    var rxn = _selectedReaction;
+
+    // Equation display
+    var eqDiv = el('div', '', rxn.eq);
+    eqDiv.style.cssText = 'font-family:"Fira Code",monospace;font-size:0.9rem;font-weight:600;padding:0.5rem 0.75rem;background:var(--blue-bg);border-radius:8px;margin-bottom:0.75rem;';
+    body.appendChild(eqDiv);
+
+    var contextDiv = el('div', '', rxn.context);
+    contextDiv.style.cssText = 'font-size:0.78rem;color:var(--text-muted);font-style:italic;margin-bottom:0.75rem;';
+    body.appendChild(contextDiv);
+
+    // Input fields
+    var inputSection = el('div');
+
+    var dhRow = el('div', 'calc-input-row');
+    dhRow.appendChild(el('label', '', '\u0394H\u00B0:'));
+    var dhInput = document.createElement('input');
+    dhInput.type = 'number';
+    dhInput.value = String(rxn.dH);
+    dhInput.id = 'dhInput';
+    dhInput.setAttribute('aria-label', 'Enthalpy change');
+    dhInput.addEventListener('input', function() { updateGibbsCalc(); });
+    dhRow.appendChild(dhInput);
+    dhRow.appendChild(el('span', 'unit', 'kJ mol\u207B\u00B9'));
+    inputSection.appendChild(dhRow);
+
+    var dsRow = el('div', 'calc-input-row');
+    dsRow.appendChild(el('label', '', '\u0394S\u00B0:'));
+    var dsInput = document.createElement('input');
+    dsInput.type = 'number';
+    dsInput.value = String(rxn.dS);
+    dsInput.id = 'dsInput';
+    dsInput.setAttribute('aria-label', 'Entropy change');
+    dsInput.addEventListener('input', function() { updateGibbsCalc(); });
+    dsRow.appendChild(dsInput);
+    dsRow.appendChild(el('span', 'unit', 'J mol\u207B\u00B9 K\u207B\u00B9'));
+    inputSection.appendChild(dsRow);
+
+    var tRow = el('div', 'calc-input-row');
+    tRow.appendChild(el('label', '', 'Temperature:'));
+    var tInput = document.createElement('input');
+    tInput.type = 'number';
+    tInput.value = String(_gibbsTemp);
+    tInput.id = 'tempInput';
+    tInput.setAttribute('aria-label', 'Temperature in Kelvin');
+    tInput.addEventListener('input', function() {
+      _gibbsTemp = parseFloat(this.value) || 298;
+      var slider = document.getElementById('gibbsTempSlider');
+      if (slider) slider.value = String(_gibbsTemp);
+      updateGibbsCalc();
+    });
+    tRow.appendChild(tInput);
+    tRow.appendChild(el('span', 'unit', 'K'));
+    inputSection.appendChild(tRow);
+
+    // Temperature slider
+    var sliderRow = el('div', 'calc-input-row');
+    sliderRow.appendChild(el('label', '', ''));
+    var tSlider = document.createElement('input');
+    tSlider.type = 'range';
+    tSlider.min = '200';
+    tSlider.max = '1500';
+    tSlider.value = String(_gibbsTemp);
+    tSlider.id = 'gibbsTempSlider';
+    tSlider.style.cssText = 'width:200px;';
+    tSlider.setAttribute('aria-label', 'Temperature slider');
+    tSlider.addEventListener('input', function() {
+      _gibbsTemp = parseInt(this.value);
+      var inp = document.getElementById('tempInput');
+      if (inp) inp.value = String(_gibbsTemp);
+      updateGibbsCalc();
+    });
+    sliderRow.appendChild(tSlider);
+    sliderRow.appendChild(el('span', 'unit', '200\u20131500 K'));
+    inputSection.appendChild(sliderRow);
+
+    body.appendChild(inputSection);
+
+    // Calculation display
+    var calcDiv = el('div');
+    calcDiv.id = 'gibbsCalcDisplay';
+    calcDiv.style.cssText = 'margin-top:0.75rem;';
+    body.appendChild(calcDiv);
+
+    // Enthalpy/Entropy bar diagram
+    var barTitle = el('div', '', '\u0394H vs T\u0394S Comparison');
+    barTitle.style.cssText = 'font-size:0.85rem;font-weight:600;margin-top:1rem;margin-bottom:0.5rem;';
+    body.appendChild(barTitle);
+
+    var barCanvas = document.createElement('canvas');
+    barCanvas.className = 'sim-canvas';
+    barCanvas.setAttribute('height', '160');
+    barCanvas.id = 'barCanvas';
+    barCanvas.setAttribute('role', 'img');
+    barCanvas.setAttribute('aria-label', 'Enthalpy vs entropy bar comparison');
+    body.appendChild(barCanvas);
+
+    // ΔG vs T graph
+    var graphTitle = el('div', '', '\u0394G vs Temperature');
+    graphTitle.style.cssText = 'font-size:0.85rem;font-weight:600;margin-top:1rem;margin-bottom:0.5rem;';
+    body.appendChild(graphTitle);
+
+    var graphCanvas = document.createElement('canvas');
+    graphCanvas.className = 'sim-canvas';
+    graphCanvas.setAttribute('height', '250');
+    graphCanvas.id = 'gibbsGraphCanvas';
+    graphCanvas.setAttribute('role', 'img');
+    graphCanvas.setAttribute('aria-label', 'Gibbs free energy vs temperature graph');
+    body.appendChild(graphCanvas);
+
+    // Teacher reveal
+    var dG298 = rxn.dH - 298 * rxn.dS / 1000;
+    var revealDiv = el('div', 'answer-reveal');
+    revealDiv.textContent = '\u0394G\u00B0(298 K) = ' + round(dG298, 1) + ' kJ mol\u207B\u00B9';
+    if (rxn.dH * rxn.dS > 0) {
+      var tStar = rxn.dH / (rxn.dS / 1000);
+      revealDiv.textContent += ' | T* = ' + round(tStar, 0) + ' K';
+    }
+    body.appendChild(revealDiv);
+
+    setTimeout(function() { updateGibbsCalc(); });
+  }
+
+  function updateGibbsCalc() {
+    var dhInput = document.getElementById('dhInput');
+    var dsInput = document.getElementById('dsInput');
+    if (!dhInput || !dsInput) return;
+
+    var dH = parseFloat(dhInput.value) || 0;
+    var dS = parseFloat(dsInput.value) || 0;
+    var T = _gibbsTemp;
+    var TdS = T * dS / 1000; // Convert J to kJ
+    var dG = dH - TdS;
+
+    var display = document.getElementById('gibbsCalcDisplay');
+    if (!display) return;
+    display.textContent = '';
+
+    // Step-by-step
+    var step1 = el('div', 'calc-step', 'Convert \u0394S\u00B0: ' + round(dS, 1) + ' J mol\u207B\u00B9 K\u207B\u00B9 = ' + round(dS / 1000, 4) + ' kJ mol\u207B\u00B9 K\u207B\u00B9');
+    display.appendChild(step1);
+
+    var step2 = el('div', 'calc-step', 'T\u0394S\u00B0 = ' + T + ' \u00D7 ' + round(dS / 1000, 4) + ' = ' + round(TdS, 1) + ' kJ mol\u207B\u00B9');
+    display.appendChild(step2);
+
+    var step3 = el('div', 'calc-step', '\u0394G\u00B0 = \u0394H\u00B0 \u2212 T\u0394S\u00B0 = ' + round(dH, 1) + ' \u2212 (' + round(TdS, 1) + ') = ' + round(dG, 1) + ' kJ mol\u207B\u00B9');
+    display.appendChild(step3);
+
+    // Result
+    var resultDiv = el('div', 'calc-result');
+    if (Math.abs(dG) < 0.5) {
+      resultDiv.className = 'calc-result equilibrium';
+      resultDiv.textContent = '\u0394G\u00B0 = ' + round(dG, 1) + ' kJ mol\u207B\u00B9 \u2014 At equilibrium';
+    } else if (dG < 0) {
+      resultDiv.className = 'calc-result spontaneous';
+      resultDiv.textContent = '\u0394G\u00B0 = ' + round(dG, 1) + ' kJ mol\u207B\u00B9 \u2014 Spontaneous';
+    } else {
+      resultDiv.className = 'calc-result nonspontaneous';
+      resultDiv.textContent = '\u0394G\u00B0 = ' + round(dG, 1) + ' kJ mol\u207B\u00B9 \u2014 Non-spontaneous';
+    }
+    display.appendChild(resultDiv);
+
+    // Crossover temperature
+    if (dH !== 0 && dS !== 0 && (dH > 0) === (dS > 0)) {
+      var tStar = dH / (dS / 1000);
+      var crossDiv = el('div');
+      crossDiv.style.cssText = 'margin-top:0.5rem;font-size:0.78rem;padding:0.5rem;background:var(--amber-bg);border-radius:6px;';
+      crossDiv.textContent = 'Crossover temperature T* = \u0394H\u00B0/\u0394S\u00B0 = ' + round(dH, 1) + '/' + round(dS / 1000, 4) + ' = ' + round(tStar, 0) + ' K';
+      display.appendChild(crossDiv);
+    }
+
+    // Draw canvases
+    drawBarDiagram(dH, TdS, dG);
+    drawGibbsGraph(dH, dS);
+  }
+
+  function drawBarDiagram(dH, TdS, dG) {
+    var canvas = document.getElementById('barCanvas');
+    if (!canvas) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var pad = { top: 25, right: 30, bottom: 30, left: 30 };
+    var chartH = h - pad.top - pad.bottom;
+    var maxVal = Math.max(Math.abs(dH), Math.abs(TdS), Math.abs(dG)) * 1.3;
+    if (maxVal < 1) maxVal = 10;
+    var barW = 60;
+    var centerY = pad.top + chartH / 2;
+
+    // Zero line
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, centerY);
+    ctx.lineTo(w - pad.right, centerY);
+    ctx.stroke();
+
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '10px "Fira Code", monospace';
+    ctx.textAlign = 'left';
+    ctx.fillText('0', pad.left - 2, centerY - 3);
+
+    var bars = [
+      { label: '\u0394H\u00B0', val: dH, color: dH < 0 ? '#059669' : '#DC2626' },
+      { label: 'T\u0394S\u00B0', val: TdS, color: '#2563EB' },
+      { label: '\u0394G\u00B0', val: dG, color: dG < 0 ? '#059669' : '#DC2626' }
+    ];
+
+    var totalSpace = w - pad.left - pad.right;
+    var spacing = totalSpace / bars.length;
+
+    for (var i = 0; i < bars.length; i++) {
+      var bx = pad.left + i * spacing + (spacing - barW) / 2;
+      var barH = (Math.abs(bars[i].val) / maxVal) * (chartH / 2);
+      var by = bars[i].val < 0 ? centerY : centerY - barH;
+
+      ctx.fillStyle = bars[i].color;
+      ctx.fillRect(bx, by, barW, barH);
+
+      // Value
+      ctx.fillStyle = '#1E293B';
+      ctx.font = '600 11px "Fira Code", monospace';
+      ctx.textAlign = 'center';
+      var valY = bars[i].val < 0 ? centerY + barH + 14 : centerY - barH - 5;
+      ctx.fillText(round(bars[i].val, 1), bx + barW / 2, valY);
+
+      // Label
+      ctx.fillStyle = '#64748B';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.fillText(bars[i].label, bx + barW / 2, h - 8);
+    }
+  }
+
+  function drawGibbsGraph(dH, dS) {
+    var canvas = document.getElementById('gibbsGraphCanvas');
+    if (!canvas) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var pad = { top: 20, right: 30, bottom: 40, left: 65 };
+    var chartW = w - pad.left - pad.right;
+    var chartH = h - pad.top - pad.bottom;
+
+    var tMin = 0, tMax = 1500;
+    var dSKJ = dS / 1000;
+
+    // Calculate ΔG at extremes to set Y range
+    var gMin = dH - tMax * dSKJ;
+    var gMax = dH - tMin * dSKJ;
+    if (gMin > gMax) { var tmp = gMin; gMin = gMax; gMax = tmp; }
+    var yMargin = (gMax - gMin) * 0.15 || 50;
+    var yMin = gMin - yMargin;
+    var yMax = gMax + yMargin;
+
+    function tToX(t) { return pad.left + (t - tMin) / (tMax - tMin) * chartW; }
+    function gToY(g) { return pad.top + (yMax - g) / (yMax - yMin) * chartH; }
+
+    // Shaded regions
+    var zeroY = gToY(0);
+    if (zeroY > pad.top && zeroY < pad.top + chartH) {
+      // Green below zero line (spontaneous)
+      ctx.fillStyle = 'rgba(5, 150, 105, 0.08)';
+      ctx.fillRect(pad.left, zeroY, chartW, pad.top + chartH - zeroY);
+      // Red above zero line (non-spontaneous)
+      ctx.fillStyle = 'rgba(220, 38, 38, 0.08)';
+      ctx.fillRect(pad.left, pad.top, chartW, zeroY - pad.top);
+    }
+
+    // Axes
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top);
+    ctx.lineTo(pad.left, pad.top + chartH);
+    ctx.lineTo(pad.left + chartW, pad.top + chartH);
+    ctx.stroke();
+
+    // Zero line
+    if (zeroY > pad.top && zeroY < pad.top + chartH) {
+      ctx.strokeStyle = '#94A3B8';
+      ctx.setLineDash([4, 4]);
+      ctx.beginPath();
+      ctx.moveTo(pad.left, zeroY);
+      ctx.lineTo(pad.left + chartW, zeroY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '10px "Fira Code", monospace';
+      ctx.textAlign = 'right';
+      ctx.fillText('\u0394G = 0', pad.left - 5, zeroY + 4);
+    }
+
+    // ΔG line
+    ctx.strokeStyle = '#2563EB';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    for (var t = tMin; t <= tMax; t += 5) {
+      var g = dH - t * dSKJ;
+      var x = tToX(t);
+      var y = gToY(g);
+      if (t === tMin) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.stroke();
+
+    // Crossover temperature
+    if (dSKJ !== 0) {
+      var tStar = dH / dSKJ;
+      if (tStar > tMin && tStar < tMax) {
+        var xStar = tToX(tStar);
+        ctx.strokeStyle = '#D97706';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([6, 4]);
+        ctx.beginPath();
+        ctx.moveTo(xStar, pad.top);
+        ctx.lineTo(xStar, pad.top + chartH);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        ctx.fillStyle = '#D97706';
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('T* = ' + round(tStar, 0) + ' K', xStar, pad.top + chartH + 30);
+      }
+    }
+
+    // Current temperature marker
+    var gCurr = dH - _gibbsTemp * dSKJ;
+    var cx = tToX(_gibbsTemp);
+    var cy = gToY(gCurr);
+    if (cx >= pad.left && cx <= pad.left + chartW) {
+      ctx.beginPath();
+      ctx.arc(cx, cy, 6, 0, Math.PI * 2);
+      ctx.fillStyle = gCurr < 0 ? '#059669' : '#DC2626';
+      ctx.fill();
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = '#1E293B';
+      ctx.font = '600 10px "Fira Code", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(round(gCurr, 1) + ' kJ', cx + 10, cy + 4);
+    }
+
+    // Axis labels
+    ctx.fillStyle = '#64748B';
+    ctx.font = '11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Temperature / K', pad.left + chartW / 2, h - 5);
+
+    ctx.save();
+    ctx.translate(12, pad.top + chartH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('\u0394G\u00B0 / kJ mol\u207B\u00B9', 0, 0);
+    ctx.restore();
+
+    // T tick marks
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '9px "Fira Code", monospace';
+    ctx.textAlign = 'center';
+    for (var t = 0; t <= 1500; t += 300) {
+      var x = tToX(t);
+      ctx.beginPath();
+      ctx.moveTo(x, pad.top + chartH);
+      ctx.lineTo(x, pad.top + chartH + 4);
+      ctx.strokeStyle = '#CBD5E1';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillText(String(t), x, pad.top + chartH + 16);
+    }
+
+    // Spontaneous/non-spontaneous labels
+    ctx.font = '10px Inter, sans-serif';
+    if (zeroY > pad.top + 20 && zeroY < pad.top + chartH - 10) {
+      ctx.fillStyle = 'rgba(5,150,105,0.6)';
+      ctx.textAlign = 'right';
+      ctx.fillText('Spontaneous (\u0394G < 0)', pad.left + chartW - 5, zeroY + 14);
+      ctx.fillStyle = 'rgba(220,38,38,0.6)';
+      ctx.fillText('Non-spontaneous (\u0394G > 0)', pad.left + chartW - 5, zeroY - 6);
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 3: SPONTANEITY PREDICTOR
+  // ═══════════════════════════════════════════════════
+  function renderSpontaneityTab() {
+    var body = document.getElementById('spontaneityBody');
+    body.textContent = '';
+
+    // Challenge score bar
+    var scoreDiv = el('div', 'challenge-score');
+    scoreDiv.textContent = 'Score: ';
+    var scoreVal = el('span', 'score-val', _challengeScore + '/' + _challengeTotal);
+    scoreDiv.appendChild(scoreVal);
+    body.appendChild(scoreDiv);
+
+    var layout = el('div', 'quadrant-layout');
+
+    // Four-quadrant diagram
+    var quadCanvas = document.createElement('canvas');
+    quadCanvas.className = 'sim-canvas';
+    quadCanvas.setAttribute('height', '400');
+    quadCanvas.id = 'quadrantCanvas';
+    quadCanvas.setAttribute('role', 'img');
+    quadCanvas.setAttribute('aria-label', 'Four-quadrant spontaneity diagram');
+    quadCanvas.addEventListener('click', function(evt) {
+      if (!_selectedSpontReaction || !_challengeMode || _challengeGuess !== null) return;
+      var rect = quadCanvas.getBoundingClientRect();
+      var x = evt.clientX - rect.left;
+      var y = evt.clientY - rect.top;
+      var cw = quadCanvas.offsetWidth;
+      var ch = parseInt(quadCanvas.dataset.baseHeight);
+      var cx = cw / 2, cy = ch / 2;
+      var clickedQuadrant;
+      if (x < cx && y < cy) clickedQuadrant = 'q4';      // top-left: ΔH>0, ΔS<0
+      else if (x >= cx && y < cy) clickedQuadrant = 'q2';  // top-right: ΔH>0, ΔS>0
+      else if (x < cx && y >= cy) clickedQuadrant = 'q3';  // bottom-left: ΔH<0, ΔS<0
+      else clickedQuadrant = 'q1';                          // bottom-right: ΔH<0, ΔS>0
+
+      _challengeGuess = clickedQuadrant;
+      _challengeTotal++;
+      if (clickedQuadrant === _selectedSpontReaction.quadrant) _challengeScore++;
+      renderSpontaneityTab();
+    });
+    layout.appendChild(quadCanvas);
+
+    // Right side: reaction card + info
+    var rightDiv = el('div');
+
+    if (_selectedSpontReaction) {
+      var rxn = _selectedSpontReaction;
+      var card = el('div', 'reaction-card');
+      var eqDiv = el('div', 'eq', rxn.eq);
+      card.appendChild(eqDiv);
+
+      var ctxDiv = el('div', 'context', rxn.context);
+      card.appendChild(ctxDiv);
+
+      if (!_challengeMode || _challengeGuess !== null) {
+        var valsDiv = el('div', 'vals');
+        valsDiv.textContent = '\u0394H\u00B0 = ' + round(rxn.dH, 1) + ' kJ mol\u207B\u00B9  |  \u0394S\u00B0 = ' + round(rxn.dS, 1) + ' J mol\u207B\u00B9 K\u207B\u00B9';
+        card.appendChild(valsDiv);
+
+        var quadLabel = getQuadrantLabel(rxn.quadrant);
+        var qlDiv = el('div');
+        qlDiv.style.cssText = 'margin-top:0.5rem;font-size:0.78rem;font-weight:600;color:' + getQuadrantColor(rxn.quadrant) + ';';
+        qlDiv.textContent = quadLabel;
+        card.appendChild(qlDiv);
+
+        // Crossover temperature for q2/q3
+        if (rxn.quadrant === 'q2' || rxn.quadrant === 'q3') {
+          var tStar = rxn.dH / (rxn.dS / 1000);
+          var crossDiv = el('div');
+          crossDiv.style.cssText = 'margin-top:0.3rem;font-size:0.75rem;color:var(--amber);font-family:"Fira Code",monospace;';
+          crossDiv.textContent = 'T* = ' + round(tStar, 0) + ' K';
+          card.appendChild(crossDiv);
+        }
+
+        // Spontaneous at 298 K?
+        var dG298 = rxn.dH - 298 * rxn.dS / 1000;
+        var spont298 = el('div');
+        spont298.style.cssText = 'margin-top:0.3rem;font-size:0.78rem;';
+        spont298.textContent = 'At 298 K: \u0394G\u00B0 = ' + round(dG298, 1) + ' kJ mol\u207B\u00B9 \u2014 ' + (dG298 < 0 ? 'Spontaneous' : 'Non-spontaneous');
+        spont298.style.color = dG298 < 0 ? 'var(--green)' : 'var(--red)';
+        card.appendChild(spont298);
+      } else {
+        var promptDiv = el('div');
+        promptDiv.style.cssText = 'margin-top:0.5rem;font-size:0.78rem;color:var(--text-muted);';
+        promptDiv.textContent = 'Click the correct quadrant on the diagram to classify this reaction.';
+        card.appendChild(promptDiv);
+      }
+
+      rightDiv.appendChild(card);
+
+      // Challenge feedback
+      if (_challengeMode && _challengeGuess !== null) {
+        var fbDiv = el('div', 'challenge-feedback');
+        if (_challengeGuess === rxn.quadrant) {
+          fbDiv.textContent = 'Correct!';
+          fbDiv.style.color = 'var(--green)';
+        } else {
+          fbDiv.textContent = 'Incorrect \u2014 this reaction is ' + getQuadrantLabel(rxn.quadrant);
+          fbDiv.style.color = 'var(--red)';
+        }
+        rightDiv.appendChild(fbDiv);
+      }
+    } else {
+      var ph = el('div', '', 'Select a reaction from the palette to see its classification.');
+      ph.style.cssText = 'text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;';
+      rightDiv.appendChild(ph);
+    }
+
+    layout.appendChild(rightDiv);
+    body.appendChild(layout);
+
+    // Teacher mode: show all reactions
+    var teacherDiv = el('div', 'teacher-panel');
+    teacherDiv.style.cssText = 'margin-top:1rem;';
+    var tTitle = el('div', '', 'All Reactions (Teacher View)');
+    tTitle.style.cssText = 'font-size:0.85rem;font-weight:600;margin-bottom:0.5rem;';
+    teacherDiv.appendChild(tTitle);
+    for (var i = 0; i < REACTIONS.length; i++) {
+      var r = REACTIONS[i];
+      var row = el('div');
+      row.style.cssText = 'font-size:0.72rem;padding:0.15rem 0;color:' + getQuadrantColor(r.quadrant) + ';';
+      row.textContent = r.context + ' \u2014 ' + getQuadrantLabel(r.quadrant);
+      teacherDiv.appendChild(row);
+    }
+    body.appendChild(teacherDiv);
+
+    setTimeout(function() { drawQuadrantDiagram(); });
+  }
+
+  function getQuadrantLabel(q) {
+    if (q === 'q1') return 'Always spontaneous (\u0394H<0, \u0394S>0)';
+    if (q === 'q2') return 'Spontaneous at high T (\u0394H>0, \u0394S>0)';
+    if (q === 'q3') return 'Spontaneous at low T (\u0394H<0, \u0394S<0)';
+    return 'Never spontaneous (\u0394H>0, \u0394S<0)';
+  }
+
+  function getQuadrantColor(q) {
+    if (q === 'q1') return '#059669';
+    if (q === 'q2') return '#D97706';
+    if (q === 'q3') return '#0D9488';
+    return '#DC2626';
+  }
+
+  function drawQuadrantDiagram() {
+    var canvas = document.getElementById('quadrantCanvas');
+    if (!canvas) return;
+    var ctx = setupCanvas(canvas);
+    var w = canvas.offsetWidth;
+    var h = parseInt(canvas.dataset.baseHeight);
+    ctx.clearRect(0, 0, w, h);
+
+    var cx = w / 2, cy = h / 2;
+
+    // Quadrant backgrounds
+    // Top-left: q4 (ΔH>0, ΔS<0) — red
+    ctx.fillStyle = 'rgba(220,38,38,0.08)';
+    ctx.fillRect(0, 0, cx, cy);
+    // Top-right: q2 (ΔH>0, ΔS>0) — amber
+    ctx.fillStyle = 'rgba(217,119,6,0.08)';
+    ctx.fillRect(cx, 0, cx, cy);
+    // Bottom-left: q3 (ΔH<0, ΔS<0) — teal
+    ctx.fillStyle = 'rgba(13,148,136,0.08)';
+    ctx.fillRect(0, cy, cx, cy);
+    // Bottom-right: q1 (ΔH<0, ΔS>0) — green
+    ctx.fillStyle = 'rgba(5,150,105,0.08)';
+    ctx.fillRect(cx, cy, cx, cy);
+
+    // Axes
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(0, cy); ctx.lineTo(w, cy);
+    ctx.moveTo(cx, 0); ctx.lineTo(cx, h);
+    ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#1E293B';
+    ctx.font = '600 12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('\u0394S > 0', w - 40, cy - 8);
+    ctx.fillText('\u0394S < 0', 40, cy - 8);
+    ctx.fillText('\u0394H > 0', cx + 35, 18);
+    ctx.fillText('\u0394H < 0', cx + 35, h - 10);
+
+    // Quadrant labels
+    ctx.font = '600 11px Inter, sans-serif';
+    ctx.textAlign = 'center';
+
+    ctx.fillStyle = '#DC2626';
+    ctx.fillText('Never', cx / 2, cy / 2 - 8);
+    ctx.fillText('spontaneous', cx / 2, cy / 2 + 8);
+
+    ctx.fillStyle = '#D97706';
+    ctx.fillText('Spontaneous', cx + cx / 2, cy / 2 - 8);
+    ctx.fillText('at high T', cx + cx / 2, cy / 2 + 8);
+
+    ctx.fillStyle = '#0D9488';
+    ctx.fillText('Spontaneous', cx / 2, cy + cy / 2 - 8);
+    ctx.fillText('at low T', cx / 2, cy + cy / 2 + 8);
+
+    ctx.fillStyle = '#059669';
+    ctx.fillText('Always', cx + cx / 2, cy + cy / 2 - 8);
+    ctx.fillText('spontaneous', cx + cx / 2, cy + cy / 2 + 8);
+
+    // Plot selected reaction
+    if (_selectedSpontReaction && (!_challengeMode || _challengeGuess !== null)) {
+      var rxn = _selectedSpontReaction;
+      // Map dH and dS to canvas coordinates
+      var maxDS = 600, maxDH = 3000;
+      var px = cx + (rxn.dS / maxDS) * (cx * 0.7);
+      var py = cy - (rxn.dH / maxDH) * (cy * 0.7);
+      px = Math.max(15, Math.min(w - 15, px));
+      py = Math.max(15, Math.min(h - 15, py));
+
+      ctx.beginPath();
+      ctx.arc(px, py, 7, 0, Math.PI * 2);
+      ctx.fillStyle = getQuadrantColor(rxn.quadrant);
+      ctx.fill();
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Label
+      ctx.fillStyle = '#1E293B';
+      ctx.font = '10px Inter, sans-serif';
+      ctx.textAlign = 'left';
+      var labelText = rxn.context.length > 25 ? rxn.context.substring(0, 22) + '...' : rxn.context;
+      ctx.fillText(labelText, px + 12, py + 4);
+    }
+
+    // Teacher mode: plot all reactions
+    if (document.body.classList.contains('teacher-active')) {
+      for (var i = 0; i < REACTIONS.length; i++) {
+        var r = REACTIONS[i];
+        if (_selectedSpontReaction && r.id === _selectedSpontReaction.id) continue;
+        var maxDS = 600, maxDH = 3000;
+        var px = cx + (r.dS / maxDS) * (cx * 0.7);
+        var py = cy - (r.dH / maxDH) * (cy * 0.7);
+        px = Math.max(10, Math.min(w - 10, px));
+        py = Math.max(10, Math.min(h - 10, py));
+
+        ctx.beginPath();
+        ctx.arc(px, py, 4, 0, Math.PI * 2);
+        ctx.fillStyle = getQuadrantColor(r.quadrant) + '80';
+        ctx.fill();
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════
+  // TAB 4: ΔG° from ΔGf°
+  // ═══════════════════════════════════════════════════
+  function renderDgfTab() {
+    var body = document.getElementById('dgfBody');
+    body.textContent = '';
+
+    if (!_selectedDgfReaction) {
+      var ph = el('div', '', 'Select a reaction from the palette to begin.');
+      ph.style.cssText = 'text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;';
+      body.appendChild(ph);
+      return;
+    }
+
+    var rxn = _selectedDgfReaction;
+
+    // Equation
+    var eqDiv = el('div', '', rxn.eq);
+    eqDiv.style.cssText = 'font-family:"Fira Code",monospace;font-size:0.9rem;font-weight:600;padding:0.5rem 0.75rem;background:var(--blue-bg);border-radius:8px;margin-bottom:0.75rem;';
+    body.appendChild(eqDiv);
+
+    // ΔGf° table
+    var table = el('table', 'dgf-table');
+    var thead = el('thead');
+    var headerRow = el('tr');
+    var headers = ['Role', 'Species', '\u0394G\u1DA0\u00B0 / kJ mol\u207B\u00B9', 'n', 'n \u00D7 \u0394G\u1DA0\u00B0'];
+    for (var i = 0; i < headers.length; i++) {
+      headerRow.appendChild(el('th', '', headers[i]));
+    }
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    var tbody = el('tbody');
+
+    var sumProducts = 0;
+    var sumReactants = 0;
+    var productParts = [];
+    var reactantParts = [];
+
+    // Products
+    for (var i = 0; i < rxn.products.length; i++) {
+      var sp = rxn.products[i];
+      var dgf = DGF_DATA[sp.species];
+      if (dgf === undefined) dgf = 0;
+      var ndgf = sp.n * dgf;
+      sumProducts += ndgf;
+      productParts.push('(' + sp.n + ' \u00D7 ' + round(dgf, 1) + ')');
+
+      var row = el('tr', 'product');
+      row.appendChild(el('td', '', 'Product'));
+      row.appendChild(el('td', '', sp.species));
+      row.appendChild(el('td', '', round(dgf, 1)));
+      row.appendChild(el('td', '', String(sp.n)));
+      row.appendChild(el('td', '', round(ndgf, 1)));
+      tbody.appendChild(row);
+    }
+
+    // Reactants
+    for (var i = 0; i < rxn.reactants.length; i++) {
+      var sp = rxn.reactants[i];
+      var dgf = DGF_DATA[sp.species];
+      if (dgf === undefined) dgf = 0;
+      var ndgf = sp.n * dgf;
+      sumReactants += ndgf;
+      reactantParts.push('(' + sp.n + ' \u00D7 ' + round(dgf, 1) + ')');
+
+      var row = el('tr', 'reactant');
+      row.appendChild(el('td', '', 'Reactant'));
+      row.appendChild(el('td', '', sp.species));
+      row.appendChild(el('td', '', dgf === 0 ? '0 (element)' : round(dgf, 1)));
+      row.appendChild(el('td', '', String(sp.n)));
+      row.appendChild(el('td', '', round(ndgf, 1)));
+      tbody.appendChild(row);
+    }
+
+    table.appendChild(tbody);
+    body.appendChild(table);
+
+    // Step-by-step calculation
+    var calcDiv = el('div');
+    calcDiv.style.cssText = 'margin-top:0.75rem;';
+
+    var step1 = el('div', 'dgf-sum', '\u03A3(n \u00D7 \u0394G\u1DA0\u00B0 products) = ' + productParts.join(' + ') + ' = ' + round(sumProducts, 1) + ' kJ mol\u207B\u00B9');
+    step1.style.color = 'var(--green)';
+    calcDiv.appendChild(step1);
+
+    var step2 = el('div', 'dgf-sum', '\u03A3(n \u00D7 \u0394G\u1DA0\u00B0 reactants) = ' + reactantParts.join(' + ') + ' = ' + round(sumReactants, 1) + ' kJ mol\u207B\u00B9');
+    step2.style.color = 'var(--red)';
+    calcDiv.appendChild(step2);
+
+    var dGrxn = sumProducts - sumReactants;
+    var step3 = el('div', 'dgf-sum', '\u0394G\u00B0rxn = ' + round(sumProducts, 1) + ' \u2212 (' + round(sumReactants, 1) + ') = ' + round(dGrxn, 1) + ' kJ mol\u207B\u00B9');
+    step3.style.cssText = 'font-weight:700;font-size:0.9rem;margin-top:0.3rem;';
+    calcDiv.appendChild(step3);
+
+    body.appendChild(calcDiv);
+
+    // Result
+    var resultDiv = el('div', 'calc-result');
+    if (dGrxn < -0.5) {
+      resultDiv.className = 'calc-result spontaneous';
+      resultDiv.textContent = '\u0394G\u00B0rxn = ' + round(dGrxn, 1) + ' kJ mol\u207B\u00B9 \u2014 Spontaneous at 298 K';
+    } else if (dGrxn > 0.5) {
+      resultDiv.className = 'calc-result nonspontaneous';
+      resultDiv.textContent = '\u0394G\u00B0rxn = ' + round(dGrxn, 1) + ' kJ mol\u207B\u00B9 \u2014 Non-spontaneous at 298 K';
+    } else {
+      resultDiv.className = 'calc-result equilibrium';
+      resultDiv.textContent = '\u0394G\u00B0rxn = ' + round(dGrxn, 1) + ' kJ mol\u207B\u00B9 \u2014 At equilibrium';
+    }
+    body.appendChild(resultDiv);
+
+    // Cross-reference with ΔH − TΔS
+    if (rxn.dH !== undefined && rxn.dS !== undefined) {
+      var dGFromHS = rxn.dH - 298 * rxn.dS / 1000;
+      var crossRef = el('div', 'cross-ref');
+      crossRef.textContent = 'Cross-reference: \u0394G\u00B0 from \u0394H\u00B0 \u2212 T\u0394S\u00B0 at 298 K = ' + round(rxn.dH, 1) + ' \u2212 (298 \u00D7 ' + round(rxn.dS / 1000, 4) + ') = ' + round(dGFromHS, 1) + ' kJ mol\u207B\u00B9';
+      body.appendChild(crossRef);
+    }
+
+    // Teacher reveal
+    var revealDiv = el('div', 'answer-reveal');
+    revealDiv.textContent = '\u0394G\u00B0rxn = ' + round(dGrxn, 1) + ' kJ mol\u207B\u00B9 (' + (dGrxn < 0 ? 'spontaneous' : 'non-spontaneous') + ')';
+    body.appendChild(revealDiv);
+  }
+
+  // ═══════════════════════════════════════════════════
+  // DATA EXPORT
+  // ═══════════════════════════════════════════════════
+  function exportCSV() {
+    var rows = [['Tab', 'Item', 'Value', 'Timestamp']];
+    rows.push([_activeTab, 'Current state', JSON.stringify({
+      tab: _activeTab,
+      substance: _selectedSubstance,
+      reaction: _selectedReaction ? _selectedReaction.id : '',
+      spontReaction: _selectedSpontReaction ? _selectedSpontReaction.id : '',
+      dgfReaction: _selectedDgfReaction ? _selectedDgfReaction.id : '',
+      challengeScore: _challengeScore + '/' + _challengeTotal,
+      gibbsTemp: _gibbsTemp
+    }), new Date().toISOString()]);
+
+    var csv = rows.map(function(r) { return r.join(','); }).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'SimEngine_EntropyGibbs_' + new Date().toISOString().slice(0, 10) + '.csv';
+    a.click();
+  }
+
+  // ═══════════════════════════════════════════════════
+  // KEYBOARD SHORTCUTS
+  // ═══════════════════════════════════════════════════
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.key.toLowerCase()) {
+      case 'h':
+        var hlCheck = document.getElementById('hlToggle');
+        hlCheck.checked = !hlCheck.checked;
+        document.body.classList.toggle('hl-active', hlCheck.checked);
+        break;
+      case 't':
+        var tCheck = document.getElementById('teacherToggle');
+        tCheck.checked = !tCheck.checked;
+        document.body.classList.toggle('teacher-active', tCheck.checked);
+        if (_activeTab === 'spontaneity') renderSpontaneityTab();
+        break;
+      case '1': switchTab('entropy'); break;
+      case '2': switchTab('gibbs'); break;
+      case '3': switchTab('spontaneity'); break;
+      case '4': switchTab('dgf'); break;
+      case 'r':
+        if (_activeTab === 'entropy') { _particleState = 'gas'; _partitionPresent = false; initParticles(); buildParticleControls(); }
+        else if (_activeTab === 'gibbs') { _gibbsTemp = 298; renderGibbsTab(); }
+        else if (_activeTab === 'spontaneity') { _challengeScore = 0; _challengeTotal = 0; _challengeGuess = null; renderSpontaneityTab(); }
+        break;
+      case '/':
+        e.preventDefault();
+        paletteSearch.focus();
+        break;
+      case ' ':
+        e.preventDefault();
+        if (_activeTab === 'entropy') {
+          if (_animRunning) stopAnimation();
+          else startAnimation();
+        }
+        break;
+      case 'e':
+        exportCSV();
+        break;
+      case 'enter':
+        if (_activeTab === 'gibbs') updateGibbsCalc();
+        else if (_activeTab === 'spontaneity' && _challengeMode && _challengeGuess !== null) {
+          var checkBtn = document.querySelector('.btn[style*="background"]');
+          if (checkBtn) checkBtn.click();
+        }
+        else if (_activeTab === 'dgf') renderDgfTab();
+        break;
+      case 'arrowup':
+      case 'arrowdown':
+        e.preventDefault();
+        var items = paletteList.querySelectorAll('.palette-item');
+        if (items.length === 0) return;
+        var activeIdx = -1;
+        for (var i = 0; i < items.length; i++) {
+          if (items[i].classList.contains('active')) { activeIdx = i; break; }
+        }
+        if (e.key === 'ArrowUp') activeIdx = (activeIdx <= 0) ? items.length - 1 : activeIdx - 1;
+        else activeIdx = (activeIdx >= items.length - 1) ? 0 : activeIdx + 1;
+        items[activeIdx].click();
+        items[activeIdx].scrollIntoView({ block: 'nearest' });
+        break;
+    }
+  });
+
+  // ═══════════════════════════════════════════════════
+  // INIT
+  // ═══════════════════════════════════════════════════
+  buildPalette();
+  renderEntropyTab();
+})();
+</script>
+</body>
+</html>
