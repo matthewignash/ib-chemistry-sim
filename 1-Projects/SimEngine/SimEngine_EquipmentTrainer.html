@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equipment Recognition Trainer — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--blue-bg:#EFF6FF;--teal-bg:#F0FDFA;--amber-bg:#FFFBEB;--red-bg:#FEF2F2;--purple-bg:#F5F3FF;--toggle-on:#0D9488;--green:#10B981;--orange:#F59E0B;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+  .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-right{display:flex;align-items:center;gap:.75rem;}
+  .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
+  .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.35rem;}
+  .sim-toggle{position:relative;width:40px;height:22px;display:inline-block;}
+  .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:11px;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.5rem;background:none;border:none;border-bottom:3px solid transparent;font-size:.85rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+  .tab-btn .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);font-size:.65rem;font-weight:700;color:var(--text-muted);}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .sim-container{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+  .sim-card{background:var(--card-bg);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;margin-bottom:1.5rem;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-weight:600;font-size:.85rem;}
+  .sim-card-body{padding:1.25rem;}
+  .problem-area{max-width:700px;margin:0 auto;}
+  .scenario-box{background:var(--blue-bg);border:1px solid #BFDBFE;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.9rem;line-height:1.7;}
+  .instrument-row{display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1.25rem;}
+  .instrument-canvas-wrap{flex:0 0 280px;text-align:center;}
+  .instrument-canvas-wrap canvas{border:1px solid var(--border);border-radius:8px;background:var(--sim-canvas-bg);}
+  .answer-area{flex:1;min-width:250px;}
+  .input-group{margin-bottom:.75rem;}
+  .input-group label{display:block;font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.03em;}
+  .input-group input[type="text"],.input-group input[type="number"]{width:100%;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.9rem;font-family:'Fira Code',monospace;}
+  .input-group input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
+  .btn{padding:.5rem 1.25rem;border:none;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+  .btn-teal{background:var(--teal);color:white;} .btn-teal:hover{background:#0F766E;}
+  .btn-teal:disabled{background:#CBD5E1;cursor:not-allowed;}
+  .btn-outline{background:white;color:var(--text);border:1px solid var(--border);} .btn-outline:hover{background:#F8FAFC;}
+  .btn-row{display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;}
+  .feedback{padding:.75rem 1rem;border-radius:8px;margin-top:1rem;font-size:.88rem;font-weight:500;display:none;}
+  .feedback.visible{display:block;}
+  .feedback.correct{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;}
+  .feedback.incorrect{background:var(--red-bg);color:var(--red);border:1px solid #FECACA;}
+  .radio-group{margin:.75rem 0;}
+  .radio-group label{display:block;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;margin-bottom:.4rem;cursor:pointer;font-size:.85rem;transition:.2s;}
+  .radio-group label:hover{background:#F8FAFC;}
+  .radio-group input{margin-right:.5rem;}
+  .radio-group label.selected-correct{background:#DCFCE7;border-color:#86EFAC;}
+  .radio-group label.selected-wrong{background:var(--red-bg);border-color:#FECACA;}
+  .teacher-panel{display:none;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.82rem;}
+  body.teacher-active .teacher-panel{display:block;}
+  .preset-section{display:none;margin-bottom:1rem;}
+  .preset-section select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--border);font-size:.8rem;font-family:inherit;}
+  body.teacher-active .preset-section{display:block;}
+  .score-bar{display:flex;align-items:center;gap:1.5rem;padding:.75rem 1rem;background:white;border-radius:8px;border:1px solid var(--border);margin-bottom:1.25rem;flex-wrap:wrap;}
+  .score-item{font-size:.82rem;font-weight:500;}
+  .score-item span{font-family:'Fira Code',monospace;color:var(--teal);font-weight:700;}
+  .score-bar .score-total{font-size:.95rem;font-weight:700;color:var(--navy);}
+  .difficulty-bar{display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;}
+  .difficulty-btn{padding:.35rem .85rem;border:1px solid var(--border);border-radius:6px;background:white;font-size:.78rem;font-weight:500;cursor:pointer;font-family:inherit;transition:.2s;}
+  .difficulty-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);font-weight:600;}
+  .practice-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-bottom:1.25rem;}
+  .stat-card{background:white;border:1px solid var(--border);border-radius:8px;padding:.75rem;text-align:center;}
+  .stat-card .stat-label{font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .stat-card .stat-value{font-size:1.4rem;font-weight:700;color:var(--teal);font-family:'Fira Code',monospace;}
+  .equipment-grid{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin:1rem 0;}
+  .equipment-option{border:2px solid var(--border);border-radius:8px;padding:.5rem;cursor:pointer;text-align:center;transition:.2s;background:white;}
+  .equipment-option:hover{border-color:var(--teal);background:var(--teal-bg);}
+  .equipment-option.selected{border-color:var(--blue);background:var(--blue-bg);}
+  .equipment-option.selected-correct{border-color:#86EFAC;background:#DCFCE7;}
+  .equipment-option.selected-wrong{border-color:#FECACA;background:var(--red-bg);}
+  .equipment-option.correct-reveal{border-color:#86EFAC;background:#DCFCE7;}
+  .equipment-option canvas{border:none;background:var(--sim-canvas-bg);border-radius:4px;}
+  .eq-label{font-size:.75rem;font-weight:600;color:var(--text-muted);margin-top:.35rem;}
+  .hl-only{display:none;} body.hl-active .hl-only{display:block;}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  @media(max-width:700px){.instrument-row{flex-direction:column;}.instrument-canvas-wrap{flex:none;width:100%;}.tab-btn{padding:.6rem .8rem;font-size:.78rem;}.equipment-grid{grid-template-columns:1fr;}}
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div>
+    <h1>Equipment Recognition Trainer<span class="subtitle">IB Chemistry — Practical Skills</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">Tool 1</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle HL content" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle teacher mode" id="teacherToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="identify" role="tab"><span class="tab-num">1</span>Identification</button>
+  <button class="tab-btn" data-tab="select" role="tab"><span class="tab-num">2</span>Selection</button>
+  <button class="tab-btn" data-tab="precision" role="tab"><span class="tab-num">3</span>Precision</button>
+  <button class="tab-btn" data-tab="practice" role="tab"><span class="tab-num">4</span>Practice</button>
+</div>
+
+<div class="sim-container" id="main-content">
+  <div class="preset-section" id="presetSection">
+    <select aria-label="Select teacher preset" id="presetSelect"><option value="">Teacher Presets...</option></select>
+  </div>
+
+  <!-- TAB 1: IDENTIFICATION -->
+  <div class="tab-content active" id="tab-identify" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Equipment Identification</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div style="margin-bottom:1rem;"><button class="btn btn-teal" id="btnNewIdentify">New Equipment</button></div>
+          <div class="instrument-row">
+            <div class="instrument-canvas-wrap"><canvas id="identifyCanvas" role="img" aria-label="Laboratory equipment identification image" width="280" height="280"></canvas></div>
+            <div class="answer-area">
+              <div class="scenario-box" id="identifyPrompt">Click "New Equipment" to begin.</div>
+              <div class="radio-group" id="identifyOptions"></div>
+              <div class="btn-row">
+                <button class="btn btn-teal" id="btnCheckIdentify" disabled>Check Answer</button>
+              </div>
+              <div class="feedback" id="identifyFeedback" aria-live="polite"></div>
+              <div class="teacher-panel" id="identifyTeacher"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: SELECTION -->
+  <div class="tab-content" id="tab-select" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Equipment Selection</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div style="margin-bottom:1rem;"><button class="btn btn-teal" id="btnNewSelect">New Scenario</button></div>
+          <div class="scenario-box" id="selectPrompt">Click "New Scenario" to begin.</div>
+          <div class="equipment-grid" id="selectGrid"></div>
+          <div class="btn-row">
+            <button class="btn btn-teal" id="btnCheckSelect" disabled>Check Answer</button>
+          </div>
+          <div class="feedback" id="selectFeedback" aria-live="polite"></div>
+          <div class="teacher-panel" id="selectTeacher"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: PRECISION -->
+  <div class="tab-content" id="tab-precision" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Measurement &amp; Precision</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div style="display:flex;gap:.75rem;align-items:center;margin-bottom:1rem;flex-wrap:wrap;">
+            <button class="btn btn-teal" id="btnNewPrecision">New Problem</button>
+          </div>
+          <div class="scenario-box" id="precisionPrompt">Click "New Problem" to begin.</div>
+          <div class="radio-group" id="precisionOptions"></div>
+          <div class="btn-row">
+            <button class="btn btn-teal" id="btnCheckPrecision" disabled>Check Answer</button>
+          </div>
+          <div class="feedback" id="precisionFeedback" aria-live="polite"></div>
+          <div class="teacher-panel" id="precisionTeacher"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: PRACTICE -->
+  <div class="tab-content" id="tab-practice" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Mixed Practice</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div class="practice-stats">
+            <div class="stat-card"><div class="stat-label">Identification</div><div class="stat-value" id="statIdentify">0/0</div></div>
+            <div class="stat-card"><div class="stat-label">Selection</div><div class="stat-value" id="statSelect">0/0</div></div>
+            <div class="stat-card"><div class="stat-label">Precision</div><div class="stat-value" id="statPrecision">0/0</div></div>
+            <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="statTotal">0/0</div></div>
+          </div>
+          <div style="margin-bottom:1rem;">
+            <button class="btn btn-teal" id="btnNextPractice">Next Question</button>
+            <button class="btn btn-outline" id="btnResetScores" style="margin-left:.5rem;">Reset Scores</button>
+          </div>
+          <div id="practiceContent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd>-<kbd>4</kbd> Tabs &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>N</kbd> New Problem
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ── Utilities ── */
+  function pick(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+  function shuffle(arr){ var a=arr.slice(); for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;} return a; }
+  function clearEl(el){ while(el.firstChild) el.removeChild(el.firstChild); }
+  function round(v,dp){ var m=Math.pow(10,dp||0); return Math.round(v*m)/m; }
+
+  function setupCanvas(c){
+    var dpr=window.devicePixelRatio||1;
+    var w=parseInt(c.getAttribute('data-w')||c.getAttribute('width'),10);
+    var h=parseInt(c.getAttribute('data-h')||c.getAttribute('height'),10);
+    if(!c.getAttribute('data-w')){c.setAttribute('data-w',w);c.setAttribute('data-h',h);}
+    c.width=w*dpr; c.height=h*dpr;
+    c.style.width=w+'px'; c.style.height=h+'px';
+    var ctx=c.getContext('2d');
+    ctx.scale(dpr,dpr);
+    return ctx;
+  }
+
+  /* ── Drawing palette ── */
+  var STROKE='#64748B', FILL_GLASS='rgba(226,232,240,0.4)', FILL_LIQUID='rgba(13,148,136,0.15)',
+      FILL_METAL='#94A3B8', FILL_DARK='#475569', FILL_RED='#EF4444', FILL_BLUE='#3B82F6',
+      FILL_COPPER='#D97706', FILL_FLAME_BLUE='#3B82F6', FILL_FLAME_ORANGE='#F59E0B';
+
+  /* ── Equipment Drawing Functions ── */
+  /* Each: draw(ctx, cx, cy, s) where s=scale (1.0 = full, 0.5 = thumbnail) */
+
+  function drawBurette(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // tube
+    ctx.beginPath(); ctx.rect(cx-8*s,cy-80*s,16*s,140*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    // liquid
+    ctx.fillStyle=FILL_LIQUID; ctx.fillRect(cx-7*s,cy-40*s,14*s,98*s);
+    // graduation marks
+    ctx.lineWidth=1*s;
+    for(var i=0;i<10;i++){var y=cy-75*s+i*14*s; ctx.beginPath(); ctx.moveTo(cx-8*s,y); ctx.lineTo(cx-3*s,y); ctx.stroke();}
+    // stopcock
+    ctx.fillStyle=FILL_DARK; ctx.fillRect(cx-3*s,cy+60*s,6*s,8*s);
+    ctx.beginPath(); ctx.moveTo(cx-10*s,cy+63*s); ctx.lineTo(cx+10*s,cy+63*s); ctx.stroke();
+    // tip
+    ctx.beginPath(); ctx.moveTo(cx-2*s,cy+68*s); ctx.lineTo(cx-2*s,cy+80*s); ctx.lineTo(cx+2*s,cy+80*s); ctx.lineTo(cx+2*s,cy+68*s); ctx.stroke();
+    // clamp bracket
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.moveTo(cx-14*s,cy-80*s); ctx.lineTo(cx+14*s,cy-80*s); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawVolPipette(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // top stem
+    ctx.beginPath(); ctx.rect(cx-3*s,cy-80*s,6*s,40*s); ctx.stroke();
+    // bulb
+    ctx.beginPath(); ctx.ellipse(cx,cy-20*s,18*s,20*s,0,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    // bottom stem
+    ctx.beginPath(); ctx.rect(cx-3*s,cy,6*s,50*s); ctx.stroke();
+    // tip
+    ctx.beginPath(); ctx.moveTo(cx-3*s,cy+50*s); ctx.lineTo(cx,cy+60*s); ctx.lineTo(cx+3*s,cy+50*s); ctx.stroke();
+    // calibration line
+    ctx.lineWidth=1*s; ctx.strokeStyle=FILL_RED;
+    ctx.beginPath(); ctx.moveTo(cx-6*s,cy-38*s); ctx.lineTo(cx+6*s,cy-38*s); ctx.stroke();
+    // liquid
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath(); ctx.ellipse(cx,cy-20*s,16*s,18*s,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawGradPipette(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.rect(cx-4*s,cy-75*s,8*s,135*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    // tip
+    ctx.beginPath(); ctx.moveTo(cx-4*s,cy+60*s); ctx.lineTo(cx,cy+70*s); ctx.lineTo(cx+4*s,cy+60*s); ctx.stroke();
+    // graduation marks
+    ctx.lineWidth=1*s;
+    for(var i=0;i<12;i++){var y=cy-70*s+i*11*s; ctx.beginPath(); ctx.moveTo(cx-4*s,y); ctx.lineTo(cx-1*s,y); ctx.stroke();}
+    // liquid
+    ctx.fillStyle=FILL_LIQUID; ctx.fillRect(cx-3*s,cy-30*s,6*s,88*s);
+    ctx.restore();
+  }
+
+  function drawMeasCylinder(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // body
+    ctx.beginPath(); ctx.moveTo(cx-16*s,cy-60*s); ctx.lineTo(cx-14*s,cy+55*s);
+    ctx.lineTo(cx+14*s,cy+55*s); ctx.lineTo(cx+16*s,cy-60*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath(); ctx.moveTo(cx-16*s,cy-60*s); ctx.lineTo(cx-14*s,cy+55*s);
+    ctx.lineTo(cx+14*s,cy+55*s); ctx.lineTo(cx+16*s,cy-60*s); ctx.closePath(); ctx.fill();
+    // base
+    ctx.fillStyle=FILL_DARK; ctx.fillRect(cx-18*s,cy+55*s,36*s,6*s);
+    // spout
+    ctx.beginPath(); ctx.moveTo(cx+16*s,cy-60*s); ctx.lineTo(cx+20*s,cy-64*s); ctx.stroke();
+    // graduation
+    ctx.lineWidth=1*s;
+    for(var i=0;i<8;i++){var y=cy-50*s+i*13*s; ctx.beginPath(); ctx.moveTo(cx-14*s,y); ctx.lineTo(cx-8*s,y); ctx.stroke();}
+    // liquid
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath(); ctx.moveTo(cx-14*s,cy); ctx.lineTo(cx-13*s,cy+53*s); ctx.lineTo(cx+13*s,cy+53*s); ctx.lineTo(cx+14*s,cy); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawVolFlask(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // body (circle)
+    ctx.beginPath(); ctx.arc(cx,cy+15*s,35*s,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    // neck
+    ctx.beginPath(); ctx.rect(cx-6*s,cy-70*s,12*s,50*s); ctx.stroke();
+    // flat base
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.moveTo(cx-25*s,cy+50*s); ctx.lineTo(cx+25*s,cy+50*s); ctx.stroke();
+    // calibration line
+    ctx.lineWidth=1*s; ctx.strokeStyle=FILL_RED;
+    ctx.beginPath(); ctx.moveTo(cx-8*s,cy-25*s); ctx.lineTo(cx+8*s,cy-25*s); ctx.stroke();
+    // stopper
+    ctx.fillStyle=FILL_DARK;
+    ctx.beginPath(); ctx.moveTo(cx-5*s,cy-70*s); ctx.lineTo(cx-7*s,cy-78*s); ctx.lineTo(cx+7*s,cy-78*s); ctx.lineTo(cx+5*s,cy-70*s); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBeaker(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-28*s,cy-35*s); ctx.lineTo(cx-25*s,cy+35*s);
+    ctx.lineTo(cx+25*s,cy+35*s); ctx.lineTo(cx+28*s,cy-35*s);
+    ctx.lineTo(cx+32*s,cy-38*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-28*s,cy-35*s); ctx.lineTo(cx-25*s,cy+35*s);
+    ctx.lineTo(cx+25*s,cy+35*s); ctx.lineTo(cx+28*s,cy-35*s); ctx.closePath(); ctx.fill();
+    // graduation
+    ctx.lineWidth=1*s;
+    for(var i=0;i<3;i++){var y=cy-15*s+i*16*s; ctx.beginPath(); ctx.moveTo(cx-25*s,y); ctx.lineTo(cx-18*s,y); ctx.stroke();}
+    // liquid
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath();
+    ctx.moveTo(cx-26*s,cy); ctx.lineTo(cx-25*s,cy+33*s); ctx.lineTo(cx+25*s,cy+33*s); ctx.lineTo(cx+26*s,cy); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawConicalFlask(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-6*s,cy-55*s); ctx.lineTo(cx-35*s,cy+40*s);
+    ctx.lineTo(cx+35*s,cy+40*s); ctx.lineTo(cx+6*s,cy-55*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-6*s,cy-55*s); ctx.lineTo(cx-35*s,cy+40*s);
+    ctx.lineTo(cx+35*s,cy+40*s); ctx.lineTo(cx+6*s,cy-55*s); ctx.closePath(); ctx.fill();
+    // neck rim
+    ctx.beginPath(); ctx.rect(cx-7*s,cy-60*s,14*s,8*s); ctx.stroke();
+    // liquid
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath();
+    ctx.moveTo(cx-20*s,cy+5*s); ctx.lineTo(cx-33*s,cy+38*s); ctx.lineTo(cx+33*s,cy+38*s); ctx.lineTo(cx+20*s,cy+5*s); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawRoundBottomFlask(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.arc(cx,cy+10*s,35*s,0.2,Math.PI-0.2); ctx.stroke();
+    // neck
+    ctx.beginPath();
+    ctx.moveTo(cx-35*s*Math.cos(Math.PI-0.2),cy+10*s-35*s*Math.sin(Math.PI-0.2));
+    ctx.lineTo(cx-6*s,cy-50*s);
+    ctx.moveTo(cx+35*s*Math.cos(0.2),cy+10*s-35*s*Math.sin(0.2));
+    ctx.lineTo(cx+6*s,cy-50*s);
+    ctx.stroke();
+    ctx.beginPath(); ctx.rect(cx-7*s,cy-58*s,14*s,10*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath(); ctx.arc(cx,cy+10*s,33*s,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawTestTube(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-6*s,cy-55*s); ctx.lineTo(cx-6*s,cy+35*s);
+    ctx.arc(cx,cy+35*s,6*s,Math.PI,0);
+    ctx.lineTo(cx+6*s,cy-55*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-5*s,cy-55*s); ctx.lineTo(cx-5*s,cy+35*s);
+    ctx.arc(cx,cy+35*s,5*s,Math.PI,0);
+    ctx.lineTo(cx+5*s,cy-55*s); ctx.closePath(); ctx.fill();
+    // rim
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.arc(cx,cy-55*s,8*s,Math.PI,0); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawBoilingTube(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-10*s,cy-50*s); ctx.lineTo(cx-10*s,cy+35*s);
+    ctx.arc(cx,cy+35*s,10*s,Math.PI,0);
+    ctx.lineTo(cx+10*s,cy-50*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-9*s,cy-50*s); ctx.lineTo(cx-9*s,cy+35*s);
+    ctx.arc(cx,cy+35*s,9*s,Math.PI,0);
+    ctx.lineTo(cx+9*s,cy-50*s); ctx.closePath(); ctx.fill();
+    // rim
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.arc(cx,cy-50*s,13*s,Math.PI,0); ctx.stroke();
+    // liquid
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath();
+    ctx.moveTo(cx-9*s,cy); ctx.lineTo(cx-9*s,cy+35*s);
+    ctx.arc(cx,cy+35*s,9*s,Math.PI,0);
+    ctx.lineTo(cx+9*s,cy); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawWatchGlass(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-35*s,cy); ctx.quadraticCurveTo(cx,cy+15*s,cx+35*s,cy);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-35*s,cy); ctx.quadraticCurveTo(cx,cy+15*s,cx+35*s,cy); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawEvapDish(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-35*s,cy-5*s); ctx.quadraticCurveTo(cx,cy+25*s,cx+35*s,cy-5*s);
+    ctx.lineTo(cx+38*s,cy-8*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-35*s,cy-5*s); ctx.quadraticCurveTo(cx,cy+25*s,cx+35*s,cy-5*s); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBunsen(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // base
+    ctx.fillStyle=FILL_METAL; ctx.fillRect(cx-25*s,cy+40*s,50*s,8*s);
+    ctx.strokeRect(cx-25*s,cy+40*s,50*s,8*s);
+    // barrel
+    ctx.fillStyle=FILL_METAL;
+    ctx.beginPath(); ctx.rect(cx-8*s,cy-20*s,16*s,60*s); ctx.fill(); ctx.stroke();
+    // air hole
+    ctx.fillStyle='white'; ctx.fillRect(cx-8*s,cy+10*s,6*s,5*s);
+    // gas inlet
+    ctx.lineWidth=1.5*s; ctx.beginPath(); ctx.moveTo(cx-8*s,cy+30*s); ctx.lineTo(cx-30*s,cy+38*s); ctx.stroke();
+    // flame
+    ctx.fillStyle='rgba(59,130,246,0.4)';
+    ctx.beginPath(); ctx.moveTo(cx-6*s,cy-20*s); ctx.quadraticCurveTo(cx,cy-55*s,cx+6*s,cy-20*s); ctx.fill();
+    ctx.fillStyle='rgba(245,158,11,0.3)';
+    ctx.beginPath(); ctx.moveTo(cx-10*s,cy-20*s); ctx.quadraticCurveTo(cx,cy-65*s,cx+10*s,cy-20*s); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawHotPlate(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // body
+    ctx.fillStyle='#E2E8F0'; ctx.fillRect(cx-40*s,cy-5*s,80*s,30*s); ctx.strokeRect(cx-40*s,cy-5*s,80*s,30*s);
+    // plate surface
+    ctx.fillStyle=FILL_METAL; ctx.fillRect(cx-35*s,cy-15*s,70*s,12*s); ctx.strokeRect(cx-35*s,cy-15*s,70*s,12*s);
+    // knob
+    ctx.beginPath(); ctx.arc(cx+30*s,cy+10*s,5*s,0,Math.PI*2); ctx.fillStyle=FILL_DARK; ctx.fill(); ctx.stroke();
+    // heat lines
+    ctx.strokeStyle='#EF4444'; ctx.lineWidth=1*s; ctx.setLineDash([3*s,3*s]);
+    for(var i=-1;i<=1;i++){
+      ctx.beginPath(); ctx.moveTo(cx+i*20*s,cy-18*s);
+      ctx.quadraticCurveTo(cx+i*20*s+3*s,cy-28*s,cx+i*20*s,cy-35*s); ctx.stroke();
+    }
+    ctx.setLineDash([]); ctx.restore();
+  }
+
+  function drawBalance(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // body
+    ctx.fillStyle='#E2E8F0'; ctx.fillRect(cx-40*s,cy-5*s,80*s,35*s); ctx.strokeRect(cx-40*s,cy-5*s,80*s,35*s);
+    // display
+    ctx.fillStyle='#1E293B'; ctx.fillRect(cx-30*s,cy,60*s,18*s);
+    ctx.fillStyle='#22D3EE'; ctx.font=(10*s)+'px "Fira Code",monospace'; ctx.textAlign='center';
+    ctx.fillText('12.34 g',cx,cy+13*s);
+    // pan
+    ctx.fillStyle=FILL_METAL; ctx.fillRect(cx-35*s,cy-12*s,70*s,8*s); ctx.strokeRect(cx-35*s,cy-12*s,70*s,8*s);
+    ctx.restore();
+  }
+
+  function drawThermometer(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // tube
+    ctx.beginPath(); ctx.rect(cx-3*s,cy-70*s,6*s,120*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    // bulb
+    ctx.beginPath(); ctx.arc(cx,cy+55*s,8*s,0,Math.PI*2); ctx.fillStyle='#EF4444'; ctx.fill(); ctx.stroke();
+    // liquid column
+    ctx.fillStyle='#EF4444'; ctx.fillRect(cx-2*s,cy-20*s,4*s,75*s);
+    // graduation
+    ctx.lineWidth=1*s;
+    for(var i=0;i<8;i++){var y=cy-60*s+i*13*s; ctx.beginPath(); ctx.moveTo(cx+3*s,y); ctx.lineTo(cx+8*s,y); ctx.stroke();}
+    ctx.restore();
+  }
+
+  function drawFilterFunnel(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // cone
+    ctx.beginPath();
+    ctx.moveTo(cx-30*s,cy-30*s); ctx.lineTo(cx-4*s,cy+20*s);
+    ctx.lineTo(cx-4*s,cy+50*s); ctx.moveTo(cx+4*s,cy+50*s);
+    ctx.lineTo(cx+4*s,cy+20*s); ctx.lineTo(cx+30*s,cy-30*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-30*s,cy-30*s); ctx.lineTo(cx-4*s,cy+20*s); ctx.lineTo(cx+4*s,cy+20*s); ctx.lineTo(cx+30*s,cy-30*s); ctx.closePath(); ctx.fill();
+    // filter paper (dashed line)
+    ctx.setLineDash([4*s,3*s]); ctx.strokeStyle='#94A3B8';
+    ctx.beginPath(); ctx.moveTo(cx-28*s,cy-28*s); ctx.lineTo(cx,cy+15*s); ctx.lineTo(cx+28*s,cy-28*s); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+  }
+
+  function drawSepFunnel(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // body (pear shape)
+    ctx.beginPath();
+    ctx.moveTo(cx-5*s,cy-50*s);
+    ctx.bezierCurveTo(cx-30*s,cy-20*s,cx-25*s,cy+20*s,cx-4*s,cy+30*s);
+    ctx.lineTo(cx+4*s,cy+30*s);
+    ctx.bezierCurveTo(cx+25*s,cy+20*s,cx+30*s,cy-20*s,cx+5*s,cy-50*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    // stopper
+    ctx.fillStyle=FILL_DARK;
+    ctx.beginPath(); ctx.moveTo(cx-4*s,cy-50*s); ctx.lineTo(cx-6*s,cy-58*s); ctx.lineTo(cx+6*s,cy-58*s); ctx.lineTo(cx+4*s,cy-50*s); ctx.closePath(); ctx.fill();
+    // stopcock stem
+    ctx.beginPath(); ctx.rect(cx-3*s,cy+30*s,6*s,20*s); ctx.stroke();
+    // stopcock handle
+    ctx.beginPath(); ctx.moveTo(cx-10*s,cy+38*s); ctx.lineTo(cx+10*s,cy+38*s); ctx.lineWidth=2.5*s; ctx.stroke();
+    // two layers
+    ctx.fillStyle='rgba(13,148,136,0.2)';
+    ctx.beginPath();
+    ctx.moveTo(cx-22*s,cy+5*s); ctx.bezierCurveTo(cx-25*s,cy+20*s,cx-20*s,cy+28*s,cx-4*s,cy+30*s);
+    ctx.lineTo(cx+4*s,cy+30*s); ctx.bezierCurveTo(cx+20*s,cy+28*s,cx+25*s,cy+20*s,cx+22*s,cy+5*s);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle='rgba(245,158,11,0.15)';
+    ctx.beginPath();
+    ctx.moveTo(cx-22*s,cy+5*s);
+    ctx.bezierCurveTo(cx-28*s,cy-10*s,cx-25*s,cy-30*s,cx-5*s,cy-48*s);
+    ctx.lineTo(cx+5*s,cy-48*s);
+    ctx.bezierCurveTo(cx+25*s,cy-30*s,cx+28*s,cy-10*s,cx+22*s,cy+5*s);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawCrucible(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // body
+    ctx.beginPath();
+    ctx.moveTo(cx-18*s,cy-10*s); ctx.lineTo(cx-12*s,cy+20*s);
+    ctx.lineTo(cx+12*s,cy+20*s); ctx.lineTo(cx+18*s,cy-10*s); ctx.closePath();
+    ctx.stroke(); ctx.fillStyle=FILL_GLASS; ctx.fill();
+    // lid (offset)
+    ctx.beginPath();
+    ctx.ellipse(cx+5*s,cy-18*s,16*s,5*s,0.15,0,Math.PI*2);
+    ctx.stroke(); ctx.fillStyle='rgba(226,232,240,0.6)'; ctx.fill();
+    // knob on lid
+    ctx.beginPath(); ctx.arc(cx+5*s,cy-23*s,3*s,0,Math.PI*2); ctx.fillStyle=FILL_DARK; ctx.fill();
+    ctx.restore();
+  }
+
+  function drawMortarPestle(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // mortar bowl
+    ctx.beginPath();
+    ctx.moveTo(cx-30*s,cy-10*s); ctx.quadraticCurveTo(cx,cy+30*s,cx+30*s,cy-10*s);
+    ctx.stroke();
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.moveTo(cx-32*s,cy-10*s); ctx.lineTo(cx+32*s,cy-10*s); ctx.stroke();
+    // pestle
+    ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx+10*s,cy+5*s); ctx.lineTo(cx+35*s,cy-35*s);
+    ctx.stroke();
+    // pestle head
+    ctx.beginPath(); ctx.ellipse(cx+8*s,cy+8*s,8*s,5*s,0.3,0,Math.PI*2);
+    ctx.fillStyle=FILL_METAL; ctx.fill(); ctx.stroke();
+    // pestle handle end
+    ctx.beginPath(); ctx.arc(cx+37*s,cy-37*s,4*s,0,Math.PI*2);
+    ctx.fillStyle=FILL_METAL; ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawWashBottle(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // body
+    ctx.beginPath();
+    ctx.moveTo(cx-15*s,cy-40*s); ctx.lineTo(cx-18*s,cy+40*s);
+    ctx.lineTo(cx+18*s,cy+40*s); ctx.lineTo(cx+15*s,cy-40*s);
+    ctx.closePath(); ctx.stroke();
+    ctx.fillStyle='rgba(226,232,240,0.3)'; ctx.fill();
+    // cap
+    ctx.fillStyle=FILL_DARK; ctx.fillRect(cx-10*s,cy-48*s,20*s,10*s);
+    // delivery tube
+    ctx.lineWidth=1.5*s; ctx.beginPath();
+    ctx.moveTo(cx+5*s,cy-48*s); ctx.lineTo(cx+5*s,cy-60*s);
+    ctx.quadraticCurveTo(cx+25*s,cy-65*s,cx+25*s,cy-50*s);
+    ctx.lineTo(cx+25*s,cy-40*s); ctx.stroke();
+    // liquid
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath();
+    ctx.moveTo(cx-16*s,cy-10*s); ctx.lineTo(cx-17*s,cy+38*s);
+    ctx.lineTo(cx+17*s,cy+38*s); ctx.lineTo(cx+16*s,cy-10*s); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawDropper(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // rubber bulb
+    ctx.beginPath(); ctx.ellipse(cx,cy-45*s,10*s,14*s,0,0,Math.PI*2);
+    ctx.fillStyle='#D97706'; ctx.fill(); ctx.stroke();
+    // glass tube
+    ctx.beginPath(); ctx.rect(cx-3*s,cy-32*s,6*s,55*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    // tip
+    ctx.beginPath(); ctx.moveTo(cx-3*s,cy+23*s); ctx.lineTo(cx,cy+35*s); ctx.lineTo(cx+3*s,cy+23*s); ctx.stroke();
+    // liquid in tube
+    ctx.fillStyle=FILL_LIQUID; ctx.fillRect(cx-2*s,cy-10*s,4*s,32*s);
+    ctx.restore();
+  }
+
+  function drawStirringRod(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=3*s;
+    ctx.beginPath(); ctx.moveTo(cx,cy-60*s); ctx.lineTo(cx,cy+60*s); ctx.stroke();
+    ctx.lineCap='round';
+    // rounded ends
+    ctx.beginPath(); ctx.arc(cx,cy-60*s,2*s,0,Math.PI*2); ctx.fillStyle=FILL_GLASS; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy+60*s,2*s,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawTripodGauze(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // three legs
+    ctx.beginPath(); ctx.moveTo(cx-25*s,cy+40*s); ctx.lineTo(cx,cy-5*s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+25*s,cy+40*s); ctx.lineTo(cx,cy-5*s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx,cy+40*s); ctx.lineTo(cx,cy-5*s); ctx.stroke();
+    // ring
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.moveTo(cx-28*s,cy-5*s); ctx.lineTo(cx+28*s,cy-5*s); ctx.stroke();
+    // gauze (cross hatch)
+    ctx.lineWidth=0.8*s; ctx.strokeStyle='#94A3B8';
+    for(var i=-2;i<=2;i++){
+      ctx.beginPath(); ctx.moveTo(cx+i*10*s,cy-12*s); ctx.lineTo(cx+i*10*s,cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx-25*s,cy-9*s+i*3*s); ctx.lineTo(cx+25*s,cy-9*s+i*3*s); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawRetortStand(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=2*s;
+    // base
+    ctx.fillStyle=FILL_METAL; ctx.fillRect(cx-30*s,cy+45*s,40*s,6*s); ctx.strokeRect(cx-30*s,cy+45*s,40*s,6*s);
+    // pole
+    ctx.beginPath(); ctx.moveTo(cx-20*s,cy+45*s); ctx.lineTo(cx-20*s,cy-60*s); ctx.stroke();
+    // clamp arm
+    ctx.lineWidth=1.5*s; ctx.beginPath();
+    ctx.moveTo(cx-20*s,cy-20*s); ctx.lineTo(cx+20*s,cy-20*s); ctx.stroke();
+    // clamp ring
+    ctx.beginPath(); ctx.arc(cx+25*s,cy-20*s,8*s,0,Math.PI*2); ctx.stroke();
+    // boss
+    ctx.fillStyle=FILL_DARK;
+    ctx.beginPath(); ctx.arc(cx-20*s,cy-20*s,4*s,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawGoggles(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    // left lens
+    ctx.beginPath(); ctx.ellipse(cx-18*s,cy,16*s,14*s,0,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle='rgba(147,197,253,0.3)'; ctx.fill();
+    // right lens
+    ctx.beginPath(); ctx.ellipse(cx+18*s,cy,16*s,14*s,0,0,Math.PI*2); ctx.stroke(); ctx.fill();
+    // bridge
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.moveTo(cx-3*s,cy-3*s); ctx.lineTo(cx+3*s,cy-3*s); ctx.stroke();
+    // strap
+    ctx.lineWidth=1.5*s; ctx.setLineDash([3*s,2*s]);
+    ctx.beginPath(); ctx.moveTo(cx-34*s,cy); ctx.lineTo(cx-45*s,cy-5*s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+34*s,cy); ctx.lineTo(cx+45*s,cy-5*s); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+  }
+
+  /* ── Equipment Database ── */
+  var EQUIPMENT = [
+    { id:'burette', name:'Burette', category:'volumetric', uncertainty:'\u00B10.05 cm\u00B3', uncertaintyVal:0.05, unit:'cm\u00B3', precision:'High',
+      typicalUse:'Accurate measurement of variable volumes in titrations', draw:drawBurette },
+    { id:'vol_pipette', name:'Volumetric Pipette', category:'volumetric', uncertainty:'\u00B10.04 cm\u00B3', uncertaintyVal:0.04, unit:'cm\u00B3', precision:'High',
+      typicalUse:'Delivers a fixed, precise volume (e.g., 25.00 cm\u00B3)', draw:drawVolPipette },
+    { id:'grad_pipette', name:'Graduated Pipette', category:'volumetric', uncertainty:'\u00B10.1 cm\u00B3', uncertaintyVal:0.1, unit:'cm\u00B3', precision:'Medium',
+      typicalUse:'Measures variable small volumes with moderate precision', draw:drawGradPipette },
+    { id:'meas_cylinder', name:'Measuring Cylinder', category:'volumetric', uncertainty:'\u00B10.5 cm\u00B3', uncertaintyVal:0.5, unit:'cm\u00B3', precision:'Low',
+      typicalUse:'Measures approximate volumes of liquids', draw:drawMeasCylinder },
+    { id:'vol_flask', name:'Volumetric Flask', category:'volumetric', uncertainty:'\u00B10.3 cm\u00B3', uncertaintyVal:0.3, unit:'cm\u00B3', precision:'High',
+      typicalUse:'Prepares solutions of precise concentration', draw:drawVolFlask },
+    { id:'beaker', name:'Beaker', category:'glassware', uncertainty:'\u00B15 cm\u00B3', uncertaintyVal:5, unit:'cm\u00B3', precision:'Low',
+      typicalUse:'General purpose container for mixing and heating', draw:drawBeaker },
+    { id:'conical_flask', name:'Conical (Erlenmeyer) Flask', category:'glassware', uncertainty:'\u00B110 cm\u00B3', uncertaintyVal:10, unit:'cm\u00B3', precision:'Low',
+      typicalUse:'Titration receiving flask; swirling without spilling', draw:drawConicalFlask },
+    { id:'round_flask', name:'Round-Bottom Flask', category:'glassware', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Even heating; used in distillation and reflux', draw:drawRoundBottomFlask },
+    { id:'test_tube', name:'Test Tube', category:'glassware', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Small-scale reactions and qualitative tests', draw:drawTestTube },
+    { id:'boiling_tube', name:'Boiling Tube', category:'glassware', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Heating larger volumes; vigorous reactions', draw:drawBoilingTube },
+    { id:'watch_glass', name:'Watch Glass', category:'glassware', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Covering beakers; holding small solid samples', draw:drawWatchGlass },
+    { id:'evap_dish', name:'Evaporating Dish', category:'glassware', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Evaporating solutions to obtain solid crystals', draw:drawEvapDish },
+    { id:'bunsen', name:'Bunsen Burner', category:'heating', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Strong direct heating with adjustable flame', draw:drawBunsen },
+    { id:'hot_plate', name:'Hot Plate', category:'heating', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Gentle, controlled heating without open flame', draw:drawHotPlate },
+    { id:'balance', name:'Electronic Balance', category:'measurement', uncertainty:'\u00B10.01 g', uncertaintyVal:0.01, unit:'g', precision:'High',
+      typicalUse:'Accurate mass measurement', draw:drawBalance },
+    { id:'thermometer', name:'Thermometer', category:'measurement', uncertainty:'\u00B10.5 \u00B0C', uncertaintyVal:0.5, unit:'\u00B0C', precision:'Medium',
+      typicalUse:'Measuring temperature of solutions', draw:drawThermometer },
+    { id:'filter_funnel', name:'Filter Funnel', category:'separation', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Gravity filtration to separate insoluble solids', draw:drawFilterFunnel },
+    { id:'sep_funnel', name:'Separating Funnel', category:'separation', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Separating immiscible liquids by density', draw:drawSepFunnel },
+    { id:'crucible', name:'Crucible', category:'other', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Heating solids to very high temperatures', draw:drawCrucible },
+    { id:'mortar_pestle', name:'Mortar and Pestle', category:'other', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Grinding solids into fine powder', draw:drawMortarPestle },
+    { id:'wash_bottle', name:'Wash Bottle', category:'other', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Rinsing apparatus with distilled water', draw:drawWashBottle },
+    { id:'dropper', name:'Dropping Pipette', category:'other', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Adding small amounts of liquid drop by drop', draw:drawDropper },
+    { id:'stirring_rod', name:'Stirring Rod', category:'other', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Stirring solutions and aiding dissolution', draw:drawStirringRod },
+    { id:'tripod_gauze', name:'Tripod and Wire Gauze', category:'other', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Supporting containers above a Bunsen burner', draw:drawTripodGauze },
+    { id:'retort_stand', name:'Retort Stand and Clamp', category:'other', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Holding and supporting apparatus at height', draw:drawRetortStand },
+    { id:'goggles', name:'Safety Goggles', category:'safety', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+      typicalUse:'Protecting eyes from chemical splashes', draw:drawGoggles }
+  ];
+
+  var EQ_MAP = {};
+  EQUIPMENT.forEach(function(eq){ EQ_MAP[eq.id] = eq; });
+
+  function findEq(id){ return EQ_MAP[id]; }
+
+  /* Confusion groups for distractors */
+  var CONFUSION = {
+    volumetric:['burette','vol_pipette','grad_pipette','meas_cylinder','vol_flask'],
+    glassware:['beaker','conical_flask','round_flask','test_tube','boiling_tube','watch_glass','evap_dish'],
+    heating:['bunsen','hot_plate','tripod_gauze'],
+    separation:['filter_funnel','sep_funnel'],
+    measurement:['balance','thermometer'],
+    tubes:['test_tube','boiling_tube','stirring_rod','dropper','grad_pipette'],
+    other:['crucible','mortar_pestle','wash_bottle','retort_stand','goggles']
+  };
+
+  function getDistractors(correctId, count){
+    var eq = findEq(correctId);
+    var pool = [];
+    // Find confusion group containing this id
+    for(var key in CONFUSION){
+      if(CONFUSION[key].indexOf(correctId) !== -1){
+        CONFUSION[key].forEach(function(id){ if(id !== correctId && pool.indexOf(id)===-1) pool.push(id); });
+      }
+    }
+    // Also add from same category
+    EQUIPMENT.forEach(function(e){ if(e.category === eq.category && e.id !== correctId && pool.indexOf(e.id)===-1) pool.push(e.id); });
+    // Fill with random if needed
+    if(pool.length < count){
+      EQUIPMENT.forEach(function(e){ if(e.id !== correctId && pool.indexOf(e.id)===-1) pool.push(e.id); });
+    }
+    return shuffle(pool).slice(0, count);
+  }
+
+  /* ── Selection Scenarios ── */
+  var SCENARIOS = [
+    { task:'Measure exactly 25.00 cm\u00B3 of a standard solution for a titration.', correct:'vol_pipette',
+      options:['vol_pipette','meas_cylinder','beaker','grad_pipette'],
+      explanation:'A volumetric pipette delivers a fixed, precise volume with low uncertainty (\u00B10.04 cm\u00B3).' },
+    { task:'Accurately measure varying volumes of acid added during a titration.', correct:'burette',
+      options:['burette','meas_cylinder','grad_pipette','vol_flask'],
+      explanation:'A burette allows precise measurement of variable volumes (\u00B10.05 cm\u00B3 per reading).' },
+    { task:'Prepare exactly 250 cm\u00B3 of a standard solution from a weighed solid.', correct:'vol_flask',
+      options:['vol_flask','meas_cylinder','beaker','conical_flask'],
+      explanation:'A volumetric flask is calibrated to contain an exact volume for solution preparation.' },
+    { task:'Separate two immiscible liquids (e.g., oil and water).', correct:'sep_funnel',
+      options:['sep_funnel','filter_funnel','conical_flask','meas_cylinder'],
+      explanation:'A separating funnel allows layers to be drained separately via the stopcock.' },
+    { task:'Remove an insoluble solid from a liquid by filtration.', correct:'filter_funnel',
+      options:['filter_funnel','sep_funnel','evap_dish','beaker'],
+      explanation:'Gravity filtration uses a filter funnel with paper to trap insoluble solids.' },
+    { task:'Heat a solution strongly and quickly over a direct flame.', correct:'bunsen',
+      options:['bunsen','hot_plate','tripod_gauze','crucible'],
+      explanation:'A Bunsen burner provides the highest temperature with an adjustable flame.' },
+    { task:'Evaporate a solution slowly to obtain salt crystals.', correct:'evap_dish',
+      options:['evap_dish','beaker','watch_glass','crucible'],
+      explanation:'An evaporating dish has a large surface area for controlled evaporation.' },
+    { task:'Weigh a sample of solid accurately to \u00B10.01 g.', correct:'balance',
+      options:['balance','meas_cylinder','thermometer','vol_pipette'],
+      explanation:'An electronic balance provides accurate mass readings with known uncertainty.' },
+    { task:'Grind a solid into a fine powder before dissolving it.', correct:'mortar_pestle',
+      options:['mortar_pestle','crucible','watch_glass','evap_dish'],
+      explanation:'A mortar and pestle is designed for grinding solids to increase surface area.' },
+    { task:'Receive the titrant during a titration (being swirled).', correct:'conical_flask',
+      options:['conical_flask','beaker','round_flask','vol_flask'],
+      explanation:'A conical flask can be swirled during titration without splashing.' },
+    { task:'Measure approximately 50 cm\u00B3 of water for a reaction.', correct:'meas_cylinder',
+      options:['meas_cylinder','vol_pipette','burette','beaker'],
+      explanation:'A measuring cylinder gives adequate precision for approximate volumes.' },
+    { task:'Add a few drops of indicator to a titration flask.', correct:'dropper',
+      options:['dropper','wash_bottle','grad_pipette','burette'],
+      explanation:'A dropping pipette allows controlled addition of small amounts of liquid.' },
+    { task:'Support a round-bottom flask above a heat source.', correct:'retort_stand',
+      options:['retort_stand','tripod_gauze','hot_plate','beaker'],
+      explanation:'A retort stand with clamp holds apparatus securely at the required height.' },
+    { task:'Rinse the walls of a conical flask during titration with distilled water.', correct:'wash_bottle',
+      options:['wash_bottle','dropper','meas_cylinder','beaker'],
+      explanation:'A wash bottle provides a controlled stream of distilled water for rinsing.' }
+  ];
+
+  /* ── Precision Problems ── */
+  var PRECISION_DATA = [
+    { eq:'burette', volume:50, unc:0.05, note:'Burette: 2 readings needed for titre, total \u00B10.10 cm\u00B3' },
+    { eq:'vol_pipette', volume:25, unc:0.04, note:'Volumetric pipette: fixed volume, single reading' },
+    { eq:'grad_pipette', volume:10, unc:0.1, note:'Graduated pipette: variable volume, moderate precision' },
+    { eq:'meas_cylinder', volume:50, unc:0.5, note:'Measuring cylinder: coarse graduations' },
+    { eq:'meas_cylinder', volume:10, unc:0.1, note:'10 cm\u00B3 measuring cylinder: finer graduations' },
+    { eq:'vol_flask', volume:250, unc:0.3, note:'Volumetric flask: calibrated at single mark' },
+    { eq:'balance', volume:null, unc:0.01, note:'Balance: \u00B10.01 g per reading' },
+    { eq:'thermometer', volume:null, unc:0.5, note:'Thermometer: \u00B10.5 \u00B0C per reading' }
+  ];
+
+  /* ── State ── */
+  var _isHL = false, _isTeacher = false, _activeTab = 'identify';
+  var _identifyCurrent = null, _identifySubmitted = false;
+  var _selectCurrent = null, _selectChoice = null, _selectSubmitted = false;
+  var _precisionCurrent = null, _precisionSubmitted = false;
+  var _practiceCategory = null;
+  var _scores = { identify:{c:0,t:0}, select:{c:0,t:0}, precision:{c:0,t:0} };
+
+  /* ── Tab Switching ── */
+  function switchTab(id){
+    _activeTab = id;
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.toggle('active', b.getAttribute('data-tab')===id); });
+    document.querySelectorAll('.tab-content').forEach(function(tc){ tc.classList.toggle('active', tc.id==='tab-'+id); });
+    buildPresets();
+  }
+
+  /* ── HL / Teacher ── */
+  function toggleHL(on){ _isHL=on; document.body.classList.toggle('hl-active',on); }
+  function toggleTeacher(on){ _isTeacher=on; document.body.classList.toggle('teacher-active',on); }
+
+  /* ── Draw equipment on canvas ── */
+  function drawOnCanvas(canvasId, eqId, width, height){
+    var c = document.getElementById(canvasId);
+    if(!c) return;
+    c.setAttribute('width', width||280);
+    c.setAttribute('height', height||280);
+    var ctx = setupCanvas(c);
+    ctx.clearRect(0,0,width||280,height||280);
+    var eq = findEq(eqId);
+    if(eq && eq.draw){
+      eq.draw(ctx, (width||280)/2, (height||280)/2, 1.0);
+    }
+  }
+
+  function drawOnCanvasEl(canvas, eqId, w, h, scale){
+    canvas.setAttribute('width', w);
+    canvas.setAttribute('height', h);
+    var ctx = setupCanvas(canvas);
+    ctx.clearRect(0,0,w,h);
+    var eq = findEq(eqId);
+    if(eq && eq.draw){
+      eq.draw(ctx, w/2, h/2, scale||1.0);
+    }
+  }
+
+  /* ── TAB 1: Identification ── */
+  function newIdentifyProblem(){
+    _identifySubmitted = false;
+    var correct = pick(EQUIPMENT);
+    var distractorIds = getDistractors(correct.id, 3);
+    var options = shuffle([correct.id].concat(distractorIds));
+    _identifyCurrent = { correct: correct.id, options: options };
+
+    // Draw
+    drawOnCanvas('identifyCanvas', correct.id, 280, 280);
+
+    // Prompt
+    var prompt = document.getElementById('identifyPrompt');
+    clearEl(prompt);
+    prompt.appendChild(document.createTextNode('Identify the piece of laboratory equipment shown in the diagram.'));
+
+    // Options
+    var radioGroup = document.getElementById('identifyOptions');
+    clearEl(radioGroup);
+    options.forEach(function(id, i){
+      var eq = findEq(id);
+      var lbl = document.createElement('label');
+      var inp = document.createElement('input');
+      inp.type = 'radio'; inp.name = 'identifyChoice'; inp.value = id;
+      lbl.appendChild(inp);
+      lbl.appendChild(document.createTextNode(' ' + eq.name));
+      radioGroup.appendChild(lbl);
+    });
+
+    // Reset feedback
+    var fb = document.getElementById('identifyFeedback');
+    fb.className = 'feedback'; clearEl(fb);
+    var tp = document.getElementById('identifyTeacher');
+    clearEl(tp);
+
+    document.getElementById('btnCheckIdentify').disabled = false;
+  }
+
+  function checkIdentify(){
+    if(_identifySubmitted) return;
+    var selected = document.querySelector('input[name="identifyChoice"]:checked');
+    if(!selected) return;
+    _identifySubmitted = true;
+    document.getElementById('btnCheckIdentify').disabled = true;
+
+    var isCorrect = selected.value === _identifyCurrent.correct;
+    _scores.identify.t++;
+    if(isCorrect) _scores.identify.c++;
+    updateStats();
+
+    // Style labels
+    document.querySelectorAll('#identifyOptions label').forEach(function(lbl){
+      var inp = lbl.querySelector('input');
+      if(inp.value === _identifyCurrent.correct) lbl.classList.add('selected-correct');
+      else if(inp.checked) lbl.classList.add('selected-wrong');
+    });
+
+    // Feedback
+    var fb = document.getElementById('identifyFeedback');
+    clearEl(fb);
+    var correctEq = findEq(_identifyCurrent.correct);
+    if(isCorrect){
+      fb.className = 'feedback correct visible';
+      fb.appendChild(document.createTextNode('Correct! This is a ' + correctEq.name + '.'));
+    } else {
+      fb.className = 'feedback incorrect visible';
+      fb.appendChild(document.createTextNode('Incorrect. This is a ' + correctEq.name + '. ' + correctEq.typicalUse + '.'));
+    }
+
+    // Teacher panel
+    var tp = document.getElementById('identifyTeacher');
+    clearEl(tp);
+    var info = document.createElement('div');
+    info.appendChild(document.createTextNode('Equipment: ' + correctEq.name));
+    tp.appendChild(info);
+    var use = document.createElement('div');
+    use.appendChild(document.createTextNode('Use: ' + correctEq.typicalUse));
+    tp.appendChild(use);
+    if(correctEq.uncertainty !== 'N/A'){
+      var unc = document.createElement('div');
+      unc.appendChild(document.createTextNode('Uncertainty: ' + correctEq.uncertainty));
+      tp.appendChild(unc);
+    }
+  }
+
+  /* ── TAB 2: Selection ── */
+  function newSelectProblem(){
+    _selectSubmitted = false;
+    _selectChoice = null;
+    var scenario = pick(SCENARIOS);
+    _selectCurrent = scenario;
+
+    // Prompt
+    var prompt = document.getElementById('selectPrompt');
+    clearEl(prompt);
+    prompt.appendChild(document.createTextNode(scenario.task));
+
+    // Grid
+    var grid = document.getElementById('selectGrid');
+    clearEl(grid);
+    var shuffledOptions = shuffle(scenario.options.slice());
+
+    shuffledOptions.forEach(function(eqId){
+      var eq = findEq(eqId);
+      var opt = document.createElement('div');
+      opt.className = 'equipment-option';
+      opt.setAttribute('data-eq', eqId);
+
+      var canvas = document.createElement('canvas');
+      canvas.setAttribute('width','140');
+      canvas.setAttribute('height','140');
+      opt.appendChild(canvas);
+
+      var label = document.createElement('div');
+      label.className = 'eq-label';
+      label.textContent = eq.name;
+      opt.appendChild(label);
+
+      opt.addEventListener('click', function(){
+        if(_selectSubmitted) return;
+        document.querySelectorAll('#selectGrid .equipment-option').forEach(function(o){ o.classList.remove('selected'); });
+        opt.classList.add('selected');
+        _selectChoice = eqId;
+      });
+
+      grid.appendChild(opt);
+
+      // Draw on the small canvas
+      drawOnCanvasEl(canvas, eqId, 140, 140, 0.55);
+    });
+
+    // Reset
+    var fb = document.getElementById('selectFeedback');
+    fb.className = 'feedback'; clearEl(fb);
+    clearEl(document.getElementById('selectTeacher'));
+    document.getElementById('btnCheckSelect').disabled = false;
+  }
+
+  function checkSelect(){
+    if(_selectSubmitted || !_selectChoice) return;
+    _selectSubmitted = true;
+    document.getElementById('btnCheckSelect').disabled = true;
+
+    var isCorrect = _selectChoice === _selectCurrent.correct;
+    _scores.select.t++;
+    if(isCorrect) _scores.select.c++;
+    updateStats();
+
+    document.querySelectorAll('#selectGrid .equipment-option').forEach(function(opt){
+      var id = opt.getAttribute('data-eq');
+      if(id === _selectCurrent.correct) opt.classList.add('correct-reveal');
+      else if(opt.classList.contains('selected')) opt.classList.add('selected-wrong');
+    });
+
+    var fb = document.getElementById('selectFeedback');
+    clearEl(fb);
+    if(isCorrect){
+      fb.className = 'feedback correct visible';
+      fb.appendChild(document.createTextNode('Correct! ' + _selectCurrent.explanation));
+    } else {
+      fb.className = 'feedback incorrect visible';
+      var correctEq = findEq(_selectCurrent.correct);
+      fb.appendChild(document.createTextNode('Incorrect. The correct answer is ' + correctEq.name + '. ' + _selectCurrent.explanation));
+    }
+
+    var tp = document.getElementById('selectTeacher');
+    clearEl(tp);
+    tp.appendChild(document.createTextNode('Correct equipment: ' + findEq(_selectCurrent.correct).name + '. ' + _selectCurrent.explanation));
+  }
+
+  /* ── TAB 3: Precision ── */
+  function newPrecisionProblem(){
+    _precisionSubmitted = false;
+    var type = pick(['uncertainty','compare','pct_uncertainty']);
+    var problem;
+
+    if(type === 'uncertainty'){
+      // What is the uncertainty of X?
+      var measEq = PRECISION_DATA.filter(function(p){ return p.unc !== null; });
+      var chosen = pick(measEq);
+      var eq = findEq(chosen.eq);
+      var wrongVals = shuffle([0.01,0.02,0.05,0.1,0.5,1.0,5.0].filter(function(v){ return v !== chosen.unc; })).slice(0,3);
+      var options = shuffle([chosen.unc].concat(wrongVals));
+      problem = {
+        question: 'What is the uncertainty of a ' + eq.name + (chosen.volume ? ' (' + chosen.volume + ' cm\u00B3)' : '') + '?',
+        options: options.map(function(v){ return '\u00B1' + v + ' ' + (chosen.eq==='balance'?'g':chosen.eq==='thermometer'?'\u00B0C':'cm\u00B3'); }),
+        correctIdx: options.indexOf(chosen.unc),
+        explanation: chosen.note
+      };
+    } else if(type === 'compare'){
+      // Which gives lower uncertainty for measuring X cm3?
+      var vol = pick([10,25,50]);
+      var eq1 = { name:'Measuring cylinder ('+vol+' cm\u00B3)', unc:vol<=10?0.1:0.5 };
+      var eq2;
+      if(vol === 25) eq2 = { name:'Volumetric pipette (25 cm\u00B3)', unc:0.04 };
+      else if(vol === 10) eq2 = { name:'Graduated pipette (10 cm\u00B3)', unc:0.1 };
+      else eq2 = { name:'Burette (50 cm\u00B3)', unc:0.05 };
+      var pct1 = round(eq1.unc/vol*100, 2);
+      var pct2 = round(eq2.unc/vol*100, 2);
+      var betterIdx = pct2 < pct1 ? 1 : 0;
+      problem = {
+        question: 'Which equipment gives lower percentage uncertainty when measuring ' + vol + ' cm\u00B3 of liquid?',
+        options: [eq1.name + ' (\u00B1' + eq1.unc + ' cm\u00B3)', eq2.name + ' (\u00B1' + eq2.unc + ' cm\u00B3)'],
+        correctIdx: betterIdx,
+        explanation: eq1.name + ': ' + pct1 + '% uncertainty. ' + eq2.name + ': ' + pct2 + '% uncertainty. Lower is better.'
+      };
+    } else {
+      // Calculate percentage uncertainty
+      var scenarios = [
+        { eq:'Burette', reading:23.50, unc:0.05, note:'Per reading \u00B10.05 cm\u00B3' },
+        { eq:'Volumetric pipette', reading:25.00, unc:0.04, note:'\u00B10.04 cm\u00B3' },
+        { eq:'Measuring cylinder', reading:45.0, unc:0.5, note:'\u00B10.5 cm\u00B3' }
+      ];
+      var sc = pick(scenarios);
+      var pctUnc = round(sc.unc / sc.reading * 100, 2);
+      var wrongPcts = [round(pctUnc*2,2), round(pctUnc*0.5,2), round(pctUnc+0.1,2)].filter(function(v){return v!==pctUnc;});
+      var opts = shuffle([pctUnc].concat(wrongPcts.slice(0,3)));
+      if(opts.length < 4) opts.push(round(pctUnc*3,2));
+      opts = opts.slice(0,4);
+      problem = {
+        question: 'A ' + sc.eq + ' reads ' + sc.reading.toFixed(2) + ' cm\u00B3 with an uncertainty of \u00B1' + sc.unc + ' cm\u00B3. What is the percentage uncertainty?',
+        options: opts.map(function(v){ return v.toFixed(2) + '%'; }),
+        correctIdx: opts.indexOf(pctUnc),
+        explanation: 'Percentage uncertainty = (absolute uncertainty / measured value) \u00D7 100 = (' + sc.unc + ' / ' + sc.reading.toFixed(2) + ') \u00D7 100 = ' + pctUnc.toFixed(2) + '%'
+      };
+    }
+
+    _precisionCurrent = problem;
+
+    // Display
+    var prompt = document.getElementById('precisionPrompt');
+    clearEl(prompt);
+    prompt.appendChild(document.createTextNode(problem.question));
+
+    var radioGroup = document.getElementById('precisionOptions');
+    clearEl(radioGroup);
+    problem.options.forEach(function(opt, i){
+      var lbl = document.createElement('label');
+      var inp = document.createElement('input');
+      inp.type = 'radio'; inp.name = 'precisionChoice'; inp.value = String(i);
+      lbl.appendChild(inp);
+      lbl.appendChild(document.createTextNode(' ' + opt));
+      radioGroup.appendChild(lbl);
+    });
+
+    var fb = document.getElementById('precisionFeedback');
+    fb.className = 'feedback'; clearEl(fb);
+    clearEl(document.getElementById('precisionTeacher'));
+    document.getElementById('btnCheckPrecision').disabled = false;
+  }
+
+  function checkPrecision(){
+    if(_precisionSubmitted) return;
+    var selected = document.querySelector('input[name="precisionChoice"]:checked');
+    if(!selected) return;
+    _precisionSubmitted = true;
+    document.getElementById('btnCheckPrecision').disabled = true;
+
+    var chosenIdx = parseInt(selected.value, 10);
+    var isCorrect = chosenIdx === _precisionCurrent.correctIdx;
+    _scores.precision.t++;
+    if(isCorrect) _scores.precision.c++;
+    updateStats();
+
+    document.querySelectorAll('#precisionOptions label').forEach(function(lbl, i){
+      if(i === _precisionCurrent.correctIdx) lbl.classList.add('selected-correct');
+      else if(lbl.querySelector('input').checked) lbl.classList.add('selected-wrong');
+    });
+
+    var fb = document.getElementById('precisionFeedback');
+    clearEl(fb);
+    if(isCorrect){
+      fb.className = 'feedback correct visible';
+      fb.appendChild(document.createTextNode('Correct! ' + _precisionCurrent.explanation));
+    } else {
+      fb.className = 'feedback incorrect visible';
+      fb.appendChild(document.createTextNode('Incorrect. ' + _precisionCurrent.explanation));
+    }
+
+    var tp = document.getElementById('precisionTeacher');
+    clearEl(tp);
+    tp.appendChild(document.createTextNode(_precisionCurrent.explanation));
+  }
+
+  /* ── TAB 4: Practice ── */
+  function nextPractice(){
+    var cats = ['identify','select','precision'];
+    _practiceCategory = pick(cats);
+    var content = document.getElementById('practiceContent');
+    clearEl(content);
+
+    if(_practiceCategory === 'identify'){
+      // Embed identification in practice area
+      var correct = pick(EQUIPMENT);
+      var distractorIds = getDistractors(correct.id, 3);
+      var options = shuffle([correct.id].concat(distractorIds));
+      _identifyCurrent = { correct: correct.id, options: options };
+      _identifySubmitted = false;
+
+      var canvas = document.createElement('canvas');
+      canvas.setAttribute('width','240');
+      canvas.setAttribute('height','240');
+      canvas.style.border = '1px solid var(--border)';
+      canvas.style.borderRadius = '8px';
+      canvas.style.background = 'var(--sim-canvas-bg)';
+      canvas.style.display = 'block';
+      canvas.style.margin = '0 auto 1rem';
+      content.appendChild(canvas);
+      drawOnCanvasEl(canvas, correct.id, 240, 240, 0.85);
+
+      var prompt = document.createElement('div');
+      prompt.className = 'scenario-box';
+      prompt.textContent = 'Identify this piece of laboratory equipment.';
+      content.appendChild(prompt);
+
+      var rg = document.createElement('div');
+      rg.className = 'radio-group';
+      rg.id = 'practiceRadio';
+      options.forEach(function(id){
+        var eq = findEq(id);
+        var lbl = document.createElement('label');
+        var inp = document.createElement('input');
+        inp.type = 'radio'; inp.name = 'practiceChoice'; inp.value = id;
+        lbl.appendChild(inp);
+        lbl.appendChild(document.createTextNode(' ' + eq.name));
+        rg.appendChild(lbl);
+      });
+      content.appendChild(rg);
+
+      var btnRow = document.createElement('div');
+      btnRow.className = 'btn-row';
+      var checkBtn = document.createElement('button');
+      checkBtn.className = 'btn btn-teal';
+      checkBtn.textContent = 'Check Answer';
+      checkBtn.addEventListener('click', function(){
+        var sel = document.querySelector('input[name="practiceChoice"]:checked');
+        if(!sel || _identifySubmitted) return;
+        _identifySubmitted = true;
+        checkBtn.disabled = true;
+        var isCorrect = sel.value === _identifyCurrent.correct;
+        _scores.identify.t++; if(isCorrect) _scores.identify.c++;
+        updateStats();
+        document.querySelectorAll('#practiceRadio label').forEach(function(lbl){
+          var inp = lbl.querySelector('input');
+          if(inp.value === _identifyCurrent.correct) lbl.classList.add('selected-correct');
+          else if(inp.checked) lbl.classList.add('selected-wrong');
+        });
+        var fb = document.createElement('div');
+        var correctEq = findEq(_identifyCurrent.correct);
+        fb.className = isCorrect ? 'feedback correct visible' : 'feedback incorrect visible';
+        fb.textContent = isCorrect ? 'Correct! This is a ' + correctEq.name + '.' : 'Incorrect. This is a ' + correctEq.name + '.';
+        content.appendChild(fb);
+      });
+      btnRow.appendChild(checkBtn);
+      content.appendChild(btnRow);
+
+    } else if(_practiceCategory === 'select'){
+      var scenario = pick(SCENARIOS);
+      _selectCurrent = scenario;
+      _selectChoice = null;
+      _selectSubmitted = false;
+
+      var prompt2 = document.createElement('div');
+      prompt2.className = 'scenario-box';
+      prompt2.textContent = scenario.task;
+      content.appendChild(prompt2);
+
+      var grid = document.createElement('div');
+      grid.className = 'equipment-grid';
+      var shuffledOpts = shuffle(scenario.options.slice());
+      shuffledOpts.forEach(function(eqId){
+        var eq = findEq(eqId);
+        var opt = document.createElement('div');
+        opt.className = 'equipment-option';
+        opt.setAttribute('data-eq', eqId);
+        var c2 = document.createElement('canvas');
+        c2.setAttribute('width','120'); c2.setAttribute('height','120');
+        opt.appendChild(c2);
+        var lbl = document.createElement('div');
+        lbl.className = 'eq-label'; lbl.textContent = eq.name;
+        opt.appendChild(lbl);
+        opt.addEventListener('click', function(){
+          if(_selectSubmitted) return;
+          grid.querySelectorAll('.equipment-option').forEach(function(o){ o.classList.remove('selected'); });
+          opt.classList.add('selected');
+          _selectChoice = eqId;
+        });
+        grid.appendChild(opt);
+        drawOnCanvasEl(c2, eqId, 120, 120, 0.45);
+      });
+      content.appendChild(grid);
+
+      var btnRow2 = document.createElement('div');
+      btnRow2.className = 'btn-row';
+      var checkBtn2 = document.createElement('button');
+      checkBtn2.className = 'btn btn-teal';
+      checkBtn2.textContent = 'Check Answer';
+      checkBtn2.addEventListener('click', function(){
+        if(_selectSubmitted || !_selectChoice) return;
+        _selectSubmitted = true;
+        checkBtn2.disabled = true;
+        var isCorrect = _selectChoice === _selectCurrent.correct;
+        _scores.select.t++; if(isCorrect) _scores.select.c++;
+        updateStats();
+        grid.querySelectorAll('.equipment-option').forEach(function(o){
+          if(o.getAttribute('data-eq') === _selectCurrent.correct) o.classList.add('correct-reveal');
+          else if(o.classList.contains('selected')) o.classList.add('selected-wrong');
+        });
+        var fb2 = document.createElement('div');
+        fb2.className = isCorrect ? 'feedback correct visible' : 'feedback incorrect visible';
+        fb2.textContent = isCorrect ? 'Correct! ' + _selectCurrent.explanation : 'Incorrect. ' + findEq(_selectCurrent.correct).name + ' is correct. ' + _selectCurrent.explanation;
+        content.appendChild(fb2);
+      });
+      btnRow2.appendChild(checkBtn2);
+      content.appendChild(btnRow2);
+
+    } else {
+      // Precision — reuse the same generator
+      newPrecisionProblem();
+      // Move the precision content into practice area
+      // Actually just redirect to precision tab logic — for simplicity, generate inline
+      var precData = PRECISION_DATA.filter(function(p){ return p.unc !== null; });
+      var chosen = pick(precData);
+      var eq = findEq(chosen.eq);
+      var wrongVals = shuffle([0.01,0.02,0.05,0.1,0.5,1.0,5.0].filter(function(v){ return v !== chosen.unc; })).slice(0,3);
+      var optVals = shuffle([chosen.unc].concat(wrongVals));
+      var correctIdx = optVals.indexOf(chosen.unc);
+      var unitStr = chosen.eq==='balance'?'g':chosen.eq==='thermometer'?'\u00B0C':'cm\u00B3';
+
+      var prompt3 = document.createElement('div');
+      prompt3.className = 'scenario-box';
+      prompt3.textContent = 'What is the uncertainty of a ' + eq.name + (chosen.volume ? ' (' + chosen.volume + ' cm\u00B3)' : '') + '?';
+      content.appendChild(prompt3);
+
+      var rg3 = document.createElement('div');
+      rg3.className = 'radio-group';
+      rg3.id = 'practiceRadio';
+      optVals.forEach(function(v, i){
+        var lbl = document.createElement('label');
+        var inp = document.createElement('input');
+        inp.type = 'radio'; inp.name = 'practiceChoice'; inp.value = String(i);
+        lbl.appendChild(inp);
+        lbl.appendChild(document.createTextNode(' \u00B1' + v + ' ' + unitStr));
+        rg3.appendChild(lbl);
+      });
+      content.appendChild(rg3);
+
+      var submitted = false;
+      var btnRow3 = document.createElement('div');
+      btnRow3.className = 'btn-row';
+      var checkBtn3 = document.createElement('button');
+      checkBtn3.className = 'btn btn-teal';
+      checkBtn3.textContent = 'Check Answer';
+      checkBtn3.addEventListener('click', function(){
+        var sel = document.querySelector('input[name="practiceChoice"]:checked');
+        if(!sel || submitted) return;
+        submitted = true;
+        checkBtn3.disabled = true;
+        var isCorrect = parseInt(sel.value,10) === correctIdx;
+        _scores.precision.t++; if(isCorrect) _scores.precision.c++;
+        updateStats();
+        document.querySelectorAll('#practiceRadio label').forEach(function(lbl, i){
+          if(i === correctIdx) lbl.classList.add('selected-correct');
+          else if(lbl.querySelector('input').checked) lbl.classList.add('selected-wrong');
+        });
+        var fb3 = document.createElement('div');
+        fb3.className = isCorrect ? 'feedback correct visible' : 'feedback incorrect visible';
+        fb3.textContent = isCorrect ? 'Correct! ' + chosen.note : 'Incorrect. ' + chosen.note;
+        content.appendChild(fb3);
+      });
+      btnRow3.appendChild(checkBtn3);
+      content.appendChild(btnRow3);
+    }
+  }
+
+  function updateStats(){
+    document.getElementById('statIdentify').textContent = _scores.identify.c + '/' + _scores.identify.t;
+    document.getElementById('statSelect').textContent = _scores.select.c + '/' + _scores.select.t;
+    document.getElementById('statPrecision').textContent = _scores.precision.c + '/' + _scores.precision.t;
+    var tc = _scores.identify.c + _scores.select.c + _scores.precision.c;
+    var tt = _scores.identify.t + _scores.select.t + _scores.precision.t;
+    document.getElementById('statTotal').textContent = tc + '/' + tt;
+  }
+
+  function resetScores(){
+    _scores = { identify:{c:0,t:0}, select:{c:0,t:0}, precision:{c:0,t:0} };
+    updateStats();
+  }
+
+  /* ── Presets ── */
+  function buildPresets(){
+    var sel = document.getElementById('presetSelect');
+    clearEl(sel);
+    var def = document.createElement('option');
+    def.value = ''; def.textContent = 'Teacher Presets...';
+    sel.appendChild(def);
+
+    var presets = [];
+    if(_activeTab === 'identify'){
+      presets = [
+        { label:'Volumetric Equipment', value:'cat_volumetric' },
+        { label:'Glassware', value:'cat_glassware' },
+        { label:'Heating Equipment', value:'cat_heating' },
+        { label:'All Equipment', value:'all' }
+      ];
+    } else if(_activeTab === 'select'){
+      presets = [
+        { label:'Titration Scenarios', value:'titration' },
+        { label:'Separation Scenarios', value:'separation' },
+        { label:'All Scenarios', value:'all' }
+      ];
+    } else if(_activeTab === 'precision'){
+      presets = [
+        { label:'Uncertainty Values', value:'uncertainty' },
+        { label:'Comparison Problems', value:'compare' },
+        { label:'Percentage Uncertainty', value:'pct' }
+      ];
+    } else {
+      presets = [
+        { label:'Mixed Practice', value:'mixed' }
+      ];
+    }
+
+    presets.forEach(function(p){
+      var opt = document.createElement('option');
+      opt.value = p.value; opt.textContent = p.label;
+      sel.appendChild(opt);
+    });
+  }
+
+  /* ── New problem dispatcher ── */
+  function newProblem(){
+    if(_activeTab === 'identify') newIdentifyProblem();
+    else if(_activeTab === 'select') newSelectProblem();
+    else if(_activeTab === 'precision') newPrecisionProblem();
+    else if(_activeTab === 'practice') nextPractice();
+  }
+
+  /* ── Event Bindings ── */
+  function init(){
+    // Tabs
+    document.querySelectorAll('.tab-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){ switchTab(btn.getAttribute('data-tab')); });
+    });
+
+    // Toggles
+    document.getElementById('hlToggle').addEventListener('change', function(){ toggleHL(this.checked); });
+    document.getElementById('teacherToggle').addEventListener('change', function(){ toggleTeacher(this.checked); });
+
+    // Buttons
+    document.getElementById('btnNewIdentify').addEventListener('click', newIdentifyProblem);
+    document.getElementById('btnCheckIdentify').addEventListener('click', checkIdentify);
+    document.getElementById('btnNewSelect').addEventListener('click', newSelectProblem);
+    document.getElementById('btnCheckSelect').addEventListener('click', checkSelect);
+    document.getElementById('btnNewPrecision').addEventListener('click', newPrecisionProblem);
+    document.getElementById('btnCheckPrecision').addEventListener('click', checkPrecision);
+    document.getElementById('btnNextPractice').addEventListener('click', nextPractice);
+    document.getElementById('btnResetScores').addEventListener('click', resetScores);
+
+    // Presets
+    document.getElementById('presetSelect').addEventListener('change', function(){
+      // For now just generate a new problem
+      if(this.value) newProblem();
+      this.selectedIndex = 0;
+    });
+
+    // Keyboard
+    document.addEventListener('keydown', function(e){
+      if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA') return;
+      switch(e.key.toLowerCase()){
+        case 'h': var hl=document.getElementById('hlToggle'); hl.checked=!hl.checked; toggleHL(hl.checked); break;
+        case 't': var tt=document.getElementById('teacherToggle'); tt.checked=!tt.checked; toggleTeacher(tt.checked); break;
+        case '1': switchTab('identify'); break;
+        case '2': switchTab('select'); break;
+        case '3': switchTab('precision'); break;
+        case '4': switchTab('practice'); break;
+        case 'r': resetScores(); break;
+        case 'n': newProblem(); break;
+      }
+    });
+
+    buildPresets();
+    newIdentifyProblem();
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
+  else init();
+})();
+</script>
+<footer>SimEngine &mdash; Equipment Trainer &bull; H=HL T=Teacher</footer>
+</body>
+</html>

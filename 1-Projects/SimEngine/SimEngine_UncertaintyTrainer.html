@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Uncertainty &amp; Error Trainer — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--blue-bg:#EFF6FF;--teal-bg:#F0FDFA;--amber-bg:#FFFBEB;--red-bg:#FEF2F2;--purple-bg:#F5F3FF;--toggle-on:#0D9488;--green:#10B981;--orange:#F59E0B;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+  .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-right{display:flex;align-items:center;gap:.75rem;}
+  .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
+  .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.35rem;}
+  .sim-toggle{position:relative;width:40px;height:22px;display:inline-block;}
+  .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:11px;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.5rem;background:none;border:none;border-bottom:3px solid transparent;font-size:.85rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+  .tab-btn .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);font-size:.65rem;font-weight:700;color:var(--text-muted);}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .sim-container{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+  .sim-card{background:var(--card-bg);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;margin-bottom:1.5rem;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-weight:600;font-size:.85rem;}
+  .sim-card-body{padding:1.25rem;}
+  .problem-area{max-width:700px;margin:0 auto;}
+  .scenario-box{background:var(--blue-bg);border:1px solid #BFDBFE;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.9rem;line-height:1.7;}
+  .scenario-box .chem{font-family:'Fira Code',monospace;font-size:.85em;}
+  .instrument-row{display:flex;gap:1.5rem;align-items:flex-start;flex-wrap:wrap;margin-bottom:1.25rem;}
+  .instrument-canvas-wrap{flex:0 0 220px;}
+  .instrument-canvas-wrap canvas{border:1px solid var(--border);border-radius:8px;background:var(--sim-canvas-bg);}
+  .answer-area{flex:1;min-width:250px;}
+  .input-group{margin-bottom:.75rem;}
+  .input-group label{display:block;font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.03em;}
+  .input-group input[type="text"],.input-group input[type="number"]{width:100%;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.9rem;font-family:'Fira Code',monospace;}
+  .input-group input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
+  .input-row{display:flex;gap:.75rem;align-items:flex-end;}
+  .input-row .input-group{flex:1;}
+  .btn{padding:.5rem 1.25rem;border:none;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+  .btn-teal{background:var(--teal);color:white;} .btn-teal:hover{background:#0F766E;}
+  .btn-teal:disabled{background:#CBD5E1;cursor:not-allowed;}
+  .btn-outline{background:white;color:var(--text);border:1px solid var(--border);} .btn-outline:hover{background:#F8FAFC;}
+  .btn-row{display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;}
+  .feedback{padding:.75rem 1rem;border-radius:8px;margin-top:1rem;font-size:.88rem;font-weight:500;}
+  .feedback.correct{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;}
+  .feedback.incorrect{background:var(--red-bg);color:var(--red);border:1px solid #FECACA;}
+  .feedback.partial{background:var(--amber-bg);color:#92400E;border:1px solid #FDE68A;}
+  .step-list{list-style:none;counter-reset:step;}
+  .step-item{border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;margin-bottom:.75rem;background:white;transition:.3s;}
+  .step-item.locked{opacity:.4;pointer-events:none;}
+  .step-item.current{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.1);}
+  .step-item.done{border-color:#86EFAC;background:#F0FDF4;}
+  .step-item.wrong{border-color:#FECACA;background:var(--red-bg);}
+  .step-label{font-size:.8rem;font-weight:600;color:var(--teal);margin-bottom:.35rem;display:flex;align-items:center;gap:.5rem;}
+  .step-label::before{counter-increment:step;content:'Step ' counter(step);background:var(--teal-bg);color:var(--teal);padding:.1rem .5rem;border-radius:4px;font-size:.7rem;}
+  .step-input-row{display:flex;gap:.5rem;align-items:center;}
+  .step-input-row input{flex:1;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;font-family:'Fira Code',monospace;font-size:.85rem;}
+  .step-input-row .btn{padding:.4rem .8rem;font-size:.8rem;}
+  .step-hint{font-size:.75rem;color:var(--text-muted);margin-top:.35rem;font-style:italic;}
+  .step-result{font-size:.82rem;margin-top:.35rem;font-family:'Fira Code',monospace;}
+  .score-bar{display:flex;align-items:center;gap:1.5rem;padding:.75rem 1rem;background:white;border-radius:8px;border:1px solid var(--border);margin-bottom:1.25rem;flex-wrap:wrap;}
+  .score-item{font-size:.82rem;font-weight:500;}
+  .score-item span{font-family:'Fira Code',monospace;color:var(--teal);font-weight:700;}
+  .score-bar .score-total{font-size:.95rem;font-weight:700;color:var(--navy);}
+  .difficulty-bar{display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;}
+  .difficulty-btn{padding:.35rem .85rem;border:1px solid var(--border);border-radius:6px;background:white;font-size:.78rem;font-weight:500;cursor:pointer;font-family:inherit;transition:.2s;}
+  .difficulty-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);font-weight:600;}
+  .radio-group{margin:.75rem 0;}
+  .radio-group label{display:block;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;margin-bottom:.4rem;cursor:pointer;font-size:.85rem;transition:.2s;}
+  .radio-group label:hover{background:#F8FAFC;}
+  .radio-group input{margin-right:.5rem;}
+  .radio-group label.selected-correct{background:#DCFCE7;border-color:#86EFAC;}
+  .radio-group label.selected-wrong{background:var(--red-bg);border-color:#FECACA;}
+  .teacher-panel{display:none;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.82rem;}
+  body.teacher-active .teacher-panel{display:block;}
+  .preset-section{display:none;margin-bottom:1rem;}
+  .preset-section select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--border);font-size:.8rem;font-family:inherit;}
+  body.teacher-active .preset-section{display:block;}
+  .instrument-select{margin-bottom:1rem;}
+  .instrument-select select{padding:.4rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.85rem;font-family:inherit;}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  .practice-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-bottom:1.25rem;}
+  .stat-card{background:white;border:1px solid var(--border);border-radius:8px;padding:.75rem;text-align:center;}
+  .stat-card .stat-label{font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .stat-card .stat-value{font-size:1.4rem;font-weight:700;color:var(--teal);font-family:'Fira Code',monospace;}
+  .timer-display{font-family:'Fira Code',monospace;font-size:.9rem;color:var(--text-muted);font-weight:500;}
+  @media(max-width:700px){.instrument-row{flex-direction:column;}.instrument-canvas-wrap{flex:none;width:100%;}.tab-btn{padding:.6rem .8rem;font-size:.78rem;}}
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div>
+    <h1>Uncertainty &amp; Error Trainer<span class="subtitle">IB Chemistry — Tools &amp; IA Skills</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">Tool 1</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle HL content" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle teacher mode" id="teacherToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="reading" role="tab"><span class="tab-num">1</span>Reading Uncertainty</button>
+  <button class="tab-btn" data-tab="propagation" role="tab"><span class="tab-num">2</span>Propagation</button>
+  <button class="tab-btn" data-tab="pcterror" role="tab"><span class="tab-num">3</span>% Error</button>
+  <button class="tab-btn" data-tab="practice" role="tab"><span class="tab-num">4</span>Practice</button>
+</div>
+
+<div class="sim-container" id="main-content">
+
+  <div class="preset-section" id="presetSection">
+    <select aria-label="Select teacher preset" id="presetSelect">
+      <option value="">Teacher Presets...</option>
+    </select>
+  </div>
+
+  <!-- TAB 1: READING UNCERTAINTY -->
+  <div class="tab-content active" id="tab-reading" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Reading Instruments &amp; Uncertainty</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div class="instrument-select">
+            <label style="font-size:.78rem;font-weight:600;color:var(--text-muted);margin-right:.5rem;">Instrument:</label>
+            <select aria-label="Select instrument" id="instrumentSelect"></select>
+            <button class="btn btn-teal" id="btnNewReading" style="margin-left:.75rem;">New Reading</button>
+          </div>
+          <div class="instrument-row">
+            <div class="instrument-canvas-wrap">
+              <canvas id="instrumentCanvas" role="img" aria-label="Measurement instrument display" width="220" height="400"></canvas>
+            </div>
+            <div class="answer-area">
+              <div class="scenario-box" id="readingScenario">Select an instrument and click "New Reading" to begin.</div>
+              <div class="input-group">
+                <label>Your Reading</label>
+                <div class="input-row">
+                  <div class="input-group" style="margin-bottom:0"><input type="text" aria-label="Measurement reading value" id="readingValue" placeholder="e.g. 23.45" disabled></div>
+                  <span style="font-size:.9rem;font-weight:500;padding-bottom:.3rem;">&plusmn;</span>
+                  <div class="input-group" style="margin-bottom:0"><input type="text" aria-label="Absolute uncertainty value" id="readingUncertainty" placeholder="e.g. 0.05" disabled></div>
+                  <span id="readingUnit" style="font-size:.85rem;color:var(--text-muted);padding-bottom:.3rem;"></span>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Percentage Uncertainty (%)</label>
+                <input type="text" aria-label="Percentage uncertainty value" id="readingPctUnc" placeholder="e.g. 0.21" disabled>
+              </div>
+              <div class="btn-row">
+                <button class="btn btn-teal" id="btnCheckReading" disabled>Check Answer</button>
+                <button class="btn btn-outline" id="btnHintReading">Show Hint</button>
+              </div>
+              <div id="readingFeedback"></div>
+              <div class="teacher-panel" id="readingTeacher"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: ERROR PROPAGATION -->
+  <div class="tab-content" id="tab-propagation" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Error Propagation</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div class="difficulty-bar">
+            <button class="difficulty-btn active" data-diff="Easy">Easy</button>
+            <button class="difficulty-btn" data-diff="Medium">Medium</button>
+            <button class="difficulty-btn" data-diff="Hard">Hard</button>
+            <button class="btn btn-teal" id="btnNewProp" style="margin-left:auto;">New Problem</button>
+          </div>
+          <div class="scenario-box" id="propScenario">Click "New Problem" to begin.</div>
+          <ol class="step-list" id="propSteps"></ol>
+          <div id="propFeedback"></div>
+          <div class="teacher-panel" id="propTeacher"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: PERCENTAGE ERROR -->
+  <div class="tab-content" id="tab-pcterror" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Percentage Error &amp; Error Classification</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div class="btn-row" style="margin-top:0;margin-bottom:1rem;">
+            <button class="btn btn-teal" id="btnNewPctError">New Problem</button>
+          </div>
+          <div class="scenario-box" id="pctScenario">Click "New Problem" to begin.</div>
+          <div class="input-group">
+            <label>Percentage Error (%)</label>
+            <div class="input-row">
+              <div class="input-group" style="margin-bottom:0"><input type="text" aria-label="Percentage error value" id="pctErrorInput" placeholder="e.g. 15.9" disabled></div>
+              <button class="btn btn-teal" id="btnCheckPct" disabled>Check</button>
+            </div>
+          </div>
+          <div id="pctFeedback1"></div>
+          <div id="errorClassSection" style="display:none;">
+            <div class="input-group" style="margin-top:1rem;">
+              <label>What type of error most likely caused this discrepancy?</label>
+              <div class="radio-group" id="errorTypeRadios"></div>
+            </div>
+            <button class="btn btn-teal" id="btnCheckErrorType" disabled>Check Classification</button>
+            <div id="pctFeedback2"></div>
+          </div>
+          <div class="teacher-panel" id="pctTeacher"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: PRACTICE MODE -->
+  <div class="tab-content" id="tab-practice" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Mixed Practice</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div class="practice-stats">
+            <div class="stat-card"><div class="stat-label">Reading</div><div class="stat-value" id="statReading">0/0</div></div>
+            <div class="stat-card"><div class="stat-label">Propagation</div><div class="stat-value" id="statProp">0/0</div></div>
+            <div class="stat-card"><div class="stat-label">% Error</div><div class="stat-value" id="statPct">0/0</div></div>
+            <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="statTotal">0/0</div></div>
+          </div>
+          <div class="difficulty-bar">
+            <button class="difficulty-btn active" data-diff="Easy" id="pracDiffEasy">Easy</button>
+            <button class="difficulty-btn" data-diff="Medium" id="pracDiffMedium">Medium</button>
+            <button class="difficulty-btn" data-diff="Hard" id="pracDiffHard">Hard</button>
+            <span class="timer-display" id="timerDisplay"></span>
+            <button class="btn btn-teal" id="btnNextPractice" style="margin-left:auto;">Next Question</button>
+          </div>
+          <div id="practiceContent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp;
+  <kbd>1</kbd>&ndash;<kbd>4</kbd> Tabs &nbsp;
+  <kbd>R</kbd> Reset &nbsp; <kbd>N</kbd> New Problem
+</div>
+
+<script>
+(function(){
+'use strict';
+
+// ═══════════════════════════════════════════════════
+// DATA
+// ═══════════════════════════════════════════════════
+var INSTRUMENTS = [
+  { id:'burette', name:'Burette (50 cm\u00B3)', range:[0,50], unit:'cm\u00B3', uncertainty:0.05, dp:2, divisions:0.1, minorDiv:0.05, drawType:'burette' },
+  { id:'grad_cyl_50', name:'Graduated Cylinder (50 cm\u00B3)', range:[0,50], unit:'cm\u00B3', uncertainty:0.5, dp:1, divisions:1, minorDiv:0.5, drawType:'cylinder' },
+  { id:'grad_cyl_10', name:'Graduated Cylinder (10 cm\u00B3)', range:[0,10], unit:'cm\u00B3', uncertainty:0.1, dp:1, divisions:0.2, minorDiv:0.1, drawType:'cylinder' },
+  { id:'thermometer', name:'Thermometer (\u221210 to 110 \u00B0C)', range:[-10,110], unit:'\u00B0C', uncertainty:0.5, dp:1, divisions:1, minorDiv:0.5, drawType:'thermometer' },
+  { id:'balance_2dp', name:'Balance (\u00B10.01 g)', range:[0,200], unit:'g', uncertainty:0.01, dp:2, divisions:null, minorDiv:null, drawType:'balance' },
+  { id:'balance_3dp', name:'Balance (\u00B10.001 g)', range:[0,200], unit:'g', uncertainty:0.001, dp:3, divisions:null, minorDiv:null, drawType:'balance' },
+  { id:'pipette_25', name:'Pipette (25.00 cm\u00B3)', range:[25,25], unit:'cm\u00B3', uncertainty:0.04, dp:2, divisions:null, minorDiv:null, drawType:'fixed' },
+  { id:'vol_flask_250', name:'Volumetric Flask (250 cm\u00B3)', range:[250,250], unit:'cm\u00B3', uncertainty:0.3, dp:1, divisions:null, minorDiv:null, drawType:'fixed' }
+];
+
+var PROP_TEMPLATES = [
+  { id:'titration_vol', type:'subtract', difficulty:'Easy',
+    scenario:'A student recorded the initial burette reading as {v1} \u00B1 0.05 cm\u00B3 and the final reading as {v2} \u00B1 0.05 cm\u00B3.',
+    question:'Calculate the titre volume with propagated uncertainty.',
+    generate:function(){
+      var v1=rnd(0.5,5.0,2),v2=rnd(22,28,2);
+      return {vals:{v1:v1,v2:v2,unc:0.05},
+        steps:[
+          {label:'Titre volume = final \u2212 initial',answer:round(v2-v1,2),unit:'cm\u00B3',hint:'Subtract: '+v2+' \u2212 '+v1},
+          {label:'Absolute uncertainty (addition/subtraction: add absolute uncertainties)',answer:round(0.05+0.05,2),unit:'cm\u00B3',hint:'\u00B10.05 + \u00B10.05'},
+          {label:'Percentage uncertainty',answer:round((0.10/(v2-v1))*100,2),unit:'%',hint:'(0.10 / '+round(v2-v1,2)+') \u00D7 100'}
+        ]};
+    }},
+  { id:'titration_moles', type:'multiply', difficulty:'Easy',
+    scenario:'A student used {vol} \u00B1 {vunc} cm\u00B3 of {conc} \u00B1 {cunc} mol dm\u207B\u00B3 NaOH in a titration.',
+    question:'Calculate the moles of NaOH with propagated uncertainty.',
+    generate:function(){
+      var vol=rnd(23,27,2),conc=pick([0.100,0.150,0.200]),cunc=0.001,vunc=0.10;
+      var moles=conc*(vol/1000);
+      var pctV=round((vunc/vol)*100,3),pctC=round((cunc/conc)*100,3);
+      return {vals:{vol:vol,vunc:vunc,conc:conc,cunc:cunc},
+        steps:[
+          {label:'Convert volume to dm\u00B3',answer:round(vol/1000,5),unit:'dm\u00B3',hint:vol+' / 1000'},
+          {label:'Calculate moles: n = c \u00D7 V',answer:round(moles,6),unit:'mol',hint:conc+' \u00D7 '+round(vol/1000,5)},
+          {label:'% uncertainty in volume',answer:round(pctV,2),unit:'%',hint:'('+vunc+' / '+vol+') \u00D7 100'},
+          {label:'% uncertainty in concentration',answer:round(pctC,2),unit:'%',hint:'('+cunc+' / '+conc+') \u00D7 100'},
+          {label:'Total % uncertainty (multiply: add % uncertainties)',answer:round(pctV+pctC,2),unit:'%',hint:round(pctV,2)+' + '+round(pctC,2)},
+          {label:'Absolute uncertainty in moles',answer:round(moles*(pctV+pctC)/100,6),unit:'mol',hint:round(moles,6)+' \u00D7 '+round(pctV+pctC,2)+' / 100'}
+        ]};
+    }},
+  { id:'mass_diff', type:'subtract', difficulty:'Easy',
+    scenario:'A student measured the mass of an empty crucible as {m1} \u00B1 0.01 g and the crucible + sample as {m2} \u00B1 0.01 g.',
+    question:'Calculate the mass of the sample with propagated uncertainty.',
+    generate:function(){
+      var m1=rnd(25,35,2),m2=rnd(37,45,2);
+      return {vals:{m1:m1,m2:m2},
+        steps:[
+          {label:'Mass of sample = m\u2082 \u2212 m\u2081',answer:round(m2-m1,2),unit:'g',hint:m2+' \u2212 '+m1},
+          {label:'Absolute uncertainty (subtraction: add absolute uncertainties)',answer:0.02,unit:'g',hint:'\u00B10.01 + \u00B10.01'},
+          {label:'Percentage uncertainty',answer:round((0.02/(m2-m1))*100,2),unit:'%',hint:'(0.02 / '+round(m2-m1,2)+') \u00D7 100'}
+        ]};
+    }},
+  { id:'temp_change', type:'subtract', difficulty:'Easy',
+    scenario:'A student measured the initial temperature as {t1} \u00B1 0.5 \u00B0C and the final temperature as {t2} \u00B1 0.5 \u00B0C.',
+    question:'Calculate \u0394T with propagated uncertainty.',
+    generate:function(){
+      var t1=rnd(20,25,1),t2=rnd(35,55,1);
+      return {vals:{t1:t1,t2:t2},
+        steps:[
+          {label:'\u0394T = T\u2082 \u2212 T\u2081',answer:round(t2-t1,1),unit:'\u00B0C',hint:t2+' \u2212 '+t1},
+          {label:'Absolute uncertainty in \u0394T',answer:1.0,unit:'\u00B0C',hint:'\u00B10.5 + \u00B10.5'},
+          {label:'Percentage uncertainty in \u0394T',answer:round((1.0/(t2-t1))*100,1),unit:'%',hint:'(1.0 / '+round(t2-t1,1)+') \u00D7 100'}
+        ]};
+    }},
+  { id:'calorimetry', type:'multi_step', difficulty:'Medium',
+    scenario:'A student heated {mass} \u00B1 0.01 g of water (c = 4.18 J g\u207B\u00B9 K\u207B\u00B9). The temperature rose from {t1} \u00B1 0.5 \u00B0C to {t2} \u00B1 0.5 \u00B0C.',
+    question:'Calculate q = mc\u0394T with propagated uncertainty.',
+    generate:function(){
+      var mass=rnd(48,52,2),t1=rnd(20,24,1),t2=rnd(35,50,1);
+      var dT=t2-t1,q=mass*4.18*dT;
+      var pctM=round((0.01/mass)*100,3),pctT=round((1.0/dT)*100,2);
+      return {vals:{mass:mass,t1:t1,t2:t2},
+        steps:[
+          {label:'\u0394T = T\u2082 \u2212 T\u2081',answer:round(dT,1),unit:'\u00B0C',hint:t2+' \u2212 '+t1},
+          {label:'q = mc\u0394T',answer:round(q,1),unit:'J',hint:mass+' \u00D7 4.18 \u00D7 '+round(dT,1)},
+          {label:'% uncertainty in mass',answer:round(pctM,2),unit:'%',hint:'(0.01 / '+mass+') \u00D7 100'},
+          {label:'% uncertainty in \u0394T',answer:round(pctT,2),unit:'%',hint:'(1.0 / '+round(dT,1)+') \u00D7 100'},
+          {label:'Total % uncertainty in q',answer:round(pctM+pctT,2),unit:'%',hint:round(pctM,2)+' + '+round(pctT,2)+' (c has no uncertainty)'},
+          {label:'Absolute uncertainty in q',answer:round(q*(pctM+pctT)/100,1),unit:'J',hint:round(q,1)+' \u00D7 '+round(pctM+pctT,2)+' / 100'}
+        ]};
+    }},
+  { id:'enthalpy_calc', type:'multi_step', difficulty:'Medium',
+    scenario:'From the calorimetry, q = {q} \u00B1 {qunc} J was absorbed by {mass_water} g of water. The student burned {n} \u00B1 {nunc} mol of fuel.',
+    question:'Calculate the enthalpy change per mole (\u0394H = \u2212q/n) with propagated uncertainty.',
+    generate:function(){
+      var q=rnd(4000,8000,0),qunc=rnd(100,400,0);
+      var n=rnd(0.010,0.030,4),nunc=round(n*0.03,4);
+      var dH=-q/n;
+      var pctQ=round((qunc/q)*100,2),pctN=round((nunc/n)*100,2);
+      return {vals:{q:q,qunc:qunc,n:n,nunc:nunc,mass_water:100},
+        steps:[
+          {label:'\u0394H = \u2212q / n',answer:round(dH,0),unit:'J mol\u207B\u00B9',hint:'\u2212'+q+' / '+n},
+          {label:'% uncertainty in q',answer:round(pctQ,2),unit:'%',hint:'('+qunc+' / '+q+') \u00D7 100'},
+          {label:'% uncertainty in n',answer:round(pctN,2),unit:'%',hint:'('+nunc+' / '+n+') \u00D7 100'},
+          {label:'Total % uncertainty in \u0394H',answer:round(pctQ+pctN,2),unit:'%',hint:round(pctQ,2)+' + '+round(pctN,2)},
+          {label:'Absolute uncertainty in \u0394H',answer:round(Math.abs(dH)*(pctQ+pctN)/100,0),unit:'J mol\u207B\u00B9',hint:round(Math.abs(dH),0)+' \u00D7 '+round(pctQ+pctN,2)+' / 100'}
+        ]};
+    }},
+  { id:'dilution_vol', type:'multiply', difficulty:'Hard',
+    scenario:'A student pipetted {pipVol} \u00B1 {pipUnc} cm\u00B3 of {stockConc} \u00B1 {stockUnc} mol dm\u207B\u00B3 solution into a {flaskVol} \u00B1 {flaskUnc} cm\u00B3 volumetric flask.',
+    question:'Calculate the concentration of the diluted solution (c\u2082 = c\u2081V\u2081/V\u2082) with propagated uncertainty.',
+    generate:function(){
+      var pipVol=25.00,pipUnc=0.04,flaskVol=250,flaskUnc=0.3;
+      var stockConc=pick([0.100,0.200,0.500]),stockUnc=0.001;
+      var c2=stockConc*pipVol/flaskVol;
+      var pctPip=round((pipUnc/pipVol)*100,3),pctFlask=round((flaskUnc/flaskVol)*100,3),pctConc=round((stockUnc/stockConc)*100,3);
+      return {vals:{pipVol:pipVol,pipUnc:pipUnc,flaskVol:flaskVol,flaskUnc:flaskUnc,stockConc:stockConc,stockUnc:stockUnc},
+        steps:[
+          {label:'c\u2082 = c\u2081 \u00D7 V\u2081 / V\u2082',answer:round(c2,5),unit:'mol dm\u207B\u00B3',hint:stockConc+' \u00D7 '+pipVol+' / '+flaskVol},
+          {label:'% uncertainty in pipette',answer:round(pctPip,2),unit:'%',hint:'('+pipUnc+' / '+pipVol+') \u00D7 100'},
+          {label:'% uncertainty in flask',answer:round(pctFlask,2),unit:'%',hint:'('+flaskUnc+' / '+flaskVol+') \u00D7 100'},
+          {label:'% uncertainty in stock concentration',answer:round(pctConc,2),unit:'%',hint:'('+stockUnc+' / '+stockConc+') \u00D7 100'},
+          {label:'Total % uncertainty',answer:round(pctPip+pctFlask+pctConc,2),unit:'%',hint:round(pctPip,2)+' + '+round(pctFlask,2)+' + '+round(pctConc,2)},
+          {label:'Absolute uncertainty in c\u2082',answer:round(c2*(pctPip+pctFlask+pctConc)/100,6),unit:'mol dm\u207B\u00B3',hint:round(c2,5)+' \u00D7 '+round(pctPip+pctFlask+pctConc,2)+' / 100'}
+        ]};
+    }}
+];
+
+var PCT_SCENARIOS = [
+  { id:'combustion_ethanol', difficulty:'Easy',
+    scenario:'A student determined the enthalpy of combustion of ethanol as {exp} kJ mol\u207B\u00B9. The IB Data Booklet value is \u22121367 kJ mol\u207B\u00B9.',
+    litValue:-1367, expRange:[-1100,-1300],
+    errorType:'systematic', errorExplain:'Heat loss to surroundings and incomplete combustion systematically reduce the measured value.',
+    improvements:['Use a bomb calorimeter to reduce heat loss','Use a draught shield','Ensure complete combustion with excess oxygen'] },
+  { id:'combustion_methanol', difficulty:'Easy',
+    scenario:'A student measured the enthalpy of combustion of methanol as {exp} kJ mol\u207B\u00B9. The literature value is \u2212726 kJ mol\u207B\u00B9.',
+    litValue:-726, expRange:[-550,-700],
+    errorType:'systematic', errorExplain:'Incomplete combustion and heat loss cause the experimental value to be systematically lower than the accepted value.',
+    improvements:['Improve insulation around the calorimeter','Use a spirit burner with a lid','Repeat with different fuels to compare'] },
+  { id:'neutralization', difficulty:'Easy',
+    scenario:'A student found the enthalpy of neutralization of HCl + NaOH as {exp} kJ mol\u207B\u00B9. The accepted value is \u221257.1 kJ mol\u207B\u00B9.',
+    litValue:-57.1, expRange:[-48,-55],
+    errorType:'systematic', errorExplain:'Heat loss to the surroundings during mixing. The polystyrene cup is not a perfect insulator.',
+    improvements:['Use a lid on the calorimeter cup','Add solutions quickly and stir','Use a more insulated calorimeter'] },
+  { id:'molar_mass_mg', difficulty:'Medium',
+    scenario:'A student heated {exp} g of magnesium in air and obtained MgO. From the mass data, they calculated the molar mass of Mg as {calc} g mol\u207B\u00B9. The accepted value is 24.31 g mol\u207B\u00B9.',
+    litValue:24.31, expRange:[22,27],
+    errorType:'random', errorExplain:'Variations in how completely the Mg reacted, slight differences in mass readings, and whether all product was retained introduce random scatter.',
+    improvements:['Ensure all magnesium has reacted (no shiny metal remaining)','Use a larger sample mass','Repeat the experiment multiple times and calculate a mean'] },
+  { id:'Ecell', difficulty:'Medium',
+    scenario:'A student measured the cell potential for a Zn/Cu galvanic cell as {exp} V. The theoretical E\u00B0cell is +1.10 V.',
+    litValue:1.10, expRange:[0.90,1.08],
+    errorType:'systematic', errorExplain:'Non-standard conditions (concentrations not exactly 1 mol dm\u207B\u00B3, temperature not 25\u00B0C), resistance in wires, and surface oxidation on electrodes systematically reduce the measured voltage.',
+    improvements:['Use freshly polished electrodes','Use 1.0 mol dm\u207B\u00B3 solutions','Ensure good electrical connections'] },
+  { id:'titration_conc', difficulty:'Hard',
+    scenario:'A student determined the concentration of an HCl solution by titration with standard NaOH as {exp} mol dm\u207B\u00B3. The true concentration was 0.100 mol dm\u207B\u00B3.',
+    litValue:0.100, expRange:[0.095,0.108],
+    errorType:'random', errorExplain:'Small variations in endpoint detection, reading the meniscus, and drop size create random scatter around the true value.',
+    improvements:['Use a more appropriate indicator','Read the meniscus at eye level','Perform concordant titrations (within 0.10 cm\u00B3)'] }
+];
+
+// ═══════════════════════════════════════════════════
+// UTILITY
+// ═══════════════════════════════════════════════════
+function round(v,dp){var f=Math.pow(10,dp);return Math.round(v*f)/f;}
+function rnd(min,max,dp){var v=min+Math.random()*(max-min);return round(v,dp);}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function clearEl(el){while(el.firstChild)el.removeChild(el.firstChild);}
+function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text)e.textContent=text;return e;}
+function addText(parent,text){parent.appendChild(document.createTextNode(text));}
+function setupCanvas(c){var dpr=window.devicePixelRatio||1;var w=parseInt(c.getAttribute('data-w'))||c.offsetWidth||parseInt(c.getAttribute('width'));var h=parseInt(c.getAttribute('data-h'))||c.offsetHeight||parseInt(c.getAttribute('height'));if(!c.getAttribute('data-w')){c.setAttribute('data-w',w);c.setAttribute('data-h',h);}c.width=w*dpr;c.height=h*dpr;var ctx=c.getContext('2d');ctx.scale(dpr,dpr);c.style.width=w+'px';c.style.height=h+'px';return ctx;}
+function approxEqual(a,b,tol){if(typeof tol==='undefined')tol=0.02;return Math.abs(a-b)<=Math.max(tol*Math.abs(b),tol,0.005);}
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+var _isHL=false,_isTeacher=false,_activeTab='reading';
+var _readingInstrument=null,_readingTarget=null,_readingSubmitted=false;
+var _propDifficulty='Easy',_propProblem=null,_propStepIdx=0;
+var _pctProblem=null,_pctSubmitted=false,_pctErrorSubmitted=false;
+var _pracDifficulty='Easy',_pracCategory=null,_pracActive=false;
+var _scores={reading:{correct:0,total:0},prop:{correct:0,total:0},pct:{correct:0,total:0}};
+
+// ═══════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════
+var tabBtns=document.querySelectorAll('.tab-btn');
+function switchTab(id){
+  _activeTab=id;
+  for(var i=0;i<tabBtns.length;i++){
+    var btn=tabBtns[i];btn.classList.toggle('active',btn.getAttribute('data-tab')===id);
+  }
+  var tabs=document.querySelectorAll('.tab-content');
+  for(var i=0;i<tabs.length;i++){
+    tabs[i].classList.toggle('active',tabs[i].id==='tab-'+id);
+  }
+  buildPresets();
+}
+for(var i=0;i<tabBtns.length;i++){
+  tabBtns[i].addEventListener('click',function(){switchTab(this.getAttribute('data-tab'));});
+}
+
+// ═══════════════════════════════════════════════════
+// HL / TEACHER TOGGLES
+// ═══════════════════════════════════════════════════
+document.getElementById('hlToggle').addEventListener('change',function(){
+  _isHL=this.checked;document.body.classList.toggle('hl-active',_isHL);
+});
+document.getElementById('teacherToggle').addEventListener('change',function(){
+  _isTeacher=this.checked;document.body.classList.toggle('teacher-active',_isTeacher);
+});
+
+// ═══════════════════════════════════════════════════
+// TAB 1: READING UNCERTAINTY
+// ═══════════════════════════════════════════════════
+var instrumentSelect=document.getElementById('instrumentSelect');
+INSTRUMENTS.forEach(function(inst){
+  var opt=document.createElement('option');opt.value=inst.id;opt.textContent=inst.name;instrumentSelect.appendChild(opt);
+});
+
+function getInstrument(id){for(var i=0;i<INSTRUMENTS.length;i++)if(INSTRUMENTS[i].id===id)return INSTRUMENTS[i];return null;}
+
+document.getElementById('btnNewReading').addEventListener('click',function(){
+  var inst=getInstrument(instrumentSelect.value);if(!inst)return;
+  _readingInstrument=inst;_readingSubmitted=false;
+  clearEl(document.getElementById('readingFeedback'));
+  clearEl(document.getElementById('readingTeacher'));
+  document.getElementById('readingValue').value='';
+  document.getElementById('readingUncertainty').value='';
+  document.getElementById('readingPctUnc').value='';
+  document.getElementById('readingValue').disabled=false;
+  document.getElementById('readingUncertainty').disabled=false;
+  document.getElementById('readingPctUnc').disabled=false;
+  document.getElementById('btnCheckReading').disabled=false;
+  document.getElementById('readingUnit').textContent=inst.unit;
+
+  if(inst.drawType==='fixed'){
+    _readingTarget=inst.range[0];
+    var scn=document.getElementById('readingScenario');clearEl(scn);
+    scn.appendChild(el('strong','','A '+inst.name+' delivers exactly '+inst.range[0]+' '+inst.unit+'.'));
+    scn.appendChild(document.createElement('br'));
+    addText(scn,'What is the reading and its absolute uncertainty? Then calculate the percentage uncertainty.');
+    drawFixedInstrument(inst);
+  } else if(inst.drawType==='balance'){
+    _readingTarget=round(rnd(inst.range[0]+5,inst.range[1]-5,inst.dp),inst.dp);
+    var scn=document.getElementById('readingScenario');clearEl(scn);
+    scn.appendChild(el('strong','','The balance display reads:'));
+    scn.appendChild(document.createElement('br'));
+    var disp=el('span','chem',_readingTarget.toFixed(inst.dp)+' '+inst.unit);
+    disp.style.fontSize='1.4rem';disp.style.display='block';disp.style.textAlign='center';disp.style.margin='.5rem 0';
+    scn.appendChild(disp);
+    addText(scn,'Record the reading and its absolute uncertainty. Then calculate the percentage uncertainty.');
+    drawBalanceDisplay(inst,_readingTarget);
+  } else {
+    var range=inst.range[1]-inst.range[0];
+    var rawTarget=inst.range[0]+range*0.15+Math.random()*range*0.7;
+    _readingTarget=round(rawTarget,inst.dp);
+    var scn=document.getElementById('readingScenario');clearEl(scn);
+    scn.appendChild(el('strong','','Read the '+inst.name+' shown:'));
+    scn.appendChild(document.createElement('br'));
+    addText(scn,'Record your reading \u00B1 absolute uncertainty, then calculate the percentage uncertainty.');
+    drawInstrument(inst,_readingTarget);
+  }
+});
+
+function drawInstrument(inst,target){
+  var canvas=document.getElementById('instrumentCanvas');
+  canvas.style.width='220px';canvas.style.height='400px';
+  var ctx=setupCanvas(canvas);
+  var W=220,H=400;
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+  var pad={top:30,bottom:40,left:60,right:40};
+  var scaleH=H-pad.top-pad.bottom;
+  var range=inst.range[1]-inst.range[0];
+  var inverted=(inst.drawType==='burette');
+
+  function valToY(v){
+    var frac=(v-inst.range[0])/range;
+    if(inverted) return pad.top+frac*scaleH;
+    return pad.top+(1-frac)*scaleH;
+  }
+
+  // Draw tube
+  var tubeX=pad.left+20,tubeW=50;
+  ctx.fillStyle='#E2E8F0';ctx.fillRect(tubeX,pad.top-5,tubeW,scaleH+10);
+  ctx.strokeStyle='#94A3B8';ctx.lineWidth=1.5;ctx.strokeRect(tubeX,pad.top-5,tubeW,scaleH+10);
+
+  // Draw liquid
+  var liquidY=valToY(target);
+  if(inverted){
+    ctx.fillStyle='rgba(13,148,136,0.15)';ctx.fillRect(tubeX+1,liquidY,tubeW-2,pad.top+scaleH-liquidY+4);
+  } else {
+    ctx.fillStyle='rgba(13,148,136,0.15)';ctx.fillRect(tubeX+1,liquidY,tubeW-2,pad.top+scaleH-liquidY+4);
+  }
+
+  // Meniscus
+  ctx.strokeStyle='#0D9488';ctx.lineWidth=2;ctx.beginPath();
+  ctx.moveTo(tubeX+2,liquidY);
+  ctx.quadraticCurveTo(tubeX+tubeW/2,liquidY+4,tubeX+tubeW-2,liquidY);
+  ctx.stroke();
+
+  // Scale markings
+  var majorInterval=inst.divisions*5;if(inst.drawType==='thermometer')majorInterval=10;
+  if(inst.id==='grad_cyl_10')majorInterval=1;
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  for(var v=inst.range[0];v<=inst.range[1];v=round(v+inst.divisions,4)){
+    var y=valToY(v);
+    var isMajor=(round(v-inst.range[0],4)%(majorInterval)===0)||v===inst.range[0]||v===inst.range[1];
+    ctx.strokeStyle='#64748B';ctx.lineWidth=isMajor?1.5:0.8;
+    ctx.beginPath();ctx.moveTo(tubeX-(isMajor?8:4),y);ctx.lineTo(tubeX,y);ctx.stroke();
+    if(isMajor){
+      ctx.fillStyle='#334155';ctx.font='11px "Fira Code",monospace';
+      ctx.fillText(v.toString(),tubeX-10,y);
+    }
+  }
+
+  // Title
+  ctx.fillStyle='var(--navy)';ctx.font='bold 12px Inter,sans-serif';ctx.textAlign='center';
+  ctx.fillText(inst.name.split('(')[0].trim(),W/2,H-12);
+  // Unit
+  ctx.fillStyle='#64748B';ctx.font='11px Inter,sans-serif';
+  ctx.fillText('/ '+inst.unit,W/2,H-0);
+}
+
+function drawBalanceDisplay(inst,target){
+  var canvas=document.getElementById('instrumentCanvas');
+  canvas.style.width='220px';canvas.style.height='160px';
+  var ctx=setupCanvas(canvas);
+  var W=220,H=160;
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+  // Balance body
+  ctx.fillStyle='#E2E8F0';ctx.fillRect(20,40,180,80);ctx.strokeStyle='#94A3B8';ctx.lineWidth=1.5;ctx.strokeRect(20,40,180,80);
+  // Display screen
+  ctx.fillStyle='#1E293B';ctx.fillRect(35,55,150,40);
+  // Reading
+  ctx.fillStyle='#4ADE80';ctx.font='bold 22px "Fira Code",monospace';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(target.toFixed(inst.dp)+' '+inst.unit,110,75);
+  // Label
+  ctx.fillStyle='#334155';ctx.font='bold 12px Inter,sans-serif';
+  ctx.fillText('Electronic Balance',110,135);
+}
+
+function drawFixedInstrument(inst){
+  var canvas=document.getElementById('instrumentCanvas');
+  canvas.style.width='220px';canvas.style.height='200px';
+  var ctx=setupCanvas(canvas);
+  var W=220,H=200;
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+  // Flask/pipette illustration
+  ctx.strokeStyle='#64748B';ctx.lineWidth=2;
+  if(inst.id==='pipette_25'){
+    ctx.beginPath();ctx.moveTo(108,30);ctx.lineTo(108,80);ctx.lineTo(90,110);ctx.lineTo(90,150);ctx.lineTo(130,150);ctx.lineTo(130,110);ctx.lineTo(112,80);ctx.lineTo(112,30);ctx.closePath();ctx.stroke();
+    ctx.fillStyle='rgba(13,148,136,0.15)';ctx.fill();
+    ctx.fillStyle='#334155';ctx.font='bold 13px "Fira Code",monospace';ctx.textAlign='center';
+    ctx.fillText('25.00 cm\u00B3',110,170);
+    ctx.fillStyle='#64748B';ctx.font='11px Inter,sans-serif';
+    ctx.fillText('\u00B1 0.04 cm\u00B3 (marked)',110,186);
+  } else {
+    ctx.beginPath();ctx.moveTo(70,30);ctx.lineTo(60,60);ctx.lineTo(60,140);ctx.lineTo(160,140);ctx.lineTo(160,60);ctx.lineTo(150,30);ctx.closePath();ctx.stroke();
+    ctx.fillStyle='rgba(13,148,136,0.15)';ctx.fill();
+    // Mark line
+    ctx.strokeStyle='#0D9488';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(55,65);ctx.lineTo(165,65);ctx.stroke();
+    ctx.fillStyle='#334155';ctx.font='bold 13px "Fira Code",monospace';ctx.textAlign='center';
+    ctx.fillText('250 cm\u00B3',110,165);
+    ctx.fillStyle='#64748B';ctx.font='11px Inter,sans-serif';
+    ctx.fillText('\u00B1 0.3 cm\u00B3 (marked)',110,181);
+  }
+}
+
+document.getElementById('btnCheckReading').addEventListener('click',function(){
+  if(!_readingInstrument||_readingSubmitted)return;
+  _readingSubmitted=true;
+  var inst=_readingInstrument;
+  var userVal=parseFloat(document.getElementById('readingValue').value);
+  var userUnc=parseFloat(document.getElementById('readingUncertainty').value);
+  var userPct=parseFloat(document.getElementById('readingPctUnc').value);
+  var fb=document.getElementById('readingFeedback');clearEl(fb);
+  var correctVal=_readingTarget,correctUnc=inst.uncertainty;
+  var correctPct=round((correctUnc/Math.abs(correctVal))*100,2);
+  if(inst.drawType==='fixed'||inst.drawType==='balance') correctPct=round((correctUnc/correctVal)*100,inst.dp+1);
+
+  var valOK=approxEqual(userVal,correctVal,0.01);
+  var uncOK=approxEqual(userUnc,correctUnc,0.05);
+  var pctOK=approxEqual(userPct,correctPct,0.1);
+  var allOK=valOK&&uncOK&&pctOK;
+
+  if(allOK){
+    _scores.reading.correct++;_scores.reading.total++;
+    fb.className='feedback correct';
+    fb.textContent='\u2713 Correct! Reading: '+correctVal.toFixed(inst.dp)+' \u00B1 '+correctUnc+' '+inst.unit+' ('+correctPct+'% uncertainty)';
+  } else {
+    _scores.reading.total++;
+    fb.className='feedback incorrect';
+    var parts=[];
+    if(!valOK)parts.push('Reading should be '+correctVal.toFixed(inst.dp)+' '+inst.unit);
+    if(!uncOK)parts.push('Uncertainty should be \u00B1'+correctUnc+' '+inst.unit);
+    if(!pctOK)parts.push('% uncertainty should be '+correctPct+'%');
+    fb.textContent='\u2717 '+parts.join('. ')+'.';
+  }
+
+  // Teacher panel
+  var tp=document.getElementById('readingTeacher');clearEl(tp);
+  tp.appendChild(el('strong','','Worked solution: '));
+  addText(tp,'Reading = '+correctVal.toFixed(inst.dp)+' '+inst.unit);
+  tp.appendChild(document.createElement('br'));
+  addText(tp,'Absolute uncertainty = \u00B1'+correctUnc+' '+inst.unit);
+  tp.appendChild(document.createElement('br'));
+  addText(tp,'% uncertainty = ('+correctUnc+' / '+correctVal.toFixed(inst.dp)+') \u00D7 100 = '+correctPct+'%');
+
+  document.getElementById('readingValue').disabled=true;
+  document.getElementById('readingUncertainty').disabled=true;
+  document.getElementById('readingPctUnc').disabled=true;
+  this.disabled=true;
+  updatePracticeStats();
+});
+
+document.getElementById('btnHintReading').addEventListener('click',function(){
+  if(!_readingInstrument)return;
+  var inst=_readingInstrument;
+  var fb=document.getElementById('readingFeedback');
+  if(fb.textContent.indexOf('Hint')!==-1)return;
+  var hint=el('div','feedback partial','');
+  hint.appendChild(el('strong','','Hint: '));
+  addText(hint,'The '+inst.name+' has an uncertainty of \u00B1'+inst.uncertainty+' '+inst.unit+'. ');
+  addText(hint,'Percentage uncertainty = (absolute uncertainty / reading) \u00D7 100.');
+  fb.appendChild(hint);
+});
+
+// ═══════════════════════════════════════════════════
+// TAB 2: ERROR PROPAGATION
+// ═══════════════════════════════════════════════════
+var propDiffBtns=document.querySelectorAll('#tab-propagation .difficulty-btn');
+for(var i=0;i<propDiffBtns.length;i++){
+  propDiffBtns[i].addEventListener('click',function(){
+    _propDifficulty=this.getAttribute('data-diff');
+    for(var j=0;j<propDiffBtns.length;j++)propDiffBtns[j].classList.toggle('active',propDiffBtns[j]===this);
+  });
+}
+
+document.getElementById('btnNewProp').addEventListener('click',function(){
+  var available=PROP_TEMPLATES.filter(function(t){
+    if(_propDifficulty==='Easy')return t.difficulty==='Easy';
+    if(_propDifficulty==='Medium')return t.difficulty==='Easy'||t.difficulty==='Medium';
+    return true;
+  });
+  if(!_isHL)available=available.filter(function(t){return t.difficulty!=='Hard';});
+  var tmpl=pick(available);
+  var generated=tmpl.generate();
+  _propProblem={template:tmpl,data:generated,steps:generated.steps};
+  _propStepIdx=0;
+
+  // Fill scenario
+  var scenarioText=tmpl.scenario;
+  var vals=generated.vals;
+  for(var k in vals){if(vals.hasOwnProperty(k))scenarioText=scenarioText.replace('{'+k+'}',vals[k]);}
+  var scnEl=document.getElementById('propScenario');clearEl(scnEl);
+  scnEl.appendChild(el('strong','',tmpl.question));
+  scnEl.appendChild(document.createElement('br'));
+  addText(scnEl,scenarioText);
+
+  // Build steps
+  var stepsEl=document.getElementById('propSteps');clearEl(stepsEl);
+  clearEl(document.getElementById('propFeedback'));
+  clearEl(document.getElementById('propTeacher'));
+
+  for(var s=0;s<_propProblem.steps.length;s++){
+    var step=_propProblem.steps[s];
+    var li=el('li','step-item '+(s===0?'current':'locked'),'');
+    li.setAttribute('data-step',s);
+    var lbl=el('div','step-label',step.label);
+    li.appendChild(lbl);
+    var row=el('div','step-input-row','');
+    var inp=document.createElement('input');inp.type='text';inp.placeholder='Answer';inp.setAttribute('data-step',s);
+    if(s!==0)inp.disabled=true;
+    row.appendChild(inp);
+    var unitSpan=el('span','',step.unit);unitSpan.style.fontSize='.8rem';unitSpan.style.color='var(--text-muted)';
+    row.appendChild(unitSpan);
+    var checkBtn=el('button','btn btn-teal','Check');checkBtn.setAttribute('data-step',s);
+    if(s!==0)checkBtn.disabled=true;
+    row.appendChild(checkBtn);
+    li.appendChild(row);
+    var hintDiv=el('div','step-hint','');hintDiv.style.display='none';
+    li.appendChild(hintDiv);
+    var resultDiv=el('div','step-result','');
+    li.appendChild(resultDiv);
+    stepsEl.appendChild(li);
+
+    (function(stepIdx){
+      checkBtn.addEventListener('click',function(){checkPropStep(stepIdx);});
+      inp.addEventListener('keydown',function(e){if(e.key==='Enter')checkPropStep(stepIdx);});
+    })(s);
+  }
+
+  // Teacher panel with full solution
+  var tp=document.getElementById('propTeacher');clearEl(tp);
+  tp.appendChild(el('strong','','Full worked solution:'));
+  tp.appendChild(document.createElement('br'));
+  for(var s=0;s<_propProblem.steps.length;s++){
+    var st=_propProblem.steps[s];
+    addText(tp,(s+1)+'. '+st.label+' = '+st.answer+' '+st.unit);
+    tp.appendChild(document.createElement('br'));
+  }
+});
+
+function checkPropStep(idx){
+  if(!_propProblem||idx!==_propStepIdx)return;
+  var step=_propProblem.steps[idx];
+  var li=document.querySelector('.step-item[data-step="'+idx+'"]');
+  var inp=li.querySelector('input');
+  var userVal=parseFloat(inp.value);
+  var resultDiv=li.querySelector('.step-result');clearEl(resultDiv);
+
+  var tolerance=0.05;
+  if(step.unit==='%')tolerance=0.15;
+  if(Math.abs(step.answer)<0.01)tolerance=0.5;
+
+  if(approxEqual(userVal,step.answer,tolerance)){
+    li.className='step-item done';
+    resultDiv.style.color='#166534';
+    resultDiv.textContent='\u2713 '+step.answer+' '+step.unit;
+    inp.disabled=true;
+    li.querySelector('.btn').disabled=true;
+    _propStepIdx++;
+    if(_propStepIdx>=_propProblem.steps.length){
+      _scores.prop.correct++;_scores.prop.total++;
+      var fb=document.getElementById('propFeedback');clearEl(fb);
+      fb.className='feedback correct';fb.textContent='\u2713 All steps correct! Well done.';
+      updatePracticeStats();
+    } else {
+      var nextLi=document.querySelector('.step-item[data-step="'+_propStepIdx+'"]');
+      nextLi.className='step-item current';
+      nextLi.querySelector('input').disabled=false;
+      nextLi.querySelector('.btn').disabled=false;
+      nextLi.querySelector('input').focus();
+    }
+  } else {
+    li.className='step-item wrong';
+    resultDiv.style.color='var(--red)';
+    resultDiv.textContent='\u2717 Expected: '+step.answer+' '+step.unit;
+    // Show hint
+    var hintDiv=li.querySelector('.step-hint');
+    hintDiv.style.display='block';
+    hintDiv.textContent='Hint: '+step.hint;
+    // Allow retry
+    setTimeout(function(){
+      li.className='step-item current';
+      inp.value='';inp.focus();
+    },2000);
+    if(_propStepIdx===_propProblem.steps.length-1){
+      _scores.prop.total++;updatePracticeStats();
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// TAB 3: PERCENTAGE ERROR
+// ═══════════════════════════════════════════════════
+document.getElementById('btnNewPctError').addEventListener('click',function(){
+  var scenario=pick(PCT_SCENARIOS);
+  var expVal=rnd(scenario.expRange[0],scenario.expRange[1],scenario.id.indexOf('Ecell')!==-1?2:0);
+  _pctProblem={scenario:scenario,expVal:expVal,litVal:scenario.litValue};
+  _pctSubmitted=false;_pctErrorSubmitted=false;
+
+  var scnText=scenario.scenario.replace('{exp}',expVal).replace('{calc}',expVal);
+  var scnEl=document.getElementById('pctScenario');clearEl(scnEl);addText(scnEl,scnText);
+
+  document.getElementById('pctErrorInput').value='';
+  document.getElementById('pctErrorInput').disabled=false;
+  document.getElementById('btnCheckPct').disabled=false;
+  clearEl(document.getElementById('pctFeedback1'));
+  clearEl(document.getElementById('pctFeedback2'));
+  document.getElementById('errorClassSection').style.display='none';
+  clearEl(document.getElementById('pctTeacher'));
+
+  // Teacher panel
+  var correctPct=round(Math.abs((expVal-scenario.litValue)/scenario.litValue)*100,2);
+  var tp=document.getElementById('pctTeacher');clearEl(tp);
+  tp.appendChild(el('strong','','Worked solution:'));tp.appendChild(document.createElement('br'));
+  addText(tp,'% error = |experimental \u2212 literature| / |literature| \u00D7 100');tp.appendChild(document.createElement('br'));
+  addText(tp,'= |'+expVal+' \u2212 ('+scenario.litValue+')| / |'+scenario.litValue+'| \u00D7 100');tp.appendChild(document.createElement('br'));
+  addText(tp,'= '+correctPct+'%');tp.appendChild(document.createElement('br'));
+  addText(tp,'Error type: '+scenario.errorType+' \u2014 '+scenario.errorExplain);
+});
+
+document.getElementById('btnCheckPct').addEventListener('click',function(){
+  if(!_pctProblem||_pctSubmitted)return;
+  _pctSubmitted=true;
+  var userPct=parseFloat(document.getElementById('pctErrorInput').value);
+  var correctPct=round(Math.abs((_pctProblem.expVal-_pctProblem.litVal)/_pctProblem.litVal)*100,2);
+  var fb=document.getElementById('pctFeedback1');clearEl(fb);
+  var ok=approxEqual(userPct,correctPct,0.15);
+
+  if(ok){
+    fb.className='feedback correct';fb.textContent='\u2713 Correct! % error = '+correctPct+'%';
+  } else {
+    fb.className='feedback incorrect';fb.textContent='\u2717 The percentage error is '+correctPct+'%. Formula: |exp \u2212 lit| / |lit| \u00D7 100';
+  }
+  document.getElementById('pctErrorInput').disabled=true;
+  this.disabled=true;
+
+  // Show error classification
+  document.getElementById('errorClassSection').style.display='block';
+  var radioDiv=document.getElementById('errorTypeRadios');clearEl(radioDiv);
+  var types=[
+    {value:'systematic',label:'Systematic error \u2014 consistently shifts results in one direction'},
+    {value:'random',label:'Random error \u2014 causes scatter around the true value'}
+  ];
+  types.forEach(function(t){
+    var lbl=document.createElement('label');
+    var radio=document.createElement('input');radio.type='radio';radio.name='errorType';radio.value=t.value;
+    lbl.appendChild(radio);addText(lbl,' '+t.label);radioDiv.appendChild(lbl);
+    radio.addEventListener('change',function(){document.getElementById('btnCheckErrorType').disabled=false;});
+  });
+  document.getElementById('btnCheckErrorType').disabled=true;
+});
+
+document.getElementById('btnCheckErrorType').addEventListener('click',function(){
+  if(!_pctProblem||_pctErrorSubmitted)return;
+  _pctErrorSubmitted=true;
+  var selected=document.querySelector('input[name="errorType"]:checked');
+  if(!selected)return;
+  var correct=_pctProblem.scenario.errorType;
+  var fb=document.getElementById('pctFeedback2');clearEl(fb);
+  var ok=(selected.value===correct);
+
+  var labels=document.querySelectorAll('#errorTypeRadios label');
+  for(var i=0;i<labels.length;i++){
+    var radio=labels[i].querySelector('input');
+    if(radio.value===correct)labels[i].className='selected-correct';
+    else if(radio.checked&&!ok)labels[i].className='selected-wrong';
+    radio.disabled=true;
+  }
+
+  if(ok){
+    _scores.pct.correct++;_scores.pct.total++;
+    fb.className='feedback correct';
+    fb.textContent='\u2713 Correct! '+_pctProblem.scenario.errorExplain;
+  } else {
+    _scores.pct.total++;
+    fb.className='feedback incorrect';
+    fb.textContent='\u2717 This is a '+correct+' error. '+_pctProblem.scenario.errorExplain;
+  }
+  this.disabled=true;
+  updatePracticeStats();
+});
+
+// ═══════════════════════════════════════════════════
+// TAB 4: PRACTICE MODE
+// ═══════════════════════════════════════════════════
+var pracDiffBtns=document.querySelectorAll('#tab-practice .difficulty-btn');
+for(var i=0;i<pracDiffBtns.length;i++){
+  pracDiffBtns[i].addEventListener('click',function(){
+    _pracDifficulty=this.getAttribute('data-diff');
+    for(var j=0;j<pracDiffBtns.length;j++)pracDiffBtns[j].classList.toggle('active',pracDiffBtns[j]===this);
+  });
+}
+
+document.getElementById('btnNextPractice').addEventListener('click',function(){
+  var cats=['reading','propagation','pcterror'];
+  var cat=pick(cats);
+  _pracCategory=cat;
+  var content=document.getElementById('practiceContent');clearEl(content);
+
+  if(cat==='reading'){
+    var note=el('div','scenario-box','');
+    note.appendChild(el('strong','','Category: Reading Uncertainty'));
+    note.appendChild(document.createElement('br'));
+    addText(note,'Switching to Tab 1 \u2014 a new reading problem has been generated.');
+    content.appendChild(note);
+    switchTab('reading');
+    document.getElementById('btnNewReading').click();
+  } else if(cat==='propagation'){
+    var note=el('div','scenario-box','');
+    note.appendChild(el('strong','','Category: Error Propagation'));
+    note.appendChild(document.createElement('br'));
+    addText(note,'Switching to Tab 2 \u2014 a new propagation problem has been generated.');
+    content.appendChild(note);
+    switchTab('propagation');
+    document.getElementById('btnNewProp').click();
+  } else {
+    var note=el('div','scenario-box','');
+    note.appendChild(el('strong','','Category: Percentage Error'));
+    note.appendChild(document.createElement('br'));
+    addText(note,'Switching to Tab 3 \u2014 a new percentage error problem has been generated.');
+    content.appendChild(note);
+    switchTab('pcterror');
+    document.getElementById('btnNewPctError').click();
+  }
+});
+
+function updatePracticeStats(){
+  document.getElementById('statReading').textContent=_scores.reading.correct+'/'+_scores.reading.total;
+  document.getElementById('statProp').textContent=_scores.prop.correct+'/'+_scores.prop.total;
+  document.getElementById('statPct').textContent=_scores.pct.correct+'/'+_scores.pct.total;
+  var tc=_scores.reading.correct+_scores.prop.correct+_scores.pct.correct;
+  var tt=_scores.reading.total+_scores.prop.total+_scores.pct.total;
+  document.getElementById('statTotal').textContent=tc+'/'+tt;
+}
+
+// ═══════════════════════════════════════════════════
+// PRESETS
+// ═══════════════════════════════════════════════════
+var presetSelect=document.getElementById('presetSelect');
+var PRESETS={
+  reading:[
+    {label:'Burette Reading',action:function(){instrumentSelect.value='burette';document.getElementById('btnNewReading').click();}},
+    {label:'Balance Reading',action:function(){instrumentSelect.value='balance_2dp';document.getElementById('btnNewReading').click();}},
+    {label:'Thermometer Reading',action:function(){instrumentSelect.value='thermometer';document.getElementById('btnNewReading').click();}}
+  ],
+  propagation:[
+    {label:'Titration Volume (Easy)',action:function(){
+      for(var j=0;j<propDiffBtns.length;j++)propDiffBtns[j].classList.toggle('active',propDiffBtns[j].getAttribute('data-diff')==='Easy');
+      _propDifficulty='Easy';document.getElementById('btnNewProp').click();
+    }},
+    {label:'Calorimetry q=mc\u0394T (Medium)',action:function(){
+      for(var j=0;j<propDiffBtns.length;j++)propDiffBtns[j].classList.toggle('active',propDiffBtns[j].getAttribute('data-diff')==='Medium');
+      _propDifficulty='Medium';document.getElementById('btnNewProp').click();
+    }},
+    {label:'Dilution (HL)',action:function(){
+      for(var j=0;j<propDiffBtns.length;j++)propDiffBtns[j].classList.toggle('active',propDiffBtns[j].getAttribute('data-diff')==='Hard');
+      _propDifficulty='Hard';document.getElementById('btnNewProp').click();
+    }}
+  ],
+  pcterror:[
+    {label:'Combustion Experiment',action:function(){document.getElementById('btnNewPctError').click();}},
+    {label:'Neutralization',action:function(){document.getElementById('btnNewPctError').click();}}
+  ],
+  practice:[
+    {label:'Full Practice (Easy)',action:function(){
+      _pracDifficulty='Easy';
+      for(var j=0;j<pracDiffBtns.length;j++)pracDiffBtns[j].classList.toggle('active',pracDiffBtns[j].getAttribute('data-diff')==='Easy');
+      document.getElementById('btnNextPractice').click();
+    }}
+  ]
+};
+
+function buildPresets(){
+  clearEl(presetSelect);
+  var def=document.createElement('option');def.value='';def.textContent='Teacher Presets...';presetSelect.appendChild(def);
+  var presets=PRESETS[_activeTab]||[];
+  for(var i=0;i<presets.length;i++){
+    var opt=document.createElement('option');opt.value=i;opt.textContent=presets[i].label;presetSelect.appendChild(opt);
+  }
+}
+
+presetSelect.addEventListener('change',function(){
+  var idx=parseInt(this.value);if(isNaN(idx))return;
+  var presets=PRESETS[_activeTab]||[];
+  if(presets[idx])presets[idx].action();
+  this.value='';
+});
+
+buildPresets();
+
+// ═══════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
+  switch(e.key.toLowerCase()){
+    case'h':
+      var hl=document.getElementById('hlToggle');hl.checked=!hl.checked;hl.dispatchEvent(new Event('change'));break;
+    case't':
+      var t=document.getElementById('teacherToggle');t.checked=!t.checked;t.dispatchEvent(new Event('change'));break;
+    case'1':switchTab('reading');break;
+    case'2':switchTab('propagation');break;
+    case'3':switchTab('pcterror');break;
+    case'4':switchTab('practice');break;
+    case'r':
+      _scores={reading:{correct:0,total:0},prop:{correct:0,total:0},pct:{correct:0,total:0}};
+      updatePracticeStats();break;
+    case'n':
+      if(_activeTab==='reading')document.getElementById('btnNewReading').click();
+      else if(_activeTab==='propagation')document.getElementById('btnNewProp').click();
+      else if(_activeTab==='pcterror')document.getElementById('btnNewPctError').click();
+      else if(_activeTab==='practice')document.getElementById('btnNextPractice').click();
+      break;
+  }
+});
+
+})();
+</script>
+<footer>SimEngine &mdash; Uncertainty Trainer &bull; H=HL T=Teacher</footer>
+</body>
+</html>

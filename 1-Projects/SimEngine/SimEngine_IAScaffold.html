@@ -1,0 +1,1326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IA Scaffold — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--blue-bg:#EFF6FF;--teal-bg:#F0FDFA;--amber-bg:#FFFBEB;--red-bg:#FEF2F2;--purple-bg:#F5F3FF;--toggle-on:#0D9488;--orange:#EA580C;--green:#16A34A;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+  .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-right{display:flex;align-items:center;gap:.75rem;}
+  .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
+  .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.35rem;}
+  .sim-toggle{position:relative;width:40px;height:22px;display:inline-block;}
+  .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:11px;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.25rem;background:none;border:none;border-bottom:3px solid transparent;font-size:.82rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+  .tab-btn .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);font-size:.65rem;font-weight:700;color:var(--text-muted);}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .sim-container{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+  .sim-card{background:var(--card-bg);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;margin-bottom:1.5rem;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-weight:600;font-size:.85rem;}
+  .sim-card-body{padding:1.25rem;}
+  .scenario-box{background:var(--blue-bg);border:1px solid #BFDBFE;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.88rem;line-height:1.7;}
+  .control-group{margin-bottom:1rem;}
+  .control-group label{display:block;font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.03em;}
+  .control-group select,.control-group input[type="number"]{width:100%;padding:.45rem .65rem;border:1px solid var(--border);border-radius:6px;font-size:.85rem;font-family:inherit;}
+  .control-group select:focus,.control-group input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
+  .btn{padding:.5rem 1.25rem;border:none;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+  .btn-teal{background:var(--teal);color:white;} .btn-teal:hover{background:#0F766E;}
+  .btn-teal:disabled{background:#CBD5E1;cursor:not-allowed;}
+  .btn-outline{background:white;color:var(--text);border:1px solid var(--border);} .btn-outline:hover{background:#F8FAFC;}
+  .btn-amber{background:var(--amber);color:white;} .btn-amber:hover{background:#B45309;}
+  .btn-red{background:var(--red);color:white;} .btn-red:hover{background:#B91C1C;}
+  .btn-row{display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;}
+  .btn-sm{padding:.35rem .75rem;font-size:.78rem;}
+  .feedback{padding:.75rem 1rem;border-radius:8px;margin-top:1rem;font-size:.88rem;font-weight:500;}
+  .feedback.correct{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;}
+  .feedback.incorrect{background:var(--red-bg);color:var(--red);border:1px solid #FECACA;}
+  .feedback.info{background:var(--blue-bg);color:#1E40AF;border:1px solid #BFDBFE;}
+  .teacher-panel{display:none;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.82rem;}
+  body.teacher-active .teacher-panel{display:block;}
+  .teacher-panel strong{color:#92400E;}
+  .preset-section{display:none;margin-bottom:1rem;}
+  body.teacher-active .preset-section{display:block;}
+
+  /* RQ Builder */
+  .rq-builder{background:var(--teal-bg);border:1px solid var(--teal);border-radius:8px;padding:1rem;margin-bottom:1rem;}
+  .rq-preview{font-family:'Fira Code',monospace;font-size:.88rem;padding:.75rem;background:white;border-radius:6px;border:1px solid var(--border);margin-top:.75rem;min-height:2.5rem;line-height:1.6;}
+  .rq-preview .rq-slot{color:var(--teal);font-weight:600;}
+
+  /* Variables Table */
+  .var-table{width:100%;border-collapse:collapse;margin-bottom:1rem;font-size:.82rem;}
+  .var-table th{background:var(--navy);color:white;padding:.5rem .75rem;text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;}
+  .var-table td{padding:.5rem .75rem;border:1px solid var(--border);vertical-align:top;}
+  .var-table .var-type{font-weight:700;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;}
+  .var-type.iv{color:var(--teal);} .var-type.dv{color:var(--blue);} .var-type.cv{color:var(--purple);}
+  .var-table input,.var-table textarea{width:100%;padding:.35rem .5rem;border:1px solid var(--border);border-radius:4px;font-size:.82rem;font-family:inherit;}
+
+  /* Rubric Self-Check */
+  .rubric-card{background:white;border:2px solid var(--border);border-radius:8px;padding:.75rem 1rem;margin-bottom:.5rem;cursor:pointer;transition:.2s;}
+  .rubric-card:hover{border-color:var(--teal);background:#FAFFFE;}
+  .rubric-card.selected{border-color:var(--teal);background:var(--teal-bg);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
+  .rubric-mark{font-size:.72rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.25rem;}
+  .rubric-desc{font-size:.8rem;line-height:1.5;}
+
+  /* Checklist */
+  .checklist{list-style:none;}
+  .checklist li{display:flex;align-items:flex-start;gap:.5rem;padding:.4rem 0;font-size:.85rem;}
+  .checklist input[type="checkbox"]{width:16px;height:16px;accent-color:var(--teal);margin-top:.15rem;flex-shrink:0;}
+  .checklist li.checked label{color:var(--text-muted);text-decoration:line-through;}
+
+  /* Method Steps */
+  .method-step{display:flex;gap:.75rem;margin-bottom:.75rem;align-items:flex-start;}
+  .method-num{display:flex;align-items:center;justify-content:center;min-width:28px;height:28px;border-radius:50%;background:var(--teal);color:white;font-size:.75rem;font-weight:700;flex-shrink:0;}
+  .method-step textarea{flex:1;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.85rem;font-family:inherit;resize:vertical;min-height:2.5rem;}
+
+  /* Sentence Starters */
+  .sentence-starter{background:var(--blue-bg);border:1px solid #BFDBFE;border-radius:8px;padding:.75rem 1rem;margin-bottom:.75rem;font-size:.85rem;}
+  .sentence-starter .starter-label{font-size:.72rem;font-weight:600;color:var(--blue);text-transform:uppercase;margin-bottom:.35rem;}
+  .sentence-starter textarea{width:100%;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.85rem;font-family:inherit;resize:vertical;min-height:3rem;margin-top:.35rem;}
+
+  /* Weakness Categories */
+  .weakness-category{margin-bottom:1rem;}
+  .cat-header{display:flex;align-items:center;gap:.5rem;font-size:.82rem;font-weight:600;margin-bottom:.5rem;}
+  .cat-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0;}
+  .cat-dot.systematic{background:var(--red);} .cat-dot.random{background:var(--amber);} .cat-dot.equipment{background:var(--blue);}
+  .weakness-row{display:flex;gap:.5rem;margin-bottom:.5rem;align-items:flex-start;}
+  .weakness-row textarea{flex:1;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.82rem;font-family:inherit;resize:vertical;min-height:2rem;}
+  .improvement-pair{background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:.75rem;margin-bottom:.75rem;}
+  .improvement-pair .weak-ref{font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.35rem;}
+
+  /* Progress Tracker */
+  .ia-progress{display:flex;gap:.5rem;margin-bottom:1.25rem;}
+  .ia-progress-step{flex:1;text-align:center;padding:.5rem .25rem;border-radius:8px;background:var(--border);font-size:.72rem;font-weight:600;color:var(--text-muted);transition:.3s;cursor:pointer;}
+  .ia-progress-step:hover{background:#CBD5E1;}
+  .ia-progress-step.active{background:var(--teal);color:white;}
+  .ia-progress-step.done{background:#DCFCE7;color:#166534;}
+
+  /* Data Table Builder */
+  .data-table{width:100%;border-collapse:collapse;font-size:.82rem;margin-bottom:1rem;}
+  .data-table th{background:var(--navy);color:white;padding:.45rem .6rem;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;}
+  .data-table td{padding:.3rem .4rem;border:1px solid var(--border);}
+  .data-table input{width:100%;padding:.3rem .4rem;border:1px solid transparent;border-radius:3px;font-family:'Fira Code',monospace;font-size:.8rem;text-align:center;background:transparent;}
+  .data-table input:focus{border-color:var(--teal);background:white;outline:none;}
+  .data-table tr:nth-child(even){background:#F8FAFC;}
+
+  /* % Error Calculator */
+  .pct-error-calc{display:flex;gap:1rem;align-items:flex-end;flex-wrap:wrap;margin:.75rem 0;}
+  .pct-error-calc .input-group{flex:1;min-width:140px;}
+  .pct-error-calc .input-group label{display:block;font-size:.75rem;font-weight:600;color:var(--text-muted);margin-bottom:.25rem;text-transform:uppercase;}
+  .pct-error-calc .input-group input{width:100%;padding:.45rem .65rem;border:1px solid var(--border);border-radius:6px;font-family:'Fira Code',monospace;font-size:.85rem;}
+  .pct-error-result{font-family:'Fira Code',monospace;font-size:1.1rem;font-weight:700;padding:.5rem .75rem;background:var(--teal-bg);border-radius:8px;min-width:100px;text-align:center;}
+
+  /* Keyboard Hint */
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+
+  @media(max-width:700px){.tab-btn{padding:.6rem .7rem;font-size:.75rem;}.ia-progress{flex-wrap:wrap;}.pct-error-calc{flex-direction:column;}}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div>
+    <h1>IA Scaffold<span class="subtitle">IB Chemistry — Internal Assessment Guide</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">IA</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="teacherToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="design" role="tab" aria-selected="true"><span class="tab-num">1</span>Research Design</button>
+  <button class="tab-btn" data-tab="analysis" role="tab" aria-selected="false"><span class="tab-num">2</span>Data Analysis</button>
+  <button class="tab-btn" data-tab="conclusion" role="tab" aria-selected="false"><span class="tab-num">3</span>Conclusion</button>
+  <button class="tab-btn" data-tab="evaluation" role="tab" aria-selected="false"><span class="tab-num">4</span>Evaluation</button>
+</div>
+
+<div class="sim-container" id="main-content">
+
+  <!-- Lab Selector -->
+  <div class="sim-card" id="labSelectorCard">
+    <div class="sim-card-header">Select Your Lab Investigation</div>
+    <div class="sim-card-body" style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;">
+      <div class="control-group" style="flex:1;min-width:200px;margin-bottom:0;">
+        <label>Lab</label>
+        <select id="labSelect">
+          <option value="calorimetry">Calorimetry Lab</option>
+          <option value="titration">Titration Lab</option>
+          <option value="gravimetric">Gravimetric Analysis Lab</option>
+          <option value="qualitative">Qualitative Analysis Lab</option>
+          <option value="custom">Custom Investigation</option>
+        </select>
+      </div>
+      <button class="btn btn-outline" id="openLabBtn">Open Lab Sim &#8599;</button>
+      <button class="btn btn-red btn-sm" id="resetBtn">Reset All</button>
+    </div>
+  </div>
+
+  <!-- Progress Tracker -->
+  <div class="ia-progress" id="progressTracker">
+    <div class="ia-progress-step active" data-ptab="design">1. Research Design</div>
+    <div class="ia-progress-step" data-ptab="analysis">2. Data Analysis</div>
+    <div class="ia-progress-step" data-ptab="conclusion">3. Conclusion</div>
+    <div class="ia-progress-step" data-ptab="evaluation">4. Evaluation</div>
+  </div>
+
+  <!-- Teacher Presets -->
+  <div class="preset-section" id="presetSection">
+    <select id="presetSelect" aria-label="Teacher preset selector">
+      <option value="">Load Model Answers...</option>
+      <option value="calorimetry">Calorimetry — Model IA</option>
+      <option value="titration">Titration — Model IA</option>
+      <option value="gravimetric">Gravimetric — Model IA</option>
+      <option value="qualitative">Qualitative — Model IA</option>
+    </select>
+  </div>
+
+  <!-- TAB 1: RESEARCH DESIGN -->
+  <div class="tab-content active" id="tab-design" role="tabpanel">
+
+    <div class="sim-card">
+      <div class="sim-card-header">Research Question Builder</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">A strong research question is specific, measurable, and identifies the independent and dependent variables clearly.</div>
+        <div class="rq-builder">
+          <div style="display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.5rem;">
+            <div class="control-group" style="flex:1;min-width:150px;margin-bottom:0;">
+              <label>Independent Variable (IV)</label>
+              <input type="text" id="rqIV" placeholder="e.g. concentration of HCl">
+            </div>
+            <div class="control-group" style="flex:1;min-width:150px;margin-bottom:0;">
+              <label>Dependent Variable (DV)</label>
+              <input type="text" id="rqDV" placeholder="e.g. rate of reaction">
+            </div>
+            <div class="control-group" style="flex:1;min-width:150px;margin-bottom:0;">
+              <label>Controlled Variables</label>
+              <input type="text" id="rqCVs" placeholder="e.g. temperature, volume">
+            </div>
+          </div>
+          <div class="rq-preview" id="rqPreview" aria-live="polite">How does <span class="rq-slot">[IV]</span> affect <span class="rq-slot">[DV]</span> when <span class="rq-slot">[CVs]</span> are kept constant?</div>
+        </div>
+        <div class="teacher-panel" id="teacherRQ">
+          <strong>Model RQ:</strong> <span id="teacherRQText"></span><br>
+          <strong>Common mistakes:</strong> RQ too vague, no measurable DV, CVs not identified, investigating more than one IV at a time.
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Variables Table</div>
+      <div class="sim-card-body">
+        <table class="var-table">
+          <thead>
+            <tr><th style="width:60px;">Type</th><th>Variable Name</th><th>How Measured / Controlled</th><th>Range / Values</th></tr>
+          </thead>
+          <tbody id="varTableBody">
+            <tr><td><span class="var-type iv">IV</span></td><td><input type="text" id="varIVName" aria-label="Independent variable name"></td><td><input type="text" id="varIVMeasure" aria-label="Independent variable measurement tool"></td><td><input type="text" id="varIVRange" aria-label="Independent variable range"></td></tr>
+            <tr><td><span class="var-type dv">DV</span></td><td><input type="text" id="varDVName" aria-label="Dependent variable name"></td><td><input type="text" id="varDVMeasure" aria-label="Dependent variable measurement tool"></td><td><input type="text" id="varDVRange" aria-label="Dependent variable range"></td></tr>
+            <tr><td><span class="var-type cv">CV</span></td><td><input type="text" class="cvName" aria-label="Controlled variable name"></td><td><input type="text" class="cvMeasure" aria-label="Controlled variable measurement tool"></td><td><input type="text" class="cvRange" aria-label="Controlled variable range"></td></tr>
+            <tr><td><span class="var-type cv">CV</span></td><td><input type="text" class="cvName" aria-label="Controlled variable name"></td><td><input type="text" class="cvMeasure" aria-label="Controlled variable measurement tool"></td><td><input type="text" class="cvRange" aria-label="Controlled variable range"></td></tr>
+            <tr><td><span class="var-type cv">CV</span></td><td><input type="text" class="cvName" aria-label="Controlled variable name"></td><td><input type="text" class="cvMeasure" aria-label="Controlled variable measurement tool"></td><td><input type="text" class="cvRange" aria-label="Controlled variable range"></td></tr>
+          </tbody>
+        </table>
+        <button class="btn btn-outline btn-sm" id="addCVBtn">+ Add Controlled Variable</button>
+        <div class="teacher-panel" id="teacherVars">
+          <strong>Model Variables:</strong><br><span id="teacherVarsText"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Method Outline</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Write a numbered method that another student could follow to repeat your experiment. Include equipment, fair test measures, number of trials, and safety.</div>
+        <div class="method-steps" id="methodSteps"></div>
+        <div class="btn-row">
+          <button class="btn btn-outline btn-sm" id="addStepBtn">+ Add Step</button>
+        </div>
+        <div style="margin-top:1rem;">
+          <ul class="checklist" id="methodChecklist">
+            <li><input type="checkbox"><label>Equipment list with precision stated</label></li>
+            <li><input type="checkbox"><label>Fair test: CVs identified and controlled</label></li>
+            <li><input type="checkbox"><label>Number of trials specified (minimum 3)</label></li>
+            <li><input type="checkbox"><label>Range of IV values stated (minimum 5)</label></li>
+            <li><input type="checkbox"><label>Safety precautions included</label></li>
+          </ul>
+        </div>
+        <div class="teacher-panel" id="teacherMethod">
+          <strong>Key method points:</strong><br><span id="teacherMethodText"></span><br>
+          <strong>Safety:</strong> <span id="teacherSafetyText"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Rubric Self-Check — Criterion 1: Research Design (6 marks)</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Read each descriptor and select the one that best matches your current work. The IB uses a "best-fit" approach.</div>
+        <div id="rubricDesign">
+          <div class="rubric-card" data-mark="5-6"><div class="rubric-mark">5-6 Marks</div><div class="rubric-desc">The research design is <strong>clear</strong> and the methodology is <strong>appropriate and justified</strong>. The research question is focused, variables are clearly identified with appropriate ranges, and the method enables collection of <strong>sufficient, relevant data</strong>.</div></div>
+          <div class="rubric-card" data-mark="3-4"><div class="rubric-mark">3-4 Marks</div><div class="rubric-desc">The research design is <strong>mostly clear</strong> with a methodology that is <strong>mostly appropriate</strong>. The research question is adequate, most variables are identified, and the method enables collection of <strong>relevant data</strong> but with some gaps.</div></div>
+          <div class="rubric-card" data-mark="1-2"><div class="rubric-mark">1-2 Marks</div><div class="rubric-desc">The research design is <strong>partially clear</strong> with <strong>limited</strong> methodology. The research question may be vague, variables are incomplete, or the method has significant gaps.</div></div>
+          <div class="rubric-card" data-mark="0"><div class="rubric-mark">0 Marks</div><div class="rubric-desc">The research design is <strong>not clear</strong> or <strong>not present</strong>. The student has not demonstrated understanding of the requirements.</div></div>
+        </div>
+        <div class="teacher-panel">
+          <strong>Marking guidance:</strong> Look for a focused, specific RQ with measurable variables. Method must be detailed enough for replication. 5-6 requires justified choices (why this range, why this equipment). Common issue: students describe what they did rather than writing a replicable method.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB 2: DATA ANALYSIS -->
+  <div class="tab-content" id="tab-analysis" role="tabpanel">
+
+    <div class="sim-card">
+      <div class="sim-card-header">Raw Data Table</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Record all raw data with correct units and uncertainties. Include repeat trials for each value of the independent variable.</div>
+        <div style="display:flex;gap:1rem;margin-bottom:1rem;flex-wrap:wrap;">
+          <div class="control-group" style="margin-bottom:0;">
+            <label>IV Values</label>
+            <input type="number" id="ivCount" value="5" min="3" max="10" style="width:80px;">
+          </div>
+          <div class="control-group" style="margin-bottom:0;">
+            <label>Trials</label>
+            <input type="number" id="trialCount" value="3" min="2" max="5" style="width:80px;">
+          </div>
+          <div style="display:flex;align-items:flex-end;">
+            <button class="btn btn-teal btn-sm" id="buildTableBtn">Build Table</button>
+          </div>
+        </div>
+        <div id="dataTableContainer"></div>
+        <div class="teacher-panel">
+          <strong>Guidance:</strong> Raw data must include units and uncertainties in column headers. Data should be recorded to the precision of the instrument, not rounded.
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Uncertainty Guidance</div>
+      <div class="sim-card-body">
+        <div id="uncertaintyInfo"></div>
+        <div class="scenario-box" style="margin-top:1rem;">
+          <strong>Key formulas:</strong><br>
+          Absolute uncertainty = instrument precision (or half smallest division)<br>
+          % uncertainty = (absolute uncertainty / measured value) &#215; 100<br>
+          Addition/subtraction: add absolute uncertainties<br>
+          Multiplication/division: add percentage uncertainties
+        </div>
+        <div class="btn-row">
+          <a class="btn btn-outline btn-sm" href="SimEngine_UncertaintyTrainer.html" target="_blank">Open Uncertainty Trainer &#8599;</a>
+        </div>
+        <div class="teacher-panel">
+          <strong>Common mistakes:</strong> Forgetting to double burette uncertainty (2 readings), using wrong number of significant figures, confusing absolute and percentage uncertainty.
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Processed Data</div>
+      <div class="sim-card-body">
+        <div class="sentence-starter">
+          <div class="starter-label">Sample Calculation</div>
+          <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.25rem;">Show one complete worked example with units at every step.</div>
+          <textarea id="sampleCalc" rows="4" aria-label="Sample calculation" placeholder="e.g. Mean titre = (24.50 + 24.60 + 24.55) / 3 = 24.55 cm&#179;&#10;n(NaOH) = c &#215; V = 0.100 &#215; 0.02455 = 2.455 &#215; 10&#8315;&#179; mol"></textarea>
+        </div>
+        <div class="control-group">
+          <label>Recommended Graph Type</label>
+          <select id="graphType">
+            <option value="">Select...</option>
+            <option value="scatter">Scatter plot — continuous IV and DV</option>
+            <option value="line">Line graph — time-series data</option>
+            <option value="bar">Bar chart — categorical IV</option>
+          </select>
+        </div>
+        <div class="teacher-panel">
+          <strong>Guidance:</strong> Processed data should include means with uncertainty propagation. Graph must show a clear relationship. For scatter plots, include line/curve of best fit.
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Graph Checklist</div>
+      <div class="sim-card-body">
+        <ul class="checklist" id="graphChecklist">
+          <li><input type="checkbox"><label>Descriptive title (not "x vs y")</label></li>
+          <li><input type="checkbox"><label>Independent variable on x-axis with units</label></li>
+          <li><input type="checkbox"><label>Dependent variable on y-axis with units</label></li>
+          <li><input type="checkbox"><label>Appropriate scale (data fills >50% of axes)</label></li>
+          <li><input type="checkbox"><label>Data points plotted accurately</label></li>
+          <li><input type="checkbox"><label>Line of best fit or curve (not dot-to-dot)</label></li>
+          <li><input type="checkbox"><label>Error bars shown (if applicable)</label></li>
+          <li><input type="checkbox"><label>Anomalous data identified and noted</label></li>
+        </ul>
+        <div style="margin-top:.75rem;">
+          <div style="display:flex;align-items:center;gap:.75rem;">
+            <span style="font-size:.82rem;font-weight:600;">Completion:</span>
+            <div style="flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;">
+              <div id="graphProgress" style="height:100%;background:var(--teal);border-radius:4px;transition:width .3s;width:0%;"></div>
+            </div>
+            <span id="graphProgressText" style="font-size:.78rem;font-weight:600;color:var(--teal);" aria-live="polite">0/8</span>
+          </div>
+        </div>
+        <div class="teacher-panel">
+          <strong>Common graph errors:</strong> Not starting axes at zero (when appropriate), connecting dots instead of best-fit line, missing units, using a line graph for non-continuous data.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB 3: CONCLUSION -->
+  <div class="tab-content" id="tab-conclusion" role="tabpanel">
+
+    <div class="sim-card">
+      <div class="sim-card-header">Answer the Research Question</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Your conclusion must directly answer the research question using evidence from your data.</div>
+        <div class="sentence-starter">
+          <div class="starter-label">State the relationship</div>
+          <div style="font-size:.82rem;margin-bottom:.25rem;">The data shows that <span style="color:var(--teal);font-weight:600;" id="concIV">[IV]</span> affects <span style="color:var(--blue);font-weight:600;" id="concDV">[DV]</span> by...</div>
+          <textarea id="concRelationship" rows="3" aria-label="State the relationship between variables" placeholder="Describe the relationship you found..."></textarea>
+        </div>
+        <div class="sentence-starter">
+          <div class="starter-label">Describe the trend</div>
+          <div style="font-size:.82rem;margin-bottom:.25rem;">As <span style="color:var(--teal);font-weight:600;" id="concIV2">[IV]</span> increased/changed, <span style="color:var(--blue);font-weight:600;" id="concDV2">[DV]</span>...</div>
+          <textarea id="concTrend" rows="3" aria-label="Describe the trend" placeholder="Describe what happened to the DV as the IV changed..."></textarea>
+        </div>
+        <div class="sentence-starter">
+          <div class="starter-label">Answer the RQ</div>
+          <textarea id="concAnswer" rows="3" aria-label="Answer the research question" placeholder="Therefore, the answer to the research question is..."></textarea>
+        </div>
+        <div class="teacher-panel">
+          <strong>Guidance:</strong> The conclusion must explicitly reference the RQ. Avoid vague language — use specific data values. A strong conclusion identifies the type of relationship (linear, proportional, inverse, etc.).
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Scientific Context</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Explain WHY the results occurred using relevant chemical theory. Connect your findings to the IB syllabus.</div>
+        <div class="sentence-starter">
+          <div class="starter-label">Theoretical explanation</div>
+          <textarea id="concTheory" rows="4" aria-label="Theoretical explanation" placeholder="This can be explained by... (reference relevant chemical theory, equations, or principles)"></textarea>
+        </div>
+        <div class="sentence-starter">
+          <div class="starter-label">Syllabus connection</div>
+          <textarea id="concSyllabus" rows="3" aria-label="Syllabus connection" placeholder="According to [theory/principle from the syllabus]... this is because..."></textarea>
+        </div>
+        <div class="teacher-panel" id="teacherContext">
+          <strong>Key theory connections:</strong><br><span id="teacherContextText"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Data Reference</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Cite specific data points or trends from your results to support your conclusion.</div>
+        <div class="sentence-starter">
+          <div class="starter-label">Specific data evidence</div>
+          <textarea id="concEvidence" rows="3" aria-label="Specific data evidence" placeholder="For example, when [IV] was [value], [DV] was [value]..."></textarea>
+        </div>
+        <div class="sentence-starter">
+          <div class="starter-label">Trend or gradient</div>
+          <textarea id="concGradient" rows="3" aria-label="Trend or gradient description" placeholder="The trend shows... / The gradient of the graph is [value], which represents..."></textarea>
+        </div>
+        <div class="teacher-panel">
+          <strong>Guidance:</strong> Quote at least 2-3 specific data points with units. Reference your graph. Mention whether the relationship is linear, proportional, exponential, etc.
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Literature Comparison &amp; Percentage Error</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Compare your experimental result to accepted/literature values and calculate percentage error.</div>
+        <div class="pct-error-calc">
+          <div class="input-group">
+            <label>Experimental Value</label>
+            <input type="number" id="expValue" step="any" placeholder="Your result">
+          </div>
+          <div class="input-group">
+            <label>Accepted / Literature Value</label>
+            <input type="number" id="litValue" step="any" placeholder="Literature value">
+          </div>
+          <div class="pct-error-result" id="pctErrorResult" aria-live="polite">— %</div>
+        </div>
+        <div class="sentence-starter">
+          <div class="starter-label">Interpretation</div>
+          <textarea id="concPctError" rows="3" aria-label="Percentage error interpretation" placeholder="The percentage error of [X]% suggests that..."></textarea>
+        </div>
+        <div class="teacher-panel" id="teacherLit">
+          <strong>Accepted values:</strong><br><span id="teacherLitText"></span><br>
+          <strong>Interpretation:</strong> Low % error (&lt;5%) indicates good accuracy. Higher % error should be explained in the Evaluation section using specific sources of error.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB 4: EVALUATION -->
+  <div class="tab-content" id="tab-evaluation" role="tabpanel">
+
+    <div class="sim-card">
+      <div class="sim-card-header">Strengths</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Identify what aspects of your methodology produced reliable, accurate results.</div>
+        <ul class="checklist" id="strengthChecklist">
+          <li><input type="checkbox"><label>Concordant results obtained (repeat trials consistent)</label></li>
+          <li><input type="checkbox"><label>Controlled variables were effectively maintained</label></li>
+          <li><input type="checkbox"><label>Appropriate number of trials (&#8805;3 per IV value)</label></li>
+          <li><input type="checkbox"><label>Precise equipment selected for measurements</label></li>
+          <li><input type="checkbox"><label>Sufficient range of IV values tested (&#8805;5)</label></li>
+        </ul>
+        <div style="margin-top:.75rem;">
+          <div class="sentence-starter">
+            <div class="starter-label">Additional Strengths</div>
+            <textarea id="evalStrengths" rows="3" aria-label="Additional strengths of method" placeholder="Describe other strengths of your method..."></textarea>
+          </div>
+        </div>
+        <div class="teacher-panel">
+          <strong>Guidance:</strong> Strengths should be specific to YOUR experiment, not generic. Link strengths to the reliability of specific results.
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Weaknesses</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Categorise weaknesses into systematic errors, random errors, and equipment limitations. Be specific — avoid generic statements.</div>
+
+        <div class="weakness-category" id="systematicWeaknesses">
+          <div class="cat-header"><span class="cat-dot systematic"></span>Systematic Errors (affect accuracy — shift all results in one direction)</div>
+          <div id="systematicList"></div>
+          <button class="btn btn-outline btn-sm" id="addSystematicBtn">+ Add Systematic Error</button>
+        </div>
+
+        <div class="weakness-category" id="randomWeaknesses">
+          <div class="cat-header"><span class="cat-dot random"></span>Random Errors (affect precision — scatter results)</div>
+          <div id="randomList"></div>
+          <button class="btn btn-outline btn-sm" id="addRandomBtn">+ Add Random Error</button>
+        </div>
+
+        <div class="weakness-category" id="equipmentWeaknesses">
+          <div class="cat-header"><span class="cat-dot equipment"></span>Equipment Limitations (instrument resolution/suitability)</div>
+          <div id="equipmentList"></div>
+          <button class="btn btn-outline btn-sm" id="addEquipmentBtn">+ Add Equipment Limitation</button>
+        </div>
+
+        <div class="teacher-panel" id="teacherWeakness">
+          <strong>Common weaknesses:</strong><br><span id="teacherWeaknessText"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Improvements</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">For each weakness, suggest a realistic improvement and explain why it would improve results. Generic improvements like "be more careful" score poorly.</div>
+        <div id="improvementsList"></div>
+        <div class="teacher-panel">
+          <strong>Guidance:</strong> Each improvement must be (1) linked to a specific weakness, (2) realistic and achievable, and (3) justified — explain HOW it reduces error.
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Extension</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Suggest a follow-up investigation that extends your work. This should be a genuinely new research question, not just "repeat with more trials".</div>
+        <div class="sentence-starter">
+          <div class="starter-label">Follow-up investigation</div>
+          <textarea id="evalExtension" rows="3" aria-label="Follow-up investigation" placeholder="A further investigation could explore..."></textarea>
+        </div>
+        <div class="sentence-starter">
+          <div class="starter-label">What would this test?</div>
+          <textarea id="evalExtTest" rows="3" aria-label="What the extension would test" placeholder="This would test whether..."></textarea>
+        </div>
+        <div class="sentence-starter">
+          <div class="starter-label">Variables</div>
+          <textarea id="evalExtVars" rows="2" aria-label="Extension investigation variables" placeholder="The independent variable would be... and the dependent variable would be..."></textarea>
+        </div>
+        <div class="teacher-panel" id="teacherExtension">
+          <strong>Extension ideas:</strong><br><span id="teacherExtText"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Rubric Self-Check — Criterion 4: Evaluation (6 marks)</div>
+      <div class="sim-card-body">
+        <div id="rubricEval">
+          <div class="rubric-card" data-mark="5-6"><div class="rubric-mark">5-6 Marks</div><div class="rubric-desc">The evaluation is <strong>detailed and relevant</strong>. Strengths and weaknesses are specific and well-explained. Improvements are <strong>realistic and justified</strong>. The extension is a genuine further investigation.</div></div>
+          <div class="rubric-card" data-mark="3-4"><div class="rubric-mark">3-4 Marks</div><div class="rubric-desc">The evaluation is <strong>mostly relevant</strong>. Some weaknesses and improvements are identified but may lack specificity or justification.</div></div>
+          <div class="rubric-card" data-mark="1-2"><div class="rubric-mark">1-2 Marks</div><div class="rubric-desc">The evaluation is <strong>superficial</strong>. Weaknesses are generic or vague. Improvements are unrealistic or unjustified.</div></div>
+          <div class="rubric-card" data-mark="0"><div class="rubric-mark">0 Marks</div><div class="rubric-desc">No evaluation is present or it is irrelevant to the investigation.</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd>-<kbd>4</kbd> Tabs &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>N</kbd> Next Tab
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  function clearChildren(el) { while (el.firstChild) el.removeChild(el.firstChild); }
+
+  /* ── Lab Data ── */
+  var LAB_DATA = {
+    calorimetry: {
+      name: 'Calorimetry Lab', file: 'SimEngine_CalorimetryLab.html',
+      exampleRQ: 'How does the choice of calorimeter material affect the accuracy of the enthalpy change measurement?',
+      iv: { name: 'Calorimeter material', measure: 'Polystyrene cup, glass beaker, metal can', range: '3 types' },
+      dv: { name: 'Temperature change / calculated enthalpy', measure: 'Digital probe (\u00b10.1 \u00b0C)', range: 'Record to \u00b10.1 \u00b0C' },
+      cvs: [
+        { name: 'Volume of solution', measure: 'Measuring cylinder (\u00b10.5 cm\u00b3)', range: '50.0 cm\u00b3' },
+        { name: 'Concentration of acid/base', measure: 'Prepared solution', range: '1.00 mol dm\u207b\u00b3' },
+        { name: 'Mass of solid (if used)', measure: 'Balance (\u00b10.01 g)', range: '2.00 g' }
+      ],
+      methodHints: [
+        'Select calorimeter type and measure mass of empty calorimeter',
+        'Measure volume of solution using measuring cylinder',
+        'Record initial temperature of solution',
+        'Add reagent and stir; record temperature every 30 s for 5 minutes',
+        'Plot temperature\u2013time graph and extrapolate to find maximum \u0394T',
+        'Repeat with different calorimeter materials (3 trials each)'
+      ],
+      safetyNotes: ['Wear safety goggles when handling acids/bases', 'Handle hot solutions with care', 'Dispose of solutions as instructed'],
+      uncertainties: { 'Thermometer': '\u00b10.5 \u00b0C', 'Digital probe': '\u00b10.1 \u00b0C', 'Measuring cylinder (50 cm\u00b3)': '\u00b10.5 cm\u00b3', 'Balance': '\u00b10.01 g' },
+      theoryContext: 'q = mc\u0394T. Heat loss to surroundings is the main source of systematic error. Polystyrene is a better insulator than glass or metal, so less heat is lost. Enthalpy is a state function \u2014 the route does not matter (Hess\u2019s Law).',
+      litValues: 'Neutralisation of strong acid + strong base: \u0394H = \u221257.1 kJ mol\u207b\u00b9 (literature). Combustion enthalpies vary by fuel \u2014 check IB data booklet.',
+      weaknesses: { systematic: ['Heat loss to surroundings (calorimeter is not perfectly insulated)', 'Incomplete combustion of fuel (soot on calorimeter)'], random: ['Difficulty reading thermometer at exact time intervals', 'Variation in stirring consistency'], equipment: ['Glass thermometer only reads to \u00b10.5 \u00b0C', 'Measuring cylinder less precise than pipette'] },
+      extensions: 'Investigate how lid design (no lid, cardboard lid, polystyrene lid) affects heat loss. Or compare enthalpy of neutralisation for different acid\u2013base pairs.'
+    },
+    titration: {
+      name: 'Titration Lab', file: 'SimEngine_TitrationLab.html',
+      exampleRQ: 'How does the choice of indicator affect the accuracy of an acid-base titration endpoint?',
+      iv: { name: 'Indicator type', measure: 'Phenolphthalein, methyl orange, bromothymol blue', range: '3 indicators' },
+      dv: { name: 'Titre volume / calculated concentration', measure: 'Burette (\u00b10.05 cm\u00b3 per reading)', range: 'Record to \u00b10.05 cm\u00b3' },
+      cvs: [
+        { name: 'Volume of analyte', measure: 'Pipette (\u00b10.06 cm\u00b3)', range: '25.00 cm\u00b3' },
+        { name: 'Concentration of titrant', measure: 'Prepared standard solution', range: '0.100 mol dm\u207b\u00b3' },
+        { name: 'Temperature', measure: 'Room temperature', range: '~25 \u00b0C' }
+      ],
+      methodHints: [
+        'Rinse and fill burette with titrant; record initial reading',
+        'Pipette 25.00 cm\u00b3 analyte into conical flask',
+        'Add 2\u20133 drops of indicator',
+        'Titrate drop-wise near endpoint; record final burette reading',
+        'Repeat until concordant results (within \u00b10.10 cm\u00b3)',
+        'Calculate mean titre from concordant values'
+      ],
+      safetyNotes: ['Wear safety goggles', 'Rinse skin immediately if acid/base contact', 'Use a white tile under the flask'],
+      uncertainties: { 'Burette (2 readings)': '\u00b10.10 cm\u00b3', 'Pipette (25 cm\u00b3)': '\u00b10.06 cm\u00b3', 'Volumetric flask (250 cm\u00b3)': '\u00b10.10 cm\u00b3' },
+      theoryContext: 'At the equivalence point, moles of acid = moles of base (adjusted for stoichiometry). The indicator must change colour within the steep region of the pH curve. Strong-strong: any indicator works. Weak-strong: use phenolphthalein (pH 8\u201310). Strong-weak: use methyl orange (pH 3\u20134).',
+      litValues: 'Concentration of unknown should match label within \u00b15%. Typical strong acid-base neutralisation: pH at equivalence = 7.0.',
+      weaknesses: { systematic: ['Overshooting the endpoint (adding too much titrant)', 'Air bubbles in burette tip'], random: ['Judging exact colour change of indicator', 'Parallax error reading burette meniscus'], equipment: ['Burette reads to \u00b10.05 cm\u00b3 (\u00d72 readings)', 'Using a measuring cylinder instead of pipette'] },
+      extensions: 'Compare the accuracy of a pH meter vs. indicator for endpoint detection. Or investigate the effect of temperature on the equivalence point.'
+    },
+    gravimetric: {
+      name: 'Gravimetric Analysis Lab', file: 'SimEngine_GravimetricLab.html',
+      exampleRQ: 'What is the value of x in the formula CuSO\u2084\u00b7xH\u2082O?',
+      iv: { name: 'Identity of hydrated salt', measure: 'CuSO\u2084\u00b7xH\u2082O, MgSO\u2084\u00b7xH\u2082O, etc.', range: '3\u20134 salts' },
+      dv: { name: 'Mass loss / moles of water', measure: 'Balance (\u00b10.001 g)', range: 'Record to \u00b10.001 g' },
+      cvs: [
+        { name: 'Heating time per cycle', measure: 'Stopwatch', range: '5 minutes' },
+        { name: 'Crucible type', measure: 'Same porcelain crucible', range: 'Consistent' },
+        { name: 'Sample mass', measure: 'Balance (\u00b10.001 g)', range: '~2.000 g' }
+      ],
+      methodHints: [
+        'Measure mass of empty crucible + lid',
+        'Add ~2 g of hydrated salt; record exact mass',
+        'Heat strongly over Bunsen burner for 5 minutes',
+        'Cool in desiccator; record mass',
+        'Repeat heating until constant mass (\u00b10.002 g)',
+        'Calculate mass of water lost and determine x'
+      ],
+      safetyNotes: ['Use crucible tongs \u2014 extremely hot', 'Place hot crucible on heat-resistant mat', 'Cool fully before weighing'],
+      uncertainties: { 'Balance': '\u00b10.001 g', 'Constant mass criterion': '\u00b10.002 g between successive heatings' },
+      theoryContext: 'Hydrated salts contain water of crystallisation in a fixed molar ratio. Heating drives off the water: CuSO\u2084\u00b75H\u2082O \u2192 CuSO\u2084 + 5H\u2082O. The ratio x = moles of water / moles of anhydrous salt.',
+      litValues: 'CuSO\u2084\u00b75H\u2082O: x = 5. MgSO\u2084\u00b77H\u2082O: x = 7. Na\u2082CO\u2083\u00b710H\u2082O: x = 10. CoCl\u2082\u00b76H\u2082O: x = 6.',
+      weaknesses: { systematic: ['Incomplete removal of water (not heated to constant mass)', 'Salt splattering out of crucible during heating'], random: ['Reabsorption of moisture from air during cooling', 'Variation in balance readings'], equipment: ['Balance precision limits the accuracy of small mass differences', 'Uneven heating from Bunsen burner'] },
+      extensions: 'Investigate whether the rate of heating (gentle vs. strong flame) affects the accuracy of the x value. Or compare results using an oven at controlled temperature vs. Bunsen burner.'
+    },
+    qualitative: {
+      name: 'Qualitative Analysis Lab', file: 'SimEngine_QualitativeAnalysis.html',
+      exampleRQ: 'How can flame tests and precipitation reactions be used to identify unknown ionic compounds?',
+      iv: { name: 'Identity of unknown compound', measure: 'Labelled unknowns A\u2013F', range: '6 unknowns' },
+      dv: { name: 'Observed flame colour / precipitate formation', measure: 'Visual observation', range: 'Qualitative observations' },
+      cvs: [
+        { name: 'Concentration of reagents', measure: 'Standard 0.1 mol dm\u207b\u00b3 solutions', range: 'Consistent' },
+        { name: 'Sample size', measure: 'Spatula tip / 1 cm\u00b3', range: 'Consistent' },
+        { name: 'Observation conditions', measure: 'Clean nichrome wire; fresh test tubes', range: 'Consistent' }
+      ],
+      methodHints: [
+        'Clean nichrome wire by dipping in HCl and heating until no colour',
+        'Dip wire in unknown, hold in blue flame, record colour',
+        'Dissolve sample in water; add NaOH(aq) dropwise, record precipitate',
+        'Test if precipitate dissolves in excess NaOH',
+        'Add AgNO\u2083(aq) then dilute HNO\u2083; record precipitate',
+        'Cross-reference results with data booklet to identify ions'
+      ],
+      safetyNotes: ['Wear safety goggles', 'HCl and NaOH are corrosive', 'AgNO\u2083 stains \u2014 wear gloves'],
+      uncertainties: { 'Qualitative observations': 'Subjective \u2014 compare to reference standards', 'Flame colour': 'Can be masked by sodium contamination' },
+      theoryContext: 'Metal cations produce characteristic flame colours due to electron excitation and de-excitation. Precipitation reactions test for specific anions and cations based on solubility rules (IB data booklet). AgNO\u2083 tests: Cl\u207b gives white ppt, Br\u207b gives cream, I\u207b gives yellow.',
+      litValues: 'Li\u207a: crimson. Na\u207a: yellow. K\u207a: lilac. Ca\u00b2\u207a: orange-red. Cu\u00b2\u207a: blue-green. Ba\u00b2\u207a: apple green.',
+      weaknesses: { systematic: ['Sodium contamination masking other flame colours', 'Not cleaning wire between tests'], random: ['Subjectivity in colour perception', 'Variable amounts of sample on wire'], equipment: ['Nichrome wire retains traces between tests', 'Bunsen flame colour can interfere'] },
+      extensions: 'Develop a systematic testing flowchart for identifying mixtures of two unknown salts. Or compare flame test results viewed through blue glass (to filter sodium).'
+    },
+    custom: {
+      name: 'Custom Investigation', file: null,
+      exampleRQ: '', iv: { name: '', measure: '', range: '' }, dv: { name: '', measure: '', range: '' },
+      cvs: [{ name: '', measure: '', range: '' }],
+      methodHints: [], safetyNotes: [], uncertainties: {},
+      theoryContext: '', litValues: '', weaknesses: { systematic: [], random: [], equipment: [] }, extensions: ''
+    }
+  };
+
+  var _currentLab = 'calorimetry';
+
+  /* ── Init ── */
+  function init() {
+    bindTabs();
+    bindToggles();
+    bindKeyboard();
+    bindLabSelector();
+    bindRQBuilder();
+    bindAddCV();
+    bindMethodSteps();
+    bindChecklists();
+    bindDataTable();
+    bindPctError();
+    bindRubricCards();
+    bindWeaknessButtons();
+    bindResetBtn();
+    bindPresets();
+    handleQueryParam();
+    loadLab(_currentLab);
+  }
+
+  /* ── Tabs ── */
+  function bindTabs() {
+    var btns = document.querySelectorAll('.tab-btn');
+    btns.forEach(function(btn) {
+      btn.addEventListener('click', function() { switchTab(btn.getAttribute('data-tab')); });
+    });
+    var psteps = document.querySelectorAll('.ia-progress-step');
+    psteps.forEach(function(step) {
+      step.addEventListener('click', function() { switchTab(step.getAttribute('data-ptab')); });
+    });
+  }
+
+  function switchTab(tabId) {
+    document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.tab-content').forEach(function(c) { c.classList.remove('active'); });
+    var btn = document.querySelector('.tab-btn[data-tab="' + tabId + '"]');
+    var content = document.getElementById('tab-' + tabId);
+    if (btn) btn.classList.add('active');
+    if (content) content.classList.add('active');
+    document.querySelectorAll('[role="tab"]').forEach(function(t){ t.setAttribute('aria-selected', t===btn ? 'true' : 'false'); });
+    updateProgress();
+  }
+
+  function nextTab() {
+    var tabs = ['design', 'analysis', 'conclusion', 'evaluation'];
+    var current = document.querySelector('.tab-btn.active');
+    var idx = tabs.indexOf(current ? current.getAttribute('data-tab') : 'design');
+    if (idx < tabs.length - 1) switchTab(tabs[idx + 1]);
+  }
+
+  /* ── Toggles ── */
+  function bindToggles() {
+    document.getElementById('hlToggle').addEventListener('change', function() {
+      document.body.classList.toggle('hl-active', this.checked);
+    });
+    document.getElementById('teacherToggle').addEventListener('change', function() {
+      document.body.classList.toggle('teacher-active', this.checked);
+    });
+  }
+
+  /* ── Keyboard ── */
+  function bindKeyboard() {
+    document.addEventListener('keydown', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+      var tabs = ['design', 'analysis', 'conclusion', 'evaluation'];
+      if (e.key >= '1' && e.key <= '4') { switchTab(tabs[parseInt(e.key) - 1]); return; }
+      switch(e.key.toLowerCase()) {
+        case 'h': var hl = document.getElementById('hlToggle'); hl.checked = !hl.checked; hl.dispatchEvent(new Event('change')); break;
+        case 't': var tc = document.getElementById('teacherToggle'); tc.checked = !tc.checked; tc.dispatchEvent(new Event('change')); break;
+        case 'n': nextTab(); break;
+        case 'r': resetAll(); break;
+      }
+    });
+  }
+
+  /* ── Lab Selector ── */
+  function bindLabSelector() {
+    document.getElementById('labSelect').addEventListener('change', function() {
+      loadLab(this.value);
+    });
+    document.getElementById('openLabBtn').addEventListener('click', function() {
+      var lab = LAB_DATA[_currentLab];
+      if (lab.file) window.open(lab.file, '_blank');
+    });
+  }
+
+  function loadLab(labKey) {
+    _currentLab = labKey;
+    var lab = LAB_DATA[labKey];
+
+    // RQ Builder
+    document.getElementById('rqIV').value = lab.iv.name;
+    document.getElementById('rqDV').value = lab.dv.name;
+    document.getElementById('rqCVs').value = lab.cvs.map(function(c) { return c.name; }).join(', ');
+    updateRQPreview();
+
+    // Variables table
+    document.getElementById('varIVName').value = lab.iv.name;
+    document.getElementById('varIVMeasure').value = lab.iv.measure;
+    document.getElementById('varIVRange').value = lab.iv.range;
+    document.getElementById('varDVName').value = lab.dv.name;
+    document.getElementById('varDVMeasure').value = lab.dv.measure;
+    document.getElementById('varDVRange').value = lab.dv.range;
+    var cvNames = document.querySelectorAll('.cvName');
+    var cvMeasures = document.querySelectorAll('.cvMeasure');
+    var cvRanges = document.querySelectorAll('.cvRange');
+    for (var i = 0; i < cvNames.length; i++) {
+      if (i < lab.cvs.length) {
+        cvNames[i].value = lab.cvs[i].name;
+        cvMeasures[i].value = lab.cvs[i].measure;
+        cvRanges[i].value = lab.cvs[i].range;
+      } else {
+        cvNames[i].value = '';
+        cvMeasures[i].value = '';
+        cvRanges[i].value = '';
+      }
+    }
+
+    // Method steps
+    loadMethodSteps(lab.methodHints);
+
+    // Teacher panels
+    document.getElementById('teacherRQText').textContent = lab.exampleRQ;
+    var varsText = 'IV: ' + lab.iv.name + ' (' + lab.iv.measure + ')\nDV: ' + lab.dv.name + ' (' + lab.dv.measure + ')\nCVs: ' + lab.cvs.map(function(c) { return c.name; }).join(', ');
+    document.getElementById('teacherVarsText').textContent = varsText;
+    document.getElementById('teacherMethodText').textContent = lab.methodHints.join(' \u2192 ');
+    document.getElementById('teacherSafetyText').textContent = lab.safetyNotes.join('; ');
+
+    // Uncertainty info
+    var uncDiv = document.getElementById('uncertaintyInfo');
+    clearChildren(uncDiv);
+    var uncKeys = Object.keys(lab.uncertainties);
+    if (uncKeys.length > 0) {
+      var grid = document.createElement('div');
+      grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.75rem;';
+      uncKeys.forEach(function(key) {
+        var card = document.createElement('div');
+        card.style.cssText = 'background:white;border:1px solid var(--border);border-radius:8px;padding:.75rem;text-align:center;';
+        var lbl = document.createElement('div');
+        lbl.style.cssText = 'font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;';
+        lbl.textContent = key;
+        var val = document.createElement('div');
+        val.style.cssText = 'font-size:1rem;font-weight:700;font-family:"Fira Code",monospace;color:var(--teal);margin-top:.25rem;';
+        val.textContent = lab.uncertainties[key];
+        card.appendChild(lbl);
+        card.appendChild(val);
+        grid.appendChild(card);
+      });
+      uncDiv.appendChild(grid);
+    }
+
+    // Conclusion tab — IV/DV labels
+    var ivText = lab.iv.name || '[IV]';
+    var dvText = lab.dv.name || '[DV]';
+    document.getElementById('concIV').textContent = ivText;
+    document.getElementById('concDV').textContent = dvText;
+    document.getElementById('concIV2').textContent = ivText;
+    document.getElementById('concDV2').textContent = dvText;
+
+    // Teacher panels — conclusion/evaluation
+    document.getElementById('teacherContextText').textContent = lab.theoryContext;
+    document.getElementById('teacherLitText').textContent = lab.litValues;
+
+    // Weaknesses — pre-populate
+    loadWeaknesses(lab.weaknesses);
+
+    // Extension teacher panel
+    document.getElementById('teacherExtText').textContent = lab.extensions;
+
+    // Teacher weakness text
+    var weakText = [];
+    if (lab.weaknesses.systematic.length) weakText.push('Systematic: ' + lab.weaknesses.systematic.join('; '));
+    if (lab.weaknesses.random.length) weakText.push('Random: ' + lab.weaknesses.random.join('; '));
+    if (lab.weaknesses.equipment.length) weakText.push('Equipment: ' + lab.weaknesses.equipment.join('; '));
+    document.getElementById('teacherWeaknessText').textContent = weakText.join('\n');
+
+    updateProgress();
+  }
+
+  /* ── RQ Builder ── */
+  function bindRQBuilder() {
+    ['rqIV', 'rqDV', 'rqCVs'].forEach(function(id) {
+      document.getElementById(id).addEventListener('input', updateRQPreview);
+    });
+  }
+
+  function updateRQPreview() {
+    var iv = document.getElementById('rqIV').value || '[IV]';
+    var dv = document.getElementById('rqDV').value || '[DV]';
+    var cvs = document.getElementById('rqCVs').value || '[CVs]';
+    var preview = document.getElementById('rqPreview');
+    clearChildren(preview);
+    preview.appendChild(document.createTextNode('How does '));
+    var ivSpan = document.createElement('span');
+    ivSpan.className = 'rq-slot';
+    ivSpan.textContent = iv;
+    preview.appendChild(ivSpan);
+    preview.appendChild(document.createTextNode(' affect '));
+    var dvSpan = document.createElement('span');
+    dvSpan.className = 'rq-slot';
+    dvSpan.textContent = dv;
+    preview.appendChild(dvSpan);
+    preview.appendChild(document.createTextNode(' when '));
+    var cvSpan = document.createElement('span');
+    cvSpan.className = 'rq-slot';
+    cvSpan.textContent = cvs;
+    preview.appendChild(cvSpan);
+    preview.appendChild(document.createTextNode(' are kept constant?'));
+  }
+
+  /* ── Add CV Row ── */
+  function bindAddCV() {
+    document.getElementById('addCVBtn').addEventListener('click', function() {
+      var tbody = document.getElementById('varTableBody');
+      var tr = document.createElement('tr');
+      var tdType = document.createElement('td');
+      var span = document.createElement('span');
+      span.className = 'var-type cv';
+      span.textContent = 'CV';
+      tdType.appendChild(span);
+      tr.appendChild(tdType);
+      var cvLabels = { cvName: 'Controlled variable name', cvMeasure: 'Controlled variable measurement tool', cvRange: 'Controlled variable range' };
+      ['cvName', 'cvMeasure', 'cvRange'].forEach(function(cls) {
+        var td = document.createElement('td');
+        var inp = document.createElement('input');
+        inp.type = 'text';
+        inp.className = cls;
+        inp.setAttribute('aria-label', cvLabels[cls]);
+        td.appendChild(inp);
+        tr.appendChild(td);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ── Method Steps ── */
+  function loadMethodSteps(hints) {
+    var container = document.getElementById('methodSteps');
+    clearChildren(container);
+    var steps = hints.length > 0 ? hints : ['', '', '', '', '', ''];
+    steps.forEach(function(hint, i) {
+      addMethodStepDOM(container, i + 1, hint);
+    });
+  }
+
+  function addMethodStepDOM(container, num, text) {
+    var div = document.createElement('div');
+    div.className = 'method-step';
+    var numDiv = document.createElement('div');
+    numDiv.className = 'method-num';
+    numDiv.textContent = num;
+    var ta = document.createElement('textarea');
+    ta.value = text || '';
+    ta.placeholder = 'Step ' + num + '...';
+    ta.rows = 1;
+    ta.setAttribute('aria-label', 'Method step ' + num);
+    ta.addEventListener('input', function() { autoResize(ta); });
+    div.appendChild(numDiv);
+    div.appendChild(ta);
+    container.appendChild(div);
+    autoResize(ta);
+  }
+
+  function bindMethodSteps() {
+    document.getElementById('addStepBtn').addEventListener('click', function() {
+      var container = document.getElementById('methodSteps');
+      var num = container.children.length + 1;
+      addMethodStepDOM(container, num, '');
+    });
+  }
+
+  function autoResize(ta) {
+    ta.style.height = 'auto';
+    ta.style.height = Math.max(40, ta.scrollHeight) + 'px';
+  }
+
+  /* ── Checklists ── */
+  function bindChecklists() {
+    document.addEventListener('change', function(e) {
+      if (e.target.type === 'checkbox' && e.target.closest('.checklist')) {
+        var li = e.target.closest('li');
+        if (li) li.classList.toggle('checked', e.target.checked);
+        updateGraphProgress();
+        updateProgress();
+      }
+    });
+  }
+
+  function updateGraphProgress() {
+    var checks = document.querySelectorAll('#graphChecklist input[type="checkbox"]');
+    var total = checks.length;
+    var done = 0;
+    checks.forEach(function(c) { if (c.checked) done++; });
+    var pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    document.getElementById('graphProgress').style.width = pct + '%';
+    document.getElementById('graphProgressText').textContent = done + '/' + total;
+  }
+
+  /* ── Data Table Builder ── */
+  function bindDataTable() {
+    document.getElementById('buildTableBtn').addEventListener('click', buildDataTable);
+    buildDataTable();
+  }
+
+  function buildDataTable() {
+    var lab = LAB_DATA[_currentLab];
+    var ivCount = parseInt(document.getElementById('ivCount').value) || 5;
+    var trials = parseInt(document.getElementById('trialCount').value) || 3;
+    var container = document.getElementById('dataTableContainer');
+    clearChildren(container);
+
+    var table = document.createElement('table');
+    table.className = 'data-table';
+
+    var thead = document.createElement('thead');
+    var headerRow = document.createElement('tr');
+    var ivTh = document.createElement('th');
+    ivTh.textContent = (lab.iv.name || 'IV') + ' / ' + (lab.iv.range || 'units');
+    headerRow.appendChild(ivTh);
+    for (var t = 1; t <= trials; t++) {
+      var th = document.createElement('th');
+      th.textContent = 'Trial ' + t;
+      headerRow.appendChild(th);
+    }
+    var meanTh = document.createElement('th');
+    meanTh.textContent = 'Mean';
+    meanTh.style.background = 'var(--teal)';
+    headerRow.appendChild(meanTh);
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    for (var r = 0; r < ivCount; r++) {
+      var tr = document.createElement('tr');
+      var ivTd = document.createElement('td');
+      var ivInput = document.createElement('input');
+      ivInput.type = 'text';
+      ivInput.style.fontWeight = '600';
+      ivTd.appendChild(ivInput);
+      tr.appendChild(ivTd);
+      for (var c = 0; c < trials; c++) {
+        var td = document.createElement('td');
+        var inp = document.createElement('input');
+        inp.type = 'text';
+        inp.className = 'trial-cell';
+        inp.setAttribute('data-row', String(r));
+        inp.addEventListener('input', calcMeans);
+        td.appendChild(inp);
+        tr.appendChild(td);
+      }
+      var meanTd = document.createElement('td');
+      var meanSpan = document.createElement('span');
+      meanSpan.className = 'mean-cell';
+      meanSpan.id = 'mean-' + r;
+      meanSpan.style.cssText = 'font-family:"Fira Code",monospace;font-weight:600;color:var(--teal);';
+      meanSpan.textContent = '\u2014';
+      meanTd.appendChild(meanSpan);
+      tr.appendChild(meanTd);
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    container.appendChild(table);
+  }
+
+  function calcMeans() {
+    var rows = {};
+    document.querySelectorAll('.trial-cell').forEach(function(inp) {
+      var r = inp.getAttribute('data-row');
+      if (!rows[r]) rows[r] = [];
+      var v = parseFloat(inp.value);
+      if (!isNaN(v)) rows[r].push(v);
+    });
+    Object.keys(rows).forEach(function(r) {
+      var meanEl = document.getElementById('mean-' + r);
+      if (meanEl) {
+        if (rows[r].length > 0) {
+          var sum = rows[r].reduce(function(a, b) { return a + b; }, 0);
+          meanEl.textContent = (sum / rows[r].length).toFixed(2);
+        } else {
+          meanEl.textContent = '\u2014';
+        }
+      }
+    });
+  }
+
+  /* ── % Error Calculator ── */
+  function bindPctError() {
+    document.getElementById('expValue').addEventListener('input', calcPctError);
+    document.getElementById('litValue').addEventListener('input', calcPctError);
+  }
+
+  function calcPctError() {
+    var exp = parseFloat(document.getElementById('expValue').value);
+    var lit = parseFloat(document.getElementById('litValue').value);
+    var result = document.getElementById('pctErrorResult');
+    if (!isNaN(exp) && !isNaN(lit) && lit !== 0) {
+      var pct = Math.abs((exp - lit) / lit) * 100;
+      result.textContent = pct.toFixed(1) + '%';
+      result.style.color = pct < 5 ? 'var(--green)' : pct < 15 ? 'var(--amber)' : 'var(--red)';
+    } else {
+      result.textContent = '\u2014 %';
+      result.style.color = 'var(--text)';
+    }
+  }
+
+  /* ── Rubric Cards ── */
+  function bindRubricCards() {
+    document.addEventListener('click', function(e) {
+      var card = e.target.closest('.rubric-card');
+      if (!card) return;
+      var container = card.parentElement;
+      container.querySelectorAll('.rubric-card').forEach(function(c) { c.classList.remove('selected'); });
+      card.classList.add('selected');
+    });
+  }
+
+  /* ── Weaknesses ── */
+  function bindWeaknessButtons() {
+    document.getElementById('addSystematicBtn').addEventListener('click', function() { addWeaknessDOM('systematic', ''); });
+    document.getElementById('addRandomBtn').addEventListener('click', function() { addWeaknessDOM('random', ''); });
+    document.getElementById('addEquipmentBtn').addEventListener('click', function() { addWeaknessDOM('equipment', ''); });
+  }
+
+  function loadWeaknesses(weaknesses) {
+    ['systematic', 'random', 'equipment'].forEach(function(cat) {
+      var list = document.getElementById(cat + 'List');
+      clearChildren(list);
+      var items = weaknesses[cat] || [];
+      items.forEach(function(text) {
+        addWeaknessDOM(cat, text);
+      });
+    });
+    updateImprovements();
+  }
+
+  function addWeaknessDOM(category, text) {
+    var list = document.getElementById(category + 'List');
+    var row = document.createElement('div');
+    row.className = 'weakness-row';
+    var ta = document.createElement('textarea');
+    ta.value = text || '';
+    ta.placeholder = 'Describe the ' + category + ' error...';
+    ta.setAttribute('aria-label', 'Describe ' + category + ' error');
+    ta.addEventListener('input', function() { updateImprovements(); });
+    var removeBtn = document.createElement('button');
+    removeBtn.className = 'btn btn-outline btn-sm';
+    removeBtn.textContent = '\u00d7';
+    removeBtn.style.padding = '.35rem .5rem';
+    removeBtn.addEventListener('click', function() {
+      row.remove();
+      updateImprovements();
+    });
+    row.appendChild(ta);
+    row.appendChild(removeBtn);
+    list.appendChild(row);
+  }
+
+  function updateImprovements() {
+    var container = document.getElementById('improvementsList');
+    clearChildren(container);
+    var allWeaknesses = [];
+    ['systematic', 'random', 'equipment'].forEach(function(cat) {
+      var list = document.getElementById(cat + 'List');
+      var textareas = list.querySelectorAll('textarea');
+      textareas.forEach(function(ta) {
+        if (ta.value.trim()) {
+          allWeaknesses.push({ category: cat, text: ta.value.trim() });
+        }
+      });
+    });
+
+    if (allWeaknesses.length === 0) {
+      var p = document.createElement('p');
+      p.style.cssText = 'color:var(--text-muted);font-size:.85rem;font-style:italic;';
+      p.textContent = 'Add weaknesses above \u2014 improvements will appear here automatically.';
+      container.appendChild(p);
+      return;
+    }
+
+    allWeaknesses.forEach(function(w) {
+      var pair = document.createElement('div');
+      pair.className = 'improvement-pair';
+
+      var ref = document.createElement('div');
+      ref.className = 'weak-ref';
+      var catLabel = w.category.charAt(0).toUpperCase() + w.category.slice(1);
+      ref.textContent = catLabel + ' error: ' + w.text;
+      pair.appendChild(ref);
+
+      var impGroup = document.createElement('div');
+      impGroup.style.marginBottom = '.5rem';
+      var impLabel = document.createElement('label');
+      impLabel.style.cssText = 'display:block;font-size:.75rem;font-weight:600;color:var(--teal);text-transform:uppercase;margin-bottom:.25rem;';
+      impLabel.textContent = 'Improvement';
+      var impTa = document.createElement('textarea');
+      impTa.style.cssText = 'width:100%;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.82rem;font-family:inherit;resize:vertical;min-height:2rem;';
+      impTa.placeholder = 'How would you fix this?';
+      impTa.setAttribute('aria-label', 'Improvement for ' + catLabel + ' error');
+      impGroup.appendChild(impLabel);
+      impGroup.appendChild(impTa);
+      pair.appendChild(impGroup);
+
+      var justGroup = document.createElement('div');
+      var justLabel = document.createElement('label');
+      justLabel.style.cssText = 'display:block;font-size:.75rem;font-weight:600;color:var(--blue);text-transform:uppercase;margin-bottom:.25rem;';
+      justLabel.textContent = 'Justification';
+      var justTa = document.createElement('textarea');
+      justTa.style.cssText = 'width:100%;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.82rem;font-family:inherit;resize:vertical;min-height:2rem;';
+      justTa.placeholder = 'This improvement would reduce ' + w.category + ' error because...';
+      justTa.setAttribute('aria-label', 'Justification for ' + catLabel + ' error improvement');
+      justGroup.appendChild(justLabel);
+      justGroup.appendChild(justTa);
+      pair.appendChild(justGroup);
+
+      container.appendChild(pair);
+    });
+  }
+
+  /* ── Progress Tracker ── */
+  function updateProgress() {
+    var tabs = ['design', 'analysis', 'conclusion', 'evaluation'];
+    var activeTab = document.querySelector('.tab-btn.active');
+    var activeId = activeTab ? activeTab.getAttribute('data-tab') : 'design';
+
+    tabs.forEach(function(tabId) {
+      var step = document.querySelector('.ia-progress-step[data-ptab="' + tabId + '"]');
+      if (!step) return;
+      step.classList.remove('active', 'done');
+      if (tabId === activeId) {
+        step.classList.add('active');
+      } else if (isTabStarted(tabId)) {
+        step.classList.add('done');
+      }
+    });
+  }
+
+  function isTabStarted(tabId) {
+    var tab = document.getElementById('tab-' + tabId);
+    if (!tab) return false;
+    var inputs = tab.querySelectorAll('input[type="text"], textarea');
+    for (var i = 0; i < inputs.length; i++) {
+      var el = inputs[i];
+      if (el.closest('#dataTableContainer')) continue;
+      if (el.id === 'ivCount' || el.id === 'trialCount') continue;
+      if (el.value && el.value.trim()) return true;
+    }
+    var checks = tab.querySelectorAll('.checklist input[type="checkbox"]:checked, .rubric-card.selected');
+    if (checks.length > 0) return true;
+    return false;
+  }
+
+  /* ── Reset ── */
+  function bindResetBtn() {
+    document.getElementById('resetBtn').addEventListener('click', resetAll);
+  }
+
+  function resetAll() {
+    if (!confirm('Reset all IA Scaffold data? This cannot be undone.')) return;
+    document.querySelectorAll('.sim-container input[type="text"], .sim-container textarea').forEach(function(el) {
+      el.value = '';
+    });
+    document.querySelectorAll('.sim-container input[type="checkbox"]').forEach(function(el) {
+      el.checked = false;
+      var li = el.closest('li');
+      if (li) li.classList.remove('checked');
+    });
+    document.querySelectorAll('.rubric-card.selected').forEach(function(c) { c.classList.remove('selected'); });
+    document.getElementById('ivCount').value = 5;
+    document.getElementById('trialCount').value = 3;
+    document.getElementById('expValue').value = '';
+    document.getElementById('litValue').value = '';
+    document.getElementById('pctErrorResult').textContent = '\u2014 %';
+    document.getElementById('pctErrorResult').style.color = 'var(--text)';
+    loadLab(_currentLab);
+    updateGraphProgress();
+    switchTab('design');
+  }
+
+  /* ── Teacher Presets ── */
+  function bindPresets() {
+    document.getElementById('presetSelect').addEventListener('change', function() {
+      var val = this.value;
+      if (val && LAB_DATA[val]) {
+        document.getElementById('labSelect').value = val;
+        loadLab(val);
+        this.value = '';
+      }
+    });
+  }
+
+  /* ── Query Parameter ── */
+  function handleQueryParam() {
+    try {
+      var params = new URLSearchParams(window.location.search);
+      var labParam = params.get('lab');
+      if (labParam && LAB_DATA[labParam]) {
+        document.getElementById('labSelect').value = labParam;
+        _currentLab = labParam;
+      }
+    } catch(e) { /* file:// may not support URLSearchParams in all browsers */ }
+  }
+
+  /* ── Start ── */
+  init();
+
+})();
+</script>
+<footer>SimEngine &mdash; IA Scaffold &bull; H=HL T=Teacher</footer>
+</body>
+</html>

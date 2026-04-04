@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stoichiometry Lab — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Caveat:wght@400;600&display=swap');
+  :root{--navy:#1B2A4A;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--light-bg:#F8FAFC;--card-bg:#FFFFFF;--text:#1E293B;--text-muted:#64748B;--border:#E2E8F0;--green:#059669;--red:#DC2626;--amber:#D97706;--teal-bg:#F0FDFA;--blue-bg:#EFF6FF;--red-bg:#FEF2F2;--green-bg:#F0FDF4;--amber-bg:#FFFBEB;--sim-canvas-bg:#FAFBFC;--hl-badge-bg:#7C3AED;--hl-border:rgba(124,58,237,0.2);--orange:#F59E0B;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',-apple-system,sans-serif;background:var(--light-bg);color:var(--text);line-height:1.6;font-size:16px;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;}
+  .header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;}.header .subtitle{font-size:.9rem;opacity:.85;}
+  .header-left{display:flex;flex-direction:column;gap:.25rem;}.header-right{display:flex;align-items:center;gap:1rem;}
+  .header-badge{display:inline-block;padding:.25rem .75rem;border-radius:999px;font-size:.75rem;font-weight:600;background:rgba(255,255,255,.15);color:white;}
+  .header-badge.hl{background:var(--hl-badge-bg);display:none;}body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.5rem;}.sim-toggle{position:relative;display:inline-block;width:40px;height:22px;}.sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:22px;transition:.2s;--toggle-on:var(--teal);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}.sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.8rem;font-weight:500;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.5rem;font-size:.85rem;font-weight:600;color:var(--text-muted);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;font-family:inherit;margin-bottom:-2px;}
+  .tab-btn:hover{color:var(--text);background:var(--teal-bg);}.tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);}
+  .tab-btn .tab-num{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:4px;font-size:.65rem;font-weight:700;background:var(--border);color:var(--text-muted);margin-right:.4rem;}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}.hl-tab{display:none;}body.hl-active .hl-tab{display:inline-block;}
+  .sim-container{max-width:1200px;margin:0 auto;padding:1.5rem;}
+  .sim-top-row{display:grid;grid-template-columns:240px 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+  .sim-card{background:var(--card-bg);border-radius:12px;border:1px solid var(--border);overflow:hidden;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-size:.85rem;font-weight:600;}
+  .sim-card-body{padding:1rem;}
+  .palette-panel{max-height:600px;display:flex;flex-direction:column;position:sticky;top:1rem;align-self:start;grid-column:1;grid-row:1;}
+  .tab-content{grid-column:2;grid-row:1;display:none;}.tab-content.active{display:block;}
+  .palette-panel .sim-card-body{padding:.5rem;overflow-y:auto;flex:1;}
+  .palette-search{width:100%;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.8rem;font-family:inherit;margin-bottom:.5rem;outline:none;}
+  .palette-search:focus{border-color:var(--teal);box-shadow:0 0 0 2px rgba(13,148,136,.15);}
+  .palette-category{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);padding:.4rem .3rem .2rem;margin-top:.3rem;}
+  .palette-item{display:block;width:100%;text-align:left;padding:.3rem .5rem;margin:.15rem 0;border-radius:6px;font-size:.75rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:white;color:var(--text);transition:all .15s;}
+  .palette-item:hover{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);}
+  .palette-item.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);font-weight:600;}
+  .sim-canvas{display:block;width:100%;background:var(--sim-canvas-bg);border-radius:4px;}
+  .check-btn{display:inline-block;padding:.5rem 1.2rem;margin-top:.75rem;background:var(--teal);color:white;border:none;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;}
+  .check-btn:hover{background:#0B7C73;}.check-btn:disabled{background:#CBD5E1;cursor:not-allowed;}
+  .hl-panel{display:none;}body.hl-active .hl-panel{display:block;}
+  .teacher-panel{display:none;}body.teacher-active .teacher-panel{display:block;}
+  .calc-step{padding:.4rem .6rem;margin:.3rem 0;border-radius:6px;font-size:.8rem;font-family:'Fira Code',monospace;background:var(--blue-bg);border-left:3px solid var(--blue);}
+  .calc-step.green{background:var(--green-bg);border-left-color:var(--green);}
+  .calc-step.amber{background:var(--amber-bg);border-left-color:var(--amber);}
+  .input-row{display:flex;gap:.75rem;flex-wrap:wrap;align-items:end;margin:.75rem 0;}
+  .input-group{display:flex;flex-direction:column;gap:.2rem;}
+  .input-group label{font-size:.72rem;font-weight:600;color:var(--text-muted);}
+  .input-group input,.input-group select{padding:.35rem .5rem;border:1px solid var(--border);border-radius:6px;font-size:.8rem;font-family:'Fira Code',monospace;width:120px;}
+  .input-group input:focus{border-color:var(--teal);outline:none;box-shadow:0 0 0 2px rgba(13,148,136,.15);}
+  .info-chip{display:inline-block;padding:.35rem .7rem;border-radius:6px;font-size:.75rem;font-weight:600;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(37,99,235,.2);margin:.2rem .3rem .2rem 0;}
+  .info-chip.teal{background:var(--teal-bg);color:var(--teal);border-color:rgba(13,148,136,.2);}
+  .info-chip.amber{background:var(--amber-bg);color:var(--amber);border-color:rgba(217,119,6,.2);}
+  .info-chip.green{background:var(--green-bg);color:var(--green);border-color:rgba(5,150,105,.2);}
+  .info-chip.red{background:var(--red-bg);color:var(--red);border-color:rgba(220,38,38,.2);}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  .preset-section{margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);display:none;}
+  .preset-section select{width:100%;padding:.35rem;border:1px solid var(--border);border-radius:6px;font-size:.75rem;font-family:inherit;cursor:pointer;}
+  body.teacher-active .preset-section{display:block;}
+  @media(max-width:900px){.sim-top-row{grid-template-columns:1fr;}.palette-panel{max-height:200px;position:static;}.tab-btn{padding:.6rem .8rem;font-size:.78rem;}}
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+<div class="header">
+  <div class="header-left"><h1>Stoichiometry Lab</h1><span class="subtitle">IB Chemistry — R2.1 Amounts in Reactions</span></div>
+  <div class="header-right">
+    <span class="header-badge">R2.1</span><span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group"><span class="sim-toggle-label">SL</span><label class="sim-toggle"><input type="checkbox" aria-label="Toggle HL content" id="hlToggle"><span class="sim-toggle-slider"></span></label><span class="sim-toggle-label">HL</span></div>
+    <div class="sim-toggle-group"><span class="sim-toggle-label">Student</span><label class="sim-toggle"><input type="checkbox" aria-label="Toggle teacher mode" id="teacherToggle"><span class="sim-toggle-slider" style="--toggle-on:var(--amber);"></span></label><span class="sim-toggle-label">Teacher</span></div>
+  </div>
+</div>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="yield" role="tab"><span class="tab-num">1</span>Percentage Yield</button>
+  <button class="tab-btn" data-tab="design" role="tab"><span class="tab-num">2</span>Experimental Design</button>
+  <button class="tab-btn hl-tab" data-tab="atom" role="tab"><span class="tab-num">3</span>Atom Economy</button>
+  <button class="tab-btn hl-tab" data-tab="back" role="tab"><span class="tab-num">4</span>Back-Titration</button>
+</div>
+<div class="sim-container" id="main-content"><div class="sim-top-row">
+  <div class="sim-card palette-panel">
+    <div class="sim-card-header">Reactions</div>
+    <div class="sim-card-body">
+      <input type="text" class="palette-search" id="paletteSearch" placeholder="Search reactions..." aria-label="Search reactions">
+      <div id="paletteList"></div>
+      <div class="preset-section" id="presetSection">
+        <select id="presetSelect" aria-label="Teacher presets">
+          <option value="">Teacher Presets...</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content active" id="tab-yield" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Percentage Yield Calculator</div>
+      <div class="sim-card-body">
+        <div id="yieldEquation" style="font-family:'Fira Code',monospace;font-size:.85rem;padding:.5rem .75rem;background:var(--blue-bg);border-radius:8px;border-left:3px solid var(--blue);margin-bottom:.75rem;"></div>
+        <canvas id="yieldCanvas" class="sim-canvas" height="180" role="img" aria-label="Theoretical vs actual yield comparison"></canvas>
+        <div class="input-row">
+          <div class="input-group"><label>Mass of reactant (g)</label><input type="number" id="yieldMassIn" value="5.00" step="0.01" min="0"></div>
+          <div class="input-group"><label>Mass of product (g)</label><input type="number" id="yieldMassOut" value="3.20" step="0.01" min="0"></div>
+          <button class="check-btn" id="yieldCalcBtn" style="margin-top:0;">Calculate</button>
+        </div>
+        <div id="yieldCalc" style="margin-top:.5rem;"></div>
+        <div id="yieldReasons" style="margin-top:.75rem;font-size:.8rem;line-height:1.7;"></div>
+        <div class="teacher-panel" id="yieldTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-design" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Experimental Design Planner</div>
+      <div class="sim-card-body">
+        <div id="designEquation" style="font-family:'Fira Code',monospace;font-size:.85rem;padding:.5rem .75rem;background:var(--blue-bg);border-radius:8px;border-left:3px solid var(--blue);margin-bottom:.75rem;"></div>
+        <div class="input-row">
+          <div class="input-group"><label>Target product mass (g)</label><input type="number" id="designTarget" value="10.0" step="0.1" min="0"></div>
+          <div class="input-group"><label>Expected yield (%)</label><input type="number" id="designYield" value="80" step="1" min="1" max="100"></div>
+          <button class="check-btn" id="designCalcBtn" style="margin-top:0;">Plan</button>
+        </div>
+        <div id="designCalc" style="margin-top:.75rem;"></div>
+        <canvas id="designCanvas" class="sim-canvas" height="160" style="margin-top:.75rem;" role="img" aria-label="Experimental workflow"></canvas>
+        <div class="teacher-panel" id="designTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-atom" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Atom Economy</div>
+      <div class="sim-card-body">
+        <div id="atomEquation" style="font-family:'Fira Code',monospace;font-size:.85rem;padding:.5rem .75rem;background:var(--blue-bg);border-radius:8px;border-left:3px solid var(--blue);margin-bottom:.75rem;"></div>
+        <canvas id="atomCanvas" class="sim-canvas" height="220" role="img" aria-label="Atom economy pie chart"></canvas>
+        <div id="atomCalc" style="margin-top:.75rem;"></div>
+        <div id="atomInfo" style="margin-top:.75rem;font-size:.8rem;line-height:1.7;"></div>
+        <div class="teacher-panel" id="atomTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-back" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Back-Titration</div>
+      <div class="sim-card-body">
+        <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;" id="backPresets"></div>
+        <div id="backScenario" style="font-size:.85rem;line-height:1.7;margin-bottom:.75rem;padding:.6rem;background:var(--teal-bg);border-radius:8px;border:1px solid rgba(13,148,136,.2);"></div>
+        <canvas id="backCanvas" class="sim-canvas" height="200" role="img" aria-label="Back-titration flow diagram"></canvas>
+        <div id="backCalc" style="margin-top:.75rem;"></div>
+        <div class="teacher-panel" id="backTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL toggle &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd>\u2013<kbd>4</kbd> Tabs &nbsp;
+  <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>\u2191\u2193</kbd> Navigate &nbsp; <kbd>E</kbd> Export
+</div>
+
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){if(typeof r==='number')r=[r,r,r,r];this.beginPath();this.moveTo(x+(r[0]||0),y);this.lineTo(x+w-(r[1]||0),y);this.quadraticCurveTo(x+w,y,x+w,y+(r[1]||0));this.lineTo(x+w,y+h-(r[2]||0));this.quadraticCurveTo(x+w,y+h,x+w-(r[2]||0),y+h);this.lineTo(x+(r[3]||0),y+h);this.quadraticCurveTo(x,y+h,x,y+h-(r[3]||0));this.lineTo(x,y+(r[0]||0));this.quadraticCurveTo(x,y,x+(r[0]||0),y);this.closePath();return this;};}
+
+(function(){
+'use strict';
+function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined&&text!==null)e.textContent=text;return e;}
+function setupCanvas(c){var d=window.devicePixelRatio||1,w=c.offsetWidth;if(!c.dataset.baseHeight)c.dataset.baseHeight=c.getAttribute('height')||'300';var h=parseInt(c.dataset.baseHeight);c.width=w*d;c.height=h*d;c.style.height=h+'px';var ctx=c.getContext('2d');ctx.setTransform(d,0,0,d,0,0);return ctx;}
+function round(v,d){if(d===undefined)d=2;var m=Math.pow(10,d);return Math.round(v*m)/m;}
+
+// ── DATA ──
+var REACTIONS=[
+  {id:'mgo',name:'Mg + O\u2082 \u2192 MgO',equation:'2Mg + O\u2082 \u2192 2MgO',reactant:'Mg',product:'MgO',rMr:24.31,pMr:40.30,ratio:[2,2],typicalYield:85,cat:'synthesis',
+   atomEconomy:100,allProductsMr:[40.30],allProductsCoeff:[2],wasteProducts:[],
+   backTitration:null},
+  {id:'cuso4',name:'CuO + H\u2082SO\u2084 \u2192 CuSO\u2084',equation:'CuO + H\u2082SO\u2084 \u2192 CuSO\u2084 + H\u2082O',reactant:'CuO',product:'CuSO\u2084',rMr:79.55,pMr:159.61,ratio:[1,1],typicalYield:78,cat:'acid-base',
+   atomEconomy:90,allProductsMr:[159.61,18.02],allProductsCoeff:[1,1],wasteProducts:['H\u2082O'],
+   backTitration:null},
+  {id:'aspirin',name:'Aspirin synthesis',equation:'C\u2087H\u2086O\u2083 + C\u2084H\u2086O\u2083 \u2192 C\u2089H\u2088O\u2084 + CH\u2083COOH',reactant:'C\u2087H\u2086O\u2083 (salicylic acid)',product:'C\u2089H\u2088O\u2084 (aspirin)',rMr:138.12,pMr:180.16,ratio:[1,1],typicalYield:70,cat:'organic',
+   atomEconomy:75,allProductsMr:[180.16,60.05],allProductsCoeff:[1,1],wasteProducts:['CH\u2083COOH'],
+   backTitration:null},
+  {id:'ester',name:'Esterification',equation:'CH\u2083COOH + C\u2082H\u2085OH \u2192 CH\u2083COOC\u2082H\u2085 + H\u2082O',reactant:'CH\u2083COOH',product:'CH\u2083COOC\u2082H\u2085 (ethyl acetate)',rMr:60.05,pMr:88.11,ratio:[1,1],typicalYield:65,cat:'organic',
+   atomEconomy:83,allProductsMr:[88.11,18.02],allProductsCoeff:[1,1],wasteProducts:['H\u2082O'],
+   backTitration:null},
+  {id:'feso4',name:'Fe + CuSO\u2084 \u2192 FeSO\u2084',equation:'Fe + CuSO\u2084 \u2192 FeSO\u2084 + Cu',reactant:'Fe',product:'Cu',rMr:55.85,pMr:63.55,ratio:[1,1],typicalYield:90,cat:'redox',
+   atomEconomy:29,allProductsMr:[63.55,151.91],allProductsCoeff:[1,1],wasteProducts:['FeSO\u2084'],
+   backTitration:null},
+  {id:'nahco3',name:'NaHCO\u2083 + HCl',equation:'NaHCO\u2083 + HCl \u2192 NaCl + H\u2082O + CO\u2082',reactant:'NaHCO\u2083',product:'NaCl',rMr:84.01,pMr:58.44,ratio:[1,1],typicalYield:92,cat:'acid-base',
+   atomEconomy:40,allProductsMr:[58.44,18.02,44.01],allProductsCoeff:[1,1,1],wasteProducts:['H\u2082O','CO\u2082'],
+   backTitration:null},
+  {id:'caco3egg',name:'% CaCO\u2083 in eggshell',equation:'CaCO\u2083 + 2HCl \u2192 CaCl\u2082 + H\u2082O + CO\u2082',reactant:'CaCO\u2083',product:'CaCl\u2082',rMr:100.09,pMr:110.98,ratio:[1,1],typicalYield:95,cat:'back-titration',
+   atomEconomy:null,allProductsMr:null,allProductsCoeff:null,wasteProducts:null,
+   backTitration:{sample:'eggshell',sampleMass:2.50,acidConc:1.0,acidVol:50.0,acidMr:'HCl',baseConc:0.50,baseFormula:'NaOH',titreVol:18.6,acidMoles2:0.05,analyte:'CaCO\u2083',analyteMr:100.09,ratioAcidAnalyte:2,expected:94}},
+  {id:'mgoantacid',name:'% MgO in antacid',equation:'MgO + 2HCl \u2192 MgCl\u2082 + H\u2082O',reactant:'MgO',product:'MgCl\u2082',rMr:40.30,pMr:95.21,ratio:[1,1],typicalYield:90,cat:'back-titration',
+   atomEconomy:null,allProductsMr:null,allProductsCoeff:null,wasteProducts:null,
+   backTitration:{sample:'antacid tablet',sampleMass:1.50,acidConc:0.50,acidVol:50.0,acidMr:'HCl',baseConc:0.10,baseFormula:'NaOH',titreVol:22.4,acidMoles2:0.025,analyte:'MgO',analyteMr:40.30,ratioAcidAnalyte:2,expected:42}}
+];
+var RXN_ORDER=REACTIONS.map(function(r){return r.id;});
+var CAT_LABELS={'synthesis':'Synthesis','acid-base':'Acid-Base','organic':'Organic','redox':'Redox','back-titration':'Back-Titration (HL)'};
+
+// ── STATE ──
+var _activeTab='yield',_selectedRxn='mgo',_selectedBack='caco3egg';
+
+// ── PALETTE ──
+var paletteSearch=document.getElementById('paletteSearch'),paletteList=document.getElementById('paletteList');
+var presetSelect=document.getElementById('presetSelect');
+function getRxn(id){for(var i=0;i<REACTIONS.length;i++)if(REACTIONS[i].id===id)return REACTIONS[i];return null;}
+
+function buildPalette(){
+  while(paletteList.firstChild)paletteList.removeChild(paletteList.firstChild);
+  var filter=paletteSearch.value.toLowerCase();
+  var cats=['synthesis','acid-base','organic','redox','back-titration'];
+  for(var ci=0;ci<cats.length;ci++){
+    var cat=cats[ci],first=true;
+    for(var i=0;i<REACTIONS.length;i++){
+      var r=REACTIONS[i];if(r.cat!==cat)continue;
+      if(filter&&r.name.toLowerCase().indexOf(filter)===-1)continue;
+      if(first){paletteList.appendChild(el('div','palette-category',CAT_LABELS[cat]));first=false;}
+      var active=(_activeTab==='back'?r.id===_selectedBack:r.id===_selectedRxn);
+      var btn=el('button','palette-item'+(active?' active':''),r.name);
+      btn.setAttribute('data-rxn',r.id);
+      btn.addEventListener('click',function(){
+        var id=this.getAttribute('data-rxn');
+        var rx=getRxn(id);
+        if(rx.cat==='back-titration'){_selectedBack=id;}else{_selectedRxn=id;}
+        buildPalette();refreshTab();
+      });
+      paletteList.appendChild(btn);
+    }
+  }
+  buildPresets();
+}
+paletteSearch.addEventListener('input',buildPalette);
+
+function buildPresets(){
+  presetSelect.textContent='';
+  var def=document.createElement('option');def.value='';def.textContent='Teacher Presets...';presetSelect.appendChild(def);
+  var presets=[];
+  if(_activeTab==='yield') presets=[{name:'Iron from Iron Oxide',value:'mgo'},{name:'Aspirin Synthesis',value:'aspirin'},{name:'Esterification',value:'ester'}];
+  else if(_activeTab==='design') presets=[{name:'Acid-Carbonate Gas Collection',value:'nahco3'},{name:'CuSO\u2084 from CuO',value:'cuso4'}];
+  else if(_activeTab==='atom') presets=[{name:'Atom Economy Comparison',value:'feso4'},{name:'Aspirin AE',value:'aspirin'}];
+  else if(_activeTab==='back') presets=[{name:'CaCO\u2083 in Eggshell',value:'caco3egg'},{name:'MgO in Antacid',value:'mgoantacid'}];
+  for(var i=0;i<presets.length;i++){var o=document.createElement('option');o.value=presets[i].value;o.textContent=presets[i].name;presetSelect.appendChild(o);}
+}
+presetSelect.addEventListener('change',function(){
+  var val=this.value;if(!val)return;
+  var items=paletteList.querySelectorAll('.palette-item');
+  for(var i=0;i<items.length;i++){
+    var id=items[i].getAttribute('data-rxn');
+    if(id===val){items[i].click();break;}
+  }
+  this.value='';
+});
+
+// ── TABS ──
+var tabBtns=document.querySelectorAll('.tab-btn');
+function switchTab(id){
+  if((id==='atom'||id==='back')&&!document.body.classList.contains('hl-active'))return;
+  _activeTab=id;
+  for(var i=0;i<tabBtns.length;i++)tabBtns[i].classList.toggle('active',tabBtns[i].getAttribute('data-tab')===id);
+  document.querySelectorAll('.tab-content').forEach(function(tc){tc.classList.toggle('active',tc.id==='tab-'+id);});
+  buildPalette();refreshTab();
+}
+for(var i=0;i<tabBtns.length;i++)tabBtns[i].addEventListener('click',function(){switchTab(this.getAttribute('data-tab'));});
+function refreshTab(){setTimeout(function(){
+  if(_activeTab==='yield')renderYield();
+  else if(_activeTab==='design')renderDesign();
+  else if(_activeTab==='atom')renderAtom();
+  else if(_activeTab==='back')renderBack();
+},20);}
+
+// ══════════════════════════════════
+// TAB 1 \u2014 PERCENTAGE YIELD
+// ══════════════════════════════════
+document.getElementById('yieldCalcBtn').addEventListener('click',function(){renderYield(true);});
+
+function renderYield(calc){
+  var rxn=getRxn(_selectedRxn);if(!rxn)return;
+  document.getElementById('yieldEquation').textContent=rxn.equation;
+
+  var massIn=parseFloat(document.getElementById('yieldMassIn').value)||0;
+  var massOut=parseFloat(document.getElementById('yieldMassOut').value)||0;
+
+  // Canvas: theoretical vs actual beakers
+  var canvas=document.getElementById('yieldCanvas');
+  if(canvas&&canvas.offsetWidth){
+    var ctx=setupCanvas(canvas);
+    var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight||180);
+    ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+    var molesIn=massIn/rxn.rMr;
+    var theoretical=molesIn*(rxn.ratio[1]/rxn.ratio[0])*rxn.pMr;
+    var pctYield=theoretical>0?massOut/theoretical*100:0;
+
+    // Theoretical beaker
+    var bw=80,bh=100,gap=60;
+    var b1x=W/2-bw-gap/2,b2x=W/2+gap/2,by=30;
+    drawBeaker(ctx,b1x,by,bw,bh,1,'#3B82F6','Theoretical');
+    drawBeaker(ctx,b2x,by,bw,bh,Math.min(1,pctYield/100),'#0D9488','Actual');
+
+    ctx.font='600 13px "Fira Code"';ctx.textAlign='center';
+    ctx.fillStyle='#3B82F6';ctx.fillText(round(theoretical,2)+' g',b1x+bw/2,by+bh+35);
+    ctx.fillStyle='#0D9488';ctx.fillText(massOut+' g',b2x+bw/2,by+bh+35);
+
+    if(calc&&pctYield>0){
+      ctx.font='bold 16px "Fira Code"';
+      ctx.fillStyle=pctYield>85?'#059669':pctYield>60?'#D97706':'#DC2626';
+      ctx.fillText(round(pctYield,1)+'%',W/2,by+bh/2);
+    }
+  }
+
+  var calcDiv=document.getElementById('yieldCalc');
+  while(calcDiv.firstChild)calcDiv.removeChild(calcDiv.firstChild);
+  if(calc&&massIn>0&&massOut>0){
+    var molesIn=massIn/rxn.rMr;
+    var theoretical=molesIn*(rxn.ratio[1]/rxn.ratio[0])*rxn.pMr;
+    var pctYield=massOut/theoretical*100;
+    var steps=[
+      'n('+rxn.reactant+') = '+massIn+' / '+rxn.rMr+' = '+round(molesIn,4)+' mol',
+      'n('+rxn.product.split(' ')[0]+') = '+round(molesIn,4)+' \u00D7 '+rxn.ratio[1]+'/'+rxn.ratio[0]+' = '+round(molesIn*rxn.ratio[1]/rxn.ratio[0],4)+' mol',
+      'Theoretical yield = '+round(molesIn*rxn.ratio[1]/rxn.ratio[0],4)+' \u00D7 '+rxn.pMr+' = '+round(theoretical,2)+' g',
+      '% Yield = ('+massOut+' / '+round(theoretical,2)+') \u00D7 100 = '+round(pctYield,1)+'%'
+    ];
+    for(var s=0;s<steps.length;s++){
+      var cls='calc-step'+(s===steps.length-1?(pctYield>85?' green':' amber'):'');
+      calcDiv.appendChild(el('div',cls,steps[s]));
+    }
+  }
+
+  var reasons=document.getElementById('yieldReasons');
+  reasons.textContent='';
+  reasons.appendChild(el('strong','','Why is yield less than 100%? '));
+  reasons.appendChild(document.createTextNode('Incomplete reaction, side reactions, loss during transfer/filtration/washing, impure reactants, equilibrium position (for reversible reactions). Typical yield for ' + rxn.name + ': ~' + rxn.typicalYield + '%.'));
+
+  var td=document.getElementById('yieldTeacher');
+  td.textContent='';td.appendChild(el('strong','','Teaching Notes: '));
+  td.appendChild(document.createTextNode('Students should calculate % yield and evaluate sources of error. Key misconception: % yield cannot exceed 100% (if it does, product is impure or contains solvent). For IA work, students should compare their yield to literature values.'));
+}
+
+function drawBeaker(ctx,x,y,w,h,fillFrac,color,label){
+  ctx.beginPath();ctx.roundRect(x,y,w,h,[0,0,6,6]);
+  ctx.strokeStyle='#94A3B8';ctx.lineWidth=2;ctx.stroke();
+  if(fillFrac>0){
+    var fh=h*fillFrac*0.85;
+    ctx.beginPath();ctx.roundRect(x+2,y+h-fh-2,w-4,fh,[0,0,4,4]);
+    ctx.fillStyle=color;ctx.globalAlpha=0.25;ctx.fill();ctx.globalAlpha=1;
+  }
+  ctx.font='600 11px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';
+  ctx.fillText(label,x+w/2,y-6);
+}
+
+// ══════════════════════════════════
+// TAB 2 \u2014 EXPERIMENTAL DESIGN
+// ══════════════════════════════════
+document.getElementById('designCalcBtn').addEventListener('click',function(){renderDesign(true);});
+
+function renderDesign(calc){
+  var rxn=getRxn(_selectedRxn);if(!rxn)return;
+  document.getElementById('designEquation').textContent=rxn.equation;
+
+  var calcDiv=document.getElementById('designCalc');
+  while(calcDiv.firstChild)calcDiv.removeChild(calcDiv.firstChild);
+
+  if(calc){
+    var target=parseFloat(document.getElementById('designTarget').value)||10;
+    var expYield=parseFloat(document.getElementById('designYield').value)||80;
+    var adjustedTarget=target/(expYield/100);
+    var molesProduct=adjustedTarget/rxn.pMr;
+    var molesReactant=molesProduct*(rxn.ratio[0]/rxn.ratio[1]);
+    var massReactant=molesReactant*rxn.rMr;
+
+    var steps=[
+      'Target: '+target+' g of '+rxn.product.split(' ')[0],
+      'Adjusted for '+expYield+'% yield: '+round(adjustedTarget,2)+' g theoretical needed',
+      'n(product) = '+round(adjustedTarget,2)+' / '+rxn.pMr+' = '+round(molesProduct,4)+' mol',
+      'n('+rxn.reactant+') = '+round(molesProduct,4)+' \u00D7 '+rxn.ratio[0]+'/'+rxn.ratio[1]+' = '+round(molesReactant,4)+' mol',
+      'Mass('+rxn.reactant+') = '+round(molesReactant,4)+' \u00D7 '+rxn.rMr+' = '+round(massReactant,2)+' g'
+    ];
+    for(var s=0;s<steps.length;s++){
+      var cls='calc-step'+(s===steps.length-1?' green':'');
+      calcDiv.appendChild(el('div',cls,steps[s]));
+    }
+    calcDiv.appendChild(el('div','calc-step amber','Weigh '+round(massReactant,2)+' g of '+rxn.reactant+' to produce \u2265'+target+' g of product'));
+  }
+
+  // Workflow canvas
+  var canvas=document.getElementById('designCanvas');
+  if(canvas&&canvas.offsetWidth){
+    var ctx=setupCanvas(canvas);
+    var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight||160);
+    ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+    var steps=['Weigh\nreactant','React','Collect\nproduct','Dry &\nweigh','Calculate\nyield'];
+    var stepW=80,gap=(W-steps.length*stepW)/(steps.length+1);
+    for(var i=0;i<steps.length;i++){
+      var sx=gap+(stepW+gap)*i,sy=H/2-25;
+      ctx.beginPath();ctx.roundRect(sx,sy,stepW,50,8);
+      ctx.fillStyle=i===0?'var(--teal-bg)':'#F8FAFC';
+      ctx.fillStyle=i<steps.length-1?'rgba(13,148,136,0.1)':'rgba(5,150,105,0.15)';
+      ctx.fill();ctx.strokeStyle=i<steps.length-1?'#0D9488':'#059669';ctx.lineWidth=1.5;ctx.stroke();
+      ctx.font='500 10px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';
+      var lines=steps[i].split('\n');
+      for(var l=0;l<lines.length;l++)ctx.fillText(lines[l],sx+stepW/2,sy+22+l*14-(lines.length>1?5:0));
+      // Arrow
+      if(i<steps.length-1){
+        var ax=sx+stepW+3,ay=H/2;
+        ctx.fillStyle='#0D9488';ctx.beginPath();
+        ctx.moveTo(ax,ay-4);ctx.lineTo(ax+gap-6,ay-4);ctx.lineTo(ax+gap-6,ay-8);ctx.lineTo(ax+gap,ay);
+        ctx.lineTo(ax+gap-6,ay+8);ctx.lineTo(ax+gap-6,ay+4);ctx.lineTo(ax,ay+4);ctx.fill();
+      }
+    }
+  }
+
+  var td=document.getElementById('designTeacher');
+  td.textContent='';td.appendChild(el('strong','','Teaching Notes: '));
+  td.appendChild(document.createTextNode('This planner supports IA experimental design. Students should: (1) account for expected yield when calculating reactant mass, (2) identify the limiting reagent, (3) plan apparatus and method steps. Ask: "What would happen if you used exactly the stoichiometric amount?"'));
+}
+
+// ══════════════════════════════════
+// TAB 3 \u2014 ATOM ECONOMY (HL)
+// ══════════════════════════════════
+function renderAtom(){
+  var rxn=getRxn(_selectedRxn);if(!rxn||!rxn.allProductsMr)return;
+  document.getElementById('atomEquation').textContent=rxn.equation;
+
+  // Calculate atom economy
+  var desiredMrTotal=rxn.pMr*rxn.ratio[1];
+  var totalMrAll=0;
+  for(var i=0;i<rxn.allProductsMr.length;i++)totalMrAll+=rxn.allProductsMr[i]*rxn.allProductsCoeff[i];
+  var ae=desiredMrTotal/totalMrAll*100;
+
+  // Pie chart
+  var canvas=document.getElementById('atomCanvas');
+  if(canvas&&canvas.offsetWidth){
+    var ctx=setupCanvas(canvas);
+    var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight||220);
+    ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+    var cx=W/2-60,cy=H/2,r=70;
+    // Useful slice
+    var usefulAngle=ae/100*Math.PI*2;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,-Math.PI/2,-Math.PI/2+usefulAngle);ctx.closePath();
+    ctx.fillStyle='rgba(5,150,105,0.6)';ctx.fill();ctx.strokeStyle='#059669';ctx.lineWidth=2;ctx.stroke();
+    // Waste slice
+    if(ae<100){
+      ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,-Math.PI/2+usefulAngle,-Math.PI/2+Math.PI*2);ctx.closePath();
+      ctx.fillStyle='rgba(220,38,38,0.2)';ctx.fill();ctx.strokeStyle='#DC2626';ctx.lineWidth=2;ctx.stroke();
+    }
+    // Center label
+    ctx.font='bold 18px "Fira Code"';ctx.fillStyle=ae>80?'#059669':ae>50?'#D97706':'#DC2626';
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(round(ae,1)+'%',cx,cy);
+
+    // Legend
+    var lx=W/2+40,ly=H/2-30;
+    ctx.font='600 11px Inter';ctx.textAlign='left';
+    ctx.fillStyle='#059669';ctx.beginPath();ctx.roundRect(lx,ly,14,14,3);ctx.fill();
+    ctx.fillStyle='#1E293B';ctx.fillText('Desired product',lx+20,ly+11);
+    if(ae<100){
+      ctx.fillStyle='rgba(220,38,38,0.4)';ctx.beginPath();ctx.roundRect(lx,ly+22,14,14,3);ctx.fill();
+      ctx.fillStyle='#1E293B';ctx.fillText('Waste: '+rxn.wasteProducts.join(', '),lx+20,ly+33);
+    }
+  }
+
+  var calcDiv=document.getElementById('atomCalc');
+  while(calcDiv.firstChild)calcDiv.removeChild(calcDiv.firstChild);
+  calcDiv.appendChild(el('div','calc-step','AE = (Mr desired product \u00D7 coeff) / (total Mr all products \u00D7 coeffs) \u00D7 100'));
+  calcDiv.appendChild(el('div','calc-step','AE = ('+rxn.pMr+' \u00D7 '+rxn.ratio[1]+') / '+round(totalMrAll,2)+' \u00D7 100 = '+round(ae,1)+'%'));
+
+  var info=document.getElementById('atomInfo');
+  info.textContent='';
+  info.appendChild(el('strong','','Atom Economy: '));
+  var aeText=ae>=95?'This is an addition reaction \u2014 all atoms end up in the desired product (100% AE). ':
+    ae>=80?'Good atom economy. Most atoms are incorporated into the useful product. ':
+    'Low atom economy \u2014 significant waste products are formed. In green chemistry, reactions with high AE are preferred.';
+  info.appendChild(document.createTextNode(aeText));
+  if(rxn.wasteProducts&&rxn.wasteProducts.length>0){
+    info.appendChild(document.createTextNode('Waste products: '+rxn.wasteProducts.join(', ')+'.'));
+  }
+
+  var td=document.getElementById('atomTeacher');
+  td.textContent='';td.appendChild(el('strong','','HL Teaching Notes: '));
+  td.appendChild(document.createTextNode('Atom economy is a measure of efficiency: what fraction of reactant atoms end up in the desired product. Addition reactions have 100% AE. Substitution reactions have lower AE. This is different from percentage yield \u2014 a reaction can have high yield but low AE (e.g., lots of waste but efficient conversion). Green chemistry principle #2.'));
+}
+
+// ══════════════════════════════════
+// TAB 4 \u2014 BACK-TITRATION (HL)
+// ══════════════════════════════════
+function buildBackPresets(){
+  var div=document.getElementById('backPresets');
+  while(div.firstChild)div.removeChild(div.firstChild);
+  var presets=REACTIONS.filter(function(r){return r.backTitration;});
+  for(var i=0;i<presets.length;i++){
+    var btn=el('button','check-btn'+(presets[i].id===_selectedBack?' ':' '),presets[i].backTitration.sample);
+    if(presets[i].id===_selectedBack)btn.style.background='#0D9488';
+    else{btn.style.background='white';btn.style.color='#1E293B';btn.style.border='1px solid #E2E8F0';}
+    btn.setAttribute('data-back',presets[i].id);
+    btn.style.marginTop='0';
+    btn.addEventListener('click',function(){_selectedBack=this.getAttribute('data-back');buildPalette();buildBackPresets();renderBack();});
+    div.appendChild(btn);
+  }
+}
+
+function renderBack(){
+  buildBackPresets();
+  var rxn=getRxn(_selectedBack);if(!rxn||!rxn.backTitration)return;
+  var bt=rxn.backTitration;
+
+  var scenario=document.getElementById('backScenario');
+  scenario.textContent='';
+  scenario.appendChild(el('strong','','Scenario: '));
+  scenario.appendChild(document.createTextNode('Determine the % '+bt.analyte+' in '+bt.sample+'. A '+bt.sampleMass+' g sample is dissolved in '+bt.acidVol+' cm\u00B3 of '+bt.acidConc+' mol/dm\u00B3 '+bt.acidMr+' (excess). The unreacted acid is titrated with '+bt.baseConc+' mol/dm\u00B3 '+bt.baseFormula+'. Average titre: '+bt.titreVol+' cm\u00B3.'));
+
+  // Flow diagram
+  var canvas=document.getElementById('backCanvas');
+  if(canvas&&canvas.offsetWidth){
+    var ctx=setupCanvas(canvas);
+    var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight||200);
+    ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+    var boxes=[
+      {text:'Add excess\n'+bt.acidMr+' to sample',color:'#DC2626'},
+      {text:bt.analyte+'\nreacts with\n'+bt.acidMr,color:'#D97706'},
+      {text:'Titrate unreacted\n'+bt.acidMr+' with\n'+bt.baseFormula,color:'#2563EB'},
+      {text:'Calculate\nmoles & %',color:'#059669'}
+    ];
+    var bw=110,bh=70,gap=(W-boxes.length*bw)/(boxes.length+1);
+    for(var i=0;i<boxes.length;i++){
+      var bx=gap+(bw+gap)*i,by=H/2-bh/2;
+      ctx.beginPath();ctx.roundRect(bx,by,bw,bh,8);
+      ctx.fillStyle='rgba('+hexToRgb(boxes[i].color)+',0.1)';ctx.fill();
+      ctx.strokeStyle=boxes[i].color;ctx.lineWidth=1.5;ctx.stroke();
+      ctx.font='500 10px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';
+      var lines=boxes[i].text.split('\n');
+      for(var l=0;l<lines.length;l++)ctx.fillText(lines[l],bx+bw/2,by+bh/2-((lines.length-1)*6)+l*14);
+      if(i<boxes.length-1){
+        var ax=bx+bw+3,ay=H/2;
+        ctx.fillStyle=boxes[i].color;ctx.beginPath();
+        ctx.moveTo(ax,ay-3);ctx.lineTo(ax+gap-6,ay-3);ctx.lineTo(ax+gap-6,ay-6);ctx.lineTo(ax+gap,ay);
+        ctx.lineTo(ax+gap-6,ay+6);ctx.lineTo(ax+gap-6,ay+3);ctx.lineTo(ax,ay+3);ctx.fill();
+      }
+    }
+  }
+
+  // Calculation
+  var calcDiv=document.getElementById('backCalc');
+  while(calcDiv.firstChild)calcDiv.removeChild(calcDiv.firstChild);
+
+  var initialAcidMoles=bt.acidConc*bt.acidVol/1000;
+  var baseMoles=bt.baseConc*bt.titreVol/1000;
+  var unreactedAcid=baseMoles;// 1:1 for HCl:NaOH
+  var reactedAcid=initialAcidMoles-unreactedAcid;
+  var molesAnalyte=reactedAcid/bt.ratioAcidAnalyte;
+  var massAnalyte=molesAnalyte*bt.analyteMr;
+  var pctAnalyte=massAnalyte/bt.sampleMass*100;
+
+  var steps=[
+    {t:'Step 1: n('+bt.acidMr+') initial = '+bt.acidConc+' \u00D7 '+bt.acidVol+'/1000 = '+round(initialAcidMoles,4)+' mol',c:''},
+    {t:'Step 2: n('+bt.baseFormula+') = '+bt.baseConc+' \u00D7 '+bt.titreVol+'/1000 = '+round(baseMoles,4)+' mol',c:''},
+    {t:'Step 3: n('+bt.acidMr+') unreacted = '+round(unreactedAcid,4)+' mol (1:1 with '+bt.baseFormula+')',c:''},
+    {t:'Step 4: n('+bt.acidMr+') reacted = '+round(initialAcidMoles,4)+' \u2212 '+round(unreactedAcid,4)+' = '+round(reactedAcid,4)+' mol',c:' amber'},
+    {t:'Step 5: n('+bt.analyte+') = '+round(reactedAcid,4)+' / '+bt.ratioAcidAnalyte+' = '+round(molesAnalyte,4)+' mol',c:''},
+    {t:'Step 6: mass('+bt.analyte+') = '+round(molesAnalyte,4)+' \u00D7 '+bt.analyteMr+' = '+round(massAnalyte,3)+' g',c:''},
+    {t:'Step 7: % '+bt.analyte+' = ('+round(massAnalyte,3)+' / '+bt.sampleMass+') \u00D7 100 = '+round(pctAnalyte,1)+'%',c:' green'}
+  ];
+  for(var s=0;s<steps.length;s++)calcDiv.appendChild(el('div','calc-step'+steps[s].c,steps[s].t));
+
+  var td=document.getElementById('backTeacher');
+  td.textContent='';td.appendChild(el('strong','','HL Teaching Notes: '));
+  td.appendChild(document.createTextNode('Back-titration is used when the analyte is insoluble, reacts slowly, or is a solid. Key logic: add known excess acid, let it react, then titrate the leftover acid. Common pitfall: students forget the mole ratio between acid and analyte. Expected answer for '+bt.sample+': ~'+bt.expected+'% '+bt.analyte+'.'));
+}
+
+function hexToRgb(hex){var r=parseInt(hex.slice(1,3),16),g=parseInt(hex.slice(3,5),16),b=parseInt(hex.slice(5,7),16);return r+','+g+','+b;}
+
+// ── EXPORT ──
+function exportCSV(){
+  var rows=[['Reaction','Reactant Mr','Product Mr','Ratio','Typical Yield']];
+  for(var i=0;i<REACTIONS.length;i++){var r=REACTIONS[i];rows.push([r.name,r.rMr,r.pMr,r.ratio.join(':'),r.typicalYield+'%']);}
+  var csv=rows.map(function(r){return r.join(',');}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='StoichiometryLab_export.csv';a.click();
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
+  switch(e.key.toLowerCase()){
+    case'h':var hl=document.getElementById('hlToggle');hl.checked=!hl.checked;document.body.classList.toggle('hl-active',hl.checked);
+      if(!hl.checked&&(_activeTab==='atom'||_activeTab==='back'))switchTab('yield');break;
+    case't':var tc=document.getElementById('teacherToggle');tc.checked=!tc.checked;document.body.classList.toggle('teacher-active',tc.checked);break;
+    case'1':switchTab('yield');break;case'2':switchTab('design');break;case'3':switchTab('atom');break;case'4':switchTab('back');break;
+    case'r':refreshTab();break;
+    case'/':e.preventDefault();paletteSearch.focus();break;
+    case'e':exportCSV();break;
+    case'arrowup':case'arrowdown':
+      e.preventDefault();var items=paletteList.querySelectorAll('.palette-item');if(!items.length)return;
+      var ai=-1;for(var i=0;i<items.length;i++)if(items[i].classList.contains('active')){ai=i;break;}
+      ai=e.key==='ArrowUp'?(ai<=0?items.length-1:ai-1):(ai>=items.length-1?0:ai+1);
+      items[ai].click();items[ai].scrollIntoView({block:'nearest'});break;
+  }
+});
+document.getElementById('hlToggle').addEventListener('change',function(){document.body.classList.toggle('hl-active',this.checked);if(!this.checked&&(_activeTab==='atom'||_activeTab==='back'))switchTab('yield');});
+document.getElementById('teacherToggle').addEventListener('change',function(){document.body.classList.toggle('teacher-active',this.checked);});
+window.addEventListener('resize',refreshTab);
+
+// ── INIT ──
+buildPalette();
+renderYield();
+})();
+</script>
+<footer>SimEngine &mdash; Stoichiometry Lab &bull; H=HL T=Teacher</footer>
+</body>
+</html>

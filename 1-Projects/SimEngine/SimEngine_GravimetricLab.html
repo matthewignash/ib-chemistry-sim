@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gravimetric Analysis Lab — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--blue-bg:#EFF6FF;--teal-bg:#F0FDFA;--amber-bg:#FFFBEB;--red-bg:#FEF2F2;--purple-bg:#F5F3FF;--toggle-on:#0D9488;--green:#16A34A;--orange:#EA580C;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+  .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-right{display:flex;align-items:center;gap:.75rem;}
+  .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
+  .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.35rem;}
+  .sim-toggle{position:relative;width:40px;height:22px;display:inline-block;}
+  .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:11px;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.25rem;background:none;border:none;border-bottom:3px solid transparent;font-size:.82rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+  .tab-btn .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);font-size:.65rem;font-weight:700;color:var(--text-muted);}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .sim-container{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+  .sim-card{background:var(--card-bg);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;margin-bottom:1.5rem;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-weight:600;font-size:.85rem;}
+  .sim-card-body{padding:1.25rem;}
+  .scenario-box{background:var(--blue-bg);border:1px solid #BFDBFE;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.88rem;line-height:1.7;}
+  .btn{padding:.5rem 1.25rem;border:none;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+  .btn-teal{background:var(--teal);color:white;} .btn-teal:hover{background:#0F766E;}
+  .btn-teal:disabled{background:#CBD5E1;cursor:not-allowed;}
+  .btn-outline{background:white;color:var(--text);border:1px solid var(--border);} .btn-outline:hover{background:#F8FAFC;}
+  .btn-red{background:var(--red);color:white;} .btn-red:hover{background:#B91C1C;}
+  .btn-row{display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;}
+  .feedback{padding:.75rem 1rem;border-radius:8px;margin-top:1rem;font-size:.88rem;font-weight:500;}
+  .feedback.correct{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;}
+  .feedback.incorrect{background:var(--red-bg);color:var(--red);border:1px solid #FECACA;}
+  .feedback.info{background:var(--blue-bg);color:#1E40AF;border:1px solid #BFDBFE;}
+  .result-table{width:100%;border-collapse:collapse;margin-top:1rem;font-size:.82rem;}
+  .result-table th,.result-table td{padding:.5rem .75rem;border:1px solid var(--border);text-align:left;}
+  .result-table th{background:var(--navy);color:white;font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;}
+  .result-table td{font-size:.82rem;} .result-table tr:nth-child(even){background:#F8FAFC;}
+  .teacher-panel{display:none;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.82rem;}
+  body.teacher-active .teacher-panel{display:block;}
+  .preset-section{display:none;margin-bottom:1rem;}
+  .preset-section select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--border);font-size:.8rem;font-family:inherit;}
+  body.teacher-active .preset-section{display:block;}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  .mono{font-family:'Fira Code',monospace;}
+
+  /* Gravimetric-specific */
+  .lab-layout{display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;}
+  .canvas-wrap{flex:0 0 340px;}
+  .canvas-wrap canvas{border:1px solid var(--border);border-radius:8px;background:#F8FAFC;}
+  .controls-panel{flex:1;min-width:280px;}
+  .control-group{margin-bottom:1rem;}
+  .control-group label{display:block;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.35rem;}
+  .control-group select{width:100%;padding:.45rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.85rem;font-family:inherit;}
+  .balance-display{background:#0F172A;border-radius:10px;padding:.75rem 1.25rem;margin:.75rem 0;text-align:center;border:2px solid #334155;}
+  .balance-label{font-size:.65rem;font-weight:600;color:#94A3B8;text-transform:uppercase;letter-spacing:.05em;}
+  .balance-value{font-size:1.6rem;font-weight:700;color:#4ADE80;font-family:'Fira Code',monospace;letter-spacing:.05em;}
+  .balance-unit{font-size:.85rem;color:#94A3B8;margin-left:.25rem;}
+  .mass-log{max-height:200px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;margin:.75rem 0;}
+  .mass-log-row{display:flex;justify-content:space-between;align-items:center;padding:.4rem .75rem;font-size:.82rem;border-bottom:1px solid var(--border);}
+  .mass-log-row:last-child{border-bottom:none;}
+  .mass-log-row.header{background:var(--navy);color:white;font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.03em;}
+  .mass-log-row .step-label{font-weight:500;}
+  .mass-log-row .mass-val{font-family:'Fira Code',monospace;font-weight:600;}
+  .mass-log-row.constant{background:#DCFCE7;}
+  .step-guide{counter-reset:step;}
+  .step-guide .step{display:flex;gap:.75rem;align-items:flex-start;margin-bottom:.75rem;padding:.5rem;border-radius:6px;background:#F8FAFC;}
+  .step-guide .step::before{counter-increment:step;content:counter(step);display:flex;align-items:center;justify-content:center;min-width:24px;height:24px;border-radius:50%;background:var(--teal);color:white;font-size:.7rem;font-weight:700;margin-top:.1rem;}
+  .step-content{flex:1;font-size:.85rem;}
+  .step-content .step-title{font-weight:600;margin-bottom:.2rem;}
+  .calc-section{background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:1rem;}
+  .practice-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem;margin-bottom:1.25rem;}
+  .stat-card{background:white;border:1px solid var(--border);border-radius:8px;padding:.75rem;text-align:center;}
+  .stat-card .stat-label{font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .stat-card .stat-value{font-size:1.3rem;font-weight:700;color:var(--teal);font-family:'Fira Code',monospace;}
+  .flame-glow{animation:flicker 0.15s infinite alternate;}
+  @keyframes flicker{0%{opacity:0.85;}100%{opacity:1;}}
+  @media(max-width:700px){.lab-layout{flex-direction:column;}.canvas-wrap{flex:none;width:100%;}.tab-btn{padding:.6rem .7rem;font-size:.75rem;}}
+  .ia-guide-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--teal);color:white;border:none;border-radius:8px 0 0 8px;padding:.75rem .4rem;cursor:pointer;font-size:.75rem;font-weight:700;writing-mode:vertical-rl;z-index:201;font-family:inherit;}
+  .ia-guide-toggle:hover{background:#0F766E;}
+  .ia-guide-panel{position:fixed;right:0;top:0;width:320px;height:100%;background:white;border-left:2px solid var(--teal);box-shadow:-4px 0 12px rgba(0,0,0,.1);transform:translateX(100%);transition:transform .3s ease;z-index:200;overflow-y:auto;padding:1.25rem 1rem;}
+  .ia-guide-panel.open{transform:translateX(0);}
+  .ia-guide-panel h3{font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:.75rem;}
+  .ia-guide-panel .ia-section{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+  .ia-guide-panel .ia-section:last-of-type{border-bottom:none;}
+  .ia-guide-panel .ia-label{font-size:.72rem;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.35rem;}
+  .ia-guide-panel .ia-hint{font-size:.82rem;line-height:1.6;color:var(--text);}
+  .ia-guide-panel .ia-vars dt{font-weight:600;color:var(--text);margin-top:.4rem;font-size:.8rem;}
+  .ia-guide-panel .ia-vars dd{color:var(--text-muted);margin-left:1rem;font-size:.8rem;line-height:1.5;}
+  .ia-guide-panel .btn-open-scaffold{display:block;width:100%;margin-top:1rem;text-align:center;text-decoration:none;}
+
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div>
+    <h1>Gravimetric Analysis Lab<span class="subtitle">IB Chemistry — S1.4, R2.1</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">S1.4</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="teacherToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" role="tab" data-tab="hydrate"><span class="tab-num">1</span>Water of Crystallisation</button>
+  <button class="tab-btn" role="tab" data-tab="decomp"><span class="tab-num">2</span>Thermal Decomposition</button>
+  <button class="tab-btn" role="tab" data-tab="precip"><span class="tab-num">3</span>Precipitation</button>
+  <button class="tab-btn" role="tab" data-tab="analysis"><span class="tab-num">4</span>Analysis</button>
+</div>
+
+<div class="sim-container" id="main-content">
+
+  <!-- Presets (teacher only) -->
+  <div class="preset-section">
+    <label style="font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.25rem;display:block;">Teacher Presets</label>
+    <select id="presetSelect">
+      <option value="">Select a preset...</option>
+      <option value="cuso4">Water of Crystallisation: CuSO₄·5H₂O</option>
+      <option value="mgso4">Water of Crystallisation: MgSO₄·7H₂O</option>
+      <option value="cuco3">Thermal Decomposition: CuCO₃</option>
+      <option value="caco3">Thermal Decomposition: CaCO₃</option>
+      <option value="sulfate">Precipitation: Sulfate determination (BaSO₄)</option>
+      <option value="chloride">Precipitation: Chloride determination (AgCl)</option>
+    </select>
+  </div>
+
+  <!-- Tab 1: Water of Crystallisation -->
+  <div id="tab-hydrate" class="tab-content active" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Determining Water of Crystallisation</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          Heat a known mass of hydrated salt in a crucible until constant mass is achieved. The mass loss equals the water of crystallisation driven off. Use the data to determine the value of <em>x</em> in the formula M·<em>x</em>H₂O.
+        </div>
+        <div class="lab-layout">
+          <div class="canvas-wrap">
+            <canvas id="hydCanvas" width="340" height="420" role="img" aria-label="Water of crystallisation experiment with crucible and Bunsen burner"></canvas>
+          </div>
+          <div class="controls-panel">
+            <div class="control-group">
+              <label>Hydrated Salt</label>
+              <select id="hydSaltSelect">
+                <option value="cuso4_5">CuSO₄·xH₂O (blue crystals)</option>
+                <option value="mgso4_7">MgSO₄·xH₂O (white crystals)</option>
+                <option value="na2co3_10">Na₂CO₃·xH₂O (white crystals)</option>
+                <option value="cocl2_6">CoCl₂·xH₂O (pink crystals)</option>
+              </select>
+            </div>
+            <div class="balance-display">
+              <div class="balance-label">Balance Reading</div>
+              <div class="balance-value" id="hydBalance">0.000<span class="balance-unit">g</span></div>
+            </div>
+            <div id="hydMassLog" class="mass-log"></div>
+            <div class="btn-row" id="hydBtnRow">
+              <button class="btn btn-teal" id="hydWeighEmpty">Weigh Empty Crucible</button>
+              <button class="btn btn-teal" id="hydAddSalt" style="display:none;">Add Salt to Crucible</button>
+              <button class="btn btn-red" id="hydHeat" style="display:none;">Heat Strongly</button>
+              <button class="btn btn-outline" id="hydCoolWeigh" style="display:none;">Cool &amp; Weigh</button>
+              <button class="btn btn-teal" id="hydCalc" style="display:none;">Calculate x</button>
+              <button class="btn btn-outline" id="hydReset">Reset</button>
+            </div>
+            <div id="hydCalcSection" style="display:none;">
+              <div class="calc-section">
+                <div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem;">Determine x in the formula</div>
+                <div class="step-guide" id="hydStepGuide"></div>
+              </div>
+            </div>
+            <div class="teacher-panel" id="hydTeacherPanel">
+              <div style="font-weight:600;margin-bottom:.35rem;">Teacher Notes</div>
+              <div id="hydTeacherContent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Thermal Decomposition -->
+  <div id="tab-decomp" class="tab-content" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Thermal Decomposition — Mass Loss Method</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          Heat a metal carbonate strongly. It decomposes to form the metal oxide and carbon dioxide gas. The mass loss equals the mass of CO₂ released. Use the data to identify the metal carbonate or verify its molar mass.
+        </div>
+        <div class="lab-layout">
+          <div class="canvas-wrap">
+            <canvas id="decCanvas" width="340" height="420" role="img" aria-label="Thermal decomposition experiment with crucible and Bunsen burner"></canvas>
+          </div>
+          <div class="controls-panel">
+            <div class="control-group">
+              <label>Metal Carbonate</label>
+              <select id="decSaltSelect">
+                <option value="cuco3">CuCO₃ (green powder)</option>
+                <option value="caco3">CaCO₃ (white powder)</option>
+                <option value="znco3">ZnCO₃ (white powder)</option>
+                <option value="mgco3">MgCO₃ (white powder)</option>
+              </select>
+            </div>
+            <div class="balance-display">
+              <div class="balance-label">Balance Reading</div>
+              <div class="balance-value" id="decBalance">0.000<span class="balance-unit">g</span></div>
+            </div>
+            <div id="decMassLog" class="mass-log"></div>
+            <div class="btn-row" id="decBtnRow">
+              <button class="btn btn-teal" id="decWeighEmpty">Weigh Empty Crucible</button>
+              <button class="btn btn-teal" id="decAddSalt" style="display:none;">Add Carbonate</button>
+              <button class="btn btn-red" id="decHeat" style="display:none;">Heat Strongly</button>
+              <button class="btn btn-outline" id="decCoolWeigh" style="display:none;">Cool &amp; Weigh</button>
+              <button class="btn btn-teal" id="decCalc" style="display:none;">Calculate</button>
+              <button class="btn btn-outline" id="decReset">Reset</button>
+            </div>
+            <div id="decCalcSection" style="display:none;">
+              <div class="calc-section">
+                <div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem;">Identify the metal carbonate</div>
+                <div class="step-guide" id="decStepGuide"></div>
+              </div>
+            </div>
+            <div class="teacher-panel" id="decTeacherPanel">
+              <div style="font-weight:600;margin-bottom:.35rem;">Teacher Notes</div>
+              <div id="decTeacherContent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Precipitation Gravimetry -->
+  <div id="tab-precip" class="tab-content" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Precipitation Gravimetry</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          Determine the concentration of an ion by precipitating it as an insoluble compound, filtering, drying, and weighing. The mass of precipitate allows calculation of the original ion concentration.
+        </div>
+        <div class="lab-layout">
+          <div class="canvas-wrap">
+            <canvas id="prCanvas" width="340" height="420" role="img" aria-label="Precipitation gravimetry experiment with filtration apparatus"></canvas>
+          </div>
+          <div class="controls-panel">
+            <div class="control-group">
+              <label>Determination</label>
+              <select id="prTypeSelect">
+                <option value="sulfate">Sulfate: add BaCl₂ → BaSO₄ precipitate</option>
+                <option value="chloride">Chloride: add AgNO₃ → AgCl precipitate</option>
+              </select>
+            </div>
+            <div id="prScenarioBox" class="scenario-box" style="background:var(--teal-bg);border-color:var(--teal);"></div>
+            <div class="balance-display">
+              <div class="balance-label">Balance Reading</div>
+              <div class="balance-value" id="prBalance">0.000<span class="balance-unit">g</span></div>
+            </div>
+            <div id="prMassLog" class="mass-log"></div>
+            <div class="btn-row" id="prBtnRow">
+              <button class="btn btn-teal" id="prStart">Start Experiment</button>
+              <button class="btn btn-teal" id="prAddReagent" style="display:none;">Add Excess Reagent</button>
+              <button class="btn btn-outline" id="prFilter" style="display:none;">Filter &amp; Wash</button>
+              <button class="btn btn-red" id="prDry" style="display:none;">Dry in Oven</button>
+              <button class="btn btn-outline" id="prWeigh" style="display:none;">Weigh Precipitate</button>
+              <button class="btn btn-teal" id="prCalc" style="display:none;">Calculate</button>
+              <button class="btn btn-outline" id="prReset">Reset</button>
+            </div>
+            <div id="prCalcSection" style="display:none;">
+              <div class="calc-section">
+                <div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem;">Calculate the ion concentration</div>
+                <div class="step-guide" id="prStepGuide"></div>
+              </div>
+            </div>
+            <div class="teacher-panel" id="prTeacherPanel">
+              <div style="font-weight:600;margin-bottom:.35rem;">Teacher Notes</div>
+              <div id="prTeacherContent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 4: Analysis -->
+  <div id="tab-analysis" class="tab-content" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Results &amp; Analysis</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          Review your gravimetric results. Compare experimental values with theoretical expectations and calculate percentage errors. Consider sources of error: incomplete decomposition, moisture absorption, loss of solid during transfer.
+        </div>
+        <div class="practice-stats" id="analysisStats">
+          <div class="stat-card">
+            <div class="stat-label">Experiments Run</div>
+            <div class="stat-value" id="statTotal">0</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Best % Error</div>
+            <div class="stat-value" id="statBestErr">—</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">Avg % Error</div>
+            <div class="stat-value" id="statAvgErr">—</div>
+          </div>
+        </div>
+        <div id="analysisTableWrap"></div>
+        <div class="btn-row">
+          <button class="btn btn-outline" id="clearAnalysis">Clear All Data</button>
+        </div>
+        <div class="teacher-panel" id="analysisTeacherPanel">
+          <div style="font-weight:600;margin-bottom:.35rem;">Teacher Notes</div>
+          <div id="analysisTeacherContent">
+            Sources of systematic error in gravimetric analysis:
+            <ul style="margin-top:.35rem;padding-left:1.25rem;">
+              <li>Incomplete decomposition/dehydration (mass too high)</li>
+              <li>Moisture absorbed from air during cooling (mass too high)</li>
+              <li>Spattering during heating (mass too low)</li>
+              <li>Loss during transfer (mass too low)</li>
+              <li>Precipitate not fully dried (mass too high for precip method)</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd>–<kbd>4</kbd> Tabs &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>N</kbd> New Experiment &nbsp; <kbd>I</kbd> IA Guide
+</div>
+
+<button class="ia-guide-toggle" id="iaToggle">IA Guide</button>
+<div class="ia-guide-panel" id="iaPanel">
+  <h3>IA Guide — Gravimetric Analysis</h3>
+  <div class="ia-section">
+    <div class="ia-label">Example Research Question</div>
+    <div class="ia-hint">What is the value of x in the formula CuSO&#8324;&#183;xH&#8322;O?</div>
+  </div>
+  <div class="ia-section">
+    <div class="ia-label">Variables</div>
+    <dl class="ia-vars">
+      <dt>IV:</dt><dd>Identity of hydrated salt</dd>
+      <dt>DV:</dt><dd>Mass loss / moles of water (&#177;0.001 g)</dd>
+      <dt>CVs:</dt><dd>Heating time per cycle, crucible type, sample mass (~2.000 g)</dd>
+    </dl>
+  </div>
+  <div class="ia-section">
+    <div class="ia-label">Data Recording Prompt</div>
+    <div class="ia-hint">Record mass of crucible, crucible + salt, and crucible + residue after each heating. Heat to constant mass (&#177;0.002 g).</div>
+  </div>
+  <a href="SimEngine_IAScaffold.html?lab=gravimetric" class="btn btn-teal btn-open-scaffold">Open Full IA Scaffold &#8594;</a>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  function $(sel){ return document.querySelector(sel); }
+  function $$(sel){ return document.querySelectorAll(sel); }
+  function rnd(a,b){ return a + Math.random()*(b-a); }
+  function round(v,d){ var f=Math.pow(10,d); return Math.round(v*f)/f; }
+  function el(tag,attrs,children){
+    var e=document.createElement(tag);
+    if(attrs) Object.keys(attrs).forEach(function(k){ if(k==='text') e.textContent=attrs[k]; else e.setAttribute(k,attrs[k]); });
+    if(children){ if(!Array.isArray(children)) children=[children]; children.forEach(function(c){ if(typeof c==='string') e.appendChild(document.createTextNode(c)); else if(c) e.appendChild(c); }); }
+    return e;
+  }
+  function setupCanvas(id){
+    var c=document.getElementById(id); if(!c) return null;
+    var dpr=window.devicePixelRatio||1;
+    // Use data-w/data-h to remember original logical size, preventing DPR doubling on each call
+    var w=parseInt(c.getAttribute('data-w')||c.getAttribute('width'));
+    var h=parseInt(c.getAttribute('data-h')||c.getAttribute('height'));
+    if(!c.getAttribute('data-w')){ c.setAttribute('data-w',w); c.setAttribute('data-h',h); }
+    c.width=w*dpr; c.height=h*dpr;
+    c.style.width=w+'px'; c.style.height=h+'px';
+    var ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+    return {ctx:ctx,w:w,h:h};
+  }
+
+  /* ── Data ── */
+  var HYDRATES = {
+    cuso4_5: { formula:'CuSO₄', x:5, anhydrousM:159.61, waterM:18.015, color:'#3B82F6', anhydrousColor:'#E5E7EB', desc:'blue crystals', anhydrousDesc:'white powder' },
+    mgso4_7: { formula:'MgSO₄', x:7, anhydrousM:120.37, waterM:18.015, color:'#F1F5F9', anhydrousColor:'#F1F5F9', desc:'white crystals', anhydrousDesc:'white powder' },
+    na2co3_10: { formula:'Na₂CO₃', x:10, anhydrousM:105.99, waterM:18.015, color:'#F1F5F9', anhydrousColor:'#F1F5F9', desc:'white crystals', anhydrousDesc:'white powder' },
+    cocl2_6: { formula:'CoCl₂', x:6, anhydrousM:129.84, waterM:18.015, color:'#EC4899', anhydrousColor:'#3B82F6', desc:'pink crystals', anhydrousDesc:'blue powder' }
+  };
+
+  var CARBONATES = {
+    cuco3: { formula:'CuCO₃', molarMass:123.55, oxideFormula:'CuO', oxideM:79.55, co2M:44.01, color:'#22C55E', oxideColor:'#1F2937', desc:'green powder', oxideDesc:'black powder' },
+    caco3: { formula:'CaCO₃', molarMass:100.09, oxideFormula:'CaO', oxideM:56.08, co2M:44.01, color:'#F1F5F9', oxideColor:'#F1F5F9', desc:'white powder', oxideDesc:'white powder' },
+    znco3: { formula:'ZnCO₃', molarMass:125.39, oxideFormula:'ZnO', oxideM:81.38, co2M:44.01, color:'#F1F5F9', oxideColor:'#FEF9C3', desc:'white powder', oxideDesc:'pale yellow powder' },
+    mgco3: { formula:'MgCO₃', molarMass:84.31, oxideFormula:'MgO', oxideM:40.30, co2M:44.01, color:'#F1F5F9', oxideColor:'#F1F5F9', desc:'white powder', oxideDesc:'white powder' }
+  };
+
+  var PRECIP_TYPES = {
+    sulfate: {
+      ion:'SO₄²⁻', reagent:'BaCl₂(aq)', precipitate:'BaSO₄',
+      precipM: 233.39, ionM: 96.06, reagentIon:'Ba²⁺',
+      equation:'Ba²⁺(aq) + SO₄²⁻(aq) → BaSO₄(s)',
+      precipColor:'#F1F5F9', sampleConc: 0.100, sampleVol: 50.0,
+      desc:'White precipitate of BaSO₄ forms'
+    },
+    chloride: {
+      ion:'Cl⁻', reagent:'AgNO₃(aq)', precipitate:'AgCl',
+      precipM: 143.32, ionM: 35.45, reagentIon:'Ag⁺',
+      equation:'Ag⁺(aq) + Cl⁻(aq) → AgCl(s)',
+      precipColor:'#F1F5F9', sampleConc: 0.100, sampleVol: 50.0,
+      desc:'White curdy precipitate of AgCl forms'
+    }
+  };
+
+  /* ── State ── */
+  var _hlMode = false, _teacherMode = false;
+  var _hydState = null, _decState = null, _prState = null;
+  var _allResults = [];
+
+  /* ── Drawing utilities ── */
+  function drawCrucibleSetup(ctx, w, h, opts){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#F8FAFC';
+    ctx.fillRect(0,0,w,h);
+
+    var cx = w/2, baseY = h - 40;
+
+    // Tripod legs
+    ctx.strokeStyle = '#64748B';
+    ctx.lineWidth = 3;
+    [[cx-60, baseY], [cx+60, baseY], [cx, baseY+5]].forEach(function(leg){
+      ctx.beginPath();
+      ctx.moveTo(leg[0], leg[1]);
+      ctx.lineTo(cx, baseY - 100);
+      ctx.stroke();
+    });
+
+    // Pipe clay triangle
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(cx-35, baseY-95);
+    ctx.lineTo(cx+35, baseY-95);
+    ctx.lineTo(cx, baseY-115);
+    ctx.closePath();
+    ctx.stroke();
+
+    // Crucible
+    var crucY = baseY - 155;
+    var crucW = 50, crucH = 40;
+    ctx.fillStyle = '#D1D5DB';
+    ctx.strokeStyle = '#9CA3AF';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - crucW/2, crucY);
+    ctx.lineTo(cx - crucW/2 + 8, crucY + crucH);
+    ctx.lineTo(cx + crucW/2 - 8, crucY + crucH);
+    ctx.lineTo(cx + crucW/2, crucY);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    // Contents in crucible
+    if(opts && opts.contentColor){
+      var fillH = crucH * 0.5;
+      ctx.fillStyle = opts.contentColor;
+      ctx.beginPath();
+      ctx.moveTo(cx - crucW/2 + 5, crucY + crucH - fillH);
+      ctx.lineTo(cx - crucW/2 + 8, crucY + crucH);
+      ctx.lineTo(cx + crucW/2 - 8, crucY + crucH);
+      ctx.lineTo(cx + crucW/2 - 5, crucY + crucH - fillH);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Bunsen burner (if heating)
+    if(opts && opts.heating){
+      var bx = cx, by = baseY;
+      // Burner body
+      ctx.fillStyle = '#64748B';
+      ctx.fillRect(bx - 12, by - 50, 24, 50);
+      ctx.fillRect(bx - 20, by, 40, 8);
+      // Flame
+      ctx.save();
+      var grd = ctx.createRadialGradient(bx, by - 75, 3, bx, by - 55, 30);
+      grd.addColorStop(0, '#60A5FA');
+      grd.addColorStop(0.4, '#3B82F6');
+      grd.addColorStop(0.7, '#F97316');
+      grd.addColorStop(1, 'rgba(249,115,22,0)');
+      ctx.fillStyle = grd;
+      ctx.globalAlpha = 0.85 + Math.random()*0.15;
+      ctx.beginPath();
+      ctx.moveTo(bx - 15, by - 50);
+      ctx.quadraticCurveTo(bx - 20, by - 80, bx, by - 95 - Math.random()*5);
+      ctx.quadraticCurveTo(bx + 20, by - 80, bx + 15, by - 50);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // Balance below (simplified)
+    ctx.fillStyle = '#E2E8F0';
+    ctx.fillRect(20, 20, 120, 50);
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(20, 20, 120, 50);
+    ctx.fillStyle = '#0F172A';
+    ctx.fillRect(28, 28, 104, 34);
+    if(opts && opts.massDisplay !== undefined){
+      ctx.fillStyle = '#4ADE80';
+      ctx.font = '16px "Fira Code", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(opts.massDisplay.toFixed(3) + ' g', 80, 50);
+    }
+
+    // Status label
+    if(opts && opts.statusLabel){
+      ctx.fillStyle = '#64748B';
+      ctx.font = '12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(opts.statusLabel, cx, 30);
+    }
+  }
+
+  function drawFilterSetup(ctx, w, h, opts){
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#F8FAFC';
+    ctx.fillRect(0,0,w,h);
+
+    var cx = w/2, baseY = h - 60;
+
+    // Ring stand
+    ctx.fillStyle = '#64748B';
+    ctx.fillRect(cx - 60, baseY - 10, 120, 8);
+    ctx.fillRect(cx - 4, baseY - 200, 8, 200);
+    ctx.fillRect(cx - 50, baseY, 100, 10);
+
+    // Ring
+    ctx.strokeStyle = '#64748B';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx + 4, baseY - 140);
+    ctx.lineTo(cx + 30, baseY - 140);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx + 30, baseY - 140, 30, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Funnel
+    var fx = cx + 30, fy = baseY - 140;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(fx - 28, fy - 15);
+    ctx.lineTo(fx - 5, fy + 30);
+    ctx.lineTo(fx - 5, fy + 55);
+    ctx.lineTo(fx + 5, fy + 55);
+    ctx.lineTo(fx + 5, fy + 30);
+    ctx.lineTo(fx + 28, fy - 15);
+    ctx.closePath();
+    ctx.fill(); ctx.stroke();
+
+    // Filter paper cone
+    ctx.fillStyle = '#FEF3C7';
+    ctx.beginPath();
+    ctx.moveTo(fx - 24, fy - 10);
+    ctx.lineTo(fx, fy + 25);
+    ctx.lineTo(fx + 24, fy - 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#D4A843';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Precipitate on filter paper
+    if(opts && opts.precipColor){
+      ctx.fillStyle = opts.precipColor;
+      ctx.beginPath();
+      ctx.moveTo(fx - 15, fy);
+      ctx.lineTo(fx, fy + 15);
+      ctx.lineTo(fx + 15, fy);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    // Beaker below funnel
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(fx - 25, fy + 60, 50, 50);
+    ctx.strokeRect(fx - 25, fy + 60, 50, 50);
+    // Filtrate
+    ctx.fillStyle = '#DBEAFE';
+    ctx.fillRect(fx - 23, fy + 80, 46, 28);
+
+    // Balance (top left)
+    ctx.fillStyle = '#E2E8F0';
+    ctx.fillRect(20, 20, 120, 50);
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(20, 20, 120, 50);
+    ctx.fillStyle = '#0F172A';
+    ctx.fillRect(28, 28, 104, 34);
+    if(opts && opts.massDisplay !== undefined){
+      ctx.fillStyle = '#4ADE80';
+      ctx.font = '16px "Fira Code", monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(opts.massDisplay.toFixed(3) + ' g', 80, 50);
+    }
+
+    // Status label
+    if(opts && opts.statusLabel){
+      ctx.fillStyle = '#64748B';
+      ctx.font = '12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(opts.statusLabel, cx, 20);
+    }
+  }
+
+  /* ── Logging helper ── */
+  function addMassLog(logEl, label, mass, isConstant){
+    var row = el('div',{class:'mass-log-row' + (isConstant ? ' constant' : '')});
+    row.appendChild(el('span',{class:'step-label',text:label}));
+    row.appendChild(el('span',{class:'mass-val',text:mass.toFixed(3) + ' g'}));
+    logEl.appendChild(row);
+    logEl.scrollTop = logEl.scrollHeight;
+  }
+
+  function addMassLogHeader(logEl){
+    var row = el('div',{class:'mass-log-row header'});
+    row.appendChild(el('span',{text:'Step'}));
+    row.appendChild(el('span',{text:'Mass'}));
+    logEl.appendChild(row);
+  }
+
+  /* ── Tab 1: Hydrate ── */
+  function initHydrate(){
+    var key = $('#hydSaltSelect').value;
+    var h = HYDRATES[key];
+    var sampleMass = round(rnd(2.0, 3.5), 3);
+    var crucibleMass = round(rnd(15.0, 20.0), 3);
+
+    _hydState = {
+      data: h,
+      sampleMass: sampleMass,
+      crucibleMass: crucibleMass,
+      hydratedMolar: h.anhydrousM + h.x * h.waterM,
+      step: 0, // 0=start, 1=crucible weighed, 2=salt added, 3=heating, 4=cooled, 5=constant
+      heatCount: 0,
+      masses: [],
+      constantMass: null
+    };
+
+    var log = $('#hydMassLog');
+    log.textContent = '';
+    addMassLogHeader(log);
+    $('#hydBalance').textContent = '0.000';
+    $('#hydCalcSection').style.display = 'none';
+    $('#hydTeacherContent').textContent = '';
+    drawHydrate();
+  }
+
+  function drawHydrate(){
+    if(!_hydState) return;
+    var s = _hydState;
+    var setup = setupCanvas('hydCanvas');
+    if(!setup) return;
+    var opts = { massDisplay: 0 };
+
+    if(s.step >= 1) opts.massDisplay = s.crucibleMass;
+    if(s.step >= 2) opts.massDisplay = s.crucibleMass + s.sampleMass;
+    if(s.step >= 4 && s.masses.length > 0) opts.massDisplay = s.masses[s.masses.length - 1];
+
+    if(s.step < 2) opts.contentColor = null;
+    else if(s.step < 4) opts.contentColor = s.data.color;
+    else opts.contentColor = s.data.anhydrousColor;
+
+    opts.heating = (s.step === 3);
+
+    var labels = ['Ready','Crucible weighed','Salt added','Heating...','Cooling & weighing','Constant mass reached'];
+    opts.statusLabel = labels[Math.min(s.step, 5)];
+
+    drawCrucibleSetup(setup.ctx, setup.w, setup.h, opts);
+  }
+
+  function hydWeighEmpty(){
+    if(!_hydState) initHydrate();
+    var s = _hydState;
+    s.step = 1;
+    $('#hydBalance').textContent = s.crucibleMass.toFixed(3);
+    addMassLog($('#hydMassLog'), 'Empty crucible', s.crucibleMass);
+    $('#hydWeighEmpty').style.display = 'none';
+    $('#hydAddSalt').style.display = '';
+    drawHydrate();
+  }
+
+  function hydAddSalt(){
+    var s = _hydState;
+    s.step = 2;
+    var total = s.crucibleMass + s.sampleMass;
+    $('#hydBalance').textContent = total.toFixed(3);
+    addMassLog($('#hydMassLog'), 'Crucible + hydrate', total);
+    $('#hydAddSalt').style.display = 'none';
+    $('#hydHeat').style.display = '';
+    drawHydrate();
+  }
+
+  function hydHeat(){
+    var s = _hydState;
+    s.step = 3;
+    s.heatCount++;
+    $('#hydHeat').disabled = true;
+    drawHydrate();
+
+    // Simulate heating for 1.5s
+    setTimeout(function(){
+      s.step = 4;
+      // Calculate mass after heating
+      var nMoles = s.sampleMass / s.hydratedMolar;
+      var anhydrousMass = nMoles * s.data.anhydrousM;
+      var theoreticalFinal = s.crucibleMass + anhydrousMass;
+
+      var currentMass;
+      if(s.heatCount === 1){
+        // First heating: not quite complete, ~95-98% water removed
+        var fraction = rnd(0.95, 0.98);
+        var waterLost = (s.sampleMass - anhydrousMass) * fraction;
+        currentMass = round(s.crucibleMass + s.sampleMass - waterLost + rnd(-0.002, 0.003), 3);
+      } else if(s.heatCount === 2){
+        // Second heating: very close, within balance uncertainty
+        currentMass = round(theoreticalFinal + rnd(-0.001, 0.002), 3);
+      } else {
+        // Third+: constant mass achieved
+        currentMass = round(theoreticalFinal + rnd(-0.001, 0.001), 3);
+      }
+
+      s.masses.push(currentMass);
+      $('#hydBalance').textContent = currentMass.toFixed(3);
+      addMassLog($('#hydMassLog'), 'After heating #' + s.heatCount, currentMass);
+
+      // Check for constant mass (two consecutive within 0.002 g)
+      if(s.masses.length >= 2){
+        var diff = Math.abs(s.masses[s.masses.length-1] - s.masses[s.masses.length-2]);
+        if(diff <= 0.002){
+          s.step = 5;
+          s.constantMass = currentMass;
+          addMassLog($('#hydMassLog'), 'Constant mass!', currentMass, true);
+          $('#hydHeat').style.display = 'none';
+          $('#hydCoolWeigh').style.display = 'none';
+          $('#hydCalc').style.display = '';
+        }
+      }
+
+      $('#hydHeat').disabled = false;
+      if(s.step !== 5) $('#hydCoolWeigh').style.display = '';
+      drawHydrate();
+    }, 1500);
+  }
+
+  function hydCoolWeigh(){
+    var s = _hydState;
+    $('#hydCoolWeigh').style.display = 'none';
+    // Ready to heat again
+    drawHydrate();
+  }
+
+  function hydCalc(){
+    var s = _hydState;
+    var massSalt = s.sampleMass;
+    var massAnhydrous = s.constantMass - s.crucibleMass;
+    var massWater = massSalt - massAnhydrous;
+    var molesAnhydrous = massAnhydrous / s.data.anhydrousM;
+    var molesWater = massWater / s.data.waterM;
+    var ratio = molesWater / molesAnhydrous;
+    var xCalc = Math.round(ratio);
+    var pctError = round(Math.abs(xCalc - s.data.x) / s.data.x * 100, 1);
+
+    var guide = $('#hydStepGuide');
+    guide.textContent = '';
+
+    var steps = [
+      { title: 'Mass of hydrated salt', content: round(massSalt, 3) + ' g' },
+      { title: 'Mass of anhydrous salt', content: 'Constant mass \u2212 crucible = ' + s.constantMass.toFixed(3) + ' \u2212 ' + s.crucibleMass.toFixed(3) + ' = ' + round(massAnhydrous, 3) + ' g' },
+      { title: 'Mass of water lost', content: round(massSalt, 3) + ' \u2212 ' + round(massAnhydrous, 3) + ' = ' + round(massWater, 3) + ' g' },
+      { title: 'Moles of ' + s.data.formula, content: round(massAnhydrous, 3) + ' / ' + s.data.anhydrousM + ' = ' + round(molesAnhydrous, 5) + ' mol' },
+      { title: 'Moles of H\u2082O', content: round(massWater, 3) + ' / ' + s.data.waterM + ' = ' + round(molesWater, 5) + ' mol' },
+      { title: 'Mole ratio (H\u2082O : salt)', content: round(molesWater, 5) + ' / ' + round(molesAnhydrous, 5) + ' = ' + round(ratio, 2) + ' \u2248 ' + xCalc },
+      { title: 'Formula', content: s.data.formula + '\u00B7' + xCalc + 'H\u2082O' + (xCalc === s.data.x ? ' \u2714 Correct!' : ' (theoretical: ' + s.data.x + ')') }
+    ];
+
+    steps.forEach(function(st){
+      var div = el('div',{class:'step'});
+      var content = el('div',{class:'step-content'});
+      content.appendChild(el('div',{class:'step-title',text:st.title}));
+      content.appendChild(el('div',{},st.content));
+      div.appendChild(content);
+      guide.appendChild(div);
+    });
+
+    $('#hydCalcSection').style.display = '';
+
+    // Teacher notes
+    var tp = $('#hydTeacherContent');
+    tp.textContent = '';
+    tp.appendChild(el('div',{},['Theoretical formula: ' + s.data.formula + '\u00B7' + s.data.x + 'H\u2082O']));
+    tp.appendChild(el('div',{},['Theoretical molar mass: ' + round(s.hydratedMolar, 2) + ' g mol\u207B\u00B9']));
+    tp.appendChild(el('div',{},['x calculated: ' + xCalc + ' (ratio = ' + round(ratio, 2) + ')']));
+    tp.appendChild(el('div',{},['Heatings to constant mass: ' + s.heatCount]));
+
+    // Save result
+    _allResults.push({
+      type: 'hydrate',
+      name: s.data.formula + '\u00B7xH\u2082O',
+      expected: s.data.x,
+      calculated: xCalc,
+      ratio: round(ratio, 2),
+      pctError: pctError
+    });
+    updateAnalysis();
+  }
+
+  function resetHydrate(){
+    _hydState = null;
+    $('#hydWeighEmpty').style.display = '';
+    $('#hydAddSalt').style.display = 'none';
+    $('#hydHeat').style.display = 'none';
+    $('#hydCoolWeigh').style.display = 'none';
+    $('#hydCalc').style.display = 'none';
+    $('#hydHeat').disabled = false;
+    $('#hydSaltSelect').disabled = false;
+    initHydrate();
+  }
+
+  /* ── Tab 2: Thermal Decomposition ── */
+  function initDecomp(){
+    var key = $('#decSaltSelect').value;
+    var c = CARBONATES[key];
+    var sampleMass = round(rnd(1.0, 2.5), 3);
+    var crucibleMass = round(rnd(15.0, 20.0), 3);
+
+    _decState = {
+      data: c,
+      sampleMass: sampleMass,
+      crucibleMass: crucibleMass,
+      step: 0,
+      heatCount: 0,
+      masses: [],
+      constantMass: null
+    };
+
+    var log = $('#decMassLog');
+    log.textContent = '';
+    addMassLogHeader(log);
+    $('#decBalance').textContent = '0.000';
+    $('#decCalcSection').style.display = 'none';
+    $('#decTeacherContent').textContent = '';
+    drawDecomp();
+  }
+
+  function drawDecomp(){
+    if(!_decState) return;
+    var s = _decState;
+    var setup = setupCanvas('decCanvas');
+    if(!setup) return;
+    var opts = { massDisplay: 0 };
+
+    if(s.step >= 1) opts.massDisplay = s.crucibleMass;
+    if(s.step >= 2) opts.massDisplay = s.crucibleMass + s.sampleMass;
+    if(s.step >= 4 && s.masses.length > 0) opts.massDisplay = s.masses[s.masses.length-1];
+
+    if(s.step < 2) opts.contentColor = null;
+    else if(s.step < 4) opts.contentColor = s.data.color;
+    else opts.contentColor = s.data.oxideColor;
+
+    opts.heating = (s.step === 3);
+    var labels = ['Ready','Crucible weighed','Carbonate added','Heating...','Cooling & weighing','Constant mass reached'];
+    opts.statusLabel = labels[Math.min(s.step, 5)];
+
+    drawCrucibleSetup(setup.ctx, setup.w, setup.h, opts);
+  }
+
+  function decWeighEmpty(){
+    if(!_decState) initDecomp();
+    var s = _decState;
+    s.step = 1;
+    $('#decBalance').textContent = s.crucibleMass.toFixed(3);
+    addMassLog($('#decMassLog'), 'Empty crucible', s.crucibleMass);
+    $('#decWeighEmpty').style.display = 'none';
+    $('#decAddSalt').style.display = '';
+    drawDecomp();
+  }
+
+  function decAddSalt(){
+    var s = _decState;
+    s.step = 2;
+    var total = s.crucibleMass + s.sampleMass;
+    $('#decBalance').textContent = total.toFixed(3);
+    addMassLog($('#decMassLog'), 'Crucible + carbonate', total);
+    $('#decAddSalt').style.display = 'none';
+    $('#decHeat').style.display = '';
+    drawDecomp();
+  }
+
+  function decHeat(){
+    var s = _decState;
+    s.step = 3;
+    s.heatCount++;
+    $('#decHeat').disabled = true;
+    drawDecomp();
+
+    setTimeout(function(){
+      s.step = 4;
+      var nMoles = s.sampleMass / s.data.molarMass;
+      var oxideMass = nMoles * s.data.oxideM;
+      var theoreticalFinal = s.crucibleMass + oxideMass;
+
+      var currentMass;
+      if(s.heatCount === 1){
+        var fraction = rnd(0.93, 0.97);
+        var co2Lost = (s.sampleMass - oxideMass) * fraction;
+        currentMass = round(s.crucibleMass + s.sampleMass - co2Lost + rnd(-0.002, 0.003), 3);
+      } else if(s.heatCount === 2){
+        currentMass = round(theoreticalFinal + rnd(-0.001, 0.002), 3);
+      } else {
+        currentMass = round(theoreticalFinal + rnd(-0.001, 0.001), 3);
+      }
+
+      s.masses.push(currentMass);
+      $('#decBalance').textContent = currentMass.toFixed(3);
+      addMassLog($('#decMassLog'), 'After heating #' + s.heatCount, currentMass);
+
+      if(s.masses.length >= 2){
+        var diff = Math.abs(s.masses[s.masses.length-1] - s.masses[s.masses.length-2]);
+        if(diff <= 0.002){
+          s.step = 5;
+          s.constantMass = currentMass;
+          addMassLog($('#decMassLog'), 'Constant mass!', currentMass, true);
+          $('#decHeat').style.display = 'none';
+          $('#decCoolWeigh').style.display = 'none';
+          $('#decCalc').style.display = '';
+        }
+      }
+
+      $('#decHeat').disabled = false;
+      if(s.step !== 5) $('#decCoolWeigh').style.display = '';
+      drawDecomp();
+    }, 1500);
+  }
+
+  function decCoolWeigh(){
+    $('#decCoolWeigh').style.display = 'none';
+  }
+
+  function decCalc(){
+    var s = _decState;
+    var massCarbonate = s.sampleMass;
+    var massOxide = s.constantMass - s.crucibleMass;
+    var massCO2 = massCarbonate - massOxide;
+    var molesCO2 = massCO2 / s.data.co2M;
+    var molesOxide = molesCO2; // 1:1 ratio MCO3 → MO + CO2
+    var calcMolarMassOxide = massOxide / molesOxide;
+    var calcMolarMassCarbonate = massCarbonate / molesCO2;
+    var pctError = round(Math.abs(calcMolarMassCarbonate - s.data.molarMass) / s.data.molarMass * 100, 1);
+
+    var guide = $('#decStepGuide');
+    guide.textContent = '';
+
+    var steps = [
+      { title: 'Mass of carbonate', content: round(massCarbonate, 3) + ' g' },
+      { title: 'Mass of oxide residue', content: s.constantMass.toFixed(3) + ' \u2212 ' + s.crucibleMass.toFixed(3) + ' = ' + round(massOxide, 3) + ' g' },
+      { title: 'Mass of CO\u2082 lost', content: round(massCarbonate, 3) + ' \u2212 ' + round(massOxide, 3) + ' = ' + round(massCO2, 3) + ' g' },
+      { title: 'Moles of CO\u2082', content: round(massCO2, 3) + ' / 44.01 = ' + round(molesCO2, 5) + ' mol' },
+      { title: 'Moles of carbonate (1:1 ratio)', content: round(molesCO2, 5) + ' mol' },
+      { title: 'Molar mass of carbonate', content: round(massCarbonate, 3) + ' / ' + round(molesCO2, 5) + ' = ' + round(calcMolarMassCarbonate, 1) + ' g mol\u207B\u00B9' },
+      { title: 'Identification', content: 'Closest match: ' + s.data.formula + ' (M = ' + s.data.molarMass + ' g mol\u207B\u00B9). % error = ' + pctError + '%' }
+    ];
+
+    steps.forEach(function(st){
+      var div = el('div',{class:'step'});
+      var content = el('div',{class:'step-content'});
+      content.appendChild(el('div',{class:'step-title',text:st.title}));
+      content.appendChild(el('div',{},st.content));
+      div.appendChild(content);
+      guide.appendChild(div);
+    });
+
+    $('#decCalcSection').style.display = '';
+
+    var tp = $('#decTeacherContent');
+    tp.textContent = '';
+    tp.appendChild(el('div',{},['Equation: ' + s.data.formula + ' \u2192 ' + s.data.oxideFormula + ' + CO\u2082']));
+    tp.appendChild(el('div',{},['Theoretical M: ' + s.data.molarMass + ' g mol\u207B\u00B9']));
+    tp.appendChild(el('div',{},['Calculated M: ' + round(calcMolarMassCarbonate, 1) + ' g mol\u207B\u00B9']));
+    tp.appendChild(el('div',{},['% error: ' + pctError + '%']));
+
+    _allResults.push({
+      type: 'decomposition',
+      name: s.data.formula + ' decomposition',
+      expected: s.data.molarMass,
+      calculated: round(calcMolarMassCarbonate, 1),
+      pctError: pctError
+    });
+    updateAnalysis();
+  }
+
+  function resetDecomp(){
+    _decState = null;
+    $('#decWeighEmpty').style.display = '';
+    $('#decAddSalt').style.display = 'none';
+    $('#decHeat').style.display = 'none';
+    $('#decCoolWeigh').style.display = 'none';
+    $('#decCalc').style.display = 'none';
+    $('#decHeat').disabled = false;
+    $('#decSaltSelect').disabled = false;
+    initDecomp();
+  }
+
+  /* ── Tab 3: Precipitation Gravimetry ── */
+  function initPrecip(){
+    var key = $('#prTypeSelect').value;
+    var p = PRECIP_TYPES[key];
+
+    // Random concentration to determine
+    var actualConc = round(rnd(0.050, 0.150), 4);
+    var sampleVol = p.sampleVol;
+    var nIon = actualConc * sampleVol / 1000;
+    var precipMass = nIon * p.precipM;
+
+    _prState = {
+      data: p,
+      actualConc: actualConc,
+      sampleVol: sampleVol,
+      nIon: nIon,
+      theoreticalPrecipMass: precipMass,
+      measuredPrecipMass: null,
+      filterPaperMass: round(rnd(0.800, 1.200), 3),
+      step: 0 // 0=ready, 1=started, 2=reagent added, 3=filtered, 4=dried, 5=weighed
+    };
+
+    var info = $('#prScenarioBox');
+    info.textContent = '';
+    info.appendChild(el('div',{},['Sample: ' + sampleVol.toFixed(1) + ' cm\u00B3 of unknown ' + p.ion + ' solution']));
+    info.appendChild(el('div',{},['Add excess ' + p.reagent + ' to precipitate all ' + p.ion + ' ions']));
+    info.appendChild(el('div',{},['Equation: ' + p.equation]));
+
+    var log = $('#prMassLog');
+    log.textContent = '';
+    addMassLogHeader(log);
+    $('#prBalance').textContent = '0.000';
+    $('#prCalcSection').style.display = 'none';
+    $('#prTeacherContent').textContent = '';
+    drawPrecip();
+  }
+
+  function drawPrecip(){
+    if(!_prState) return;
+    var s = _prState;
+    var setup = setupCanvas('prCanvas');
+    if(!setup) return;
+
+    var opts = { massDisplay: 0 };
+    if(s.step >= 5) opts.massDisplay = s.filterPaperMass + s.measuredPrecipMass;
+    else if(s.step >= 1) opts.massDisplay = s.filterPaperMass;
+
+    if(s.step >= 3) opts.precipColor = s.data.precipColor;
+    opts.statusLabel = ['Ready','Filter paper weighed','Precipitate forming...','Filtering...','Drying...','Precipitate weighed'][Math.min(s.step, 5)];
+
+    drawFilterSetup(setup.ctx, setup.w, setup.h, opts);
+  }
+
+  function prStart(){
+    if(!_prState) initPrecip();
+    var s = _prState;
+    s.step = 1;
+    $('#prBalance').textContent = s.filterPaperMass.toFixed(3);
+    addMassLog($('#prMassLog'), 'Dry filter paper', s.filterPaperMass);
+    $('#prStart').style.display = 'none';
+    $('#prAddReagent').style.display = '';
+    drawPrecip();
+  }
+
+  function prAddReagent(){
+    var s = _prState;
+    s.step = 2;
+    addMassLog($('#prMassLog'), 'Excess ' + s.data.reagent + ' added', 0);
+    var fb = el('div',{class:'feedback info'},s.data.desc);
+    var logEl = $('#prMassLog');
+    logEl.parentNode.insertBefore(fb, logEl.nextSibling);
+    setTimeout(function(){ if(fb.parentNode) fb.parentNode.removeChild(fb); }, 3000);
+    $('#prAddReagent').style.display = 'none';
+    $('#prFilter').style.display = '';
+    drawPrecip();
+  }
+
+  function prFilter(){
+    var s = _prState;
+    s.step = 3;
+    $('#prFilter').style.display = 'none';
+    $('#prDry').style.display = '';
+    drawPrecip();
+  }
+
+  function prDry(){
+    var s = _prState;
+    s.step = 4;
+    $('#prDry').disabled = true;
+    setTimeout(function(){
+      s.step = 5;
+      // Add realistic error to precipitate mass
+      s.measuredPrecipMass = round(s.theoreticalPrecipMass + rnd(-0.003, 0.005), 3);
+      var totalMass = s.filterPaperMass + s.measuredPrecipMass;
+      $('#prBalance').textContent = totalMass.toFixed(3);
+      addMassLog($('#prMassLog'), 'Filter paper + precipitate', totalMass);
+      addMassLog($('#prMassLog'), 'Mass of precipitate', s.measuredPrecipMass);
+      $('#prDry').style.display = 'none';
+      $('#prDry').disabled = false;
+      $('#prWeigh').style.display = 'none'; // already weighed
+      $('#prCalc').style.display = '';
+      drawPrecip();
+    }, 1500);
+  }
+
+  function prCalc(){
+    var s = _prState;
+    var p = s.data;
+    var massPrecip = s.measuredPrecipMass;
+    var molesPrecip = massPrecip / p.precipM;
+    var molesIon = molesPrecip; // 1:1 ratio
+    var calcConc = molesIon / (s.sampleVol / 1000);
+    var pctError = round(Math.abs(calcConc - s.actualConc) / s.actualConc * 100, 1);
+
+    var guide = $('#prStepGuide');
+    guide.textContent = '';
+
+    var steps = [
+      { title: 'Mass of ' + p.precipitate, content: round(massPrecip, 3) + ' g' },
+      { title: 'Moles of ' + p.precipitate, content: round(massPrecip, 3) + ' / ' + p.precipM + ' = ' + round(molesPrecip, 5) + ' mol' },
+      { title: 'Moles of ' + p.ion + ' (1:1 ratio)', content: round(molesIon, 5) + ' mol' },
+      { title: 'Concentration of ' + p.ion, content: 'c = n/V = ' + round(molesIon, 5) + ' / ' + (s.sampleVol/1000).toFixed(4) + ' = ' + round(calcConc, 4) + ' mol dm\u207B\u00B3' }
+    ];
+
+    steps.forEach(function(st){
+      var div = el('div',{class:'step'});
+      var content = el('div',{class:'step-content'});
+      content.appendChild(el('div',{class:'step-title',text:st.title}));
+      content.appendChild(el('div',{},st.content));
+      div.appendChild(content);
+      guide.appendChild(div);
+    });
+
+    $('#prCalcSection').style.display = '';
+
+    var tp = $('#prTeacherContent');
+    tp.textContent = '';
+    tp.appendChild(el('div',{},['Actual concentration: ' + s.actualConc.toFixed(4) + ' mol dm\u207B\u00B3']));
+    tp.appendChild(el('div',{},['Calculated concentration: ' + round(calcConc, 4) + ' mol dm\u207B\u00B3']));
+    tp.appendChild(el('div',{},['% error: ' + pctError + '%']));
+
+    _allResults.push({
+      type: 'precipitation',
+      name: p.ion + ' via ' + p.precipitate,
+      expected: s.actualConc,
+      calculated: round(calcConc, 4),
+      pctError: pctError
+    });
+    updateAnalysis();
+  }
+
+  function resetPrecip(){
+    _prState = null;
+    $('#prStart').style.display = '';
+    $('#prAddReagent').style.display = 'none';
+    $('#prFilter').style.display = 'none';
+    $('#prDry').style.display = 'none';
+    $('#prWeigh').style.display = 'none';
+    $('#prCalc').style.display = 'none';
+    $('#prDry').disabled = false;
+    $('#prTypeSelect').disabled = false;
+    initPrecip();
+  }
+
+  /* ── Tab 4: Analysis ── */
+  function updateAnalysis(){
+    var wrap = $('#analysisTableWrap');
+    wrap.textContent = '';
+
+    if(_allResults.length === 0){
+      wrap.appendChild(el('div',{class:'feedback info'},['Run experiments in Tabs 1\u20133 to collect data here.']));
+      $('#statTotal').textContent = '0';
+      $('#statBestErr').textContent = '\u2014';
+      $('#statAvgErr').textContent = '\u2014';
+      return;
+    }
+
+    var table = el('table',{class:'result-table'});
+    var thead = el('tr');
+    ['#','Type','Experiment','Expected','Calculated','% Error'].forEach(function(h){
+      thead.appendChild(el('th',{text:h}));
+    });
+    table.appendChild(thead);
+
+    var errors = [];
+    _allResults.forEach(function(r, i){
+      var row = el('tr');
+      var expStr = (r.type === 'hydrate') ? ('x = ' + r.expected) : (typeof r.expected === 'number' ? r.expected.toString() : r.expected);
+      var calcStr = (r.type === 'hydrate') ? ('x = ' + r.calculated + ' (ratio ' + r.ratio + ')') : r.calculated.toString();
+      [i+1, r.type, r.name, expStr, calcStr, r.pctError + '%'].forEach(function(v){
+        row.appendChild(el('td',{text:String(v)}));
+      });
+      table.appendChild(row);
+      errors.push(r.pctError);
+    });
+    wrap.appendChild(table);
+
+    $('#statTotal').textContent = _allResults.length;
+    var bestErr = Math.min.apply(null, errors);
+    var avgErr = errors.reduce(function(a,b){ return a+b; }, 0) / errors.length;
+    $('#statBestErr').textContent = round(bestErr, 1) + '%';
+    $('#statAvgErr').textContent = round(avgErr, 1) + '%';
+  }
+
+  /* ── Presets ── */
+  function applyPreset(val){
+    if(!val) return;
+    if(val === 'cuso4' || val === 'mgso4'){
+      switchTab('hydrate');
+      $('#hydSaltSelect').value = val === 'cuso4' ? 'cuso4_5' : 'mgso4_7';
+      resetHydrate();
+    } else if(val === 'cuco3' || val === 'caco3'){
+      switchTab('decomp');
+      $('#decSaltSelect').value = val;
+      resetDecomp();
+    } else if(val === 'sulfate' || val === 'chloride'){
+      switchTab('precip');
+      $('#prTypeSelect').value = val;
+      resetPrecip();
+    }
+    $('#presetSelect').value = '';
+  }
+
+  /* ── Tab switching ── */
+  function switchTab(tabId){
+    $$('.tab-btn').forEach(function(btn){ btn.classList.toggle('active', btn.dataset.tab === tabId); });
+    $$('.tab-content').forEach(function(tc){ tc.classList.toggle('active', tc.id === 'tab-' + tabId); });
+  }
+
+  function updateHL(){
+    _hlMode = $('#hlToggle').checked;
+    document.body.classList.toggle('hl-active', _hlMode);
+  }
+
+  function updateTeacher(){
+    _teacherMode = $('#teacherToggle').checked;
+    document.body.classList.toggle('teacher-active', _teacherMode);
+  }
+
+  function handleKey(e){
+    if(e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    var k = e.key.toLowerCase();
+    if(k === 'h'){ $('#hlToggle').checked = !$('#hlToggle').checked; updateHL(); }
+    else if(k === 't'){ $('#teacherToggle').checked = !$('#teacherToggle').checked; updateTeacher(); }
+    else if(k === '1') switchTab('hydrate');
+    else if(k === '2') switchTab('decomp');
+    else if(k === '3') switchTab('precip');
+    else if(k === '4') switchTab('analysis');
+    else if(k === 'r'){ resetHydrate(); resetDecomp(); resetPrecip(); }
+    else if(k === 'n'){
+      var active = document.querySelector('.tab-btn.active');
+      if(active){
+        var tab = active.dataset.tab;
+        if(tab === 'hydrate') resetHydrate();
+        else if(tab === 'decomp') resetDecomp();
+        else if(tab === 'precip') resetPrecip();
+      }
+    }
+    else if(k === 'i'){
+      var iap = document.getElementById('iaPanel');
+      if(iap) iap.classList.toggle('open');
+    }
+  }
+
+  function init(){
+    $$('.tab-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){ switchTab(btn.dataset.tab); });
+    });
+
+    $('#hlToggle').addEventListener('change', updateHL);
+    $('#teacherToggle').addEventListener('change', updateTeacher);
+    $('#presetSelect').addEventListener('change', function(){ applyPreset(this.value); });
+
+    // Tab 1
+    $('#hydWeighEmpty').addEventListener('click', hydWeighEmpty);
+    $('#hydAddSalt').addEventListener('click', hydAddSalt);
+    $('#hydHeat').addEventListener('click', hydHeat);
+    $('#hydCoolWeigh').addEventListener('click', hydCoolWeigh);
+    $('#hydCalc').addEventListener('click', hydCalc);
+    $('#hydReset').addEventListener('click', resetHydrate);
+    $('#hydSaltSelect').addEventListener('change', resetHydrate);
+
+    // Tab 2
+    $('#decWeighEmpty').addEventListener('click', decWeighEmpty);
+    $('#decAddSalt').addEventListener('click', decAddSalt);
+    $('#decHeat').addEventListener('click', decHeat);
+    $('#decCoolWeigh').addEventListener('click', decCoolWeigh);
+    $('#decCalc').addEventListener('click', decCalc);
+    $('#decReset').addEventListener('click', resetDecomp);
+    $('#decSaltSelect').addEventListener('change', resetDecomp);
+
+    // Tab 3
+    $('#prStart').addEventListener('click', prStart);
+    $('#prAddReagent').addEventListener('click', prAddReagent);
+    $('#prFilter').addEventListener('click', prFilter);
+    $('#prDry').addEventListener('click', prDry);
+    $('#prCalc').addEventListener('click', prCalc);
+    $('#prReset').addEventListener('click', resetPrecip);
+    $('#prTypeSelect').addEventListener('change', resetPrecip);
+
+    // Tab 4
+    $('#clearAnalysis').addEventListener('click', function(){
+      _allResults = [];
+      updateAnalysis();
+    });
+
+    document.addEventListener('keydown', handleKey);
+
+    // IA Guide panel toggle
+    var iaToggleBtn = document.getElementById('iaToggle');
+    if(iaToggleBtn) iaToggleBtn.addEventListener('click', function(){ document.getElementById('iaPanel').classList.toggle('open'); });
+
+    initHydrate();
+    initDecomp();
+    initPrecip();
+    updateAnalysis();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+<footer>SimEngine &mdash; Gravimetric Analysis &bull; H=HL T=Teacher</footer>
+</body>
+</html>

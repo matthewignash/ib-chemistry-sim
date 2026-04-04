@@ -1,0 +1,1546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual Lab Builder — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--blue-bg:#EFF6FF;--teal-bg:#F0FDFA;--amber-bg:#FFFBEB;--red-bg:#FEF2F2;--purple-bg:#F5F3FF;--toggle-on:#0D9488;--green:#10B981;--orange:#F59E0B;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+  .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-right{display:flex;align-items:center;gap:.75rem;}
+  .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
+  .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.35rem;}
+  .sim-toggle{position:relative;width:40px;height:22px;display:inline-block;}
+  .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:11px;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.5rem;background:none;border:none;border-bottom:3px solid transparent;font-size:.85rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+  .tab-btn .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);font-size:.65rem;font-weight:700;color:var(--text-muted);}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .sim-container{max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+  .hl-only{display:none;} body.hl-active .hl-only{display:block;}
+  .teacher-panel{display:none;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.82rem;}
+  body.teacher-active .teacher-panel{display:block;}
+
+  /* Lab-specific layout */
+  .lab-layout{display:flex;gap:0;height:calc(100vh - 200px);min-height:500px;}
+  .palette{width:200px;border-right:1px solid var(--border);overflow-y:auto;background:var(--card-bg);flex-shrink:0;}
+  .workspace-wrap{flex:1;position:relative;background:var(--sim-canvas-bg);}
+  #workspace{width:100%;height:100%;display:block;cursor:crosshair;}
+  .step-panel{position:absolute;bottom:0;left:0;right:0;background:rgba(255,255,255,0.95);border-top:1px solid var(--border);padding:1rem;max-height:140px;overflow-y:auto;}
+
+  /* Palette styles */
+  .palette-search{width:100%;padding:.5rem;border:none;border-bottom:1px solid var(--border);font-family:inherit;font-size:.8rem;}
+  .palette-search:focus{outline:none;border-bottom-color:var(--teal);}
+  .palette-category{border-bottom:1px solid var(--border);}
+  .palette-category-header{padding:.5rem .75rem;font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);cursor:pointer;display:flex;justify-content:space-between;align-items:center;}
+  .palette-category-header:hover{background:var(--teal-bg);}
+  .palette-category.collapsed .palette-items{display:none;}
+  .palette-item{padding:.4rem .75rem;font-size:.8rem;cursor:pointer;display:flex;align-items:center;gap:.5rem;border-bottom:1px solid #f1f5f9;}
+  .palette-item:hover{background:var(--blue-bg);}
+  .palette-item.selected{background:var(--teal-bg);border-left:3px solid var(--teal);}
+  .palette-item canvas{width:36px;height:36px;flex-shrink:0;}
+
+  /* Step panel styles */
+  .step-instruction{font-size:.9rem;font-weight:500;margin-bottom:.5rem;}
+  .step-hint{font-size:.8rem;color:var(--text-muted);font-style:italic;}
+  .step-progress{display:flex;gap:.25rem;margin-bottom:.5rem;}
+  .step-dot{width:24px;height:24px;border-radius:50%;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;color:var(--text-muted);}
+  .step-dot.done{background:var(--teal);color:white;}
+  .step-dot.current{background:var(--blue);color:white;}
+
+  /* Equipment info popup */
+  .eq-popup{position:absolute;background:white;border:1px solid var(--border);border-radius:8px;padding:.75rem;box-shadow:0 4px 12px rgba(0,0,0,0.1);max-width:250px;z-index:100;font-size:.8rem;pointer-events:none;}
+  .eq-popup h4{margin:0 0 .25rem;font-size:.85rem;color:var(--navy);}
+  .eq-popup .uncertainty{color:var(--teal);font-family:'Fira Code',monospace;font-size:.75rem;}
+  .eq-popup .ib-note{margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);color:var(--text-muted);}
+
+  /* Sandbox toolbar */
+  .sandbox-toolbar{position:absolute;top:.5rem;right:.5rem;display:flex;gap:.5rem;}
+  .sandbox-btn{padding:.4rem .75rem;border:1px solid var(--border);border-radius:4px;background:white;font-size:.75rem;cursor:pointer;font-family:inherit;}
+  .sandbox-btn:hover{background:var(--blue-bg);}
+  .sandbox-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);}
+
+  /* Template selector */
+  .template-selector{padding:1rem;text-align:center;}
+  .template-card{display:inline-block;width:200px;padding:1rem;margin:.5rem;border:2px solid var(--border);border-radius:8px;cursor:pointer;text-align:center;transition:.2s;}
+  .template-card:hover{border-color:var(--teal);background:var(--teal-bg);}
+  .template-card h3{font-size:.9rem;margin:0 0 .25rem;}
+  .template-card p{font-size:.75rem;color:var(--text-muted);margin:0;}
+
+  /* Score display */
+  .score-bar{display:flex;gap:1rem;padding:.5rem 1rem;background:var(--blue-bg);border-radius:6px;font-size:.8rem;align-items:center;}
+  .score-item{display:flex;align-items:center;gap:.25rem;}
+  .score-label{color:var(--text-muted);}
+  .score-value{font-weight:600;font-family:'Fira Code',monospace;}
+
+  /* Feedback flash */
+  @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+  @keyframes pulse-green{0%,100%{box-shadow:none}50%{box-shadow:0 0 20px rgba(13,148,136,0.4)}}
+  .flash-wrong{animation:shake 0.3s ease;}
+  .flash-correct{animation:pulse-green 0.5s ease;}
+
+  /* Bin zone */
+  .bin-zone{position:absolute;bottom:150px;right:10px;width:50px;height:50px;border:2px dashed var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;opacity:0;transition:.2s;font-size:1.5rem;}
+  .bin-zone.active{opacity:0.6;}
+  .bin-zone.hover{opacity:1;background:var(--red-bg);}
+
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:0;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+
+  @media(max-width:700px){.lab-layout{flex-direction:column;height:auto;}.palette{width:100%;max-height:150px;border-right:none;border-bottom:1px solid var(--border);}.tab-btn{padding:.6rem .8rem;font-size:.78rem;}}
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div>
+    <h1>Virtual Lab Builder<span class="subtitle">IB Chemistry — Practical Skills</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">Tool 1</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle HL content" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle teacher mode" id="teacherToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="guided" role="tab"><span class="tab-num">1</span>Guided Assembly</button>
+  <button class="tab-btn" data-tab="sandbox" role="tab"><span class="tab-num">2</span>Sandbox</button>
+</div>
+
+<div class="sim-container" id="main-content">
+  <div class="tab-content active" id="tab-guided" role="tabpanel"></div>
+  <div class="tab-content" id="tab-sandbox" role="tabpanel"></div>
+</div>
+
+<!-- Shared palette and canvas (moved between tabs by JS) -->
+<aside class="palette" id="palette" style="display:none;"></aside>
+<canvas id="workspace" role="img" aria-label="Lab equipment workspace canvas" width="800" height="600" style="display:none;"></canvas>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd>-<kbd>2</kbd> Tabs &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>Del</kbd> Remove &nbsp; <kbd>Esc</kbd> Deselect
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ── Utilities ── */
+  function clearChildren(el){ while(el.firstChild) el.removeChild(el.firstChild); }
+
+  /* ── Color Constants ── */
+  var STROKE='#64748B', FILL_GLASS='rgba(226,232,240,0.4)', FILL_LIQUID='rgba(13,148,136,0.15)',
+      FILL_METAL='#94A3B8', FILL_DARK='#475569', FILL_RED='#EF4444', FILL_BLUE='#3B82F6',
+      FILL_COPPER='#D97706', FILL_FLAME_BLUE='#3B82F6', FILL_FLAME_ORANGE='#F59E0B';
+
+  /* ── Equipment Drawing Functions (26 from EquipmentTrainer) ── */
+
+  function drawBurette(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.rect(cx-8*s,cy-80*s,16*s,140*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    ctx.fillStyle=FILL_LIQUID; ctx.fillRect(cx-7*s,cy-40*s,14*s,98*s);
+    ctx.lineWidth=1*s;
+    for(var i=0;i<10;i++){var y=cy-75*s+i*14*s; ctx.beginPath(); ctx.moveTo(cx-8*s,y); ctx.lineTo(cx-3*s,y); ctx.stroke();}
+    ctx.fillStyle=FILL_DARK; ctx.fillRect(cx-3*s,cy+60*s,6*s,8*s);
+    ctx.beginPath(); ctx.moveTo(cx-10*s,cy+63*s); ctx.lineTo(cx+10*s,cy+63*s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-2*s,cy+68*s); ctx.lineTo(cx-2*s,cy+80*s); ctx.lineTo(cx+2*s,cy+80*s); ctx.lineTo(cx+2*s,cy+68*s); ctx.stroke();
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.moveTo(cx-14*s,cy-80*s); ctx.lineTo(cx+14*s,cy-80*s); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawVolPipette(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.rect(cx-3*s,cy-80*s,6*s,40*s); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx,cy-20*s,18*s,20*s,0,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    ctx.beginPath(); ctx.rect(cx-3*s,cy,6*s,50*s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-3*s,cy+50*s); ctx.lineTo(cx,cy+60*s); ctx.lineTo(cx+3*s,cy+50*s); ctx.stroke();
+    ctx.lineWidth=1*s; ctx.strokeStyle=FILL_RED;
+    ctx.beginPath(); ctx.moveTo(cx-6*s,cy-38*s); ctx.lineTo(cx+6*s,cy-38*s); ctx.stroke();
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath(); ctx.ellipse(cx,cy-20*s,16*s,18*s,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawGradPipette(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.rect(cx-4*s,cy-75*s,8*s,135*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx-4*s,cy+60*s); ctx.lineTo(cx,cy+70*s); ctx.lineTo(cx+4*s,cy+60*s); ctx.stroke();
+    ctx.lineWidth=1*s;
+    for(var i=0;i<12;i++){var y=cy-70*s+i*11*s; ctx.beginPath(); ctx.moveTo(cx-4*s,y); ctx.lineTo(cx-1*s,y); ctx.stroke();}
+    ctx.fillStyle=FILL_LIQUID; ctx.fillRect(cx-3*s,cy-30*s,6*s,88*s);
+    ctx.restore();
+  }
+
+  function drawMeasCylinder(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.moveTo(cx-16*s,cy-60*s); ctx.lineTo(cx-14*s,cy+55*s);
+    ctx.lineTo(cx+14*s,cy+55*s); ctx.lineTo(cx+16*s,cy-60*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath(); ctx.moveTo(cx-16*s,cy-60*s); ctx.lineTo(cx-14*s,cy+55*s);
+    ctx.lineTo(cx+14*s,cy+55*s); ctx.lineTo(cx+16*s,cy-60*s); ctx.closePath(); ctx.fill();
+    ctx.fillStyle=FILL_DARK; ctx.fillRect(cx-18*s,cy+55*s,36*s,6*s);
+    ctx.beginPath(); ctx.moveTo(cx+16*s,cy-60*s); ctx.lineTo(cx+20*s,cy-64*s); ctx.stroke();
+    ctx.lineWidth=1*s;
+    for(var i=0;i<8;i++){var y=cy-50*s+i*13*s; ctx.beginPath(); ctx.moveTo(cx-14*s,y); ctx.lineTo(cx-8*s,y); ctx.stroke();}
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath(); ctx.moveTo(cx-14*s,cy); ctx.lineTo(cx-13*s,cy+53*s); ctx.lineTo(cx+13*s,cy+53*s); ctx.lineTo(cx+14*s,cy); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawVolFlask(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.arc(cx,cy+15*s,35*s,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    ctx.beginPath(); ctx.rect(cx-6*s,cy-70*s,12*s,50*s); ctx.stroke();
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.moveTo(cx-25*s,cy+50*s); ctx.lineTo(cx+25*s,cy+50*s); ctx.stroke();
+    ctx.lineWidth=1*s; ctx.strokeStyle=FILL_RED;
+    ctx.beginPath(); ctx.moveTo(cx-8*s,cy-25*s); ctx.lineTo(cx+8*s,cy-25*s); ctx.stroke();
+    ctx.fillStyle=FILL_DARK;
+    ctx.beginPath(); ctx.moveTo(cx-5*s,cy-70*s); ctx.lineTo(cx-7*s,cy-78*s); ctx.lineTo(cx+7*s,cy-78*s); ctx.lineTo(cx+5*s,cy-70*s); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBeaker(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-28*s,cy-35*s); ctx.lineTo(cx-25*s,cy+35*s);
+    ctx.lineTo(cx+25*s,cy+35*s); ctx.lineTo(cx+28*s,cy-35*s);
+    ctx.lineTo(cx+32*s,cy-38*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-28*s,cy-35*s); ctx.lineTo(cx-25*s,cy+35*s);
+    ctx.lineTo(cx+25*s,cy+35*s); ctx.lineTo(cx+28*s,cy-35*s); ctx.closePath(); ctx.fill();
+    ctx.lineWidth=1*s;
+    for(var i=0;i<3;i++){var y=cy-15*s+i*16*s; ctx.beginPath(); ctx.moveTo(cx-25*s,y); ctx.lineTo(cx-18*s,y); ctx.stroke();}
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath();
+    ctx.moveTo(cx-26*s,cy); ctx.lineTo(cx-25*s,cy+33*s); ctx.lineTo(cx+25*s,cy+33*s); ctx.lineTo(cx+26*s,cy); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawConicalFlask(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-6*s,cy-55*s); ctx.lineTo(cx-35*s,cy+40*s);
+    ctx.lineTo(cx+35*s,cy+40*s); ctx.lineTo(cx+6*s,cy-55*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-6*s,cy-55*s); ctx.lineTo(cx-35*s,cy+40*s);
+    ctx.lineTo(cx+35*s,cy+40*s); ctx.lineTo(cx+6*s,cy-55*s); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.rect(cx-7*s,cy-60*s,14*s,8*s); ctx.stroke();
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath();
+    ctx.moveTo(cx-20*s,cy+5*s); ctx.lineTo(cx-33*s,cy+38*s); ctx.lineTo(cx+33*s,cy+38*s); ctx.lineTo(cx+20*s,cy+5*s); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawRoundBottomFlask(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.arc(cx,cy+10*s,35*s,0.2,Math.PI-0.2); ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(cx-35*s*Math.cos(Math.PI-0.2),cy+10*s-35*s*Math.sin(Math.PI-0.2));
+    ctx.lineTo(cx-6*s,cy-50*s);
+    ctx.moveTo(cx+35*s*Math.cos(0.2),cy+10*s-35*s*Math.sin(0.2));
+    ctx.lineTo(cx+6*s,cy-50*s);
+    ctx.stroke();
+    ctx.beginPath(); ctx.rect(cx-7*s,cy-58*s,14*s,10*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath(); ctx.arc(cx,cy+10*s,33*s,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawTestTube(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-6*s,cy-55*s); ctx.lineTo(cx-6*s,cy+35*s);
+    ctx.arc(cx,cy+35*s,6*s,Math.PI,0);
+    ctx.lineTo(cx+6*s,cy-55*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-5*s,cy-55*s); ctx.lineTo(cx-5*s,cy+35*s);
+    ctx.arc(cx,cy+35*s,5*s,Math.PI,0);
+    ctx.lineTo(cx+5*s,cy-55*s); ctx.closePath(); ctx.fill();
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.arc(cx,cy-55*s,8*s,Math.PI,0); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawBoilingTube(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-10*s,cy-50*s); ctx.lineTo(cx-10*s,cy+35*s);
+    ctx.arc(cx,cy+35*s,10*s,Math.PI,0);
+    ctx.lineTo(cx+10*s,cy-50*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-9*s,cy-50*s); ctx.lineTo(cx-9*s,cy+35*s);
+    ctx.arc(cx,cy+35*s,9*s,Math.PI,0);
+    ctx.lineTo(cx+9*s,cy-50*s); ctx.closePath(); ctx.fill();
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.arc(cx,cy-50*s,13*s,Math.PI,0); ctx.stroke();
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath();
+    ctx.moveTo(cx-9*s,cy); ctx.lineTo(cx-9*s,cy+35*s);
+    ctx.arc(cx,cy+35*s,9*s,Math.PI,0);
+    ctx.lineTo(cx+9*s,cy); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawWatchGlass(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-35*s,cy); ctx.quadraticCurveTo(cx,cy+15*s,cx+35*s,cy);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-35*s,cy); ctx.quadraticCurveTo(cx,cy+15*s,cx+35*s,cy); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawEvapDish(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-35*s,cy-5*s); ctx.quadraticCurveTo(cx,cy+25*s,cx+35*s,cy-5*s);
+    ctx.lineTo(cx+38*s,cy-8*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-35*s,cy-5*s); ctx.quadraticCurveTo(cx,cy+25*s,cx+35*s,cy-5*s); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawBunsen(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.fillStyle=FILL_METAL; ctx.fillRect(cx-25*s,cy+40*s,50*s,8*s);
+    ctx.strokeRect(cx-25*s,cy+40*s,50*s,8*s);
+    ctx.fillStyle=FILL_METAL;
+    ctx.beginPath(); ctx.rect(cx-8*s,cy-20*s,16*s,60*s); ctx.fill(); ctx.stroke();
+    ctx.fillStyle='white'; ctx.fillRect(cx-8*s,cy+10*s,6*s,5*s);
+    ctx.lineWidth=1.5*s; ctx.beginPath(); ctx.moveTo(cx-8*s,cy+30*s); ctx.lineTo(cx-30*s,cy+38*s); ctx.stroke();
+    ctx.fillStyle='rgba(59,130,246,0.4)';
+    ctx.beginPath(); ctx.moveTo(cx-6*s,cy-20*s); ctx.quadraticCurveTo(cx,cy-55*s,cx+6*s,cy-20*s); ctx.fill();
+    ctx.fillStyle='rgba(245,158,11,0.3)';
+    ctx.beginPath(); ctx.moveTo(cx-10*s,cy-20*s); ctx.quadraticCurveTo(cx,cy-65*s,cx+10*s,cy-20*s); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawHotPlate(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.fillStyle='#E2E8F0'; ctx.fillRect(cx-40*s,cy-5*s,80*s,30*s); ctx.strokeRect(cx-40*s,cy-5*s,80*s,30*s);
+    ctx.fillStyle=FILL_METAL; ctx.fillRect(cx-35*s,cy-15*s,70*s,12*s); ctx.strokeRect(cx-35*s,cy-15*s,70*s,12*s);
+    ctx.beginPath(); ctx.arc(cx+30*s,cy+10*s,5*s,0,Math.PI*2); ctx.fillStyle=FILL_DARK; ctx.fill(); ctx.stroke();
+    ctx.strokeStyle='#EF4444'; ctx.lineWidth=1*s; ctx.setLineDash([3*s,3*s]);
+    for(var i=-1;i<=1;i++){
+      ctx.beginPath(); ctx.moveTo(cx+i*20*s,cy-18*s);
+      ctx.quadraticCurveTo(cx+i*20*s+3*s,cy-28*s,cx+i*20*s,cy-35*s); ctx.stroke();
+    }
+    ctx.setLineDash([]); ctx.restore();
+  }
+
+  function drawBalance(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.fillStyle='#E2E8F0'; ctx.fillRect(cx-40*s,cy-5*s,80*s,35*s); ctx.strokeRect(cx-40*s,cy-5*s,80*s,35*s);
+    ctx.fillStyle='#1E293B'; ctx.fillRect(cx-30*s,cy,60*s,18*s);
+    ctx.fillStyle='#22D3EE'; ctx.font=(10*s)+'px "Fira Code",monospace'; ctx.textAlign='center';
+    ctx.fillText('12.34 g',cx,cy+13*s);
+    ctx.fillStyle=FILL_METAL; ctx.fillRect(cx-35*s,cy-12*s,70*s,8*s); ctx.strokeRect(cx-35*s,cy-12*s,70*s,8*s);
+    ctx.restore();
+  }
+
+  function drawThermometer(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.rect(cx-3*s,cy-70*s,6*s,120*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy+55*s,8*s,0,Math.PI*2); ctx.fillStyle='#EF4444'; ctx.fill(); ctx.stroke();
+    ctx.fillStyle='#EF4444'; ctx.fillRect(cx-2*s,cy-20*s,4*s,75*s);
+    ctx.lineWidth=1*s;
+    for(var i=0;i<8;i++){var y=cy-60*s+i*13*s; ctx.beginPath(); ctx.moveTo(cx+3*s,y); ctx.lineTo(cx+8*s,y); ctx.stroke();}
+    ctx.restore();
+  }
+
+  function drawFilterFunnel(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-30*s,cy-30*s); ctx.lineTo(cx-4*s,cy+20*s);
+    ctx.lineTo(cx-4*s,cy+50*s); ctx.moveTo(cx+4*s,cy+50*s);
+    ctx.lineTo(cx+4*s,cy+20*s); ctx.lineTo(cx+30*s,cy-30*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-30*s,cy-30*s); ctx.lineTo(cx-4*s,cy+20*s); ctx.lineTo(cx+4*s,cy+20*s); ctx.lineTo(cx+30*s,cy-30*s); ctx.closePath(); ctx.fill();
+    ctx.setLineDash([4*s,3*s]); ctx.strokeStyle='#94A3B8';
+    ctx.beginPath(); ctx.moveTo(cx-28*s,cy-28*s); ctx.lineTo(cx,cy+15*s); ctx.lineTo(cx+28*s,cy-28*s); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+  }
+
+  function drawSepFunnel(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-5*s,cy-50*s);
+    ctx.bezierCurveTo(cx-30*s,cy-20*s,cx-25*s,cy+20*s,cx-4*s,cy+30*s);
+    ctx.lineTo(cx+4*s,cy+30*s);
+    ctx.bezierCurveTo(cx+25*s,cy+20*s,cx+30*s,cy-20*s,cx+5*s,cy-50*s);
+    ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    ctx.fillStyle=FILL_DARK;
+    ctx.beginPath(); ctx.moveTo(cx-4*s,cy-50*s); ctx.lineTo(cx-6*s,cy-58*s); ctx.lineTo(cx+6*s,cy-58*s); ctx.lineTo(cx+4*s,cy-50*s); ctx.closePath(); ctx.fill();
+    ctx.beginPath(); ctx.rect(cx-3*s,cy+30*s,6*s,20*s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx-10*s,cy+38*s); ctx.lineTo(cx+10*s,cy+38*s); ctx.lineWidth=2.5*s; ctx.stroke();
+    ctx.fillStyle='rgba(13,148,136,0.2)';
+    ctx.beginPath();
+    ctx.moveTo(cx-22*s,cy+5*s); ctx.bezierCurveTo(cx-25*s,cy+20*s,cx-20*s,cy+28*s,cx-4*s,cy+30*s);
+    ctx.lineTo(cx+4*s,cy+30*s); ctx.bezierCurveTo(cx+20*s,cy+28*s,cx+25*s,cy+20*s,cx+22*s,cy+5*s);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle='rgba(245,158,11,0.15)';
+    ctx.beginPath();
+    ctx.moveTo(cx-22*s,cy+5*s);
+    ctx.bezierCurveTo(cx-28*s,cy-10*s,cx-25*s,cy-30*s,cx-5*s,cy-48*s);
+    ctx.lineTo(cx+5*s,cy-48*s);
+    ctx.bezierCurveTo(cx+25*s,cy-30*s,cx+28*s,cy-10*s,cx+22*s,cy+5*s);
+    ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawCrucible(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-18*s,cy-10*s); ctx.lineTo(cx-12*s,cy+20*s);
+    ctx.lineTo(cx+12*s,cy+20*s); ctx.lineTo(cx+18*s,cy-10*s); ctx.closePath();
+    ctx.stroke(); ctx.fillStyle=FILL_GLASS; ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(cx+5*s,cy-18*s,16*s,5*s,0.15,0,Math.PI*2);
+    ctx.stroke(); ctx.fillStyle='rgba(226,232,240,0.6)'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx+5*s,cy-23*s,3*s,0,Math.PI*2); ctx.fillStyle=FILL_DARK; ctx.fill();
+    ctx.restore();
+  }
+
+  function drawMortarPestle(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-30*s,cy-10*s); ctx.quadraticCurveTo(cx,cy+30*s,cx+30*s,cy-10*s);
+    ctx.stroke();
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.moveTo(cx-32*s,cy-10*s); ctx.lineTo(cx+32*s,cy-10*s); ctx.stroke();
+    ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx+10*s,cy+5*s); ctx.lineTo(cx+35*s,cy-35*s);
+    ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(cx+8*s,cy+8*s,8*s,5*s,0.3,0,Math.PI*2);
+    ctx.fillStyle=FILL_METAL; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx+37*s,cy-37*s,4*s,0,Math.PI*2);
+    ctx.fillStyle=FILL_METAL; ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawWashBottle(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-15*s,cy-40*s); ctx.lineTo(cx-18*s,cy+40*s);
+    ctx.lineTo(cx+18*s,cy+40*s); ctx.lineTo(cx+15*s,cy-40*s);
+    ctx.closePath(); ctx.stroke();
+    ctx.fillStyle='rgba(226,232,240,0.3)'; ctx.fill();
+    ctx.fillStyle=FILL_DARK; ctx.fillRect(cx-10*s,cy-48*s,20*s,10*s);
+    ctx.lineWidth=1.5*s; ctx.beginPath();
+    ctx.moveTo(cx+5*s,cy-48*s); ctx.lineTo(cx+5*s,cy-60*s);
+    ctx.quadraticCurveTo(cx+25*s,cy-65*s,cx+25*s,cy-50*s);
+    ctx.lineTo(cx+25*s,cy-40*s); ctx.stroke();
+    ctx.fillStyle=FILL_LIQUID;
+    ctx.beginPath();
+    ctx.moveTo(cx-16*s,cy-10*s); ctx.lineTo(cx-17*s,cy+38*s);
+    ctx.lineTo(cx+17*s,cy+38*s); ctx.lineTo(cx+16*s,cy-10*s); ctx.closePath(); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawDropper(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.ellipse(cx,cy-45*s,10*s,14*s,0,0,Math.PI*2);
+    ctx.fillStyle='#D97706'; ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.rect(cx-3*s,cy-32*s,6*s,55*s); ctx.stroke();
+    ctx.fillStyle=FILL_GLASS; ctx.fill();
+    ctx.beginPath(); ctx.moveTo(cx-3*s,cy+23*s); ctx.lineTo(cx,cy+35*s); ctx.lineTo(cx+3*s,cy+23*s); ctx.stroke();
+    ctx.fillStyle=FILL_LIQUID; ctx.fillRect(cx-2*s,cy-10*s,4*s,32*s);
+    ctx.restore();
+  }
+
+  function drawStirringRod(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=3*s;
+    ctx.beginPath(); ctx.moveTo(cx,cy-60*s); ctx.lineTo(cx,cy+60*s); ctx.stroke();
+    ctx.lineCap='round';
+    ctx.beginPath(); ctx.arc(cx,cy-60*s,2*s,0,Math.PI*2); ctx.fillStyle=FILL_GLASS; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx,cy+60*s,2*s,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawTripodGauze(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.moveTo(cx-25*s,cy+40*s); ctx.lineTo(cx,cy-5*s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+25*s,cy+40*s); ctx.lineTo(cx,cy-5*s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx,cy+40*s); ctx.lineTo(cx,cy-5*s); ctx.stroke();
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.moveTo(cx-28*s,cy-5*s); ctx.lineTo(cx+28*s,cy-5*s); ctx.stroke();
+    ctx.lineWidth=0.8*s; ctx.strokeStyle='#94A3B8';
+    for(var i=-2;i<=2;i++){
+      ctx.beginPath(); ctx.moveTo(cx+i*10*s,cy-12*s); ctx.lineTo(cx+i*10*s,cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx-25*s,cy-9*s+i*3*s); ctx.lineTo(cx+25*s,cy-9*s+i*3*s); ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawRetortStand(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=2*s;
+    ctx.fillStyle=FILL_METAL; ctx.fillRect(cx-30*s,cy+45*s,40*s,6*s); ctx.strokeRect(cx-30*s,cy+45*s,40*s,6*s);
+    ctx.beginPath(); ctx.moveTo(cx-20*s,cy+45*s); ctx.lineTo(cx-20*s,cy-60*s); ctx.stroke();
+    ctx.lineWidth=1.5*s; ctx.beginPath();
+    ctx.moveTo(cx-20*s,cy-20*s); ctx.lineTo(cx+20*s,cy-20*s); ctx.stroke();
+    ctx.beginPath(); ctx.arc(cx+25*s,cy-20*s,8*s,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle=FILL_DARK;
+    ctx.beginPath(); ctx.arc(cx-20*s,cy-20*s,4*s,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  function drawGoggles(ctx,cx,cy,s){
+    s=s||1; ctx.save(); ctx.strokeStyle=STROKE; ctx.lineWidth=1.5*s;
+    ctx.beginPath(); ctx.ellipse(cx-18*s,cy,16*s,14*s,0,0,Math.PI*2); ctx.stroke();
+    ctx.fillStyle='rgba(147,197,253,0.3)'; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(cx+18*s,cy,16*s,14*s,0,0,Math.PI*2); ctx.stroke(); ctx.fill();
+    ctx.lineWidth=2*s; ctx.beginPath(); ctx.moveTo(cx-3*s,cy-3*s); ctx.lineTo(cx+3*s,cy-3*s); ctx.stroke();
+    ctx.lineWidth=1.5*s; ctx.setLineDash([3*s,2*s]);
+    ctx.beginPath(); ctx.moveTo(cx-34*s,cy); ctx.lineTo(cx-45*s,cy-5*s); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+34*s,cy); ctx.lineTo(cx+45*s,cy-5*s); ctx.stroke();
+    ctx.setLineDash([]); ctx.restore();
+  }
+
+  /* ── 5 New Draw Functions ── */
+
+  function drawLiebigCondenser(ctx, cx, cy, s){
+    s = s || 1; ctx.save();
+    ctx.strokeStyle = STROKE; ctx.lineWidth = 1.5*s;
+    // Outer tube
+    ctx.fillStyle = FILL_GLASS;
+    ctx.beginPath();
+    ctx.moveTo(cx-40*s, cy-8*s); ctx.lineTo(cx+40*s, cy-8*s);
+    ctx.lineTo(cx+40*s, cy+8*s); ctx.lineTo(cx-40*s, cy+8*s);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    // Inner tube
+    ctx.beginPath();
+    ctx.moveTo(cx-40*s, cy-3*s); ctx.lineTo(cx+40*s, cy-3*s);
+    ctx.lineTo(cx+40*s, cy+3*s); ctx.lineTo(cx-40*s, cy+3*s);
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    // Water inlet/outlet nubs
+    ctx.fillStyle = FILL_GLASS;
+    ctx.fillRect(cx-15*s, cy+8*s, 6*s, 8*s); ctx.strokeRect(cx-15*s, cy+8*s, 6*s, 8*s);
+    ctx.fillRect(cx+10*s, cy-16*s, 6*s, 8*s); ctx.strokeRect(cx+10*s, cy-16*s, 6*s, 8*s);
+    // Water flow arrows (blue)
+    ctx.fillStyle = FILL_BLUE; ctx.font = (8*s)+'px Inter';
+    ctx.fillText('\u2191', cx-13*s, cy+20*s);
+    ctx.fillText('\u2191', cx+12*s, cy-10*s);
+    ctx.restore();
+  }
+
+  function drawWhiteTile(ctx, cx, cy, s){
+    s = s || 1; ctx.save();
+    ctx.strokeStyle = STROKE; ctx.lineWidth = 1;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(cx-25*s, cy-2*s, 50*s, 4*s);
+    ctx.strokeRect(cx-25*s, cy-2*s, 50*s, 4*s);
+    // Cross-hairs for colour visibility
+    ctx.strokeStyle = '#CBD5E1'; ctx.lineWidth = 0.5;
+    ctx.beginPath(); ctx.moveTo(cx-10*s, cy); ctx.lineTo(cx+10*s, cy); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx, cy-2*s); ctx.lineTo(cx, cy+2*s); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawRubberTubing(ctx, cx, cy, s){
+    s = s || 1; ctx.save();
+    ctx.strokeStyle = '#475569'; ctx.lineWidth = 3*s;
+    ctx.beginPath();
+    ctx.moveTo(cx-20*s, cy); ctx.quadraticCurveTo(cx, cy+15*s, cx+20*s, cy);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawPipetteFiller(ctx, cx, cy, s){
+    s = s || 1; ctx.save();
+    ctx.strokeStyle = STROKE; ctx.lineWidth = 1.5*s;
+    // Bulb
+    ctx.fillStyle = FILL_RED;
+    ctx.beginPath(); ctx.arc(cx, cy-15*s, 10*s, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    // Nozzle
+    ctx.fillStyle = FILL_DARK;
+    ctx.fillRect(cx-2*s, cy-5*s, 4*s, 20*s); ctx.strokeRect(cx-2*s, cy-5*s, 4*s, 20*s);
+    ctx.restore();
+  }
+
+  function drawAntiBumpingGranules(ctx, cx, cy, s){
+    s = s || 1; ctx.save();
+    ctx.fillStyle = '#94A3B8';
+    // Fixed positions (seeded pattern, not random)
+    var positions = [
+      {dx: -4, dy: -2}, {dx: 3, dy: -1}, {dx: -1, dy: 2},
+      {dx: 5, dy: 1}, {dx: 0, dy: -3}
+    ];
+    for(var i = 0; i < positions.length; i++){
+      ctx.beginPath();
+      ctx.arc(cx + positions[i].dx*s, cy + positions[i].dy*s, 2*s, 0, Math.PI*2);
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  /* ── Equipment Database ── */
+  var EQUIPMENT = [
+    {id:'burette', name:'Burette', category:'volumetric', uncertainty:'\u00B10.05 cm\u00B3', uncertaintyVal:0.05, unit:'cm\u00B3', precision:'High',
+     typicalUse:'Accurate measurement of variable volumes in titrations', ibNotes:'Read meniscus at eye level. Record to 2 d.p.', commonMistakes:['Not reading at eye level','Forgetting to record initial reading'], hitR:50, draw:drawBurette},
+    {id:'vol_pipette', name:'Volumetric Pipette', category:'volumetric', uncertainty:'\u00B10.04 cm\u00B3', uncertaintyVal:0.04, unit:'cm\u00B3', precision:'High',
+     typicalUse:'Delivers a fixed, precise volume (e.g., 25.00 cm\u00B3)', ibNotes:'Use pipette filler, never mouth. Touch tip to side of flask to drain.', commonMistakes:['Pipetting by mouth','Blowing out last drop'], draw:drawVolPipette},
+    {id:'grad_pipette', name:'Graduated Pipette', category:'volumetric', uncertainty:'\u00B10.1 cm\u00B3', uncertaintyVal:0.1, unit:'cm\u00B3', precision:'Medium',
+     typicalUse:'Measures variable small volumes with moderate precision', ibNotes:'Less precise than volumetric pipette.', commonMistakes:['Using when volumetric pipette would be more appropriate'], draw:drawGradPipette},
+    {id:'meas_cylinder', name:'Measuring Cylinder', category:'volumetric', uncertainty:'\u00B10.5 cm\u00B3', uncertaintyVal:0.5, unit:'cm\u00B3', precision:'Low',
+     typicalUse:'Measures approximate volumes of liquids', ibNotes:'Suitable for volumes where high precision is not needed.', commonMistakes:['Using for titration volumes','Not reading at meniscus'], draw:drawMeasCylinder},
+    {id:'vol_flask', name:'Volumetric Flask', category:'volumetric', uncertainty:'\u00B10.3 cm\u00B3', uncertaintyVal:0.3, unit:'cm\u00B3', precision:'High',
+     typicalUse:'Prepares solutions of precise concentration', ibNotes:'Fill to calibration mark with bottom of meniscus. Invert to mix.', commonMistakes:['Dissolving solute directly in flask','Overfilling past mark'], draw:drawVolFlask},
+    {id:'beaker', name:'Beaker', category:'glassware', uncertainty:'\u00B15 cm\u00B3', uncertaintyVal:5, unit:'cm\u00B3', precision:'Low',
+     typicalUse:'General purpose container for mixing and heating', ibNotes:'Not for accurate measurement. Graduations are approximate.', commonMistakes:['Using beaker markings for precise measurement'], draw:drawBeaker},
+    {id:'conical_flask', name:'Conical (Erlenmeyer) Flask', category:'glassware', uncertainty:'\u00B110 cm\u00B3', uncertaintyVal:10, unit:'cm\u00B3', precision:'Low',
+     typicalUse:'Titration receiving flask; swirling without spilling', ibNotes:'Shape allows swirling. Use for titration analyte.', commonMistakes:['Using for accurate volume measurement'], draw:drawConicalFlask},
+    {id:'round_flask', name:'Round-Bottom Flask', category:'glassware', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Even heating; used in distillation and reflux', ibNotes:'Always support with clamp, never free-standing. Add anti-bumping granules before heating.', commonMistakes:['Heating without anti-bumping granules','Not clamping securely'], draw:drawRoundBottomFlask},
+    {id:'test_tube', name:'Test Tube', category:'glassware', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Small-scale reactions and qualitative tests', ibNotes:'Hold at 45 degrees when heating. Point away from people.', commonMistakes:['Heating with mouth pointed at people','Overfilling'], draw:drawTestTube},
+    {id:'boiling_tube', name:'Boiling Tube', category:'glassware', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Heating larger volumes; vigorous reactions', ibNotes:'Wider than test tube, suitable for more vigorous reactions.', commonMistakes:['Using test tube for vigorous reactions'], draw:drawBoilingTube},
+    {id:'watch_glass', name:'Watch Glass', category:'glassware', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Covering beakers; holding small solid samples', ibNotes:'Can be used to cover beakers during heating to reduce evaporation.', commonMistakes:[], draw:drawWatchGlass},
+    {id:'evap_dish', name:'Evaporating Dish', category:'glassware', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Evaporating solutions to obtain solid crystals', ibNotes:'Heat gently to avoid splattering. Use water bath for temperature-sensitive solutes.', commonMistakes:['Heating too strongly causing splattering'], draw:drawEvapDish},
+    {id:'bunsen', name:'Bunsen Burner', category:'heating', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Strong direct heating with adjustable flame', ibNotes:'Blue flame (air hole open) for heating. Yellow flame (safety) when not in use.', commonMistakes:['Leaving air hole open when not heating','Not checking for gas leaks'], draw:drawBunsen},
+    {id:'hot_plate', name:'Hot Plate', category:'heating', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Gentle, controlled heating without open flame', ibNotes:'Use when flammable solvents are present. No open flame.', commonMistakes:['Using Bunsen near flammable solvents'], draw:drawHotPlate},
+    {id:'tripod_gauze', name:'Tripod and Wire Gauze', category:'heating', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Supporting containers above a Bunsen burner', ibNotes:'Wire gauze spreads heat evenly. Place on tripod over Bunsen.', commonMistakes:['Not using gauze (direct flame on glass)'], draw:drawTripodGauze},
+    {id:'balance', name:'Electronic Balance', category:'measurement', uncertainty:'\u00B10.01 g', uncertaintyVal:0.01, unit:'g', precision:'High',
+     typicalUse:'Accurate mass measurement', ibNotes:'Tare before use. Shield from draughts. Record to 2 d.p.', commonMistakes:['Not taring','Placing hot objects on balance'], draw:drawBalance},
+    {id:'thermometer', name:'Thermometer', category:'measurement', uncertainty:'\u00B10.5 \u00B0C', uncertaintyVal:0.5, unit:'\u00B0C', precision:'Medium',
+     typicalUse:'Measuring temperature of solutions', ibNotes:'Bulb must be submerged in liquid, not touching glass.', commonMistakes:['Touching bottom of container','Not waiting for equilibrium'], draw:drawThermometer},
+    {id:'filter_funnel', name:'Filter Funnel', category:'separation', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Gravity filtration to separate insoluble solids', ibNotes:'Fold filter paper correctly. Use stem touching beaker wall.', commonMistakes:['Not folding filter paper correctly','Not wetting paper first'], draw:drawFilterFunnel},
+    {id:'sep_funnel', name:'Separating Funnel', category:'separation', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Separating immiscible liquids by density', ibNotes:'Invert and release pressure regularly. Drain lower layer first.', commonMistakes:['Not releasing pressure','Draining upper layer through stopcock'], hitR:45, draw:drawSepFunnel},
+    {id:'crucible', name:'Crucible', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Heating solids to very high temperatures', ibNotes:'Use tongs to handle. Heat with lid slightly ajar for gas escape.', commonMistakes:['Handling hot crucible with fingers','Sealing lid completely'], draw:drawCrucible},
+    {id:'mortar_pestle', name:'Mortar and Pestle', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Grinding solids into fine powder', ibNotes:'Increases surface area for faster reactions.', commonMistakes:['Grinding too vigorously causing spillage'], draw:drawMortarPestle},
+    {id:'wash_bottle', name:'Wash Bottle', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Rinsing apparatus with distilled water', ibNotes:'Use distilled water to rinse quantitatively. Rinse flask walls during titration.', commonMistakes:['Using tap water instead of distilled'], draw:drawWashBottle},
+    {id:'dropper', name:'Dropping Pipette', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Adding small amounts of liquid drop by drop', ibNotes:'Not for accurate measurement. Use for indicators, reagents.', commonMistakes:['Using for measured volumes'], draw:drawDropper},
+    {id:'stirring_rod', name:'Stirring Rod', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Stirring solutions and aiding dissolution', ibNotes:'Use to guide liquid when decanting.', commonMistakes:[], draw:drawStirringRod},
+    {id:'retort_stand', name:'Retort Stand and Clamp', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Holding and supporting apparatus at height', ibNotes:'Ensure clamp is tight. Use boss head for angle adjustment.', commonMistakes:['Not tightening clamp enough','Overloading one side'], hitR:45, draw:drawRetortStand},
+    {id:'goggles', name:'Safety Goggles', category:'safety', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Protecting eyes from chemical splashes', ibNotes:'Must be worn at all times during practical work.', commonMistakes:['Removing during experiment','Wearing on forehead'], draw:drawGoggles},
+    {id:'liebig_condenser', name:'Liebig Condenser', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Cooling vapours during distillation', ibNotes:'Water flows in at bottom, out at top (countercurrent).', commonMistakes:['Running water in wrong direction','Not securing with clamp'], hitR:50, draw:drawLiebigCondenser},
+    {id:'white_tile', name:'White Tile', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Placed under titration flask to see indicator colour change', ibNotes:'Essential for accurate endpoint detection.', commonMistakes:[], draw:drawWhiteTile},
+    {id:'rubber_tubing', name:'Rubber Tubing', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Connecting apparatus for gas delivery or water flow', ibNotes:'Ensure tight connections to prevent leaks.', commonMistakes:['Loose connections causing leaks'], draw:drawRubberTubing},
+    {id:'pipette_filler', name:'Pipette Filler', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Safely drawing liquid into pipettes', ibNotes:'Never pipette by mouth.', commonMistakes:['Pipetting by mouth'], draw:drawPipetteFiller},
+    {id:'anti_bumping_granules', name:'Anti-bumping Granules', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Preventing bumping during heating of liquids', ibNotes:'Add before heating, never to a hot liquid. Provides nucleation sites for smooth boiling.', commonMistakes:['Adding to already boiling liquid','Forgetting to add before heating'], draw:drawAntiBumpingGranules}
+  ];
+
+  var EQ_MAP = {};
+  EQUIPMENT.forEach(function(eq){ EQ_MAP[eq.id] = eq; });
+
+  var CATEGORIES = [
+    {id:'volumetric', name:'Volumetric', icon:'\u25B3'},
+    {id:'glassware', name:'Glassware', icon:'\u25CB'},
+    {id:'heating', name:'Heating', icon:'\u2668'},
+    {id:'measurement', name:'Measurement', icon:'\u2316'},
+    {id:'separation', name:'Separation', icon:'\u25BD'},
+    {id:'safety', name:'Safety', icon:'\u26A0'},
+    {id:'general', name:'General', icon:'\u2699'}
+  ];
+
+  /* ── State ── */
+  var _canvas, _ctx;
+  var _placed = [];
+  var _nextId = 1;
+  var _dragging = null;
+  var _hovered = null;
+  var _selectedEquipment = null;
+  var _activeTab = 'guided';
+  var _connections = [];
+  var _connectMode = false;
+  var _connectFrom = null;
+
+  /* Guided mode state */
+  var _activeTemplate = null;
+  var _currentStep = 0;
+  var _guidedComplete = false;
+  var _stepPlacements = {};
+  var _score = { attempts: 0, startTime: 0, firstTryCorrect: 0 };
+  var _stepAttempts = 0;
+
+  /* ── Setup Templates ── */
+  var SETUP_TEMPLATES = {
+    distillation: {
+      id: 'distillation',
+      name: 'Simple Distillation',
+      description: 'Separate a liquid mixture based on differences in boiling point',
+      steps: [
+        { instruction: 'Place a retort stand on the left side of the bench.', equipment: 'retort_stand',
+          target: {x:0.2, y:0.5}, tolerance: 60, hint: 'The retort stand supports the entire apparatus.' },
+        { instruction: 'Clamp a round-bottom flask to the retort stand.', equipment: 'round_flask',
+          target: {x:0.2, y:0.65}, tolerance: 50, hint: 'Position the flask where it can be heated from below.' },
+        { instruction: 'Place a Bunsen burner below the flask.', equipment: 'bunsen',
+          target: {x:0.2, y:0.85}, tolerance: 50, hint: 'The Bunsen heats the liquid mixture in the flask.' },
+        { instruction: 'Insert a thermometer into the flask neck.', equipment: 'thermometer',
+          target: {x:0.2, y:0.4}, tolerance: 50, hint: 'The thermometer bulb should sit at the side-arm junction to read the boiling point of the distillate.' },
+        { instruction: 'Attach a Liebig condenser, angled downward to the right.', equipment: 'liebig_condenser',
+          target: {x:0.5, y:0.55}, tolerance: 70, hint: 'Water flows in at the bottom and out at the top (countercurrent cooling).' },
+        { instruction: 'Place a conical flask as the receiver on the right.', equipment: 'conical_flask',
+          target: {x:0.8, y:0.75}, tolerance: 60, hint: 'The distillate collects in this flask.' },
+        { instruction: 'Place a second retort stand to support the condenser.', equipment: 'retort_stand',
+          target: {x:0.55, y:0.5}, tolerance: 60, hint: 'A second clamp supports the condenser at the correct angle.' }
+      ],
+      connections: [
+        {from: 1, to: 4, label: 'vapour rises'},
+        {from: 4, to: 5, label: 'vapour path'},
+        {from: 5, to: 6, label: 'condensate drips'}
+      ],
+      annotations: [
+        {text: 'Water IN (bottom)', x:0.45, y:0.7},
+        {text: 'Water OUT (top)', x:0.45, y:0.42},
+        {text: 'Thermometer at side-arm', x:0.12, y:0.35},
+        {text: 'Anti-bumping granules', x:0.12, y:0.72},
+        {text: 'Collect distillate', x:0.75, y:0.7}
+      ],
+      successMessage: 'Distillation apparatus assembled correctly! The mixture is heated, vapour rises through the condenser where it cools and condenses, and pure distillate collects in the receiver flask.'
+    },
+    titration: {
+      id: 'titration',
+      name: 'Titration Setup',
+      description: 'Set up apparatus for an acid-base titration',
+      steps: [
+        { instruction: 'Place a retort stand in the centre of the bench.', equipment: 'retort_stand',
+          target: {x:0.5, y:0.4}, tolerance: 60, hint: 'The retort stand holds the burette vertically.' },
+        { instruction: 'Clamp a burette to the retort stand.', equipment: 'burette',
+          target: {x:0.5, y:0.35}, tolerance: 50, hint: 'The burette must be vertical with the scale at eye level. Record initial reading to 2 d.p.' },
+        { instruction: 'Place a white tile on the base below the burette.', equipment: 'white_tile',
+          target: {x:0.5, y:0.85}, tolerance: 50, hint: 'The white background makes it easier to see the indicator colour change at the endpoint.' },
+        { instruction: 'Place a conical flask on the white tile.', equipment: 'conical_flask',
+          target: {x:0.5, y:0.75}, tolerance: 50, hint: 'The conical flask holds the analyte. Its shape allows swirling without spilling.' },
+        { instruction: 'Place a wash bottle nearby for rinsing.', equipment: 'wash_bottle',
+          target: {x:0.75, y:0.75}, tolerance: 70, hint: 'Use distilled water to rinse the flask walls during titration. This ensures all analyte reacts.' },
+        { instruction: 'Place a volumetric pipette and filler to the side.', equipment: 'vol_pipette',
+          target: {x:0.25, y:0.6}, tolerance: 70, hint: 'Use the volumetric pipette to transfer an exact volume of analyte (e.g., 25.00 cm\u00B3) into the conical flask.' }
+      ],
+      connections: [
+        {from: 2, to: 4, label: 'titrant drips'}
+      ],
+      annotations: [
+        {text: 'Read meniscus at eye level', x:0.38, y:0.25},
+        {text: 'Record to 2 d.p. (e.g., 23.45)', x:0.38, y:0.3},
+        {text: 'Swirl flask during addition', x:0.55, y:0.72},
+        {text: 'White tile aids colour detection', x:0.55, y:0.88}
+      ],
+      successMessage: 'Titration apparatus set up correctly! Fill the burette with titrant, pipette the analyte into the conical flask, add indicator, and titrate to the endpoint.'
+    }
+  };
+
+  /* ── Palette UI ── */
+  function buildPalette(){
+    var palette = document.getElementById('palette');
+    clearChildren(palette);
+
+    var search = document.createElement('input');
+    search.className = 'palette-search';
+    search.placeholder = 'Search equipment...';
+    search.setAttribute('type', 'text');
+    search.addEventListener('input', function(){ filterPalette(search.value); });
+    palette.appendChild(search);
+
+    CATEGORIES.forEach(function(cat){
+      var items = EQUIPMENT.filter(function(eq){ return eq.category === cat.id; });
+      if(items.length === 0) return;
+
+      var section = document.createElement('div');
+      section.className = 'palette-category';
+      section.setAttribute('data-cat', cat.id);
+
+      var header = document.createElement('div');
+      header.className = 'palette-category-header';
+      header.textContent = cat.icon + ' ' + cat.name + ' (' + items.length + ')';
+      var arrow = document.createElement('span');
+      arrow.textContent = '\u25BC';
+      header.appendChild(arrow);
+      header.addEventListener('click', function(){
+        section.classList.toggle('collapsed');
+        arrow.textContent = section.classList.contains('collapsed') ? '\u25B6' : '\u25BC';
+      });
+      section.appendChild(header);
+
+      var list = document.createElement('div');
+      list.className = 'palette-items';
+      items.forEach(function(eq){
+        var item = document.createElement('div');
+        item.className = 'palette-item';
+        item.setAttribute('data-eq', eq.id);
+
+        var thumb = document.createElement('canvas');
+        thumb.width = 36; thumb.height = 36;
+        var tctx = thumb.getContext('2d');
+        eq.draw(tctx, 18, 18, 0.3);
+        item.appendChild(thumb);
+
+        var label = document.createElement('span');
+        label.textContent = eq.name;
+        item.appendChild(label);
+
+        item.addEventListener('click', function(){ selectEquipment(eq.id); });
+        list.appendChild(item);
+      });
+      section.appendChild(list);
+      palette.appendChild(section);
+    });
+  }
+
+  function filterPalette(query){
+    var q = query.toLowerCase();
+    document.querySelectorAll('.palette-item').forEach(function(item){
+      var eq = EQ_MAP[item.getAttribute('data-eq')];
+      var match = !q || eq.name.toLowerCase().indexOf(q) !== -1 ||
+                  eq.category.toLowerCase().indexOf(q) !== -1 ||
+                  eq.typicalUse.toLowerCase().indexOf(q) !== -1;
+      item.style.display = match ? '' : 'none';
+    });
+    document.querySelectorAll('.palette-category').forEach(function(cat){
+      var hasVisible = cat.querySelector('.palette-item:not([style*="display: none"])');
+      cat.style.display = hasVisible ? '' : 'none';
+    });
+  }
+
+  function selectEquipment(eqId){
+    _selectedEquipment = eqId;
+    document.querySelectorAll('.palette-item').forEach(function(item){
+      item.classList.toggle('selected', item.getAttribute('data-eq') === eqId);
+    });
+  }
+
+  /* ── Canvas Engine ── */
+  function initCanvas(){
+    _canvas = document.getElementById('workspace');
+    _ctx = _canvas.getContext('2d');
+
+    _canvas.addEventListener('mousedown', function(e){
+      var pos = getCanvasPos(e);
+
+      // Connect mode
+      if(_connectMode){
+        var hit = hitTest(pos.x, pos.y);
+        if(hit){
+          if(!_connectFrom){ _connectFrom = hit.id; }
+          else { _connections.push({fromId:_connectFrom, toId:hit.id, label:''}); _connectFrom=null; renderWorkspace(); }
+        }
+        return;
+      }
+
+      var hit = hitTest(pos.x, pos.y);
+      if(hit){
+        _dragging = { placedId: hit.id, offsetX: pos.x - hit.x, offsetY: pos.y - hit.y };
+        // Show bin zone
+        var bin = document.querySelector('.bin-zone');
+        if(bin) bin.classList.add('active');
+      } else if(_selectedEquipment){
+        var snapped = { x: snapToGrid(pos.x), y: snapToGrid(pos.y) };
+        placeEquipment(_selectedEquipment, snapped.x, snapped.y);
+      }
+    });
+
+    _canvas.addEventListener('mousemove', function(e){
+      var pos = getCanvasPos(e);
+      if(_dragging){
+        var item = _placed.find(function(p){ return p.id === _dragging.placedId; });
+        if(item){
+          item.x = snapToGrid(pos.x - _dragging.offsetX);
+          item.y = snapToGrid(pos.y - _dragging.offsetY);
+          renderWorkspace();
+        }
+      } else {
+        var hit = hitTest(pos.x, pos.y);
+        var newHover = hit ? hit.id : null;
+        if(newHover !== _hovered){
+          _hovered = newHover;
+          renderWorkspace();
+          showEquipmentPopup(hit, pos);
+        }
+      }
+    });
+
+    _canvas.addEventListener('mouseup', function(e){
+      if(_dragging){
+        var pos = getCanvasPos(e);
+        var binZone = document.querySelector('.bin-zone');
+        if(binZone){
+          var binRect = binZone.getBoundingClientRect();
+          var canvasRect = _canvas.getBoundingClientRect();
+          var binX = binRect.left - canvasRect.left;
+          var binY = binRect.top - canvasRect.top;
+          if(pos.x > binX && pos.y > binY && pos.x < binX + 50 && pos.y < binY + 50){
+            removeEquipment(_dragging.placedId);
+          }
+          binZone.classList.remove('active');
+        }
+        if(_activeTab === 'guided' && _activeTemplate){
+          validatePlacement(_dragging.placedId);
+        }
+        _dragging = null;
+        renderWorkspace();
+      }
+    });
+  }
+
+  function getCanvasPos(e){
+    var rect = _canvas.getBoundingClientRect();
+    return { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  }
+
+  function hitTest(x, y){
+    for(var i = _placed.length - 1; i >= 0; i--){
+      var item = _placed[i];
+      var eq = EQ_MAP[item.eqId];
+      var r = (eq && eq.hitR) || 30;
+      var dx = x - item.x, dy = y - item.y;
+      if(Math.abs(dx) < r && Math.abs(dy) < r) return item;
+    }
+    return null;
+  }
+
+  function snapToGrid(val){ return Math.round(val / 20) * 20; }
+
+  function resizeCanvas(){
+    var wrap = _canvas.parentElement;
+    if(!wrap || wrap.style.display === 'none') return;
+    _canvas.width = wrap.clientWidth;
+    _canvas.height = wrap.clientHeight;
+    renderWorkspace();
+  }
+
+  function renderWorkspace(){
+    if(!_ctx) return;
+    var w = _canvas.width, h = _canvas.height;
+    _ctx.clearRect(0, 0, w, h);
+
+    // Grid
+    _ctx.strokeStyle = '#E2E8F0';
+    _ctx.lineWidth = 0.5;
+    for(var x = 0; x < w; x += 20){
+      _ctx.beginPath(); _ctx.moveTo(x, 0); _ctx.lineTo(x, h); _ctx.stroke();
+    }
+    for(var y = 0; y < h; y += 20){
+      _ctx.beginPath(); _ctx.moveTo(0, y); _ctx.lineTo(w, y); _ctx.stroke();
+    }
+
+    // Teacher mode: show target zones
+    if(document.body.classList.contains('teacher-active') && _activeTemplate && !_guidedComplete){
+      _ctx.save();
+      _ctx.globalAlpha = 0.5;
+      _activeTemplate.steps.forEach(function(step){
+        var tx = step.target.x * w;
+        var ty = step.target.y * h;
+        _ctx.strokeStyle = '#94A3B8';
+        _ctx.setLineDash([3,3]);
+        _ctx.beginPath();
+        _ctx.arc(tx, ty, step.tolerance, 0, Math.PI*2);
+        _ctx.stroke();
+        _ctx.setLineDash([]);
+        _ctx.font = '9px Inter';
+        _ctx.fillStyle = '#94A3B8';
+        _ctx.fillText(EQ_MAP[step.equipment].name, tx+step.tolerance+5, ty+3);
+      });
+      _ctx.restore();
+    }
+
+    // Placed equipment
+    _placed.forEach(function(item){
+      var eq = EQ_MAP[item.eqId];
+      if(eq && eq.draw){
+        eq.draw(_ctx, item.x, item.y, item.scale || 0.8);
+      }
+      if(_hovered === item.id){
+        _ctx.strokeStyle = 'rgba(13,148,136,0.5)';
+        _ctx.lineWidth = 2;
+        _ctx.strokeRect(item.x - 30, item.y - 30, 60, 60);
+      }
+    });
+
+    // Connections
+    _connections.forEach(function(conn){
+      drawConnection(conn.fromId, conn.toId, conn.label);
+    });
+
+    // Annotations (guided mode, after completion)
+    if(_guidedComplete && _activeTemplate){
+      _activeTemplate.annotations.forEach(function(ann){
+        _ctx.font = '11px Inter';
+        _ctx.fillStyle = 'rgba(30,41,59,0.8)';
+        _ctx.fillText(ann.text, ann.x * w, ann.y * h);
+      });
+    }
+  }
+
+  function placeEquipment(eqId, x, y){
+    var item = { id: _nextId++, eqId: eqId, x: x, y: y, scale: 0.8 };
+    _placed.push(item);
+
+    if(_activeTab === 'guided' && _activeTemplate){
+      validatePlacement(item.id);
+    }
+
+    renderWorkspace();
+    return item;
+  }
+
+  function removeEquipment(placedId){
+    _placed = _placed.filter(function(p){ return p.id !== placedId; });
+    _connections = _connections.filter(function(c){ return c.fromId !== placedId && c.toId !== placedId; });
+    renderWorkspace();
+  }
+
+  function showEquipmentPopup(hit, pos){
+    var existing = document.querySelector('.eq-popup');
+    if(existing) existing.parentNode.removeChild(existing);
+    if(!hit) return;
+
+    var eq = EQ_MAP[hit.eqId];
+    if(!eq) return;
+
+    var popup = document.createElement('div');
+    popup.className = 'eq-popup';
+
+    var h4 = document.createElement('h4');
+    h4.textContent = eq.name;
+    popup.appendChild(h4);
+
+    if(eq.uncertainty !== 'N/A'){
+      var unc = document.createElement('div');
+      unc.className = 'uncertainty';
+      unc.textContent = eq.uncertainty;
+      popup.appendChild(unc);
+    }
+
+    var use = document.createElement('div');
+    use.textContent = eq.typicalUse;
+    popup.appendChild(use);
+
+    if(eq.ibNotes){
+      var note = document.createElement('div');
+      note.className = 'ib-note';
+      note.textContent = eq.ibNotes;
+      popup.appendChild(note);
+    }
+
+    _canvas.parentElement.appendChild(popup);
+    // Boundary check — flip if off-screen
+    var wrapRect = _canvas.parentElement.getBoundingClientRect();
+    var popW = popup.offsetWidth, popH = popup.offsetHeight;
+    var left = pos.x + 10, top = pos.y - 80;
+    if(left + popW > wrapRect.width) left = pos.x - popW - 10;
+    if(top < 0) top = pos.y + 20;
+    popup.style.left = left + 'px';
+    popup.style.top = top + 'px';
+
+    setTimeout(function(){
+      if(popup.parentNode) popup.parentNode.removeChild(popup);
+    }, 3000);
+  }
+
+  /* ── Connection Lines ── */
+  function drawConnection(fromId, toId, label){
+    var fromItem = _placed.find(function(p){ return p.id === fromId; });
+    var toItem = _placed.find(function(p){ return p.id === toId; });
+    if(!fromItem || !toItem) return;
+
+    _ctx.save();
+    _ctx.strokeStyle = '#94A3B8';
+    _ctx.lineWidth = 1.5;
+    _ctx.setLineDash([4, 4]);
+
+    var mx = (fromItem.x + toItem.x) / 2;
+    var my = (fromItem.y + toItem.y) / 2 - 20;
+    _ctx.beginPath();
+    _ctx.moveTo(fromItem.x, fromItem.y);
+    _ctx.quadraticCurveTo(mx, my, toItem.x, toItem.y);
+    _ctx.stroke();
+
+    // Arrow at endpoint
+    var angle = Math.atan2(toItem.y - my, toItem.x - mx);
+    _ctx.setLineDash([]);
+    _ctx.fillStyle = '#94A3B8';
+    _ctx.beginPath();
+    _ctx.moveTo(toItem.x, toItem.y);
+    _ctx.lineTo(toItem.x - 8*Math.cos(angle-0.3), toItem.y - 8*Math.sin(angle-0.3));
+    _ctx.lineTo(toItem.x - 8*Math.cos(angle+0.3), toItem.y - 8*Math.sin(angle+0.3));
+    _ctx.closePath();
+    _ctx.fill();
+
+    // Label at midpoint
+    if(label){
+      _ctx.font = '10px Inter';
+      _ctx.fillStyle = 'rgba(30,41,59,0.6)';
+      _ctx.textAlign = 'center';
+      _ctx.fillText(label, mx, my - 5);
+      _ctx.textAlign = 'start';
+    }
+
+    _ctx.restore();
+  }
+
+  function toggleConnectMode(){
+    _connectMode = !_connectMode;
+    _connectFrom = null;
+    var btn = document.getElementById('connectBtn');
+    if(btn) btn.classList.toggle('active', _connectMode);
+  }
+
+  /* ── Guided Mode ── */
+  function showTemplateSelector(){
+    var container = document.getElementById('tab-guided');
+    clearChildren(container);
+
+    var selector = document.createElement('div');
+    selector.className = 'template-selector';
+
+    var heading = document.createElement('h2');
+    heading.textContent = 'Choose an apparatus to build';
+    heading.style.cssText = 'font-size:1.1rem;margin-bottom:1rem;color:var(--navy);';
+    selector.appendChild(heading);
+
+    Object.keys(SETUP_TEMPLATES).forEach(function(key){
+      var tmpl = SETUP_TEMPLATES[key];
+      var card = document.createElement('div');
+      card.className = 'template-card';
+
+      var h3 = document.createElement('h3');
+      h3.textContent = tmpl.name;
+      card.appendChild(h3);
+
+      var p = document.createElement('p');
+      p.textContent = tmpl.description;
+      card.appendChild(p);
+
+      var steps = document.createElement('p');
+      steps.textContent = tmpl.steps.length + ' steps';
+      steps.style.cssText = 'font-size:.7rem;color:var(--teal);font-weight:600;margin-top:.5rem;';
+      card.appendChild(steps);
+
+      card.addEventListener('click', function(){ startGuidedSetup(key); });
+      selector.appendChild(card);
+    });
+
+    container.appendChild(selector);
+  }
+
+  function startGuidedSetup(templateId){
+    _activeTemplate = SETUP_TEMPLATES[templateId];
+    _currentStep = 0;
+    _guidedComplete = false;
+    _placed = [];
+    _connections = [];
+    _stepPlacements = {};
+    _score = { attempts: 0, startTime: Date.now(), firstTryCorrect: 0 };
+    _stepAttempts = 0;
+    buildGuidedUI();
+    resizeCanvas();
+    renderWorkspace();
+  }
+
+  function buildGuidedUI(){
+    var container = document.getElementById('tab-guided');
+    clearChildren(container);
+
+    var layout = document.createElement('div');
+    layout.className = 'lab-layout';
+
+    layout.appendChild(document.getElementById('palette'));
+
+    var workWrap = document.createElement('div');
+    workWrap.className = 'workspace-wrap';
+    workWrap.appendChild(_canvas);
+
+    var panel = document.createElement('div');
+    panel.className = 'step-panel';
+    panel.id = 'stepPanel';
+    workWrap.appendChild(panel);
+
+    var bin = document.createElement('div');
+    bin.className = 'bin-zone';
+    bin.textContent = '\uD83D\uDDD1';
+    workWrap.appendChild(bin);
+
+    layout.appendChild(workWrap);
+    container.appendChild(layout);
+
+    updateStepPanel();
+    resizeCanvas();
+  }
+
+  function updateStepPanel(){
+    var panel = document.getElementById('stepPanel');
+    if(!panel) return;
+    clearChildren(panel);
+
+    if(_guidedComplete){
+      var msg = document.createElement('div');
+      msg.style.cssText = 'text-align:center;padding:.5rem;';
+      var check = document.createElement('div');
+      check.textContent = '\u2705 ' + _activeTemplate.successMessage;
+      check.style.cssText = 'font-size:.9rem;color:var(--teal);font-weight:600;';
+      msg.appendChild(check);
+
+      var elapsed = Math.round((Date.now() - _score.startTime) / 1000);
+      var accuracy = _score.attempts > 0 ? Math.round(_score.firstTryCorrect / _activeTemplate.steps.length * 100) : 0;
+      var scoreBar = document.createElement('div');
+      scoreBar.className = 'score-bar';
+      scoreBar.style.marginTop = '.5rem';
+      [['Time', elapsed + 's'], ['Attempts', _score.attempts], ['Accuracy', accuracy + '%']].forEach(function(pair){
+        var item = document.createElement('span');
+        item.className = 'score-item';
+        var lbl = document.createElement('span'); lbl.className = 'score-label'; lbl.textContent = pair[0] + ': ';
+        var val = document.createElement('span'); val.className = 'score-value'; val.textContent = pair[1];
+        item.appendChild(lbl); item.appendChild(val);
+        scoreBar.appendChild(item);
+      });
+      msg.appendChild(scoreBar);
+
+      var resetBtn = document.createElement('button');
+      resetBtn.className = 'sandbox-btn';
+      resetBtn.textContent = 'Try Again';
+      resetBtn.style.marginTop = '.5rem';
+      resetBtn.addEventListener('click', function(){ startGuidedSetup(_activeTemplate.id); });
+      msg.appendChild(resetBtn);
+
+      panel.appendChild(msg);
+      return;
+    }
+
+    // Step progress dots
+    var dots = document.createElement('div');
+    dots.className = 'step-progress';
+    _activeTemplate.steps.forEach(function(step, i){
+      var dot = document.createElement('div');
+      dot.className = 'step-dot';
+      if(i < _currentStep) dot.classList.add('done');
+      if(i === _currentStep) dot.classList.add('current');
+      dot.textContent = i + 1;
+      dots.appendChild(dot);
+    });
+    panel.appendChild(dots);
+
+    var step = _activeTemplate.steps[_currentStep];
+    var instr = document.createElement('div');
+    instr.className = 'step-instruction';
+    instr.textContent = 'Step ' + (_currentStep + 1) + ': ' + step.instruction;
+    panel.appendChild(instr);
+
+    var hint = document.createElement('div');
+    hint.className = 'step-hint';
+    hint.textContent = step.hint;
+    panel.appendChild(hint);
+  }
+
+  function validatePlacement(placedItemId){
+    if(!_activeTemplate || _guidedComplete) return;
+
+    var step = _activeTemplate.steps[_currentStep];
+    var item = _placed.find(function(p){ return p.id === placedItemId; });
+    if(!item) return;
+
+    _score.attempts++;
+    _stepAttempts++;
+
+    if(item.eqId !== step.equipment){
+      removeEquipment(placedItemId);
+      showFeedback('wrong', 'Wrong equipment \u2014 try ' + EQ_MAP[step.equipment].name);
+      return;
+    }
+
+    var targetX = step.target.x * _canvas.width;
+    var targetY = step.target.y * _canvas.height;
+    var dist = Math.sqrt(Math.pow(item.x - targetX, 2) + Math.pow(item.y - targetY, 2));
+
+    if(dist > step.tolerance * 1.5){
+      showFeedback('close', 'Good equipment! Move it closer to the target area.');
+      return;
+    }
+
+    // Snap to exact target
+    item.x = targetX;
+    item.y = targetY;
+
+    if(_stepAttempts === 1){
+      _score.firstTryCorrect++;
+    }
+    _stepPlacements[_currentStep] = placedItemId;
+    showFeedback('correct', 'Correct!');
+
+    _currentStep++;
+    _stepAttempts = 0;
+
+    if(_currentStep >= _activeTemplate.steps.length){
+      _guidedComplete = true;
+      _activeTemplate.connections.forEach(function(conn){
+        var fromItem = _placed.find(function(p){ return p.id === _stepPlacements[conn.from]; });
+        var toItem = _placed.find(function(p){ return p.id === _stepPlacements[conn.to]; });
+        if(fromItem && toItem){
+          _connections.push({fromId: fromItem.id, toId: toItem.id, label: conn.label});
+        }
+      });
+    }
+
+    updateStepPanel();
+    renderWorkspace();
+  }
+
+  function showFeedback(type, message){
+    var existing = document.querySelector('.feedback-toast');
+    if(existing) existing.parentNode.removeChild(existing);
+
+    var toast = document.createElement('div');
+    toast.className = 'feedback-toast';
+    toast.style.cssText = 'position:absolute;top:10px;left:50%;transform:translateX(-50%);padding:.5rem 1rem;border-radius:6px;font-size:.85rem;font-weight:500;z-index:200;';
+
+    if(type === 'correct'){
+      toast.style.background = '#F0FDFA'; toast.style.color = '#0D9488';
+      toast.style.border = '1px solid #0D9488';
+    } else if(type === 'close'){
+      toast.style.background = '#FFFBEB'; toast.style.color = '#D97706';
+      toast.style.border = '1px solid #D97706';
+    } else {
+      toast.style.background = '#FEF2F2'; toast.style.color = '#DC2626';
+      toast.style.border = '1px solid #DC2626';
+    }
+
+    toast.textContent = message;
+    _canvas.parentElement.appendChild(toast);
+    setTimeout(function(){ if(toast.parentNode) toast.parentNode.removeChild(toast); }, 2000);
+  }
+
+  /* ── Sandbox Mode ── */
+  function buildSandboxUI(){
+    var container = document.getElementById('tab-sandbox');
+    clearChildren(container);
+
+    var layout = document.createElement('div');
+    layout.className = 'lab-layout';
+
+    layout.appendChild(document.getElementById('palette'));
+
+    var workWrap = document.createElement('div');
+    workWrap.className = 'workspace-wrap';
+    workWrap.appendChild(_canvas);
+
+    var toolbar = document.createElement('div');
+    toolbar.className = 'sandbox-toolbar';
+
+    var connectBtn = document.createElement('button');
+    connectBtn.className = 'sandbox-btn';
+    connectBtn.id = 'connectBtn';
+    connectBtn.textContent = 'Connect';
+    connectBtn.addEventListener('click', toggleConnectMode);
+    toolbar.appendChild(connectBtn);
+
+    var clearBtn = document.createElement('button');
+    clearBtn.className = 'sandbox-btn';
+    clearBtn.textContent = 'Clear All';
+    clearBtn.addEventListener('click', function(){
+      _placed = []; _connections = []; renderWorkspace();
+    });
+    toolbar.appendChild(clearBtn);
+
+    var saveBtn = document.createElement('button');
+    saveBtn.className = 'sandbox-btn';
+    saveBtn.textContent = 'Save';
+    saveBtn.addEventListener('click', saveSandboxDesign);
+    toolbar.appendChild(saveBtn);
+
+    var loadBtn = document.createElement('button');
+    loadBtn.className = 'sandbox-btn';
+    loadBtn.textContent = 'Load';
+    loadBtn.addEventListener('click', loadSandboxDesign);
+    toolbar.appendChild(loadBtn);
+
+    workWrap.appendChild(toolbar);
+
+    var bin = document.createElement('div');
+    bin.className = 'bin-zone';
+    bin.textContent = '\uD83D\uDDD1';
+    workWrap.appendChild(bin);
+
+    layout.appendChild(workWrap);
+    container.appendChild(layout);
+
+    resizeCanvas();
+  }
+
+  function saveSandboxDesign(){
+    var data = {
+      placed: _placed.map(function(p){ return {eqId:p.eqId, x:p.x/_canvas.width, y:p.y/_canvas.height}; }),
+      connections: _connections.map(function(c){ return {fromIdx: _placed.findIndex(function(p){return p.id===c.fromId;}), toIdx: _placed.findIndex(function(p){return p.id===c.toId;}), label:c.label}; })
+    };
+    try {
+      localStorage.setItem('simengine_labbuilder_sandbox', JSON.stringify(data));
+      showFeedback('correct', 'Design saved!');
+    } catch(e){
+      showFeedback('wrong', 'Could not save (localStorage unavailable)');
+    }
+  }
+
+  function loadSandboxDesign(){
+    try {
+      var raw = localStorage.getItem('simengine_labbuilder_sandbox');
+      if(!raw){ showFeedback('wrong', 'No saved design found'); return; }
+      var data = JSON.parse(raw);
+      _placed = [];
+      _connections = [];
+      _nextId = 1;
+      data.placed.forEach(function(p){
+        _placed.push({id:_nextId++, eqId:p.eqId, x:p.x*_canvas.width, y:p.y*_canvas.height, scale:0.8});
+      });
+      data.connections.forEach(function(c){
+        if(c.fromIdx >= 0 && c.toIdx >= 0 && _placed[c.fromIdx] && _placed[c.toIdx]){
+          _connections.push({fromId:_placed[c.fromIdx].id, toId:_placed[c.toIdx].id, label:c.label||''});
+        }
+      });
+      renderWorkspace();
+      showFeedback('correct', 'Design loaded!');
+    } catch(e){
+      showFeedback('wrong', 'Error loading design');
+    }
+  }
+
+  /* ── Tab Switching ── */
+  function switchTab(id){
+    _activeTab = id;
+    document.querySelectorAll('.tab-btn').forEach(function(btn){
+      btn.classList.toggle('active', btn.getAttribute('data-tab') === id);
+    });
+    document.querySelectorAll('.tab-content').forEach(function(tc){
+      tc.classList.toggle('active', tc.id === 'tab-' + id);
+    });
+
+    // Reset connect mode on tab switch
+    _connectMode = false;
+    _connectFrom = null;
+
+    if(id === 'guided'){
+      if(!_activeTemplate) showTemplateSelector();
+      else buildGuidedUI();
+    } else if(id === 'sandbox'){
+      _activeTemplate = null;
+      _guidedComplete = false;
+      buildSandboxUI();
+    }
+    renderWorkspace();
+  }
+
+  /* ── Keyboard + Toggles ── */
+  function init(){
+    // Clear initial display:none on shared elements
+    document.getElementById('palette').style.display = '';
+    document.getElementById('workspace').style.display = '';
+    buildPalette();
+    initCanvas();
+
+    // Tab buttons
+    document.querySelectorAll('.tab-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){
+        switchTab(btn.getAttribute('data-tab'));
+      });
+    });
+
+    // HL toggle
+    var hlBtn = document.getElementById('hlToggle');
+    hlBtn.addEventListener('change', function(){
+      document.body.classList.toggle('hl-active', hlBtn.checked);
+    });
+
+    // Teacher toggle
+    var tBtn = document.getElementById('teacherToggle');
+    tBtn.addEventListener('change', function(){
+      document.body.classList.toggle('teacher-active', tBtn.checked);
+      renderWorkspace();
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e){
+      if(e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      var k = e.key.toLowerCase();
+      if(k === 'h'){ hlBtn.checked = !hlBtn.checked; hlBtn.dispatchEvent(new Event('change')); }
+      else if(k === 't'){ tBtn.checked = !tBtn.checked; tBtn.dispatchEvent(new Event('change')); }
+      else if(k === '1'){ switchTab('guided'); }
+      else if(k === '2'){ switchTab('sandbox'); }
+      else if(k === 'r'){
+        if(_activeTab === 'guided' && _activeTemplate) startGuidedSetup(_activeTemplate.id);
+        else if(_activeTab === 'sandbox'){ _placed=[]; _connections=[]; renderWorkspace(); }
+      }
+      else if(k === 'delete' || k === 'backspace'){
+        e.preventDefault();
+        if(_hovered){
+          removeEquipment(_hovered);
+          _hovered = null;
+        }
+      }
+      else if(k === 'escape'){
+        _selectedEquipment = null;
+        _connectMode = false;
+        _connectFrom = null;
+        document.querySelectorAll('.palette-item').forEach(function(i){ i.classList.remove('selected'); });
+        var cBtn = document.getElementById('connectBtn');
+        if(cBtn) cBtn.classList.remove('active');
+      }
+    });
+
+    // Start on guided tab
+    switchTab('guided');
+
+    // Handle resize
+    window.addEventListener('resize', function(){ resizeCanvas(); });
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+
+})();
+</script>
+<footer>SimEngine &mdash; Virtual Lab Builder &bull; H=HL T=Teacher</footer>
+</body>
+</html>

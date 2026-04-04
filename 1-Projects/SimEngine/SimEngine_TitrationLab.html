@@ -1,0 +1,1551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Titration Lab — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--blue-bg:#EFF6FF;--teal-bg:#F0FDFA;--amber-bg:#FFFBEB;--red-bg:#FEF2F2;--purple-bg:#F5F3FF;--toggle-on:#0D9488;--green:#16A34A;--orange:#EA580C;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+  .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-right{display:flex;align-items:center;gap:.75rem;}
+  .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
+  .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.35rem;}
+  .sim-toggle{position:relative;width:40px;height:22px;display:inline-block;}
+  .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:11px;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.25rem;background:none;border:none;border-bottom:3px solid transparent;font-size:.82rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+  .tab-btn .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);font-size:.65rem;font-weight:700;color:var(--text-muted);}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .sim-container{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+  .sim-card{background:var(--card-bg);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;margin-bottom:1.5rem;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-weight:600;font-size:.85rem;}
+  .sim-card-body{padding:1.25rem;}
+  .scenario-box{background:var(--blue-bg);border:1px solid #BFDBFE;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.88rem;line-height:1.7;}
+  .btn{padding:.5rem 1.25rem;border:none;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+  .btn-teal{background:var(--teal);color:white;} .btn-teal:hover{background:#0F766E;}
+  .btn-teal:disabled{background:#CBD5E1;cursor:not-allowed;}
+  .btn-outline{background:white;color:var(--text);border:1px solid var(--border);} .btn-outline:hover{background:#F8FAFC;}
+  .btn-red{background:var(--red);color:white;} .btn-red:hover{background:#B91C1C;}
+  .btn-row{display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;}
+  .feedback{padding:.75rem 1rem;border-radius:8px;margin-top:1rem;font-size:.88rem;font-weight:500;}
+  .feedback.correct{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;}
+  .feedback.incorrect{background:var(--red-bg);color:var(--red);border:1px solid #FECACA;}
+  .feedback.info{background:var(--blue-bg);color:#1E40AF;border:1px solid #BFDBFE;}
+  .result-table{width:100%;border-collapse:collapse;margin-top:1rem;font-size:.82rem;}
+  .result-table th,.result-table td{padding:.5rem .75rem;border:1px solid var(--border);text-align:left;}
+  .result-table th{background:var(--navy);color:white;font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;}
+  .result-table td{font-size:.82rem;} .result-table tr:nth-child(even){background:#F8FAFC;}
+  .teacher-panel{display:none;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.82rem;}
+  body.teacher-active .teacher-panel{display:block;}
+  .preset-section{display:none;margin-bottom:1rem;}
+  .preset-section select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--border);font-size:.8rem;font-family:inherit;}
+  body.teacher-active .preset-section{display:block;}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  .mono{font-family:'Fira Code',monospace;}
+
+  /* Titration-specific */
+  .titration-layout{display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;}
+  .canvas-wrap{flex:0 0 320px;}
+  .canvas-wrap canvas{border:1px solid var(--border);border-radius:8px;background:#F8FAFC;}
+  .controls-panel{flex:1;min-width:280px;}
+  .control-group{margin-bottom:1rem;}
+  .control-group label{display:block;font-size:.75rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.35rem;}
+  .control-group select,.control-group input{width:100%;padding:.45rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.85rem;font-family:inherit;}
+  .reading-display{background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:.75rem;margin:.75rem 0;font-family:'Fira Code',monospace;font-size:.9rem;text-align:center;}
+  .reading-display .label{font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;font-family:'Inter',sans-serif;margin-bottom:.25rem;}
+  .reading-display .value{font-size:1.3rem;font-weight:700;color:var(--teal);}
+  .step-guide{counter-reset:step;}
+  .step-guide .step{display:flex;gap:.75rem;align-items:flex-start;margin-bottom:.75rem;padding:.5rem;border-radius:6px;background:#F8FAFC;}
+  .step-guide .step::before{counter-increment:step;content:counter(step);display:flex;align-items:center;justify-content:center;min-width:24px;height:24px;border-radius:50%;background:var(--teal);color:white;font-size:.7rem;font-weight:700;margin-top:.1rem;}
+  .step-guide .step.done::before{background:var(--green);content:'\\2713';}
+  .step-guide .step.active{background:var(--teal-bg);border:1px solid var(--teal);}
+  .step-content{flex:1;font-size:.85rem;}
+  .step-content .step-title{font-weight:600;margin-bottom:.2rem;}
+  .input-row{display:flex;gap:.5rem;align-items:center;margin-top:.35rem;}
+  .input-row input{width:80px;padding:.3rem .5rem;border:1px solid var(--border);border-radius:4px;font-size:.85rem;font-family:'Fira Code',monospace;text-align:center;}
+  .input-row .unit{font-size:.78rem;color:var(--text-muted);}
+  .titre-table{width:100%;border-collapse:collapse;margin:1rem 0;font-size:.82rem;}
+  .titre-table th,.titre-table td{padding:.4rem .6rem;border:1px solid var(--border);text-align:center;}
+  .titre-table th{background:var(--navy);color:white;font-weight:600;font-size:.72rem;text-transform:uppercase;}
+  .titre-table td input{width:60px;padding:.2rem;text-align:center;border:1px solid var(--border);border-radius:4px;font-family:'Fira Code',monospace;font-size:.8rem;}
+  .calc-section{background:#F8FAFC;border:1px solid var(--border);border-radius:8px;padding:1rem;margin-top:1rem;}
+  .calc-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;font-size:.88rem;flex-wrap:wrap;}
+  .calc-row input{width:80px;padding:.3rem .5rem;border:1px solid var(--border);border-radius:4px;font-family:'Fira Code',monospace;font-size:.85rem;text-align:center;}
+  .practice-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem;margin-bottom:1.25rem;}
+  .stat-card{background:white;border:1px solid var(--border);border-radius:8px;padding:.75rem;text-align:center;}
+  .stat-card .stat-label{font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .stat-card .stat-value{font-size:1.3rem;font-weight:700;color:var(--teal);font-family:'Fira Code',monospace;}
+  .indicator-legend{display:flex;gap:1rem;flex-wrap:wrap;margin:.75rem 0;font-size:.78rem;}
+  .indicator-swatch{display:inline-block;width:14px;height:14px;border-radius:3px;vertical-align:middle;margin-right:.3rem;border:1px solid rgba(0,0,0,.15);}
+  @media(max-width:700px){.titration-layout{flex-direction:column;}.canvas-wrap{flex:none;width:100%;}.tab-btn{padding:.6rem .7rem;font-size:.75rem;}}
+  .ia-guide-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--teal);color:white;border:none;border-radius:8px 0 0 8px;padding:.75rem .4rem;cursor:pointer;font-size:.75rem;font-weight:700;writing-mode:vertical-rl;z-index:201;font-family:inherit;}
+  .ia-guide-toggle:hover{background:#0F766E;}
+  .ia-guide-panel{position:fixed;right:0;top:0;width:320px;height:100%;background:white;border-left:2px solid var(--teal);box-shadow:-4px 0 12px rgba(0,0,0,.1);transform:translateX(100%);transition:transform .3s ease;z-index:200;overflow-y:auto;padding:1.25rem 1rem;}
+  .ia-guide-panel.open{transform:translateX(0);}
+  .ia-guide-panel h3{font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:.75rem;}
+  .ia-guide-panel .ia-section{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+  .ia-guide-panel .ia-section:last-of-type{border-bottom:none;}
+  .ia-guide-panel .ia-label{font-size:.72rem;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.35rem;}
+  .ia-guide-panel .ia-hint{font-size:.82rem;line-height:1.6;color:var(--text);}
+  .ia-guide-panel .ia-vars dt{font-weight:600;color:var(--text);margin-top:.4rem;font-size:.8rem;}
+  .ia-guide-panel .ia-vars dd{color:var(--text-muted);margin-left:1rem;font-size:.8rem;line-height:1.5;}
+  .ia-guide-panel .btn-open-scaffold{display:block;width:100%;margin-top:1rem;text-align:center;text-decoration:none;}
+
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div>
+    <h1>Titration Lab<span class="subtitle">IB Chemistry — R2.1, R3.1</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">R2.1</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="teacherToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" role="tab" data-tab="acidbase"><span class="tab-num">1</span>Acid-Base</button>
+  <button class="tab-btn" role="tab" data-tab="redox"><span class="tab-num">2</span>Redox</button>
+  <button class="tab-btn" role="tab" data-tab="back"><span class="tab-num">3</span>Back Titration</button>
+  <button class="tab-btn" role="tab" data-tab="analysis"><span class="tab-num">4</span>Analysis</button>
+</div>
+
+<div class="sim-container" id="main-content">
+
+  <!-- Presets (teacher only) -->
+  <div class="preset-section">
+    <label style="font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.25rem;display:block;">Teacher Presets</label>
+    <select id="presetSelect">
+      <option value="">Select a preset...</option>
+      <option value="strong_strong">Strong Acid + Strong Base (HCl + NaOH)</option>
+      <option value="weak_strong">Weak Acid + Strong Base (CH₃COOH + NaOH)</option>
+      <option value="strong_weak">Strong Acid + Weak Base (HCl + NH₃)</option>
+      <option value="redox_fe">Redox: KMnO₄ + Fe²⁺</option>
+      <option value="redox_oxalate">Redox: KMnO₄ + C₂O₄²⁻</option>
+      <option value="back_caco3">Back Titration: CaCO₃ tablet</option>
+    </select>
+  </div>
+
+  <!-- Tab 1: Acid-Base Titration -->
+  <div id="tab-acidbase" class="tab-content active" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Acid-Base Titration</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          Perform an acid-base titration by adding titrant from the burette to the analyte in the conical flask. Choose your indicator carefully — the correct indicator should change colour within one drop of the equivalence point. Record your titre volume and calculate the unknown concentration.
+        </div>
+        <div class="titration-layout">
+          <div class="canvas-wrap">
+            <canvas id="abCanvas" width="320" height="520" role="img" aria-label="Acid-base titration apparatus showing burette and conical flask"></canvas>
+          </div>
+          <div class="controls-panel">
+            <div class="control-group">
+              <label>Titration Type</label>
+              <select id="abTypeSelect">
+                <option value="strong_strong">HCl (aq) + NaOH (aq) — strong acid + strong base</option>
+                <option value="weak_strong">CH₃COOH (aq) + NaOH (aq) — weak acid + strong base</option>
+                <option value="strong_weak">HCl (aq) + NH₃ (aq) — strong acid + weak base</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label>Indicator</label>
+              <select id="abIndicatorSelect">
+                <option value="phenolphthalein">Phenolphthalein (pH 8.2–10.0)</option>
+                <option value="methyl_orange">Methyl Orange (pH 3.1–4.4)</option>
+                <option value="bromothymol_blue">Bromothymol Blue (pH 6.0–7.6)</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label>Analyte volume</label>
+              <select id="abAnalyteVol">
+                <option value="25">25.00 cm³</option>
+                <option value="20">20.00 cm³</option>
+                <option value="10">10.00 cm³</option>
+              </select>
+            </div>
+            <div id="abReadings" class="reading-display" style="display:none;">
+              <div class="label">Burette Reading</div>
+              <div class="value" id="abBuretteReading">0.00 cm³</div>
+              <div class="label" style="margin-top:.5rem;">pH</div>
+              <div class="value" id="abPhReading" style="font-size:1rem;">—</div>
+            </div>
+            <div class="btn-row" id="abBtnRow">
+              <button class="btn btn-teal" id="abStartBtn">Start Titration</button>
+              <button class="btn btn-outline" id="abAddFast" style="display:none;">Add Rapidly</button>
+              <button class="btn btn-teal" id="abAddDrop" style="display:none;">Add Drop</button>
+              <button class="btn btn-red" id="abRecordBtn" style="display:none;">Record Endpoint</button>
+              <button class="btn btn-outline" id="abResetBtn" style="display:none;">Reset</button>
+            </div>
+            <div id="abResultSection" style="display:none;" aria-live="polite">
+              <div class="calc-section">
+                <div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem;">Calculate the concentration</div>
+                <div class="step-guide" id="abStepGuide"></div>
+              </div>
+            </div>
+            <div class="indicator-legend" id="abIndicatorLegend"></div>
+            <div class="teacher-panel" id="abTeacherPanel">
+              <div style="font-weight:600;margin-bottom:.35rem;">Teacher Notes</div>
+              <div id="abTeacherContent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 2: Redox Titration -->
+  <div id="tab-redox" class="tab-content" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Redox Titration</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          Potassium permanganate (KMnO₄) titrations are self-indicating — the purple MnO₄⁻ ion is reduced to colourless Mn²⁺ in acidic solution. At the endpoint, the first excess drop of KMnO₄ turns the solution permanently pink/purple. No indicator is needed.
+        </div>
+        <div class="titration-layout">
+          <div class="canvas-wrap">
+            <canvas id="rxCanvas" width="320" height="520" role="img" aria-label="Redox titration apparatus showing burette and conical flask"></canvas>
+          </div>
+          <div class="controls-panel">
+            <div class="control-group">
+              <label>Reaction</label>
+              <select id="rxTypeSelect">
+                <option value="fe_kmno4">Fe²⁺ + KMnO₄ (acidified) — iron(II) determination</option>
+                <option value="oxalate_kmno4">C₂O₄²⁻ + KMnO₄ (acidified, heated) — oxalate determination</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label>Analyte volume</label>
+              <select id="rxAnalyteVol">
+                <option value="25">25.00 cm³</option>
+                <option value="20">20.00 cm³</option>
+              </select>
+            </div>
+            <div id="rxReadings" class="reading-display" style="display:none;">
+              <div class="label">Burette Reading</div>
+              <div class="value" id="rxBuretteReading">0.00 cm³</div>
+            </div>
+            <div class="btn-row" id="rxBtnRow">
+              <button class="btn btn-teal" id="rxStartBtn">Start Titration</button>
+              <button class="btn btn-outline" id="rxAddFast" style="display:none;">Add Rapidly</button>
+              <button class="btn btn-teal" id="rxAddDrop" style="display:none;">Add Drop</button>
+              <button class="btn btn-red" id="rxRecordBtn" style="display:none;">Record Endpoint</button>
+              <button class="btn btn-outline" id="rxResetBtn" style="display:none;">Reset</button>
+            </div>
+            <div id="rxResultSection" style="display:none;" aria-live="polite">
+              <div class="calc-section">
+                <div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem;">Calculate the concentration</div>
+                <div class="step-guide" id="rxStepGuide"></div>
+              </div>
+            </div>
+            <div class="teacher-panel" id="rxTeacherPanel">
+              <div style="font-weight:600;margin-bottom:.35rem;">Teacher Notes</div>
+              <div id="rxTeacherContent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 3: Back Titration -->
+  <div id="tab-back" class="tab-content" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Back Titration</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          A back titration is used when the analyte is insoluble, impure, or reacts too slowly for direct titration. An excess of a known reagent is added, and the unreacted excess is titrated. The amount that reacted is found by difference.
+        </div>
+        <div class="titration-layout">
+          <div class="canvas-wrap">
+            <canvas id="btCanvas" width="320" height="520" role="img" aria-label="Back titration apparatus showing burette and conical flask"></canvas>
+          </div>
+          <div class="controls-panel">
+            <div class="control-group">
+              <label>Scenario</label>
+              <select id="btTypeSelect">
+                <option value="caco3">CaCO₃ tablet (0.100 g) + excess HCl, back-titrate with NaOH</option>
+                <option value="ite_mgo">MgO powder (0.050 g) + excess HCl, back-titrate with NaOH</option>
+              </select>
+            </div>
+            <div id="btScenarioInfo" class="reading-display">
+              <div class="label">Scenario Details</div>
+              <div id="btScenarioText" style="font-size:.82rem;font-family:'Inter',sans-serif;text-align:left;padding:.25rem;"></div>
+            </div>
+            <div id="btReadings" class="reading-display" style="display:none;">
+              <div class="label">Burette Reading</div>
+              <div class="value" id="btBuretteReading">0.00 cm³</div>
+              <div class="label" style="margin-top:.5rem;">Flask Solution</div>
+              <div class="value" id="btFlaskStatus" style="font-size:.82rem;font-family:'Inter',sans-serif;">—</div>
+            </div>
+            <div class="btn-row" id="btBtnRow">
+              <button class="btn btn-teal" id="btStartBtn">Start Titration</button>
+              <button class="btn btn-outline" id="btAddFast" style="display:none;">Add Rapidly</button>
+              <button class="btn btn-teal" id="btAddDrop" style="display:none;">Add Drop</button>
+              <button class="btn btn-red" id="btRecordBtn" style="display:none;">Record Endpoint</button>
+              <button class="btn btn-outline" id="btResetBtn" style="display:none;">Reset</button>
+            </div>
+            <div id="btResultSection" style="display:none;" aria-live="polite">
+              <div class="calc-section">
+                <div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem;">Back Titration Calculation</div>
+                <div class="step-guide" id="btStepGuide"></div>
+              </div>
+            </div>
+            <div class="teacher-panel" id="btTeacherPanel">
+              <div style="font-weight:600;margin-bottom:.35rem;">Teacher Notes</div>
+              <div id="btTeacherContent"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab 4: Analysis -->
+  <div id="tab-analysis" class="tab-content" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Titration Data Analysis</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          Review your titration results, compare concordant titres, calculate concentrations, and propagate uncertainties. Record multiple trials to identify concordant results (within 0.10 cm³ of each other).
+        </div>
+        <div id="analysisContent">
+          <div class="practice-stats" id="analysisStats">
+            <div class="stat-card">
+              <div class="stat-label">Titrations Run</div>
+              <div class="stat-value" id="statTotalRuns">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Concordant Pairs</div>
+              <div class="stat-value" id="statConcordant">0</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Best % Error</div>
+              <div class="stat-value" id="statBestError">—</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-label">Avg Titre</div>
+              <div class="stat-value" id="statAvgTitre">—</div>
+            </div>
+          </div>
+          <div id="analysisTableWrap"></div>
+          <div id="uncertaintySection" style="display:none;">
+            <div class="calc-section" style="margin-top:1rem;">
+              <div style="font-weight:600;font-size:.88rem;margin-bottom:.5rem;">Uncertainty Propagation</div>
+              <div id="uncertaintyCalc"></div>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-outline" id="clearAnalysis">Clear All Data</button>
+          </div>
+          <div class="teacher-panel" id="analysisTeacherPanel">
+            <div style="font-weight:600;margin-bottom:.35rem;">Teacher Notes</div>
+            <div id="analysisTeacherContent"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd>–<kbd>4</kbd> Tabs &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>N</kbd> New Titration &nbsp; <kbd>I</kbd> IA Guide
+</div>
+
+<button class="ia-guide-toggle" id="iaToggle">IA Guide</button>
+<div class="ia-guide-panel" id="iaPanel">
+  <h3>IA Guide — Titration</h3>
+  <div class="ia-section">
+    <div class="ia-label">Example Research Question</div>
+    <div class="ia-hint">How does the choice of indicator affect the accuracy of an acid-base titration endpoint?</div>
+  </div>
+  <div class="ia-section">
+    <div class="ia-label">Variables</div>
+    <dl class="ia-vars">
+      <dt>IV:</dt><dd>Indicator type (phenolphthalein, methyl orange, bromothymol blue)</dd>
+      <dt>DV:</dt><dd>Titre volume / calculated concentration</dd>
+      <dt>CVs:</dt><dd>Volume of analyte (25.00 cm&#179;), concentration of titrant, temperature</dd>
+    </dl>
+  </div>
+  <div class="ia-section">
+    <div class="ia-label">Data Recording Prompt</div>
+    <div class="ia-hint">Record initial and final burette readings (&#177;0.05 cm&#179;). Repeat until concordant results (within &#177;0.10 cm&#179;). Calculate mean titre.</div>
+  </div>
+  <a href="SimEngine_IAScaffold.html?lab=titration" class="btn btn-teal btn-open-scaffold">Open Full IA Scaffold &#8594;</a>
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  /* ── Utility ── */
+  function $(sel){ return document.querySelector(sel); }
+  function $$(sel){ return document.querySelectorAll(sel); }
+  function rnd(a,b){ return a + Math.random()*(b-a); }
+  function round(v,d){ var f=Math.pow(10,d); return Math.round(v*f)/f; }
+  function clamp(v,lo,hi){ return Math.max(lo,Math.min(hi,v)); }
+  function el(tag,attrs,children){
+    var e=document.createElement(tag);
+    if(attrs) Object.keys(attrs).forEach(function(k){ if(k==='text') e.textContent=attrs[k]; else e.setAttribute(k,attrs[k]); });
+    if(children){ if(!Array.isArray(children)) children=[children]; children.forEach(function(c){ if(typeof c==='string'){ e.appendChild(document.createTextNode(c)); } else if(c) e.appendChild(c); }); }
+    return e;
+  }
+
+  function setupCanvas(id){
+    var c=document.getElementById(id); if(!c) return null;
+    var dpr=window.devicePixelRatio||1;
+    var w=parseInt(c.getAttribute('data-w')||c.clientWidth||c.getAttribute('width'));
+    var h=parseInt(c.getAttribute('data-h')||c.clientHeight||c.getAttribute('height'));
+    if(!c.getAttribute('data-w')){c.setAttribute('data-w',w);c.setAttribute('data-h',h);}
+    c.width=w*dpr; c.height=h*dpr;
+    c.style.width=w+'px'; c.style.height=h+'px';
+    var ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+    return {canvas:c,ctx:ctx,w:w,h:h};
+  }
+
+  /* ── Data ── */
+  var TITRATION_TYPES = {
+    strong_strong: {
+      name: 'HCl + NaOH', analyte: 'HCl', titrant: 'NaOH',
+      analyteConc: 0.100, titrantConc: 0.100,
+      bestIndicators: ['phenolphthalein','methyl_orange','bromothymol_blue'],
+      phAtEquiv: 7.0, type: 'strong-strong',
+      equation: 'HCl(aq) + NaOH(aq) → NaCl(aq) + H₂O(l)',
+      stoichRatio: 1
+    },
+    weak_strong: {
+      name: 'CH₃COOH + NaOH', analyte: 'CH₃COOH', titrant: 'NaOH',
+      analyteConc: 0.100, titrantConc: 0.100,
+      bestIndicators: ['phenolphthalein'],
+      Ka: 1.74e-5, phAtEquiv: 8.72, type: 'weak-strong',
+      equation: 'CH₃COOH(aq) + NaOH(aq) → CH₃COONa(aq) + H₂O(l)',
+      stoichRatio: 1
+    },
+    strong_weak: {
+      name: 'HCl + NH₃', analyte: 'NH₃', titrant: 'HCl',
+      analyteConc: 0.100, titrantConc: 0.100,
+      bestIndicators: ['methyl_orange'],
+      Kb: 1.74e-5, phAtEquiv: 5.28, type: 'strong-weak',
+      equation: 'NH₃(aq) + HCl(aq) → NH₄Cl(aq)',
+      stoichRatio: 1
+    }
+  };
+
+  var REDOX_TYPES = {
+    fe_kmno4: {
+      name: 'Fe²⁺ + KMnO₄', analyte: 'Fe²⁺', titrant: 'KMnO₄',
+      analyteConc: 0.100, titrantConc: 0.0200,
+      stoichRatio: 5, // 5 Fe²⁺ : 1 MnO₄⁻
+      equation: 'MnO₄⁻(aq) + 8H⁺(aq) + 5Fe²⁺(aq) → Mn²⁺(aq) + 4H₂O(l) + 5Fe³⁺(aq)',
+      halfEquations: [
+        'MnO₄⁻ + 8H⁺ + 5e⁻ → Mn²⁺ + 4H₂O',
+        'Fe²⁺ → Fe³⁺ + e⁻'
+      ]
+    },
+    oxalate_kmno4: {
+      name: 'C₂O₄²⁻ + KMnO₄', analyte: 'C₂O₄²⁻', titrant: 'KMnO₄',
+      analyteConc: 0.0500, titrantConc: 0.0200,
+      stoichRatio: 2.5, // 5 C₂O₄²⁻ : 2 MnO₄⁻ → ratio = 5/2 = 2.5
+      equation: '2MnO₄⁻(aq) + 16H⁺(aq) + 5C₂O₄²⁻(aq) → 2Mn²⁺(aq) + 8H₂O(l) + 10CO₂(g)',
+      halfEquations: [
+        'MnO₄⁻ + 8H⁺ + 5e⁻ → Mn²⁺ + 4H₂O',
+        'C₂O₄²⁻ → 2CO₂ + 2e⁻'
+      ]
+    }
+  };
+
+  var BACK_TYPES = {
+    caco3: {
+      name: 'CaCO₃ antacid tablet',
+      substance: 'CaCO₃', molarMass: 100.09, mass: 0.100,
+      excessReagent: 'HCl', excessConc: 0.200, excessVol: 25.0,
+      titrant: 'NaOH', titrantConc: 0.100,
+      eq1: 'CaCO₃(s) + 2HCl(aq) → CaCl₂(aq) + H₂O(l) + CO₂(g)',
+      eq2: 'HCl(aq) + NaOH(aq) → NaCl(aq) + H₂O(l)',
+      stoich1: 2, // 2 mol HCl per mol CaCO₃
+      indicator: 'phenolphthalein'
+    },
+    ite_mgo: {
+      name: 'MgO powder',
+      substance: 'MgO', molarMass: 40.30, mass: 0.050,
+      excessReagent: 'HCl', excessConc: 0.200, excessVol: 25.0,
+      titrant: 'NaOH', titrantConc: 0.100,
+      eq1: 'MgO(s) + 2HCl(aq) → MgCl₂(aq) + H₂O(l)',
+      eq2: 'HCl(aq) + NaOH(aq) → NaCl(aq) + H₂O(l)',
+      stoich1: 2,
+      indicator: 'phenolphthalein'
+    }
+  };
+
+  var INDICATORS = {
+    phenolphthalein: { name:'Phenolphthalein', pHlow:8.2, pHhigh:10.0, colorLow:'rgba(255,255,255,0)', colorMid:'#F9A8D4', colorHigh:'#DB2777' },
+    methyl_orange: { name:'Methyl Orange', pHlow:3.1, pHhigh:4.4, colorLow:'#DC2626', colorMid:'#F97316', colorHigh:'#FDE047' },
+    bromothymol_blue: { name:'Bromothymol Blue', pHlow:6.0, pHhigh:7.6, colorLow:'#FDE047', colorMid:'#22C55E', colorHigh:'#2563EB' }
+  };
+
+  /* ── State ── */
+  var _hlMode = false, _teacherMode = false;
+  var _abState = null, _rxState = null, _btState = null;
+  var _allResults = []; // collected for analysis tab
+  var _dropTimer = null;
+
+  /* ── pH calculation ── */
+  function calcPH_AB(tData, vTitrant, analyteVol){
+    var nAnalyte = tData.analyteConc * analyteVol / 1000;
+    var nTitrant = tData.titrantConc * vTitrant / 1000;
+    var totalVol = (analyteVol + vTitrant) / 1000; // in L
+    var vEquiv = nAnalyte / tData.titrantConc * 1000;
+
+    if(tData.type === 'strong-strong'){
+      if(tData.titrant === 'NaOH'){ // acid in flask, base in burette
+        if(vTitrant < vEquiv - 0.01){
+          var excessH = (nAnalyte - nTitrant) / totalVol;
+          return -Math.log10(excessH);
+        } else if(vTitrant > vEquiv + 0.01){
+          var excessOH = (nTitrant - nAnalyte) / totalVol;
+          return 14 + Math.log10(excessOH);
+        }
+        return 7.0;
+      } else { // base in flask (NH3+HCl uses strong-weak though)
+        if(vTitrant < vEquiv - 0.01){
+          var excessOH2 = (nAnalyte - nTitrant) / totalVol;
+          return 14 + Math.log10(excessOH2);
+        } else if(vTitrant > vEquiv + 0.01){
+          var excessH2 = (nTitrant - nAnalyte) / totalVol;
+          return -Math.log10(excessH2);
+        }
+        return 7.0;
+      }
+    }
+
+    if(tData.type === 'weak-strong'){
+      // weak acid in flask, strong base in burette
+      var Ka = tData.Ka;
+      if(vTitrant < 0.01){
+        return -Math.log10(Math.sqrt(Ka * tData.analyteConc));
+      } else if(vTitrant < vEquiv - 0.01){
+        var nHA = nAnalyte - nTitrant;
+        var nA = nTitrant;
+        return -Math.log10(Ka) + Math.log10(nA / nHA);
+      } else if(Math.abs(vTitrant - vEquiv) < 0.01){
+        return tData.phAtEquiv;
+      } else {
+        var excessOH3 = (nTitrant - nAnalyte) / totalVol;
+        return 14 + Math.log10(excessOH3);
+      }
+    }
+
+    if(tData.type === 'strong-weak'){
+      // weak base (NH₃) in flask, strong acid (HCl) in burette
+      var Kb = tData.Kb;
+      var Ka2 = 1e-14 / Kb;
+      if(vTitrant < 0.01){
+        var pOH = -Math.log10(Math.sqrt(Kb * tData.analyteConc));
+        return 14 - pOH;
+      } else if(vTitrant < vEquiv - 0.01){
+        var nBase = nAnalyte - nTitrant;
+        var nBH = nTitrant;
+        var pOH2 = -Math.log10(Kb) + Math.log10(nBH / nBase);
+        return 14 - pOH2;
+      } else if(Math.abs(vTitrant - vEquiv) < 0.01){
+        return tData.phAtEquiv;
+      } else {
+        var excessH3 = (nTitrant - nAnalyte) / totalVol;
+        return -Math.log10(excessH3);
+      }
+    }
+
+    return 7.0;
+  }
+
+  function getIndicatorColor(indicator, pH){
+    var ind = INDICATORS[indicator];
+    if(!ind) return '#FFFFFF';
+    if(pH < ind.pHlow) return ind.colorLow;
+    if(pH > ind.pHhigh) return ind.colorHigh;
+    return ind.colorMid;
+  }
+
+  function getFlaskColor_AB(tData, indicator, pH){
+    var indColor = getIndicatorColor(indicator, pH);
+    // For phenolphthalein below transition: colorless, so flask is clear/very pale
+    if(indicator === 'phenolphthalein' && pH < 8.2) return '#E8F4FD';
+    if(indicator === 'methyl_orange' && pH < 3.1) return '#FECACA';
+    if(indicator === 'methyl_orange' && pH < 4.4) return '#FED7AA';
+    if(indicator === 'methyl_orange') return '#FEF9C3';
+    if(indicator === 'bromothymol_blue' && pH < 6.0) return '#FEF9C3';
+    if(indicator === 'bromothymol_blue' && pH < 7.6) return '#BBF7D0';
+    if(indicator === 'bromothymol_blue') return '#BFDBFE';
+    return indColor;
+  }
+
+  function getFlaskColor_Redox(fraction){
+    // fraction = titrant added / equiv vol
+    if(fraction < 0.98) return '#FEF9C3'; // pale yellow (acidified Fe2+ or oxalate solution)
+    if(fraction < 1.0) return '#FECDD3'; // barely pink
+    return '#C084FC'; // purple — excess KMnO4
+  }
+
+  /* ── Equivalence volume with random variation ── */
+  function getEquivVol(tData, analyteVol){
+    // n_analyte = c_analyte * v_analyte, n_titrant = n_analyte / stoichRatio
+    var nAnalyte = tData.analyteConc * analyteVol / 1000;
+    var nTitrant = nAnalyte / (tData.stoichRatio || 1);
+    return nTitrant / tData.titrantConc * 1000; // in cm³
+  }
+
+  /* ── Drawing: Burette + Flask ── */
+  function drawApparatus(ctx, w, h, buretteVol, maxVol, flaskColor, titrantColor, drops){
+    ctx.clearRect(0, 0, w, h);
+
+    // Background
+    ctx.fillStyle = '#F8FAFC';
+    ctx.fillRect(0, 0, w, h);
+
+    var bx = w/2; // burette center x
+    var buretteTop = 30;
+    var buretteBottom = 310;
+    var buretteWidth = 22;
+    var buretteLen = buretteBottom - buretteTop;
+
+    // Clamp stand (left)
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillRect(40, 20, 8, buretteBottom + 20);
+    ctx.fillRect(30, buretteBottom + 30, 60, 8);
+    // Clamp
+    ctx.fillStyle = '#64748B';
+    ctx.fillRect(48, buretteTop + 10, bx - 48 - buretteWidth/2, 6);
+    ctx.fillRect(48, buretteTop + 60, bx - 48 - buretteWidth/2, 6);
+
+    // Burette body
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.rect(bx - buretteWidth/2, buretteTop, buretteWidth, buretteLen);
+    ctx.fill(); ctx.stroke();
+
+    // Graduations
+    ctx.fillStyle = '#64748B';
+    ctx.font = '9px "Fira Code", monospace';
+    ctx.textAlign = 'right';
+    for(var i = 0; i <= maxVol; i++){
+      var y = buretteTop + (i / maxVol) * buretteLen;
+      var tickLen = (i % 5 === 0) ? 8 : (i % 1 === 0 ? 4 : 2);
+      ctx.beginPath();
+      ctx.moveTo(bx - buretteWidth/2, y);
+      ctx.lineTo(bx - buretteWidth/2 - tickLen, y);
+      ctx.strokeStyle = '#94A3B8';
+      ctx.lineWidth = 0.8;
+      ctx.stroke();
+      if(i % 5 === 0){
+        ctx.fillText(i.toString(), bx - buretteWidth/2 - 10, y + 3);
+      }
+    }
+
+    // Liquid in burette (titrant)
+    var liquidTop = buretteTop + (buretteVol / maxVol) * buretteLen;
+    if(liquidTop < buretteBottom){
+      ctx.fillStyle = titrantColor || '#DBEAFE';
+      ctx.fillRect(bx - buretteWidth/2 + 1.5, liquidTop, buretteWidth - 3, buretteBottom - liquidTop - 1);
+
+      // Meniscus
+      ctx.beginPath();
+      ctx.moveTo(bx - buretteWidth/2 + 1.5, liquidTop + 2);
+      ctx.quadraticCurveTo(bx, liquidTop + 5, bx + buretteWidth/2 - 1.5, liquidTop + 2);
+      ctx.lineTo(bx + buretteWidth/2 - 1.5, liquidTop);
+      ctx.lineTo(bx - buretteWidth/2 + 1.5, liquidTop);
+      ctx.fillStyle = 'rgba(255,255,255,0.5)';
+      ctx.fill();
+
+      // Reading line
+      ctx.strokeStyle = '#DC2626';
+      ctx.lineWidth = 0.5;
+      ctx.setLineDash([2,2]);
+      ctx.beginPath();
+      ctx.moveTo(bx + buretteWidth/2 + 2, liquidTop + 3);
+      ctx.lineTo(bx + buretteWidth/2 + 25, liquidTop + 3);
+      ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#DC2626';
+      ctx.font = '9px "Fira Code", monospace';
+      ctx.textAlign = 'left';
+      ctx.fillText(buretteVol.toFixed(2), bx + buretteWidth/2 + 27, liquidTop + 6);
+    }
+
+    // Stopcock
+    var scy = buretteBottom + 5;
+    ctx.fillStyle = '#F59E0B';
+    ctx.beginPath();
+    ctx.rect(bx - 12, scy, 24, 8);
+    ctx.fill();
+    ctx.strokeStyle = '#92400E';
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    // Tip
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(bx, scy + 8);
+    ctx.lineTo(bx, scy + 25);
+    ctx.stroke();
+
+    // Drops
+    if(drops && drops.length){
+      ctx.fillStyle = titrantColor || '#93C5FD';
+      drops.forEach(function(d){
+        ctx.beginPath();
+        ctx.ellipse(bx, d.y, 3, 4, 0, 0, Math.PI*2);
+        ctx.fill();
+      });
+    }
+
+    // Conical flask
+    var fy = 380; // flask top
+    var fh = 110; // flask height
+    var fTopW = 20; // neck width
+    var fBotW = 100; // base width
+    var fNeckH = 30;
+
+    // Flask neck
+    ctx.beginPath();
+    ctx.moveTo(bx - fTopW/2, fy);
+    ctx.lineTo(bx - fTopW/2, fy + fNeckH);
+    ctx.lineTo(bx - fBotW/2, fy + fh - 10);
+    ctx.quadraticCurveTo(bx - fBotW/2, fy + fh, bx - fBotW/2 + 10, fy + fh);
+    ctx.lineTo(bx + fBotW/2 - 10, fy + fh);
+    ctx.quadraticCurveTo(bx + fBotW/2, fy + fh, bx + fBotW/2, fy + fh - 10);
+    ctx.lineTo(bx + fTopW/2, fy + fNeckH);
+    ctx.lineTo(bx + fTopW/2, fy);
+    ctx.closePath();
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fill();
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Liquid in flask (fill ~60% of flask body)
+    var liquidFillY = fy + fNeckH + 15;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(bx - fTopW/2, fy + fNeckH);
+    ctx.lineTo(bx - fBotW/2, fy + fh - 10);
+    ctx.quadraticCurveTo(bx - fBotW/2, fy + fh, bx - fBotW/2 + 10, fy + fh);
+    ctx.lineTo(bx + fBotW/2 - 10, fy + fh);
+    ctx.quadraticCurveTo(bx + fBotW/2, fy + fh, bx + fBotW/2, fy + fh - 10);
+    ctx.lineTo(bx + fTopW/2, fy + fNeckH);
+    ctx.closePath();
+    ctx.clip();
+    ctx.fillStyle = flaskColor || '#E8F4FD';
+    ctx.fillRect(bx - fBotW/2, liquidFillY, fBotW, fh);
+    ctx.restore();
+
+    // Flask outline again on top
+    ctx.beginPath();
+    ctx.moveTo(bx - fTopW/2, fy);
+    ctx.lineTo(bx - fTopW/2, fy + fNeckH);
+    ctx.lineTo(bx - fBotW/2, fy + fh - 10);
+    ctx.quadraticCurveTo(bx - fBotW/2, fy + fh, bx - fBotW/2 + 10, fy + fh);
+    ctx.lineTo(bx + fBotW/2 - 10, fy + fh);
+    ctx.quadraticCurveTo(bx + fBotW/2, fy + fh, bx + fBotW/2, fy + fh - 10);
+    ctx.lineTo(bx + fTopW/2, fy + fNeckH);
+    ctx.lineTo(bx + fTopW/2, fy);
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Label
+    ctx.fillStyle = '#64748B';
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+  }
+
+  /* ── Tab 1: Acid-Base Titration ── */
+  function initAB(){
+    var typeKey = $('#abTypeSelect').value;
+    var tData = TITRATION_TYPES[typeKey];
+    var analyteVol = parseFloat($('#abAnalyteVol').value);
+    var indicator = $('#abIndicatorSelect').value;
+    var equivVol = getEquivVol(tData, analyteVol);
+
+    // Add slight random variation to simulate real experiment
+    var actualEquivVol = equivVol + rnd(-0.3, 0.3);
+
+    _abState = {
+      tData: tData,
+      analyteVol: analyteVol,
+      indicator: indicator,
+      equivVol: actualEquivVol,
+      theoreticalEquivVol: equivVol,
+      buretteVol: 0,
+      maxVol: 50,
+      running: false,
+      recorded: false,
+      drops: [],
+      initialReading: round(rnd(0, 2), 2) // random initial reading
+    };
+    _abState.buretteVol = _abState.initialReading;
+
+    updateABIndicatorLegend();
+    drawAB();
+  }
+
+  function updateABIndicatorLegend(){
+    var legend = $('#abIndicatorLegend');
+    legend.textContent = '';
+    var ind = INDICATORS[$('#abIndicatorSelect').value];
+    if(!ind) return;
+    var items = [
+      {label: 'Below pH ' + ind.pHlow, color: ind.colorLow},
+      {label: 'Transition', color: ind.colorMid},
+      {label: 'Above pH ' + ind.pHhigh, color: ind.colorHigh}
+    ];
+    items.forEach(function(it){
+      var span = el('span',{},[ el('span',{class:'indicator-swatch',style:'background:'+it.color}), it.label ]);
+      legend.appendChild(span);
+    });
+  }
+
+  function drawAB(){
+    if(!_abState) return;
+    var s = _abState;
+    var setup = setupCanvas('abCanvas');
+    if(!setup) return;
+    var ctx = setup.ctx, w = setup.w, h = setup.h;
+
+    var pH = calcPH_AB(s.tData, s.buretteVol - s.initialReading, s.analyteVol);
+    var flaskColor = getFlaskColor_AB(s.tData, s.indicator, pH);
+    var titrantColor = (s.tData.titrant === 'NaOH') ? '#DBEAFE' : '#FEE2E2';
+
+    drawApparatus(ctx, w, h, s.buretteVol, s.maxVol, flaskColor, titrantColor, s.drops);
+
+    // Update readings
+    if(s.running || s.recorded){
+      $('#abBuretteReading').textContent = s.buretteVol.toFixed(2) + ' cm\u00B3';
+      $('#abPhReading').textContent = round(pH, 2);
+    }
+  }
+
+  function startAB(){
+    if(!_abState) initAB();
+    _abState.running = true;
+    $('#abStartBtn').style.display = 'none';
+    $('#abAddFast').style.display = '';
+    $('#abAddDrop').style.display = '';
+    $('#abRecordBtn').style.display = '';
+    $('#abResetBtn').style.display = '';
+    $('#abReadings').style.display = '';
+    $('#abTypeSelect').disabled = true;
+    $('#abAnalyteVol').disabled = true;
+    drawAB();
+  }
+
+  function addFastAB(){
+    if(!_abState || !_abState.running || _abState.recorded) return;
+    var s = _abState;
+    var titreAdded = s.buretteVol - s.initialReading;
+    var target = s.equivVol * 0.8; // go to 80% of equiv
+    if(titreAdded >= target) return; // already past
+    var addAmount = target - titreAdded;
+    s.buretteVol = round(s.buretteVol + addAmount, 2);
+    $('#abAddFast').disabled = true;
+    drawAB();
+  }
+
+  function addDropAB(){
+    if(!_abState || !_abState.running || _abState.recorded) return;
+    var s = _abState;
+    var dropVol = round(rnd(0.04, 0.08), 2); // one drop ~ 0.05 cm³
+    s.buretteVol = round(s.buretteVol + dropVol, 2);
+    if(s.buretteVol > s.maxVol) s.buretteVol = s.maxVol;
+    drawAB();
+  }
+
+  function recordAB(){
+    if(!_abState || !_abState.running || _abState.recorded) return;
+    var s = _abState;
+    s.recorded = true;
+    s.running = false;
+    var titre = round(s.buretteVol - s.initialReading, 2);
+    var pH = calcPH_AB(s.tData, titre, s.analyteVol);
+
+    // Check indicator suitability
+    var ind = INDICATORS[s.indicator];
+    var suitable = s.tData.bestIndicators.indexOf(s.indicator) >= 0;
+    var accurateTitre = Math.abs(titre - s.equivVol) < 0.5;
+
+    // Show step-by-step calculation
+    showABCalcSteps(titre, suitable);
+
+    // Store result for analysis tab
+    _allResults.push({
+      type: 'acid-base',
+      name: s.tData.name,
+      indicator: ind.name,
+      suitable: suitable,
+      initialReading: s.initialReading,
+      finalReading: s.buretteVol,
+      titre: titre,
+      theoreticalTitre: round(s.theoreticalEquivVol, 2),
+      analyteVol: s.analyteVol,
+      analyteConc: s.tData.analyteConc,
+      titrantConc: s.tData.titrantConc,
+      equation: s.tData.equation
+    });
+    updateAnalysis();
+
+    // Teacher info
+    var tp = $('#abTeacherContent');
+    tp.textContent = '';
+    tp.appendChild(el('div',{},['Theoretical equivalence volume: ' + round(s.theoreticalEquivVol, 2) + ' cm\u00B3']));
+    tp.appendChild(el('div',{},['Actual titre recorded: ' + titre + ' cm\u00B3']));
+    tp.appendChild(el('div',{},['pH at equivalence: ' + s.tData.phAtEquiv]));
+    tp.appendChild(el('div',{},['Indicator ' + ind.name + ': ' + (suitable ? 'SUITABLE' : 'NOT SUITABLE — endpoint pH outside transition range')]));
+
+    $('#abAddFast').style.display = 'none';
+    $('#abAddDrop').style.display = 'none';
+    $('#abRecordBtn').style.display = 'none';
+    $('#abResultSection').style.display = '';
+  }
+
+  function showABCalcSteps(titre, suitable){
+    var s = _abState;
+    var guide = $('#abStepGuide');
+    guide.textContent = '';
+
+    var steps = [
+      { title: 'Titre volume', content: 'Final reading \u2212 Initial reading = ' + s.buretteVol.toFixed(2) + ' \u2212 ' + s.initialReading.toFixed(2) + ' = ' + titre.toFixed(2) + ' cm\u00B3' },
+      { title: 'Moles of titrant', content: 'n = c \u00D7 V = ' + s.tData.titrantConc + ' \u00D7 ' + (titre/1000).toFixed(5) + ' = ' + round(s.tData.titrantConc * titre/1000, 6) + ' mol' },
+      { title: 'Mole ratio', content: 'From equation: ' + s.tData.equation + '\nRatio is 1:1' },
+      { title: 'Moles of analyte', content: 'n(' + s.tData.analyte + ') = ' + round(s.tData.titrantConc * titre/1000, 6) + ' mol' },
+      { title: 'Concentration of analyte', content: 'c = n/V = ' + round(s.tData.titrantConc * titre/1000, 6) + ' / ' + (s.analyteVol/1000).toFixed(5) + ' = ' + round(s.tData.titrantConc * titre / s.analyteVol, 4) + ' mol dm\u207B\u00B3' }
+    ];
+
+    if(!suitable){
+      steps.push({ title: 'Indicator warning', content: 'The indicator chosen is NOT suitable for this titration. The endpoint pH does not match the equivalence point pH. Consider using: ' + s.tData.bestIndicators.map(function(k){ return INDICATORS[k].name; }).join(' or ') });
+    }
+
+    steps.forEach(function(st, i){
+      var div = el('div',{class:'step'});
+      var content = el('div',{class:'step-content'});
+      content.appendChild(el('div',{class:'step-title',text:st.title}));
+      content.appendChild(el('div',{},st.content));
+      div.appendChild(content);
+      guide.appendChild(div);
+    });
+  }
+
+  function resetAB(){
+    _abState = null;
+    $('#abStartBtn').style.display = '';
+    $('#abAddFast').style.display = 'none';
+    $('#abAddDrop').style.display = 'none';
+    $('#abRecordBtn').style.display = 'none';
+    $('#abResetBtn').style.display = 'none';
+    $('#abReadings').style.display = 'none';
+    $('#abResultSection').style.display = '';
+    $('#abResultSection').style.display = 'none';
+    $('#abAddFast').disabled = false;
+    $('#abTypeSelect').disabled = false;
+    $('#abAnalyteVol').disabled = false;
+    initAB();
+  }
+
+  /* ── Tab 2: Redox Titration ── */
+  function initRX(){
+    var typeKey = $('#rxTypeSelect').value;
+    var rData = REDOX_TYPES[typeKey];
+    var analyteVol = parseFloat($('#rxAnalyteVol').value);
+    var nAnalyte = rData.analyteConc * analyteVol / 1000;
+    var nTitrant = nAnalyte / rData.stoichRatio;
+    var equivVol = nTitrant / rData.titrantConc * 1000;
+
+    _rxState = {
+      rData: rData,
+      analyteVol: analyteVol,
+      equivVol: equivVol + rnd(-0.3, 0.3),
+      theoreticalEquivVol: equivVol,
+      buretteVol: 0,
+      maxVol: 50,
+      running: false,
+      recorded: false,
+      drops: [],
+      initialReading: round(rnd(0, 2), 2)
+    };
+    _rxState.buretteVol = _rxState.initialReading;
+    drawRX();
+  }
+
+  function drawRX(){
+    if(!_rxState) return;
+    var s = _rxState;
+    var setup = setupCanvas('rxCanvas');
+    if(!setup) return;
+    var ctx = setup.ctx, w = setup.w, h = setup.h;
+
+    var titre = s.buretteVol - s.initialReading;
+    var fraction = titre / s.equivVol;
+    var flaskColor = getFlaskColor_Redox(fraction);
+    var titrantColor = '#C084FC'; // purple KMnO4
+
+    drawApparatus(ctx, w, h, s.buretteVol, s.maxVol, flaskColor, titrantColor, s.drops);
+
+    if(s.running || s.recorded){
+      $('#rxBuretteReading').textContent = s.buretteVol.toFixed(2) + ' cm\u00B3';
+    }
+  }
+
+  function startRX(){
+    if(!_rxState) initRX();
+    _rxState.running = true;
+    $('#rxStartBtn').style.display = 'none';
+    $('#rxAddFast').style.display = '';
+    $('#rxAddDrop').style.display = '';
+    $('#rxRecordBtn').style.display = '';
+    $('#rxResetBtn').style.display = '';
+    $('#rxReadings').style.display = '';
+    $('#rxTypeSelect').disabled = true;
+    $('#rxAnalyteVol').disabled = true;
+    drawRX();
+  }
+
+  function addFastRX(){
+    if(!_rxState || !_rxState.running || _rxState.recorded) return;
+    var s = _rxState;
+    var titreAdded = s.buretteVol - s.initialReading;
+    var target = s.equivVol * 0.8;
+    if(titreAdded >= target) return;
+    s.buretteVol = round(s.buretteVol + (target - titreAdded), 2);
+    $('#rxAddFast').disabled = true;
+    drawRX();
+  }
+
+  function addDropRX(){
+    if(!_rxState || !_rxState.running || _rxState.recorded) return;
+    var s = _rxState;
+    s.buretteVol = round(s.buretteVol + rnd(0.04, 0.08), 2);
+    if(s.buretteVol > s.maxVol) s.buretteVol = s.maxVol;
+    drawRX();
+  }
+
+  function recordRX(){
+    if(!_rxState || !_rxState.running || _rxState.recorded) return;
+    var s = _rxState;
+    s.recorded = true;
+    s.running = false;
+    var titre = round(s.buretteVol - s.initialReading, 2);
+
+    showRXCalcSteps(titre);
+
+    _allResults.push({
+      type: 'redox',
+      name: s.rData.name,
+      indicator: 'Self-indicating',
+      suitable: true,
+      initialReading: s.initialReading,
+      finalReading: s.buretteVol,
+      titre: titre,
+      theoreticalTitre: round(s.theoreticalEquivVol, 2),
+      analyteVol: s.analyteVol,
+      analyteConc: s.rData.analyteConc,
+      titrantConc: s.rData.titrantConc,
+      equation: s.rData.equation,
+      stoichRatio: s.rData.stoichRatio
+    });
+    updateAnalysis();
+
+    var tp = $('#rxTeacherContent');
+    tp.textContent = '';
+    tp.appendChild(el('div',{},['Theoretical equivalence volume: ' + round(s.theoreticalEquivVol, 2) + ' cm\u00B3']));
+    tp.appendChild(el('div',{},['Actual titre recorded: ' + titre + ' cm\u00B3']));
+    tp.appendChild(el('div',{},['Half-equations:']));
+    s.rData.halfEquations.forEach(function(eq){
+      tp.appendChild(el('div',{style:'margin-left:1rem;font-family:"Fira Code",monospace;font-size:.78rem;'},eq));
+    });
+
+    $('#rxAddFast').style.display = 'none';
+    $('#rxAddDrop').style.display = 'none';
+    $('#rxRecordBtn').style.display = 'none';
+    $('#rxResultSection').style.display = '';
+  }
+
+  function showRXCalcSteps(titre){
+    var s = _rxState;
+    var r = s.rData;
+    var guide = $('#rxStepGuide');
+    guide.textContent = '';
+    var nTitrant = r.titrantConc * titre / 1000;
+    var nAnalyte = nTitrant * r.stoichRatio;
+    var calcConc = nAnalyte / (s.analyteVol / 1000);
+
+    var steps = [
+      { title: 'Titre volume', content: titre.toFixed(2) + ' cm\u00B3' },
+      { title: 'Moles of MnO\u2084\u207B', content: 'n = c \u00D7 V = ' + r.titrantConc + ' \u00D7 ' + (titre/1000).toFixed(5) + ' = ' + round(nTitrant, 6) + ' mol' },
+      { title: 'Mole ratio', content: r.equation + '\n' + r.stoichRatio + ' mol ' + r.analyte + ' : 1 mol MnO\u2084\u207B' },
+      { title: 'Moles of ' + r.analyte, content: round(nTitrant, 6) + ' \u00D7 ' + r.stoichRatio + ' = ' + round(nAnalyte, 6) + ' mol' },
+      { title: 'Concentration of ' + r.analyte, content: 'c = n/V = ' + round(nAnalyte, 6) + ' / ' + (s.analyteVol/1000).toFixed(5) + ' = ' + round(calcConc, 4) + ' mol dm\u207B\u00B3' }
+    ];
+
+    steps.forEach(function(st){
+      var div = el('div',{class:'step'});
+      var content = el('div',{class:'step-content'});
+      content.appendChild(el('div',{class:'step-title',text:st.title}));
+      content.appendChild(el('div',{},st.content));
+      div.appendChild(content);
+      guide.appendChild(div);
+    });
+  }
+
+  function resetRX(){
+    _rxState = null;
+    $('#rxStartBtn').style.display = '';
+    $('#rxAddFast').style.display = 'none';
+    $('#rxAddDrop').style.display = 'none';
+    $('#rxRecordBtn').style.display = 'none';
+    $('#rxResetBtn').style.display = 'none';
+    $('#rxReadings').style.display = 'none';
+    $('#rxResultSection').style.display = 'none';
+    $('#rxAddFast').disabled = false;
+    $('#rxTypeSelect').disabled = false;
+    $('#rxAnalyteVol').disabled = false;
+    initRX();
+  }
+
+  /* ── Tab 3: Back Titration ── */
+  function initBT(){
+    var typeKey = $('#btTypeSelect').value;
+    var bData = BACK_TYPES[typeKey];
+    var nSubstance = bData.mass / bData.molarMass;
+    var nReacted = nSubstance * bData.stoich1;
+    var nExcessTotal = bData.excessConc * bData.excessVol / 1000;
+    var nExcess = nExcessTotal - nReacted;
+    var equivVol = nExcess / bData.titrantConc * 1000; // cm³ NaOH to neutralise excess
+
+    _btState = {
+      bData: bData,
+      nSubstance: nSubstance,
+      nReacted: nReacted,
+      nExcessTotal: nExcessTotal,
+      nExcess: nExcess,
+      equivVol: equivVol + rnd(-0.2, 0.2),
+      theoreticalEquivVol: equivVol,
+      buretteVol: 0,
+      maxVol: 50,
+      running: false,
+      recorded: false,
+      drops: [],
+      initialReading: round(rnd(0, 2), 2)
+    };
+    _btState.buretteVol = _btState.initialReading;
+
+    // Update scenario text
+    var info = $('#btScenarioText');
+    info.textContent = '';
+    info.appendChild(el('div',{},['Substance: ' + bData.mass.toFixed(3) + ' g of ' + bData.substance + ' (M = ' + bData.molarMass + ' g mol\u207B\u00B9)']));
+    info.appendChild(el('div',{},['Step 1: ' + bData.eq1]));
+    info.appendChild(el('div',{},['Added: ' + bData.excessVol + ' cm\u00B3 of ' + bData.excessConc + ' mol dm\u207B\u00B3 ' + bData.excessReagent + ' (excess)']));
+    info.appendChild(el('div',{},['Step 2: Titrate excess ' + bData.excessReagent + ' with ' + bData.titrantConc + ' mol dm\u207B\u00B3 ' + bData.titrant]));
+    info.appendChild(el('div',{},['Indicator: ' + INDICATORS[bData.indicator].name]));
+
+    drawBT();
+  }
+
+  function drawBT(){
+    if(!_btState) return;
+    var s = _btState;
+    var setup = setupCanvas('btCanvas');
+    if(!setup) return;
+    var ctx = setup.ctx, w = setup.w, h = setup.h;
+
+    var titre = s.buretteVol - s.initialReading;
+    var fraction = titre / s.equivVol;
+    // Excess HCl + phenolphthalein: colorless. At endpoint: pink.
+    var flaskColor = fraction < 0.98 ? '#E8F4FD' : (fraction < 1.0 ? '#FBCFE8' : '#DB2777');
+    var titrantColor = '#DBEAFE';
+
+    drawApparatus(ctx, w, h, s.buretteVol, s.maxVol, flaskColor, titrantColor, s.drops);
+
+    if(s.running || s.recorded){
+      $('#btBuretteReading').textContent = s.buretteVol.toFixed(2) + ' cm\u00B3';
+      if(fraction < 0.95) $('#btFlaskStatus').textContent = 'Colourless (acidic excess)';
+      else if(fraction < 1.0) $('#btFlaskStatus').textContent = 'Faint pink (near endpoint)';
+      else $('#btFlaskStatus').textContent = 'Pink (endpoint reached)';
+    }
+  }
+
+  function startBT(){
+    if(!_btState) initBT();
+    _btState.running = true;
+    $('#btStartBtn').style.display = 'none';
+    $('#btAddFast').style.display = '';
+    $('#btAddDrop').style.display = '';
+    $('#btRecordBtn').style.display = '';
+    $('#btResetBtn').style.display = '';
+    $('#btReadings').style.display = '';
+    $('#btScenarioInfo').style.display = '';
+    $('#btTypeSelect').disabled = true;
+    drawBT();
+  }
+
+  function addFastBT(){
+    if(!_btState || !_btState.running || _btState.recorded) return;
+    var s = _btState;
+    var titreAdded = s.buretteVol - s.initialReading;
+    var target = s.equivVol * 0.8;
+    if(titreAdded >= target) return;
+    s.buretteVol = round(s.buretteVol + (target - titreAdded), 2);
+    $('#btAddFast').disabled = true;
+    drawBT();
+  }
+
+  function addDropBT(){
+    if(!_btState || !_btState.running || _btState.recorded) return;
+    var s = _btState;
+    s.buretteVol = round(s.buretteVol + rnd(0.04, 0.08), 2);
+    if(s.buretteVol > s.maxVol) s.buretteVol = s.maxVol;
+    drawBT();
+  }
+
+  function recordBT(){
+    if(!_btState || !_btState.running || _btState.recorded) return;
+    var s = _btState;
+    s.recorded = true;
+    s.running = false;
+    var titre = round(s.buretteVol - s.initialReading, 2);
+
+    showBTCalcSteps(titre);
+
+    _allResults.push({
+      type: 'back',
+      name: s.bData.name,
+      indicator: INDICATORS[s.bData.indicator].name,
+      suitable: true,
+      initialReading: s.initialReading,
+      finalReading: s.buretteVol,
+      titre: titre,
+      theoreticalTitre: round(s.theoreticalEquivVol, 2),
+      analyteVol: null,
+      analyteConc: null,
+      titrantConc: s.bData.titrantConc,
+      equation: s.bData.eq2,
+      backTitration: true,
+      substance: s.bData.substance,
+      mass: s.bData.mass
+    });
+    updateAnalysis();
+
+    var tp = $('#btTeacherContent');
+    tp.textContent = '';
+    tp.appendChild(el('div',{},['Theoretical NaOH volume: ' + round(s.theoreticalEquivVol, 2) + ' cm\u00B3']));
+    tp.appendChild(el('div',{},['Moles of ' + s.bData.substance + ': ' + round(s.nSubstance, 5) + ' mol']));
+    tp.appendChild(el('div',{},['Moles of HCl reacted with ' + s.bData.substance + ': ' + round(s.nReacted, 5) + ' mol']));
+    tp.appendChild(el('div',{},['Moles of excess HCl: ' + round(s.nExcess, 5) + ' mol']));
+    tp.appendChild(el('div',{},['Actual titre: ' + titre + ' cm\u00B3']));
+
+    $('#btAddFast').style.display = 'none';
+    $('#btAddDrop').style.display = 'none';
+    $('#btRecordBtn').style.display = 'none';
+    $('#btResultSection').style.display = '';
+  }
+
+  function showBTCalcSteps(titre){
+    var s = _btState;
+    var b = s.bData;
+    var guide = $('#btStepGuide');
+    guide.textContent = '';
+
+    var nNaOH = b.titrantConc * titre / 1000;
+    var nExcessHCl = nNaOH; // 1:1 ratio
+    var nTotalHCl = b.excessConc * b.excessVol / 1000;
+    var nReactedHCl = nTotalHCl - nExcessHCl;
+    var nSubstance = nReactedHCl / b.stoich1;
+    var massCalc = nSubstance * b.molarMass;
+    var purity = (massCalc / b.mass) * 100;
+
+    var steps = [
+      { title: 'Moles of NaOH (titrant)', content: 'n = c \u00D7 V = ' + b.titrantConc + ' \u00D7 ' + (titre/1000).toFixed(5) + ' = ' + round(nNaOH, 5) + ' mol' },
+      { title: 'Moles of excess HCl', content: 'From ' + b.eq2 + ', ratio 1:1\nn(HCl excess) = ' + round(nExcessHCl, 5) + ' mol' },
+      { title: 'Total moles of HCl added', content: 'n = c \u00D7 V = ' + b.excessConc + ' \u00D7 ' + (b.excessVol/1000).toFixed(5) + ' = ' + round(nTotalHCl, 5) + ' mol' },
+      { title: 'Moles of HCl that reacted with ' + b.substance, content: round(nTotalHCl, 5) + ' \u2212 ' + round(nExcessHCl, 5) + ' = ' + round(nReactedHCl, 5) + ' mol' },
+      { title: 'Moles of ' + b.substance, content: 'From ' + b.eq1 + ', ratio 1:' + b.stoich1 + '\nn(' + b.substance + ') = ' + round(nReactedHCl, 5) + ' / ' + b.stoich1 + ' = ' + round(nSubstance, 5) + ' mol' },
+      { title: 'Mass of ' + b.substance, content: 'm = n \u00D7 M = ' + round(nSubstance, 5) + ' \u00D7 ' + b.molarMass + ' = ' + round(massCalc, 4) + ' g' },
+      { title: 'Purity', content: 'Purity = (' + round(massCalc, 4) + ' / ' + b.mass.toFixed(3) + ') \u00D7 100 = ' + round(purity, 1) + '%' }
+    ];
+
+    steps.forEach(function(st){
+      var div = el('div',{class:'step'});
+      var content = el('div',{class:'step-content'});
+      content.appendChild(el('div',{class:'step-title',text:st.title}));
+      content.appendChild(el('div',{},st.content));
+      div.appendChild(content);
+      guide.appendChild(div);
+    });
+  }
+
+  function resetBT(){
+    _btState = null;
+    $('#btStartBtn').style.display = '';
+    $('#btAddFast').style.display = 'none';
+    $('#btAddDrop').style.display = 'none';
+    $('#btRecordBtn').style.display = 'none';
+    $('#btResetBtn').style.display = 'none';
+    $('#btReadings').style.display = 'none';
+    $('#btResultSection').style.display = 'none';
+    $('#btAddFast').disabled = false;
+    $('#btTypeSelect').disabled = false;
+    initBT();
+  }
+
+  /* ── Tab 4: Analysis ── */
+  function updateAnalysis(){
+    var wrap = $('#analysisTableWrap');
+    wrap.textContent = '';
+
+    if(_allResults.length === 0){
+      wrap.appendChild(el('div',{class:'feedback info'},['Run titrations in Tabs 1\u20133 to collect data here.']));
+      $('#statTotalRuns').textContent = '0';
+      $('#statConcordant').textContent = '0';
+      $('#statBestError').textContent = '\u2014';
+      $('#statAvgTitre').textContent = '\u2014';
+      $('#uncertaintySection').style.display = 'none';
+      return;
+    }
+
+    // Build results table
+    var table = el('table',{class:'result-table'});
+    var thead = el('tr');
+    ['#','Type','Titration','Initial','Final','Titre','Theoretical','% Error'].forEach(function(h){
+      thead.appendChild(el('th',{text:h}));
+    });
+    table.appendChild(thead);
+
+    var titres = [];
+    _allResults.forEach(function(r, i){
+      var pctError = round(Math.abs(r.titre - r.theoreticalTitre) / r.theoreticalTitre * 100, 1);
+      var row = el('tr');
+      [i+1, r.type, r.name, r.initialReading.toFixed(2), r.finalReading.toFixed(2), r.titre.toFixed(2), r.theoreticalTitre.toFixed(2), pctError + '%'].forEach(function(v){
+        row.appendChild(el('td',{text:String(v)}));
+      });
+      table.appendChild(row);
+      titres.push(r.titre);
+    });
+    wrap.appendChild(table);
+
+    // Stats
+    $('#statTotalRuns').textContent = _allResults.length;
+
+    // Find concordant pairs (within 0.10 cm³)
+    var concordant = 0;
+    for(var i = 0; i < titres.length; i++){
+      for(var j = i+1; j < titres.length; j++){
+        if(Math.abs(titres[i] - titres[j]) <= 0.10) concordant++;
+      }
+    }
+    $('#statConcordant').textContent = concordant;
+
+    // Best % error
+    var errors = _allResults.map(function(r){ return Math.abs(r.titre - r.theoreticalTitre) / r.theoreticalTitre * 100; });
+    var bestErr = Math.min.apply(null, errors);
+    $('#statBestError').textContent = round(bestErr, 1) + '%';
+
+    // Average titre
+    var sum = titres.reduce(function(a,b){ return a+b; }, 0);
+    var avg = sum / titres.length;
+    $('#statAvgTitre').textContent = round(avg, 2);
+
+    // Uncertainty section
+    if(_allResults.length >= 1){
+      $('#uncertaintySection').style.display = '';
+      var uc = $('#uncertaintyCalc');
+      uc.textContent = '';
+
+      var buretteUnc = 0.05; // ±0.05 cm³ per reading
+      var totalBuretteUnc = Math.sqrt(buretteUnc*buretteUnc + buretteUnc*buretteUnc); // two readings
+      var lastR = _allResults[_allResults.length - 1];
+      var pctUncBurette = (totalBuretteUnc / lastR.titre) * 100;
+
+      uc.appendChild(el('div',{style:'margin-bottom:.5rem;'},['Burette uncertainty: \u00B1' + buretteUnc.toFixed(2) + ' cm\u00B3 per reading']));
+      uc.appendChild(el('div',{style:'margin-bottom:.5rem;'},['Two readings (initial + final): \u00B1\u221A(0.05\u00B2 + 0.05\u00B2) = \u00B1' + round(totalBuretteUnc, 3) + ' cm\u00B3']));
+      uc.appendChild(el('div',{style:'margin-bottom:.5rem;'},['% uncertainty (titre = ' + lastR.titre.toFixed(2) + ' cm\u00B3): ' + round(pctUncBurette, 2) + '%']));
+
+      // Volume uncertainty for pipette
+      uc.appendChild(el('div',{style:'margin-bottom:.5rem;margin-top:.75rem;font-weight:600;'},['Pipette uncertainty:']));
+      uc.appendChild(el('div',{style:'margin-bottom:.5rem;'},['25.00 cm\u00B3 pipette: \u00B10.06 cm\u00B3 (\u00B10.24%)']));
+      uc.appendChild(el('div',{style:'margin-bottom:.5rem;font-weight:600;margin-top:.75rem;'},['Total % uncertainty:']));
+      uc.appendChild(el('div',{},['= ' + round(pctUncBurette, 2) + '% + 0.24% = ' + round(pctUncBurette + 0.24, 2) + '%']));
+    }
+
+    // Teacher panel
+    var tp = $('#analysisTeacherContent');
+    tp.textContent = '';
+    tp.appendChild(el('div',{},['Concordant results are within \u00B10.10 cm\u00B3 of each other.']));
+    tp.appendChild(el('div',{},['For IB IA: students should perform at least 3 trials and average concordant results.']));
+    tp.appendChild(el('div',{},['Random error is reduced by averaging; systematic error (e.g., indicator choice) is not.']));
+  }
+
+  /* ── Presets ── */
+  function applyPreset(val){
+    if(!val) return;
+    if(val === 'strong_strong' || val === 'weak_strong' || val === 'strong_weak'){
+      switchTab('acidbase');
+      $('#abTypeSelect').value = val;
+      if(val === 'weak_strong') $('#abIndicatorSelect').value = 'phenolphthalein';
+      else if(val === 'strong_weak') $('#abIndicatorSelect').value = 'methyl_orange';
+      else $('#abIndicatorSelect').value = 'phenolphthalein';
+      resetAB();
+    } else if(val === 'redox_fe'){
+      switchTab('redox');
+      $('#rxTypeSelect').value = 'fe_kmno4';
+      resetRX();
+    } else if(val === 'redox_oxalate'){
+      switchTab('redox');
+      $('#rxTypeSelect').value = 'oxalate_kmno4';
+      resetRX();
+    } else if(val === 'back_caco3'){
+      switchTab('back');
+      $('#btTypeSelect').value = 'caco3';
+      resetBT();
+    }
+    $('#presetSelect').value = '';
+  }
+
+  /* ── Tab switching ── */
+  function switchTab(tabId){
+    $$('.tab-btn').forEach(function(btn){ btn.classList.toggle('active', btn.dataset.tab === tabId); });
+    $$('.tab-content').forEach(function(tc){ tc.classList.toggle('active', tc.id === 'tab-' + tabId); });
+  }
+
+  /* ── Mode toggles ── */
+  function updateHL(){
+    _hlMode = $('#hlToggle').checked;
+    document.body.classList.toggle('hl-active', _hlMode);
+  }
+
+  function updateTeacher(){
+    _teacherMode = $('#teacherToggle').checked;
+    document.body.classList.toggle('teacher-active', _teacherMode);
+  }
+
+  /* ── Keyboard shortcuts ── */
+  function handleKey(e){
+    if(e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    var k = e.key.toLowerCase();
+    if(k === 'h'){ $('#hlToggle').checked = !$('#hlToggle').checked; updateHL(); }
+    else if(k === 't'){ $('#teacherToggle').checked = !$('#teacherToggle').checked; updateTeacher(); }
+    else if(k === '1') switchTab('acidbase');
+    else if(k === '2') switchTab('redox');
+    else if(k === '3') switchTab('back');
+    else if(k === '4') switchTab('analysis');
+    else if(k === 'r'){ resetAB(); resetRX(); resetBT(); }
+    else if(k === 'n'){
+      var activeTab = document.querySelector('.tab-btn.active');
+      if(activeTab){
+        var tab = activeTab.dataset.tab;
+        if(tab === 'acidbase') resetAB();
+        else if(tab === 'redox') resetRX();
+        else if(tab === 'back') resetBT();
+      }
+    }
+    else if(k === 'i'){
+      var iap = document.getElementById('iaPanel');
+      if(iap) iap.classList.toggle('open');
+    }
+  }
+
+  /* ── Init ── */
+  function init(){
+    // Tab buttons
+    $$('.tab-btn').forEach(function(btn){
+      btn.addEventListener('click', function(){ switchTab(btn.dataset.tab); });
+    });
+
+    // Toggles
+    $('#hlToggle').addEventListener('change', updateHL);
+    $('#teacherToggle').addEventListener('change', updateTeacher);
+
+    // Presets
+    $('#presetSelect').addEventListener('change', function(){ applyPreset(this.value); });
+
+    // Tab 1 buttons
+    $('#abStartBtn').addEventListener('click', startAB);
+    $('#abAddFast').addEventListener('click', addFastAB);
+    $('#abAddDrop').addEventListener('click', addDropAB);
+    $('#abRecordBtn').addEventListener('click', recordAB);
+    $('#abResetBtn').addEventListener('click', resetAB);
+    $('#abTypeSelect').addEventListener('change', function(){ resetAB(); });
+    $('#abIndicatorSelect').addEventListener('change', function(){
+      if(_abState){ _abState.indicator = this.value; updateABIndicatorLegend(); drawAB(); }
+    });
+    $('#abAnalyteVol').addEventListener('change', function(){ resetAB(); });
+
+    // Tab 2 buttons
+    $('#rxStartBtn').addEventListener('click', startRX);
+    $('#rxAddFast').addEventListener('click', addFastRX);
+    $('#rxAddDrop').addEventListener('click', addDropRX);
+    $('#rxRecordBtn').addEventListener('click', recordRX);
+    $('#rxResetBtn').addEventListener('click', resetRX);
+    $('#rxTypeSelect').addEventListener('change', function(){ resetRX(); });
+    $('#rxAnalyteVol').addEventListener('change', function(){ resetRX(); });
+
+    // Tab 3 buttons
+    $('#btStartBtn').addEventListener('click', startBT);
+    $('#btAddFast').addEventListener('click', addFastBT);
+    $('#btAddDrop').addEventListener('click', addDropBT);
+    $('#btRecordBtn').addEventListener('click', recordBT);
+    $('#btResetBtn').addEventListener('click', resetBT);
+    $('#btTypeSelect').addEventListener('change', function(){ resetBT(); });
+
+    // Tab 4
+    $('#clearAnalysis').addEventListener('click', function(){
+      _allResults = [];
+      updateAnalysis();
+    });
+
+    // Keyboard
+    document.addEventListener('keydown', handleKey);
+
+    // IA Guide panel toggle
+    var iaToggleBtn = document.getElementById('iaToggle');
+    if(iaToggleBtn) iaToggleBtn.addEventListener('click', function(){ document.getElementById('iaPanel').classList.toggle('open'); });
+
+    // Initialize all tabs
+    initAB();
+    initRX();
+    initBT();
+    updateAnalysis();
+  }
+
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
+</script>
+<footer>SimEngine &mdash; Titration Lab &bull; H=HL T=Teacher</footer>
+</body>
+</html>

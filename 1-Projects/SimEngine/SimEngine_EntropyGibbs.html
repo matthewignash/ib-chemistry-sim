@@ -28,7 +28,8 @@
     --sim-canvas-bg: #FAFBFC;
     --hl-badge-bg: #7C3AED;
     --hl-border: rgba(124, 58, 237, 0.2);
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -42,9 +43,9 @@
 
   /* ── Header ── */
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    background: var(--navy);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: .75rem 1.5rem;
     display: flex; align-items: center; justify-content: space-between;
     flex-wrap: wrap; gap: 0.75rem;
   }
@@ -238,9 +239,12 @@
     .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
     .quadrant-layout { grid-template-columns: 1fr; }
   }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body class="hl-active">
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <!-- Header -->
 <div class="header">
@@ -256,15 +260,15 @@
 </div>
 
 <!-- Tab Bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="entropy"><span class="tab-num">1</span>Entropy Visualizer</button>
-  <button class="tab-btn" data-tab="gibbs"><span class="tab-num">2</span>Gibbs Calculator</button>
-  <button class="tab-btn" data-tab="spontaneity"><span class="tab-num">3</span>Spontaneity Predictor</button>
-  <button class="tab-btn" data-tab="dgf"><span class="tab-num">4</span>&Delta;G&deg; from &Delta;G<sub>f</sub>&deg;</button>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="entropy" role="tab"><span class="tab-num">1</span>Entropy Visualizer</button>
+  <button class="tab-btn" data-tab="gibbs" role="tab"><span class="tab-num">2</span>Gibbs Calculator</button>
+  <button class="tab-btn" data-tab="spontaneity" role="tab"><span class="tab-num">3</span>Spontaneity Predictor</button>
+  <button class="tab-btn" data-tab="dgf" role="tab"><span class="tab-num">4</span>&Delta;G&deg; from &Delta;G<sub>f</sub>&deg;</button>
 </div>
 
 <!-- Main Content -->
-<div class="sim-container">
+<div class="sim-container" id="main-content">
   <div class="sim-top-row">
 
     <!-- Sidebar -->
@@ -282,7 +286,7 @@
     </div>
 
     <!-- Tab 1: Entropy Visualizer -->
-    <div class="tab-content active" id="tab-entropy">
+    <div class="tab-content active" id="tab-entropy" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Particle Simulation</div>
         <div class="sim-card-body">
@@ -301,7 +305,7 @@
     </div>
 
     <!-- Tab 2: Gibbs Calculator -->
-    <div class="tab-content" id="tab-gibbs">
+    <div class="tab-content" id="tab-gibbs" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Gibbs Free Energy Calculator</div>
         <div class="sim-card-body" id="gibbsBody">
@@ -313,7 +317,7 @@
     </div>
 
     <!-- Tab 3: Spontaneity Predictor -->
-    <div class="tab-content" id="tab-spontaneity">
+    <div class="tab-content" id="tab-spontaneity" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Spontaneity Predictor — Four Quadrants</div>
         <div class="sim-card-body" id="spontaneityBody"></div>
@@ -321,7 +325,7 @@
     </div>
 
     <!-- Tab 4: DGf -->
-    <div class="tab-content" id="tab-dgf">
+    <div class="tab-content" id="tab-dgf" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">&Delta;G&deg; from Standard Gibbs Energies of Formation</div>
         <div class="sim-card-body" id="dgfBody">
@@ -2148,5 +2152,6 @@
   renderEntropyTab();
 })();
 </script>
+<footer>SimEngine &mdash; Entropy &amp; Gibbs Energy &bull; H=HL T=Teacher</footer>
 </body>
 </html>

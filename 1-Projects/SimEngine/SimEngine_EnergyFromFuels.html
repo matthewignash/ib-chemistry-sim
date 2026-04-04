@@ -1,0 +1,766 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Energy from Fuels — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Caveat:wght@400;600&display=swap');
+  :root {
+    --navy:#1B2A4A;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--light-bg:#F8FAFC;--card-bg:#FFFFFF;
+    --text:#1E293B;--text-muted:#64748B;--border:#E2E8F0;--green:#059669;--red:#DC2626;--amber:#D97706;
+    --teal-bg:#F0FDFA;--blue-bg:#EFF6FF;--red-bg:#FEF2F2;--green-bg:#F0FDF4;--amber-bg:#FFFBEB;
+    --sim-canvas-bg:#FAFBFC;--hl-badge-bg:#7C3AED;--hl-border:rgba(124,58,237,0.2);
+    --orange: #F59E0B;
+}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',-apple-system,sans-serif;background:var(--light-bg);color:var(--text);line-height:1.6;font-size:16px;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;}
+  .header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;} .header .subtitle{font-size:.9rem;opacity:.85;}
+  .header-left{display:flex;flex-direction:column;gap:.25rem;} .header-right{display:flex;align-items:center;gap:1rem;}
+  .header-badge{display:inline-block;padding:.25rem .75rem;border-radius:999px;font-size:.75rem;font-weight:600;background:rgba(255,255,255,.15);color:white;}
+  .header-badge.hl{background:var(--hl-badge-bg);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.5rem;}
+  .sim-toggle{position:relative;display:inline-block;width:40px;height:22px;} .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:22px;transition:.2s;--toggle-on:var(--teal);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);} .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.8rem;font-weight:500;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.5rem;font-size:.85rem;font-weight:600;color:var(--text-muted);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;font-family:inherit;margin-bottom:-2px;}
+  .tab-btn:hover{color:var(--text);background:var(--teal-bg);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);}
+  .tab-btn .tab-num{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:4px;font-size:.65rem;font-weight:700;background:var(--border);color:var(--text-muted);margin-right:.4rem;}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .hl-tab{display:none;} body.hl-active .hl-tab{display:inline-block;}
+  .sim-container{max-width:1200px;margin:0 auto;padding:1.5rem;}
+  .sim-top-row{display:grid;grid-template-columns:240px 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+  .sim-card{background:var(--card-bg);border-radius:12px;border:1px solid var(--border);overflow:hidden;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:.5rem;}
+  .sim-card-body{padding:1rem;}
+  .palette-panel{max-height:600px;display:flex;flex-direction:column;position:sticky;top:1rem;align-self:start;grid-column:1;grid-row:1;}
+  .tab-content{grid-column:2;grid-row:1;display:none;} .tab-content.active{display:block;}
+  .palette-panel .sim-card-body{padding:.5rem;overflow-y:auto;flex:1;}
+  .palette-search{width:100%;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.8rem;font-family:inherit;margin-bottom:.5rem;outline:none;}
+  .palette-search:focus{border-color:var(--teal);box-shadow:0 0 0 2px rgba(13,148,136,.15);}
+  .palette-category{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);padding:.4rem .3rem .2rem;margin-top:.3rem;}
+  .palette-item{display:block;width:100%;text-align:left;padding:.3rem .5rem;margin:.15rem 0;border-radius:6px;font-size:.75rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:white;color:var(--text);transition:all .15s;}
+  .palette-item:hover{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);}
+  .palette-item.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);font-weight:600;}
+  .sim-canvas{display:block;width:100%;background:var(--sim-canvas-bg);border-radius:4px;}
+  .check-btn{display:inline-block;padding:.5rem 1.2rem;margin-top:.75rem;background:var(--teal);color:white;border:none;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;}
+  .check-btn:hover{background:#0B7C73;} .check-btn:disabled{background:#CBD5E1;cursor:not-allowed;}
+  .mode-btn{padding:.3rem .6rem;font-size:.72rem;font-weight:600;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;font-family:inherit;transition:all .15s;}
+  .mode-btn.active{background:var(--teal);color:white;border-color:var(--teal);} .mode-btn:hover:not(.active){background:var(--teal-bg);}
+  .slider-group{margin:.5rem 0;} .slider-label{font-size:.72rem;font-weight:600;margin-bottom:.2rem;display:flex;justify-content:space-between;}
+  .slider-value{font-family:'Fira Code',monospace;color:var(--teal);}
+  .hl-panel{display:none;} body.hl-active .hl-panel{display:block;}
+  .teacher-panel{display:none;} body.teacher-active .teacher-panel{display:block;}
+  .info-row{display:flex;gap:.75rem;flex-wrap:wrap;margin-top:.75rem;}
+  .info-chip{padding:.35rem .7rem;border-radius:6px;font-size:.75rem;font-weight:600;background:var(--blue-bg);color:var(--blue);border:1px solid rgba(37,99,235,.2);}
+  .info-chip.teal{background:var(--teal-bg);color:var(--teal);border-color:rgba(13,148,136,.2);}
+  .info-chip.amber{background:var(--amber-bg);color:var(--amber);border-color:rgba(217,119,6,.2);}
+  .info-chip.red{background:var(--red-bg);color:var(--red);border-color:rgba(220,38,38,.2);}
+  .info-chip.green{background:var(--green-bg);color:var(--green);border-color:rgba(5,150,105,.2);}
+  .data-table{width:100%;border-collapse:collapse;font-size:.78rem;margin-top:.5rem;}
+  .data-table th{background:var(--navy);color:white;padding:.4rem .6rem;text-align:left;font-size:.72rem;font-weight:600;}
+  .data-table td{padding:.35rem .6rem;border-bottom:1px solid var(--border);}
+  .data-table tr:nth-child(even) td{background:#F8FAFC;} .data-table tr.highlight td{background:var(--teal-bg);font-weight:600;}
+  .calc-step{padding:.4rem .6rem;margin:.3rem 0;border-radius:6px;font-size:.8rem;font-family:'Fira Code',monospace;background:var(--blue-bg);border-left:3px solid var(--blue);}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  .preset-section{margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);display:none;}
+  .preset-section select{width:100%;padding:.35rem;border:1px solid var(--border);border-radius:6px;font-size:.75rem;font-family:inherit;cursor:pointer;}
+  body.teacher-active .preset-section{display:block;}
+  @media(max-width:900px){.sim-top-row{grid-template-columns:1fr;}.palette-panel{max-height:200px;position:static;}.tab-btn{padding:.6rem .8rem;font-size:.78rem;}}
+
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+<div class="header">
+  <div class="header-left">
+    <h1>Energy from Fuels</h1>
+    <span class="subtitle">IB Chemistry — R1.3 Energy from Fuels</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">R1.3</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group"><span class="sim-toggle-label">SL</span><label class="sim-toggle"><input type="checkbox" id="hlToggle"><span class="sim-toggle-slider"></span></label><span class="sim-toggle-label">HL</span></div>
+    <div class="sim-toggle-group"><span class="sim-toggle-label">Student</span><label class="sim-toggle"><input type="checkbox" id="teacherToggle"><span class="sim-toggle-slider" style="--toggle-on:var(--amber);"></span></label><span class="sim-toggle-label">Teacher</span></div>
+  </div>
+</div>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" role="tab" data-tab="calorimetry"><span class="tab-num">1</span>Calorimetry</button>
+  <button class="tab-btn" role="tab" data-tab="comparison"><span class="tab-num">2</span>Fuel Comparison</button>
+  <button class="tab-btn" role="tab" data-tab="incomplete"><span class="tab-num">3</span>Incomplete Combustion</button>
+  <button class="tab-btn hl-tab" role="tab" data-tab="density"><span class="tab-num">4</span>Energy Density</button>
+</div>
+<div class="sim-container" id="main-content"><div class="sim-top-row">
+  <div class="sim-card palette-panel">
+    <div class="sim-card-header">Fuels</div>
+    <div class="sim-card-body">
+      <input type="text" class="palette-search" id="paletteSearch" placeholder="Search fuels..." aria-label="Search fuels">
+      <div id="paletteList"></div>
+      <div class="preset-section" id="presetSection">
+        <select id="presetSelect" aria-label="Teacher presets">
+          <option value="">Teacher Presets...</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 1: Calorimetry -->
+  <div class="tab-content active" role="tabpanel" id="tab-calorimetry">
+    <div class="sim-card">
+      <div class="sim-card-header">Combustion Calorimetry Experiment</div>
+      <div class="sim-card-body">
+        <canvas id="caloCanvas" class="sim-canvas" height="360" role="img" aria-label="Spirit burner calorimetry experiment"></canvas>
+        <div style="display:flex;gap:.75rem;margin-top:.75rem;flex-wrap:wrap;align-items:center;">
+          <button class="check-btn" id="burnBtn" style="margin-top:0;">Burn</button>
+          <button class="check-btn" id="caloResetBtn" style="margin-top:0;background:var(--text-muted);">Reset</button>
+          <div class="slider-group" style="flex:1;min-width:140px;margin:0;">
+            <div class="slider-label"><span>Water mass</span><span class="slider-value" id="waterMassVal">100 g</span></div>
+            <input type="range" id="waterMassSlider" min="50" max="250" value="100" step="10" style="width:100%;" aria-label="Water mass slider">
+          </div>
+        </div>
+        <div id="caloReadout" style="margin-top:.75rem;"></div>
+        <div id="caloCalc" style="margin-top:.75rem;"></div>
+        <div class="teacher-panel" id="caloTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Fuel Comparison -->
+  <div class="tab-content" role="tabpanel" id="tab-comparison">
+    <div class="sim-card">
+      <div class="sim-card-header">Fuel Energy Comparison</div>
+      <div class="sim-card-body">
+        <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;">
+          <button class="mode-btn active" data-unit="kJg">kJ/g (Specific Energy)</button>
+          <button class="mode-btn" data-unit="kJmol">kJ/mol</button>
+        </div>
+        <canvas id="compCanvas" class="sim-canvas" height="360" role="img" aria-label="Fuel energy comparison bar chart"></canvas>
+        <div id="compInfo" style="margin-top:.75rem;font-size:.8rem;line-height:1.7;"></div>
+        <div class="teacher-panel" id="compTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Incomplete Combustion -->
+  <div class="tab-content" role="tabpanel" id="tab-incomplete">
+    <div class="sim-card">
+      <div class="sim-card-header">Incomplete Combustion</div>
+      <div class="sim-card-body">
+        <div class="slider-group" style="max-width:400px;">
+          <div class="slider-label"><span>Oxygen Supply</span><span class="slider-value" id="o2Val">100%</span></div>
+          <input type="range" id="o2Slider" min="20" max="100" value="100" style="width:100%;" aria-label="Oxygen supply slider">
+        </div>
+        <canvas id="incCanvas" class="sim-canvas" height="320" role="img" aria-label="Incomplete combustion products"></canvas>
+        <div id="incEquation" style="margin-top:.75rem;font-size:.85rem;font-family:'Fira Code',monospace;padding:.6rem;background:var(--blue-bg);border-radius:8px;border-left:3px solid var(--blue);"></div>
+        <div id="incInfo" class="info-row" style="margin-top:.5rem;"></div>
+        <div class="teacher-panel" id="incTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: Energy Density (HL) -->
+  <div class="tab-content" role="tabpanel" id="tab-density">
+    <div class="sim-card">
+      <div class="sim-card-header">Specific Energy vs Energy Density</div>
+      <div class="sim-card-body">
+        <canvas id="densCanvas" class="sim-canvas" height="380" role="img" aria-label="Specific energy vs energy density scatter plot"></canvas>
+        <div id="densInfo" style="margin-top:.75rem;font-size:.8rem;line-height:1.7;"></div>
+        <div class="teacher-panel" id="densTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL toggle &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd>–<kbd>4</kbd> Tabs &nbsp;
+  <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>↑↓</kbd> Navigate &nbsp; <kbd>E</kbd> Export
+</div>
+
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){if(typeof r==='number')r=[r,r,r,r];this.beginPath();this.moveTo(x+(r[0]||0),y);this.lineTo(x+w-(r[1]||0),y);this.quadraticCurveTo(x+w,y,x+w,y+(r[1]||0));this.lineTo(x+w,y+h-(r[2]||0));this.quadraticCurveTo(x+w,y+h,x+w-(r[2]||0),y+h);this.lineTo(x+(r[3]||0),y+h);this.quadraticCurveTo(x,y+h,x,y+h-(r[3]||0));this.lineTo(x,y+(r[0]||0));this.quadraticCurveTo(x,y,x+(r[0]||0),y);this.closePath();return this;};}
+
+(function(){
+'use strict';
+function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined&&text!==null)e.textContent=text;return e;}
+function setupCanvas(c){var d=window.devicePixelRatio||1,w=c.offsetWidth;if(!c.dataset.baseHeight)c.dataset.baseHeight=c.getAttribute('height')||'300';var h=parseInt(c.dataset.baseHeight);c.width=w*d;c.height=h*d;c.style.height=h+'px';var ctx=c.getContext('2d');ctx.setTransform(d,0,0,d,0,0);return ctx;}
+function lerp(a,b,t){return a+(b-a)*t;}
+function round(v,d){if(d===undefined)d=1;var m=Math.pow(10,d);return Math.round(v*m)/m;}
+
+// ── DATA ──
+var FUELS={
+  methanol:    {name:'Methanol',    formula:'CH\u2083OH',     Mr:32.04,  dHc:-726,   density:0.792, cat:'alcohol', color:'#0D9488'},
+  ethanol:     {name:'Ethanol',     formula:'C\u2082H\u2085OH', Mr:46.07, dHc:-1367,  density:0.789, cat:'alcohol', color:'#0D9488'},
+  propanol:    {name:'Propan-1-ol', formula:'C\u2083H\u2087OH', Mr:60.10, dHc:-2021,  density:0.803, cat:'alcohol', color:'#0D9488'},
+  butanol:     {name:'Butan-1-ol',  formula:'C\u2084H\u2089OH', Mr:74.12, dHc:-2676,  density:0.810, cat:'alcohol', color:'#0D9488'},
+  methane:     {name:'Methane',     formula:'CH\u2084',        Mr:16.04,  dHc:-890,   density:0.000656,cat:'alkane',color:'#2563EB'},
+  propane:     {name:'Propane',     formula:'C\u2083H\u2088',  Mr:44.10,  dHc:-2220,  density:0.493, cat:'alkane', color:'#2563EB'},
+  octane:      {name:'Octane',      formula:'C\u2088H\u2081\u2088', Mr:114.23,dHc:-5471,density:0.703,cat:'alkane',color:'#2563EB'},
+  hydrogen:    {name:'Hydrogen',    formula:'H\u2082',         Mr:2.016,  dHc:-286,   density:0.0000824,cat:'other',color:'#D97706'},
+  biodiesel:   {name:'Biodiesel',   formula:'C\u2081\u2089H\u2083\u2086O\u2082',Mr:296.5,dHc:-11900,density:0.880,cat:'biofuel',color:'#059669'},
+  bioethanol:  {name:'Bioethanol',  formula:'C\u2082H\u2085OH', Mr:46.07, dHc:-1367,  density:0.789, cat:'biofuel', color:'#059669'}
+};
+var FUEL_ORDER=['methanol','ethanol','propanol','butanol','methane','propane','octane','hydrogen','biodiesel','bioethanol'];
+var CAT_LABELS={alkane:'Alkanes',alcohol:'Alcohols',other:'Other',biofuel:'Biofuels'};
+var CAT_COLORS={alkane:'#2563EB',alcohol:'#0D9488',other:'#D97706',biofuel:'#059669'};
+
+// Combustion data for incomplete combustion tab
+var COMBUSTION={
+  methanol:{full:'2CH\u2083OH + 3O\u2082 \u2192 2CO\u2082 + 4H\u2082O',partial:'2CH\u2083OH + 2O\u2082 \u2192 2CO + 4H\u2082O',soot:'2CH\u2083OH + O\u2082 \u2192 2C + 4H\u2082O',cAtoms:1,hAtoms:4,fullO2:1.5},
+  ethanol:{full:'C\u2082H\u2085OH + 3O\u2082 \u2192 2CO\u2082 + 3H\u2082O',partial:'C\u2082H\u2085OH + 2O\u2082 \u2192 2CO + 3H\u2082O',soot:'C\u2082H\u2085OH + O\u2082 \u2192 2C + 3H\u2082O',cAtoms:2,hAtoms:6,fullO2:3},
+  propanol:{full:'2C\u2083H\u2087OH + 9O\u2082 \u2192 6CO\u2082 + 8H\u2082O',partial:'C\u2083H\u2087OH + 3O\u2082 \u2192 3CO + 4H\u2082O',soot:'C\u2083H\u2087OH + 2O\u2082 \u2192 3C + 4H\u2082O',cAtoms:3,hAtoms:8,fullO2:4.5},
+  butanol:{full:'C\u2084H\u2089OH + 6O\u2082 \u2192 4CO\u2082 + 5H\u2082O',partial:'C\u2084H\u2089OH + 4O\u2082 \u2192 4CO + 5H\u2082O',soot:'2C\u2084H\u2089OH + 5O\u2082 \u2192 8C + 10H\u2082O',cAtoms:4,hAtoms:10,fullO2:6},
+  methane:{full:'CH\u2084 + 2O\u2082 \u2192 CO\u2082 + 2H\u2082O',partial:'2CH\u2084 + 3O\u2082 \u2192 2CO + 4H\u2082O',soot:'CH\u2084 + O\u2082 \u2192 C + 2H\u2082O',cAtoms:1,hAtoms:4,fullO2:2},
+  propane:{full:'C\u2083H\u2088 + 5O\u2082 \u2192 3CO\u2082 + 4H\u2082O',partial:'C\u2083H\u2088 + 3.5O\u2082 \u2192 3CO + 4H\u2082O',soot:'C\u2083H\u2088 + 2O\u2082 \u2192 3C + 4H\u2082O',cAtoms:3,hAtoms:8,fullO2:5},
+  octane:{full:'2C\u2088H\u2081\u2088 + 25O\u2082 \u2192 16CO\u2082 + 18H\u2082O',partial:'C\u2088H\u2081\u2088 + 8.5O\u2082 \u2192 8CO + 9H\u2082O',soot:'C\u2088H\u2081\u2088 + 4.5O\u2082 \u2192 8C + 9H\u2082O',cAtoms:8,hAtoms:18,fullO2:12.5},
+  hydrogen:{full:'2H\u2082 + O\u2082 \u2192 2H\u2082O',partial:'2H\u2082 + O\u2082 \u2192 2H\u2082O',soot:'2H\u2082 + O\u2082 \u2192 2H\u2082O',cAtoms:0,hAtoms:2,fullO2:0.5},
+  biodiesel:{full:'C\u2081\u2089H\u2083\u2086O\u2082 + 27O\u2082 \u2192 19CO\u2082 + 18H\u2082O',partial:'C\u2081\u2089H\u2083\u2086O\u2082 + 18O\u2082 \u2192 19CO + 18H\u2082O',soot:'C\u2081\u2089H\u2083\u2086O\u2082 + 9O\u2082 \u2192 19C + 18H\u2082O',cAtoms:19,hAtoms:36,fullO2:27},
+  bioethanol:{full:'C\u2082H\u2085OH + 3O\u2082 \u2192 2CO\u2082 + 3H\u2082O',partial:'C\u2082H\u2085OH + 2O\u2082 \u2192 2CO + 3H\u2082O',soot:'C\u2082H\u2085OH + O\u2082 \u2192 2C + 3H\u2082O',cAtoms:2,hAtoms:6,fullO2:3}
+};
+
+// ── STATE ──
+var _activeTab='calorimetry',_selectedFuel='ethanol',_compUnit='kJg';
+var _burning=false,_burnT=0,_burnInterval=null,_waterMass=100;
+var _o2Pct=100;
+
+// ── PALETTE ──
+var paletteSearch=document.getElementById('paletteSearch'),paletteList=document.getElementById('paletteList');
+var presetSelect=document.getElementById('presetSelect');
+function buildPalette(){
+  while(paletteList.firstChild)paletteList.removeChild(paletteList.firstChild);
+  var filter=paletteSearch.value.toLowerCase();
+  var cats=['alkane','alcohol','other','biofuel'];
+  for(var ci=0;ci<cats.length;ci++){
+    var cat=cats[ci],first=true;
+    for(var i=0;i<FUEL_ORDER.length;i++){
+      var key=FUEL_ORDER[i],f=FUELS[key];
+      if(f.cat!==cat)continue;
+      if(filter&&f.name.toLowerCase().indexOf(filter)===-1&&f.formula.toLowerCase().indexOf(filter)===-1)continue;
+      if(first){paletteList.appendChild(el('div','palette-category',CAT_LABELS[cat]));first=false;}
+      var btn=el('button','palette-item'+(key===_selectedFuel?' active':''),f.name+' ('+f.formula+')');
+      btn.setAttribute('data-fuel',key);
+      btn.addEventListener('click',function(){_selectedFuel=this.getAttribute('data-fuel');buildPalette();resetBurn();refreshTab();});
+      paletteList.appendChild(btn);
+    }
+  }
+  buildPresets();
+}
+paletteSearch.addEventListener('input',buildPalette);
+
+function buildPresets(){
+  presetSelect.textContent='';
+  var def=document.createElement('option');def.value='';def.textContent='Teacher Presets...';presetSelect.appendChild(def);
+  var presets=[];
+  if(_activeTab==='calorimetry') presets=[{name:'Ethanol Calorimetry',tab:'calorimetry',fuel:'ethanol'},{name:'Methane Burn',tab:'calorimetry',fuel:'methane'}];
+  else if(_activeTab==='comparison') presets=[{name:'Alkane Series',tab:'comparison',fuel:'methane'},{name:'Alcohols vs Alkanes',tab:'comparison',fuel:'ethanol'}];
+  else if(_activeTab==='incomplete') presets=[{name:'Incomplete Combustion',tab:'incomplete',fuel:'methane'}];
+  else if(_activeTab==='density') presets=[{name:'Energy Density Comparison',tab:'density',fuel:'octane'}];
+  for(var i=0;i<presets.length;i++){var o=document.createElement('option');o.value=JSON.stringify(presets[i]);o.textContent=presets[i].name;presetSelect.appendChild(o);}
+}
+presetSelect.addEventListener('change',function(){
+  var val=this.value;if(!val)return;
+  try{
+    var p=JSON.parse(val);
+    if(p.fuel){
+      var items=paletteList.querySelectorAll('.palette-item');
+      for(var i=0;i<items.length;i++){
+        if(items[i].getAttribute('data-fuel')===p.fuel){items[i].click();break;}
+      }
+    }
+  }catch(e){}
+  this.value='';
+});
+
+// ── TABS ──
+var tabBtns=document.querySelectorAll('.tab-btn');
+function switchTab(id){
+  if(id==='density'&&!document.body.classList.contains('hl-active'))return;
+  stopAll();_activeTab=id;
+  for(var i=0;i<tabBtns.length;i++)tabBtns[i].classList.toggle('active',tabBtns[i].getAttribute('data-tab')===id);
+  document.querySelectorAll('.tab-content').forEach(function(tc){tc.classList.toggle('active',tc.id==='tab-'+id);});
+  refreshTab();
+}
+for(var i=0;i<tabBtns.length;i++)tabBtns[i].addEventListener('click',function(){switchTab(this.getAttribute('data-tab'));});
+function stopAll(){if(_burnInterval){clearInterval(_burnInterval);_burnInterval=null;}_burning=false;}
+function refreshTab(){setTimeout(function(){
+  if(_activeTab==='calorimetry')renderCalorimetry();
+  else if(_activeTab==='comparison')renderComparison();
+  else if(_activeTab==='incomplete')renderIncomplete();
+  else if(_activeTab==='density')renderDensity();
+},20);}
+
+// ══════════════════════════════════
+// TAB 1 — CALORIMETRY
+// ══════════════════════════════════
+function resetBurn(){_burning=false;_burnT=0;if(_burnInterval){clearInterval(_burnInterval);_burnInterval=null;}}
+
+document.getElementById('burnBtn').addEventListener('click',function(){
+  if(_burning)return;
+  _burning=true;_burnT=0;
+  if(_burnInterval)clearInterval(_burnInterval);
+  _burnInterval=setInterval(function(){
+    _burnT+=0.008;
+    if(_burnT>=1){_burnT=1;clearInterval(_burnInterval);_burnInterval=null;}
+    renderCalorimetry();
+  },30);
+});
+document.getElementById('caloResetBtn').addEventListener('click',function(){resetBurn();renderCalorimetry();});
+document.getElementById('waterMassSlider').addEventListener('input',function(){
+  _waterMass=parseInt(this.value);
+  document.getElementById('waterMassVal').textContent=_waterMass+' g';
+  if(!_burning)renderCalorimetry();
+});
+
+function renderCalorimetry(){
+  var canvas=document.getElementById('caloCanvas');
+  if(!canvas||!canvas.offsetWidth)return;
+  var ctx=setupCanvas(canvas);
+  var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight||360);
+  var fuel=FUELS[_selectedFuel];
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+  var centerX=W/2;
+  // Spirit burner
+  var burnerX=centerX,burnerY=H-50,burnerW=80,burnerH=50;
+  ctx.beginPath();ctx.roundRect(burnerX-burnerW/2,burnerY-burnerH,burnerW,burnerH,6);
+  ctx.fillStyle='#78716C';ctx.fill();ctx.strokeStyle='#57534E';ctx.lineWidth=2;ctx.stroke();
+  // Wick
+  ctx.strokeStyle='#92400E';ctx.lineWidth=3;
+  ctx.beginPath();ctx.moveTo(burnerX,burnerY-burnerH);ctx.lineTo(burnerX,burnerY-burnerH-15);ctx.stroke();
+  // Label
+  ctx.font='500 10px "Fira Code"';ctx.fillStyle='#FFF';ctx.textAlign='center';ctx.fillText(fuel.formula,burnerX,burnerY-burnerH/2+4);
+
+  // Flame
+  if(_burning||_burnT>0){
+    var flameH=30+Math.sin(Date.now()/100)*5;
+    var fy=burnerY-burnerH-15;
+    var grd=ctx.createRadialGradient(burnerX,fy-flameH/2,3,burnerX,fy-flameH/2,flameH/2);
+    grd.addColorStop(0,'rgba(251,191,36,0.9)');grd.addColorStop(0.5,'rgba(249,115,22,0.7)');grd.addColorStop(1,'rgba(239,68,68,0)');
+    ctx.fillStyle=grd;ctx.beginPath();ctx.ellipse(burnerX,fy-flameH/2,12,flameH/2,0,0,Math.PI*2);ctx.fill();
+  }
+
+  // Water container (above burner)
+  var contX=centerX,contY=burnerY-burnerH-80,contW=100,contH=60;
+  ctx.beginPath();ctx.roundRect(contX-contW/2,contY,contW,contH,4);
+  ctx.fillStyle='rgba(96,165,250,0.2)';ctx.fill();ctx.strokeStyle='#3B82F6';ctx.lineWidth=2;ctx.stroke();
+  // Water level
+  var waterH=contH*0.7;
+  ctx.fillStyle='rgba(96,165,250,0.4)';
+  ctx.fillRect(contX-contW/2+2,contY+contH-waterH,contW-4,waterH-2);
+  ctx.font='500 10px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';
+  ctx.fillText(_waterMass+' g H\u2082O',contX,contY+contH/2+3);
+
+  // Thermometer
+  var thX=contX+contW/2+25,thTop=contY-10,thBot=contY+contH+10;
+  ctx.strokeStyle='#94A3B8';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(thX,thTop);ctx.lineTo(thX,thBot);ctx.stroke();
+  // Bulb
+  ctx.beginPath();ctx.arc(thX,thBot,6,0,Math.PI*2);ctx.fillStyle='#EF4444';ctx.fill();
+  // Mercury level (rises with _burnT)
+  var initT=25,finalDeltaT=getFinalDeltaT(fuel);
+  var currentT=initT+finalDeltaT*_burnT;
+  var mercuryH=(thBot-6-thTop)*Math.min((currentT-10)/100,1);
+  ctx.strokeStyle='#EF4444';ctx.lineWidth=4;
+  ctx.beginPath();ctx.moveTo(thX,thBot-6);ctx.lineTo(thX,thBot-6-mercuryH);ctx.stroke();
+  // Temp label
+  ctx.font='600 12px "Fira Code"';ctx.fillStyle='#EF4444';ctx.textAlign='left';
+  ctx.fillText(round(currentT,1)+' \u00B0C',thX+12,thBot-6-mercuryH+4);
+
+  // Mass readout
+  var initMass=2.00;
+  var massLoss=getMassLoss(fuel)*_burnT;
+  var currentMass=round(initMass-massLoss,3);
+  ctx.font='500 11px "Fira Code"';ctx.fillStyle='#1E293B';ctx.textAlign='center';
+  ctx.fillText('Mass: '+currentMass+' g',burnerX,burnerY+15);
+
+  // Readout panel
+  var readout=document.getElementById('caloReadout');
+  while(readout.firstChild)readout.removeChild(readout.firstChild);
+  if(_burnT>0){
+    var chips=[
+      {text:'Initial T: 25.0 \u00B0C',cls:''},
+      {text:'Final T: '+round(currentT,1)+' \u00B0C',cls:'teal'},
+      {text:'\u0394T: '+round(currentT-25,1)+' \u00B0C',cls:'amber'},
+      {text:'\u0394m: '+round(massLoss,3)+' g',cls:'red'}
+    ];
+    var row=el('div','info-row');
+    for(var c=0;c<chips.length;c++)row.appendChild(el('span','info-chip '+(chips[c].cls||''),chips[c].text));
+    readout.appendChild(row);
+  }
+
+  // Calculation
+  var calcDiv=document.getElementById('caloCalc');
+  while(calcDiv.firstChild)calcDiv.removeChild(calcDiv.firstChild);
+  if(_burnT>=1){
+    var deltaT=round(currentT-25,1);
+    var q=round(_waterMass*4.18*deltaT/1000,2);
+    var moles=round(massLoss/fuel.Mr,4);
+    var dHexp=round(-q/moles,0);
+    var pctErr=round(Math.abs((dHexp-fuel.dHc)/fuel.dHc)*100,1);
+    var steps=[
+      'q = mc\u0394T = '+_waterMass+' \u00D7 4.18 \u00D7 '+deltaT+' = '+round(q*1000,0)+' J = '+q+' kJ',
+      'n = m/Mr = '+round(massLoss,3)+' / '+fuel.Mr+' = '+moles+' mol',
+      '\u0394H = -q/n = -'+q+' / '+moles+' = '+dHexp+' kJ/mol',
+      'Data booklet: '+fuel.dHc+' kJ/mol | % error: '+pctErr+'%'
+    ];
+    for(var s=0;s<steps.length;s++)calcDiv.appendChild(el('div','calc-step',steps[s]));
+  }
+
+  // Teacher
+  var td=document.getElementById('caloTeacher');
+  td.textContent='';
+  td.appendChild(el('strong','','Teaching Notes: '));
+  td.appendChild(document.createTextNode('Experimental values are always less exothermic than data booklet values. Systematic errors include: heat loss to surroundings (largest source), incomplete combustion, heat absorbed by container, evaporation of water. The % error quantifies the inaccuracy. Students should discuss these in their evaluations.'));
+}
+
+function getFinalDeltaT(fuel){
+  var massLoss=getMassLoss(fuel);
+  var moles=massLoss/fuel.Mr;
+  var q=moles*Math.abs(fuel.dHc)*0.45;// ~45% efficiency to simulate real experiment
+  return q/(_waterMass*4.18)*1000;
+}
+function getMassLoss(fuel){
+  return fuel.Mr<50?0.50:fuel.Mr<80?0.40:0.30;// Smaller loss for heavier fuels
+}
+
+// ══════════════════════════════════
+// TAB 2 — FUEL COMPARISON
+// ══════════════════════════════════
+var unitBtns=document.querySelectorAll('[data-unit]');
+for(var u=0;u<unitBtns.length;u++){
+  unitBtns[u].addEventListener('click',function(){
+    _compUnit=this.getAttribute('data-unit');
+    for(var j=0;j<unitBtns.length;j++)unitBtns[j].classList.toggle('active',unitBtns[j]===this);
+    renderComparison();
+  });
+}
+
+function renderComparison(){
+  var canvas=document.getElementById('compCanvas');
+  if(!canvas||!canvas.offsetWidth)return;
+  var ctx=setupCanvas(canvas);
+  var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight||360);
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+  var fuels=FUEL_ORDER.slice();
+  var values=[];
+  for(var i=0;i<fuels.length;i++){
+    var f=FUELS[fuels[i]];
+    var v=_compUnit==='kJg'?Math.abs(f.dHc)/f.Mr:Math.abs(f.dHc);
+    values.push(v);
+  }
+  var maxVal=Math.max.apply(null,values);
+
+  var barW=Math.min(40,(W-120)/fuels.length-8);
+  var chartL=60,chartR=W-20,chartT=30,chartB=H-60;
+  var chartW=chartR-chartL,chartH=chartB-chartT;
+  var gap=(chartW-fuels.length*barW)/(fuels.length+1);
+
+  // Y axis
+  ctx.strokeStyle='#94A3B8';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(chartL,chartT);ctx.lineTo(chartL,chartB);ctx.lineTo(chartR,chartB);ctx.stroke();
+
+  // Y labels
+  var nTicks=5;
+  ctx.font='500 9px "Fira Code"';ctx.fillStyle='#64748B';ctx.textAlign='right';
+  for(var t=0;t<=nTicks;t++){
+    var yVal=maxVal*t/nTicks;
+    var yPos=chartB-chartH*t/nTicks;
+    ctx.fillText(round(yVal,0),chartL-6,yPos+3);
+    if(t>0){ctx.save();ctx.strokeStyle='#E2E8F0';ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(chartL,yPos);ctx.lineTo(chartR,yPos);ctx.stroke();ctx.setLineDash([]);ctx.restore();}
+  }
+
+  // Y axis label
+  ctx.save();ctx.font='600 11px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';
+  ctx.translate(15,chartT+chartH/2);ctx.rotate(-Math.PI/2);
+  ctx.fillText(_compUnit==='kJg'?'Specific Energy (kJ/g)':'Enthalpy of Combustion (kJ/mol)',0,0);
+  ctx.restore();
+
+  // Bars
+  for(var i=0;i<fuels.length;i++){
+    var f=FUELS[fuels[i]];
+    var x=chartL+gap+(barW+gap)*i;
+    var barH=chartH*(values[i]/maxVal);
+    var y=chartB-barH;
+
+    ctx.beginPath();ctx.roundRect(x,y,barW,barH,[4,4,0,0]);
+    ctx.fillStyle=CAT_COLORS[f.cat];ctx.globalAlpha=0.7;ctx.fill();
+    ctx.globalAlpha=1;ctx.strokeStyle=CAT_COLORS[f.cat];ctx.lineWidth=1.5;ctx.stroke();
+
+    // Value on top
+    ctx.font='600 8px "Fira Code"';ctx.fillStyle=CAT_COLORS[f.cat];ctx.textAlign='center';
+    ctx.fillText(round(values[i],0),x+barW/2,y-4);
+
+    // Label at bottom
+    ctx.save();ctx.font='500 9px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='right';
+    ctx.translate(x+barW/2,chartB+6);ctx.rotate(-Math.PI/4);
+    ctx.fillText(f.name,0,0);ctx.restore();
+
+    // Highlight selected
+    if(fuels[i]===_selectedFuel){
+      ctx.strokeStyle='#1E293B';ctx.lineWidth=2;ctx.setLineDash([3,2]);
+      ctx.beginPath();ctx.roundRect(x-2,y-2,barW+4,barH+4,[4,4,0,0]);ctx.stroke();
+      ctx.setLineDash([]);
+    }
+  }
+
+  // Legend
+  var lx=chartR-180,ly=chartT+5;
+  var cats=[{label:'Alkanes',color:'#2563EB'},{label:'Alcohols',color:'#0D9488'},{label:'H\u2082',color:'#D97706'},{label:'Biofuels',color:'#059669'}];
+  for(var c=0;c<cats.length;c++){
+    ctx.beginPath();ctx.roundRect(lx,ly+c*16,10,10,2);ctx.fillStyle=cats[c].color;ctx.globalAlpha=0.7;ctx.fill();ctx.globalAlpha=1;
+    ctx.font='500 9px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='left';ctx.fillText(cats[c].label,lx+14,ly+c*16+9);
+  }
+
+  // Info
+  var info=document.getElementById('compInfo');
+  var f=FUELS[_selectedFuel];
+  var se=round(Math.abs(f.dHc)/f.Mr,1);
+  info.textContent=f.name+' ('+f.formula+'): \u0394Hc = '+f.dHc+' kJ/mol, specific energy = '+se+' kJ/g. '+
+    (_compUnit==='kJg'?'Hydrogen has the highest specific energy per gram but is a gas at room temperature, making storage difficult.':'Longer-chain alkanes have higher enthalpy of combustion per mole due to more C-H and C-C bonds being broken.');
+
+  var td=document.getElementById('compTeacher');
+  td.textContent='';td.appendChild(el('strong','','Trends: '));
+  td.appendChild(document.createTextNode('Within a homologous series, \u0394Hc increases by ~650 kJ/mol per additional CH\u2082 group. Alcohols release less energy per gram than alkanes due to the already-oxidized OH group. Hydrogen produces only water \u2014 no CO\u2082.'));
+}
+
+// ══════════════════════════════════
+// TAB 3 — INCOMPLETE COMBUSTION
+// ══════════════════════════════════
+var o2Slider=document.getElementById('o2Slider');
+o2Slider.addEventListener('input',function(){_o2Pct=parseInt(this.value);document.getElementById('o2Val').textContent=_o2Pct+'%';renderIncomplete();});
+
+function renderIncomplete(){
+  var canvas=document.getElementById('incCanvas');
+  if(!canvas||!canvas.offsetWidth)return;
+  var ctx=setupCanvas(canvas);
+  var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight||320);
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+  var fuel=FUELS[_selectedFuel];
+  var comb=COMBUSTION[_selectedFuel];
+  var o2Frac=_o2Pct/100;
+
+  // Product fractions based on O2 supply
+  var co2Frac=Math.max(0,Math.min(1,(o2Frac-0.4)/0.6));
+  var coFrac=o2Frac<0.4?0:(o2Frac<0.7?Math.min(1,(o2Frac-0.4)/0.3)*(1-co2Frac):0);
+  if(o2Frac<0.7)coFrac=Math.min(1,o2Frac/0.7)*(1-co2Frac);
+  var cFrac=1-co2Frac-coFrac;
+  if(cFrac<0)cFrac=0;
+  var h2oFrac=1;// Always produced
+
+  // Title
+  ctx.font='600 14px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';
+  ctx.fillText('Products of Combustion at '+_o2Pct+'% O\u2082 Supply',W/2,25);
+
+  // Product boxes
+  var products=[
+    {name:'CO\u2082',frac:co2Frac,color:'#059669',bgColor:'rgba(5,150,105,0.15)'},
+    {name:'H\u2082O',frac:h2oFrac,color:'#2563EB',bgColor:'rgba(37,99,235,0.15)'},
+    {name:'CO',frac:coFrac,color:'#D97706',bgColor:'rgba(217,119,6,0.15)'},
+    {name:'C (soot)',frac:cFrac,color:'#1E293B',bgColor:'rgba(30,41,59,0.15)'}
+  ];
+
+  var boxW=100,boxH=140,startX=(W-products.length*(boxW+20)+20)/2,startY=50;
+
+  // No carbon products for hydrogen
+  var showProducts=comb.cAtoms===0?products.slice(0,2):products;
+
+  for(var p=0;p<showProducts.length;p++){
+    var prod=showProducts[p];
+    var bx=startX+p*(boxW+20),by=startY;
+
+    // Box
+    ctx.beginPath();ctx.roundRect(bx,by,boxW,boxH,8);
+    ctx.fillStyle=prod.bgColor;ctx.fill();
+    ctx.strokeStyle=prod.color;ctx.lineWidth=2;ctx.stroke();
+
+    // Fill level
+    var fillH=boxH*prod.frac*0.8;
+    if(fillH>2){
+      ctx.beginPath();ctx.roundRect(bx+3,by+boxH-fillH-3,boxW-6,fillH,[0,0,6,6]);
+      ctx.fillStyle=prod.color;ctx.globalAlpha=0.3;ctx.fill();ctx.globalAlpha=1;
+    }
+
+    // Particles inside
+    var nP=Math.round(prod.frac*12);
+    for(var i=0;i<nP;i++){
+      var px=bx+15+Math.random()*(boxW-30);
+      var py=by+boxH-fillH+Math.random()*fillH*0.8;
+      if(py<by+5)py=by+15;
+      var pSize=prod.name==='C (soot)'?4:6;
+      ctx.beginPath();ctx.arc(px,py,pSize,0,Math.PI*2);
+      ctx.fillStyle=prod.color;ctx.globalAlpha=0.6;ctx.fill();ctx.globalAlpha=1;
+    }
+
+    // Label
+    ctx.font='bold 13px "Fira Code"';ctx.fillStyle=prod.color;ctx.textAlign='center';
+    ctx.fillText(prod.name,bx+boxW/2,by+boxH+18);
+    ctx.font='500 10px "Fira Code"';
+    ctx.fillText(round(prod.frac*100,0)+'%',bx+boxW/2,by+boxH+32);
+  }
+
+  // Hazard badges
+  if(coFrac>0.1&&comb.cAtoms>0){
+    var hazY=startY+boxH+50;
+    ctx.beginPath();ctx.roundRect(W/2-120,hazY,240,28,6);
+    ctx.fillStyle='#FEF2F2';ctx.fill();ctx.strokeStyle='#EF4444';ctx.lineWidth=1;ctx.stroke();
+    ctx.font='600 11px Inter';ctx.fillStyle='#DC2626';ctx.textAlign='center';
+    ctx.fillText('\u26A0 CO is toxic (odourless, colourless gas)',W/2,hazY+17);
+  }
+  if(cFrac>0.1&&comb.cAtoms>0){
+    var hazY2=(coFrac>0.1?startY+boxH+85:startY+boxH+50);
+    ctx.beginPath();ctx.roundRect(W/2-120,hazY2,240,28,6);
+    ctx.fillStyle='var(--amber-bg)';ctx.fill();ctx.strokeStyle='#D97706';ctx.lineWidth=1;ctx.stroke();
+    ctx.font='600 11px Inter';ctx.fillStyle='#D97706';ctx.textAlign='center';
+    ctx.fillText('\u26A0 Soot (particulate matter) \u2014 health risk',W/2,hazY2+17);
+  }
+
+  // Equation
+  var eqDiv=document.getElementById('incEquation');
+  var eq=_o2Pct>=90?comb.full:(_o2Pct>=55?comb.partial:comb.soot);
+  eqDiv.textContent=(_o2Pct>=90?'Complete: ':(_o2Pct>=55?'Partial (CO): ':'Severe (soot): '))+eq;
+
+  // Info chips
+  var infoDiv=document.getElementById('incInfo');
+  while(infoDiv.firstChild)infoDiv.removeChild(infoDiv.firstChild);
+  if(_o2Pct>=90)infoDiv.appendChild(el('span','info-chip green','Complete combustion'));
+  else if(_o2Pct>=55)infoDiv.appendChild(el('span','info-chip amber','Incomplete \u2192 CO produced'));
+  else infoDiv.appendChild(el('span','info-chip red','Severely incomplete \u2192 C soot'));
+  if(comb.cAtoms===0)infoDiv.appendChild(el('span','info-chip green','H\u2082 produces only H\u2082O \u2014 no carbon products'));
+
+  var td=document.getElementById('incTeacher');
+  td.textContent='';td.appendChild(el('strong','','Teaching Notes: '));
+  td.appendChild(document.createTextNode('Incomplete combustion occurs with insufficient O\u2082. Products shift from CO\u2082 \u2192 CO \u2192 C as O\u2082 decreases. CO is especially dangerous because it binds to haemoglobin (carboxyhaemoglobin), reducing O\u2082 transport. Soot contributes to particulate pollution and respiratory disease. Hydrogen is the only fuel that produces no carbon emissions.'));
+}
+
+// ══════════════════════════════════
+// TAB 4 — ENERGY DENSITY (HL)
+// ══════════════════════════════════
+function renderDensity(){
+  var canvas=document.getElementById('densCanvas');
+  if(!canvas||!canvas.offsetWidth)return;
+  var ctx=setupCanvas(canvas);
+  var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight||380);
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+  var chartL=70,chartR=W-30,chartT=40,chartB=H-50;
+  var chartW=chartR-chartL,chartH=chartB-chartT;
+
+  // Calculate values
+  var data=[];
+  for(var i=0;i<FUEL_ORDER.length;i++){
+    var key=FUEL_ORDER[i],f=FUELS[key];
+    var se=Math.abs(f.dHc)/f.Mr;// kJ/g
+    var ed=se*f.density;// kJ/cm3
+    if(key==='hydrogen'){ed=se*0.071;}// liquid H2 density
+    if(key==='methane'){ed=se*0.423;}// liquid methane for practical comparison
+    data.push({key:key,name:f.name,se:se,ed:ed,cat:f.cat,color:CAT_COLORS[f.cat]});
+  }
+
+  var maxSE=Math.max.apply(null,data.map(function(d){return d.se;}))*1.1;
+  var maxED=Math.max.apply(null,data.map(function(d){return d.ed;}))*1.1;
+
+  // Title
+  ctx.font='600 14px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';
+  ctx.fillText('Specific Energy vs Energy Density',W/2,20);
+
+  // Axes
+  ctx.strokeStyle='#94A3B8';ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(chartL,chartT);ctx.lineTo(chartL,chartB);ctx.lineTo(chartR,chartB);ctx.stroke();
+
+  // X axis label
+  ctx.font='600 11px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';
+  ctx.fillText('Energy Density (kJ/cm\u00B3)',chartL+chartW/2,H-8);
+
+  // Y axis label
+  ctx.save();ctx.translate(15,chartT+chartH/2);ctx.rotate(-Math.PI/2);
+  ctx.fillText('Specific Energy (kJ/g)',0,0);ctx.restore();
+
+  // Grid and tick marks
+  ctx.font='500 9px "Fira Code"';ctx.fillStyle='#64748B';
+  for(var t=0;t<=5;t++){
+    var yVal=maxSE*t/5,yPos=chartB-chartH*t/5;
+    ctx.textAlign='right';ctx.fillText(round(yVal,0),chartL-6,yPos+3);
+    if(t>0){ctx.save();ctx.strokeStyle='#E2E8F0';ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(chartL,yPos);ctx.lineTo(chartR,yPos);ctx.stroke();ctx.setLineDash([]);ctx.restore();}
+    var xVal=maxED*t/5,xPos=chartL+chartW*t/5;
+    ctx.textAlign='center';ctx.fillText(round(xVal,0),xPos,chartB+14);
+    if(t>0){ctx.save();ctx.strokeStyle='#E2E8F0';ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(xPos,chartT);ctx.lineTo(xPos,chartB);ctx.stroke();ctx.setLineDash([]);ctx.restore();}
+  }
+
+  // Plot points
+  for(var i=0;i<data.length;i++){
+    var d=data[i];
+    var px=chartL+chartW*(d.ed/maxED);
+    var py=chartB-chartH*(d.se/maxSE);
+    // Circle
+    ctx.beginPath();ctx.arc(px,py,7,0,Math.PI*2);
+    ctx.fillStyle=d.color;ctx.globalAlpha=0.7;ctx.fill();ctx.globalAlpha=1;
+    ctx.strokeStyle=d.color;ctx.lineWidth=2;ctx.stroke();
+    // Highlight selected
+    if(d.key===_selectedFuel){
+      ctx.beginPath();ctx.arc(px,py,11,0,Math.PI*2);
+      ctx.strokeStyle='#1E293B';ctx.lineWidth=2;ctx.setLineDash([3,2]);ctx.stroke();ctx.setLineDash([]);
+    }
+    // Label
+    ctx.font='500 9px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='left';
+    ctx.fillText(d.name,px+10,py+3);
+  }
+
+  // Info
+  var info=document.getElementById('densInfo');
+  info.textContent='Hydrogen has the highest specific energy (energy per gram) but the lowest energy density (energy per volume) due to its extremely low density. This is why hydrogen storage is a major engineering challenge for fuel cell vehicles. Fossil fuels like octane offer a good balance of both metrics.';
+
+  var td=document.getElementById('densTeacher');
+  td.textContent='';td.appendChild(el('strong','','HL Discussion Points: '));
+  td.appendChild(document.createTextNode('(1) Specific energy matters for weight-sensitive applications (aircraft, rockets). (2) Energy density matters for volume-limited storage (vehicles, portable systems). (3) Biofuels are considered carbon-neutral because the CO\u2082 released was recently absorbed by plants during photosynthesis, unlike fossil fuels which release ancient carbon. (4) Hydrogen is zero-carbon at point of use but production method matters (grey vs green hydrogen).'));
+}
+
+// ── EXPORT ──
+function exportCSV(){
+  var rows=[['Fuel','Formula','Mr','dHc (kJ/mol)','Specific Energy (kJ/g)','Density (g/cm3)']];
+  for(var i=0;i<FUEL_ORDER.length;i++){
+    var k=FUEL_ORDER[i],f=FUELS[k];
+    rows.push([f.name,f.formula,f.Mr,f.dHc,round(Math.abs(f.dHc)/f.Mr,1),f.density]);
+  }
+  var csv=rows.map(function(r){return r.join(',');}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'});
+  var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='EnergyFromFuels_export.csv';a.click();
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
+  switch(e.key.toLowerCase()){
+    case'h':var hl=document.getElementById('hlToggle');hl.checked=!hl.checked;document.body.classList.toggle('hl-active',hl.checked);if(!hl.checked&&_activeTab==='density')switchTab('calorimetry');break;
+    case't':var tc=document.getElementById('teacherToggle');tc.checked=!tc.checked;document.body.classList.toggle('teacher-active',tc.checked);break;
+    case'1':switchTab('calorimetry');break;case'2':switchTab('comparison');break;case'3':switchTab('incomplete');break;case'4':switchTab('density');break;
+    case'r':resetBurn();_o2Pct=100;document.getElementById('o2Slider').value=100;document.getElementById('o2Val').textContent='100%';refreshTab();break;
+    case'/':e.preventDefault();paletteSearch.focus();break;
+    case'e':exportCSV();break;
+    case'arrowup':case'arrowdown':
+      e.preventDefault();var items=paletteList.querySelectorAll('.palette-item');if(!items.length)return;
+      var ai=-1;for(var i=0;i<items.length;i++)if(items[i].classList.contains('active')){ai=i;break;}
+      ai=e.key==='ArrowUp'?(ai<=0?items.length-1:ai-1):(ai>=items.length-1?0:ai+1);
+      items[ai].click();items[ai].scrollIntoView({block:'nearest'});break;
+  }
+});
+
+document.getElementById('hlToggle').addEventListener('change',function(){document.body.classList.toggle('hl-active',this.checked);if(!this.checked&&_activeTab==='density')switchTab('calorimetry');});
+document.getElementById('teacherToggle').addEventListener('change',function(){document.body.classList.toggle('teacher-active',this.checked);});
+window.addEventListener('resize',refreshTab);
+
+// ── INIT ──
+buildPalette();
+renderCalorimetry();
+})();
+</script>
+<footer>SimEngine &mdash; Energy from Fuels &bull; H=HL T=Teacher</footer>
+</body>
+</html>

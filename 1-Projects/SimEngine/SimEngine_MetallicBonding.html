@@ -1,0 +1,1221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Metallic Bonding — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Caveat:wght@400;600&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --red-bg: #FEF2F2;
+    --green-bg: #F0FDF4;
+    --amber-bg: #FFFBEB;
+    --sim-canvas-bg: #FAFBFC;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+    --orange: #F59E0B;
+}
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: .75rem 1.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
+    font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
+  }
+  .header-badge.hl { background: var(--hl-badge-bg); display: none; }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s; --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--toggle-on); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: rgba(255,255,255,0.8); }
+
+  .tab-bar {
+    background: white; border-bottom: 2px solid var(--border);
+    display: flex; gap: 0; max-width: 1200px; margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+  .tab-btn {
+    padding: 0.75rem 1.5rem; font-size: 0.85rem; font-weight: 600;
+    color: var(--text-muted); background: none; border: none;
+    border-bottom: 3px solid transparent; cursor: pointer;
+    transition: all 0.2s; font-family: inherit; margin-bottom: -2px;
+  }
+  .tab-btn:hover { color: var(--text); background: var(--teal-bg); }
+  .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .tab-btn .tab-num {
+    display: inline-block; width: 20px; height: 20px; line-height: 20px;
+    text-align: center; border-radius: 4px; font-size: 0.65rem; font-weight: 700;
+    background: var(--border); color: var(--text-muted); margin-right: 0.4rem;
+  }
+  .tab-btn.active .tab-num { background: var(--teal); color: white; }
+  .hl-tab { display: none; }
+  body.hl-active .hl-tab { display: inline-block; }
+
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+  .sim-top-row {
+    display: grid; grid-template-columns: 240px 1fr; gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+
+  .sim-card {
+    background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border); overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy); color: white; padding: 0.6rem 1rem;
+    font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  .palette-panel { max-height: 600px; display: flex; flex-direction: column; position: sticky; top: 1rem; align-self: start; grid-column: 1; grid-row: 1; }
+  .tab-content { grid-column: 2; grid-row: 1; }
+  .palette-panel .sim-card-body { padding: 0.5rem; overflow-y: auto; flex: 1; }
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+  .palette-category {
+    font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); padding: 0.4rem 0.3rem 0.2rem; margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block; width: 100%; text-align: left; padding: 0.3rem 0.5rem; margin: 0.15rem 0; border-radius: 6px;
+    font-size: 0.75rem; font-weight: 500; cursor: pointer; border: 1px solid var(--border);
+    background: white; color: var(--text); transition: all 0.15s;
+  }
+  .palette-item:hover { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); }
+  .palette-item.active { background: var(--teal-bg); border-color: var(--teal); color: var(--teal); font-weight: 600; }
+
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  .sim-canvas { display: block; width: 100%; background: var(--sim-canvas-bg); border-radius: 4px; }
+
+  .check-btn {
+    display: inline-block; padding: 0.5rem 1.2rem; margin-top: 0.75rem;
+    background: var(--teal); color: white; border: none; border-radius: 8px;
+    font-size: 0.85rem; font-weight: 600; cursor: pointer; font-family: inherit;
+    transition: background 0.2s;
+  }
+  .check-btn:hover { background: #0B7C73; }
+  .check-btn:disabled { background: #CBD5E1; cursor: not-allowed; }
+
+  .mode-btn {
+    padding: 0.3rem 0.6rem; font-size: 0.72rem; font-weight: 600; border-radius: 6px;
+    border: 1px solid var(--border); background: white; cursor: pointer;
+    font-family: inherit; transition: all 0.15s;
+  }
+  .mode-btn.active { background: var(--teal); color: white; border-color: var(--teal); }
+  .mode-btn:hover:not(.active) { background: var(--teal-bg); }
+
+  .slider-group { margin: 0.5rem 0; }
+  .slider-label { font-size: 0.72rem; font-weight: 600; margin-bottom: 0.2rem; display: flex; justify-content: space-between; }
+  .slider-value { font-family: 'Fira Code', monospace; color: var(--teal); }
+
+  .hl-panel { display: none; }
+  body.hl-active .hl-panel { display: block; }
+  .hl-card {
+    margin-top: 0.75rem; padding: 0.75rem; border-radius: 8px;
+    border: 1px solid var(--hl-border); background: #F5F3FF;
+  }
+  .hl-card-title {
+    font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    color: var(--purple); margin-bottom: 0.3rem;
+  }
+
+  .teacher-panel { display: none; }
+  body.teacher-active .teacher-panel { display: block; }
+
+  .info-row { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 0.75rem; }
+  .info-chip {
+    padding: 0.35rem 0.7rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600;
+    background: var(--blue-bg); color: var(--blue); border: 1px solid rgba(37,99,235,0.2);
+  }
+  .info-chip.teal { background: var(--teal-bg); color: var(--teal); border-color: rgba(13,148,136,0.2); }
+  .info-chip.amber { background: var(--amber-bg); color: var(--amber); border-color: rgba(217,119,6,0.2); }
+
+  .data-table {
+    width: 100%; border-collapse: collapse; font-size: 0.78rem; margin-top: 0.5rem;
+  }
+  .data-table th {
+    background: var(--navy); color: white; padding: 0.4rem 0.6rem; text-align: left;
+    font-size: 0.72rem; font-weight: 600;
+  }
+  .data-table td { padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--border); }
+  .data-table tr:nth-child(even) td { background: #F8FAFC; }
+  .data-table tr.highlight td { background: var(--teal-bg); font-weight: 600; }
+
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .palette-panel { max-height: 200px; position: static; }
+    .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
+  }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div class="header-left">
+    <h1>Metallic Bonding</h1>
+    <span class="subtitle">IB Chemistry — S2.2 / S2.3 The Metallic Model</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">S2.2</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <span class="sim-toggle-label">SL</span>
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle HL content" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <span class="sim-toggle-label">Student</span>
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle teacher mode" id="teacherToggle"><span class="sim-toggle-slider" style="--toggle-on: var(--amber);"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="seaOfElectrons" role="tab"><span class="tab-num">1</span>Sea of Electrons</button>
+  <button class="tab-btn" data-tab="properties" role="tab"><span class="tab-num">2</span>Properties</button>
+  <button class="tab-btn" data-tab="alloys" role="tab"><span class="tab-num">3</span>Alloys</button>
+  <button class="tab-btn hl-tab" data-tab="bandTheory" role="tab"><span class="tab-num">4</span>Band Theory</button>
+</div>
+
+<div class="sim-container" id="main-content">
+  <div class="sim-top-row">
+
+    <div class="sim-card palette-panel">
+      <div class="sim-card-header">Metals</div>
+      <div class="sim-card-body">
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search metals..." aria-label="Search metals">
+        <div id="paletteList"></div>
+      </div>
+    </div>
+
+    <div class="tab-content active" id="tab-seaOfElectrons" role="tabpanel">
+      <div class="sim-card">
+        <div class="sim-card-header">Metallic Bonding Model</div>
+        <div class="sim-card-body">
+          <canvas id="seaCanvas" class="sim-canvas" height="380" role="img" aria-label="Sea of electrons animation showing delocalized electrons around metal cations"></canvas>
+          <div style="display:flex;gap:0.75rem;margin-top:0.75rem;flex-wrap:wrap;align-items:center;">
+            <label style="font-size:0.78rem;font-weight:600;display:flex;align-items:center;gap:0.4rem;cursor:pointer;">
+              <input type="checkbox" aria-label="Apply electric field" id="fieldToggle"> Apply Electric Field
+            </label>
+            <div class="slider-group" style="flex:1;min-width:160px;margin:0;">
+              <div class="slider-label"><span>Temperature</span><span class="slider-value" id="tempVal">300 K</span></div>
+              <input type="range" aria-label="Temperature slider" id="tempSlider" min="100" max="2000" value="300" style="width:100%;">
+            </div>
+          </div>
+          <div id="seaInfo" class="info-row"></div>
+          <div class="teacher-panel" id="seaTeacher" style="margin-top:0.75rem;padding:0.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:0.78rem;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-properties" role="tabpanel">
+      <div class="sim-card">
+        <div class="sim-card-header">Properties of Metals</div>
+        <div class="sim-card-body">
+          <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+            <button class="mode-btn active" data-prop="malleability">Malleability</button>
+            <button class="mode-btn" data-prop="electrical">Electrical Conductivity</button>
+            <button class="mode-btn" data-prop="thermal">Thermal Conductivity</button>
+            <button class="mode-btn" data-prop="ductility">Ductility</button>
+          </div>
+          <canvas id="propsCanvas" class="sim-canvas" height="340" role="img" aria-label="Metal properties animation"></canvas>
+          <div style="margin-top:0.75rem;">
+            <button class="check-btn" id="propsActionBtn">Apply Force</button>
+            <button class="check-btn" id="propsResetBtn" style="background:var(--text-muted);margin-left:0.5rem;">Reset</button>
+          </div>
+          <div id="propsExplain" style="margin-top:0.75rem;font-size:0.8rem;line-height:1.7;"></div>
+          <div class="teacher-panel" id="propsTeacher" style="margin-top:0.75rem;padding:0.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:0.78rem;"></div>
+        </div>
+      </div>
+      <div class="sim-card" style="margin-top:1rem;">
+        <div class="sim-card-header">Metal Properties Data</div>
+        <div class="sim-card-body">
+          <table class="data-table" id="propsTable">
+            <thead><tr><th>Metal</th><th>MP (\u00B0C)</th><th>Conductivity (MS/m)</th><th>Density (g/cm\u00B3)</th><th>Deloc. e\u207B</th></tr></thead>
+            <tbody id="propsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-alloys" role="tabpanel">
+      <div class="sim-card">
+        <div class="sim-card-header">Alloys — Structure Comparison</div>
+        <div class="sim-card-body">
+          <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap;align-items:center;">
+            <select aria-label="Select alloy type" id="alloySelect" style="padding:0.4rem;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;font-family:inherit;">
+              <option value="bronze">Bronze (Cu + Sn)</option>
+              <option value="steel">Steel (Fe + C)</option>
+              <option value="stainless">Stainless Steel (Fe + Cr + Ni)</option>
+              <option value="brass">Brass (Cu + Zn)</option>
+              <option value="duralumin">Duralumin (Al + Cu)</option>
+            </select>
+            <button class="check-btn" id="alloyForceBtn" style="margin-top:0;">Apply Force</button>
+            <button class="check-btn" id="alloyResetBtn" style="margin-top:0;background:var(--text-muted);">Reset</button>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;">
+            <div>
+              <div style="font-size:0.75rem;font-weight:700;text-align:center;margin-bottom:0.3rem;color:var(--text-muted);">PURE METAL</div>
+              <canvas id="alloyPureCanvas" class="sim-canvas" height="260" role="img" aria-label="Pure metal lattice"></canvas>
+            </div>
+            <div>
+              <div style="font-size:0.75rem;font-weight:700;text-align:center;margin-bottom:0.3rem;color:var(--teal);">ALLOY</div>
+              <canvas id="alloyMixCanvas" class="sim-canvas" height="260" role="img" aria-label="Alloy lattice"></canvas>
+            </div>
+          </div>
+          <div id="alloyExplain" style="margin-top:0.75rem;font-size:0.8rem;line-height:1.7;"></div>
+          <canvas id="hardnessCanvas" class="sim-canvas" height="110" style="margin-top:0.75rem;" role="img" aria-label="Relative hardness comparison"></canvas>
+          <div class="teacher-panel" id="alloyTeacher" style="margin-top:0.75rem;padding:0.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:0.78rem;"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-bandTheory" role="tabpanel">
+      <div class="sim-card">
+        <div class="sim-card-header">Band Theory</div>
+        <div class="sim-card-body">
+          <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;flex-wrap:wrap;">
+            <button class="mode-btn active" data-band="metal">Metal (Conductor)</button>
+            <button class="mode-btn" data-band="insulator">Insulator</button>
+            <button class="mode-btn" data-band="semiconductor">Semiconductor</button>
+          </div>
+          <canvas id="bandCanvas" class="sim-canvas" height="360" role="img" aria-label="Band theory energy level diagram"></canvas>
+          <div id="bandExplain" style="margin-top:0.75rem;font-size:0.8rem;line-height:1.7;"></div>
+          <div class="teacher-panel" id="bandTeacher" style="margin-top:0.75rem;padding:0.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:0.78rem;"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL toggle &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd>\u2013<kbd>4</kbd> Tabs &nbsp;
+  <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>\u2191\u2193</kbd> Navigate &nbsp;
+  <kbd>Space</kbd> Toggle Field &nbsp; <kbd>E</kbd> Export
+</div>
+
+<script>
+if (!CanvasRenderingContext2D.prototype.roundRect) {
+  CanvasRenderingContext2D.prototype.roundRect = function(x, y, w, h, r) {
+    if (typeof r === 'number') r = [r, r, r, r];
+    this.beginPath();
+    this.moveTo(x+(r[0]||0), y);
+    this.lineTo(x+w-(r[1]||0), y);
+    this.quadraticCurveTo(x+w, y, x+w, y+(r[1]||0));
+    this.lineTo(x+w, y+h-(r[2]||0));
+    this.quadraticCurveTo(x+w, y+h, x+w-(r[2]||0), y+h);
+    this.lineTo(x+(r[3]||0), y+h);
+    this.quadraticCurveTo(x, y+h, x, y+h-(r[3]||0));
+    this.lineTo(x, y+(r[0]||0));
+    this.quadraticCurveTo(x, y, x+(r[0]||0), y);
+    this.closePath();
+    return this;
+  };
+}
+
+(function() {
+  'use strict';
+
+  function el(tag, cls, text) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (text !== undefined && text !== null) e.textContent = text;
+    return e;
+  }
+  function setupCanvas(canvas) {
+    var dpr = window.devicePixelRatio || 1;
+    var w = canvas.offsetWidth;
+    if (!canvas.dataset.baseHeight) canvas.dataset.baseHeight = canvas.getAttribute('height') || '300';
+    var h = parseInt(canvas.dataset.baseHeight);
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return ctx;
+  }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  // ── DATA ──
+  var METALS = {
+    Li: { symbol:'Li', name:'Lithium', charge:1, ionSymbol:'Li\u207A', delocElectrons:1, mp:181, conductivity:10.8, density:0.534, color:'#EF4444', cationColor:'#FECACA' },
+    Na: { symbol:'Na', name:'Sodium', charge:1, ionSymbol:'Na\u207A', delocElectrons:1, mp:98, conductivity:21.0, density:0.971, color:'#F97316', cationColor:'#FED7AA' },
+    Mg: { symbol:'Mg', name:'Magnesium', charge:2, ionSymbol:'Mg\u00B2\u207A', delocElectrons:2, mp:650, conductivity:22.6, density:1.738, color:'#22C55E', cationColor:'#BBF7D0' },
+    Al: { symbol:'Al', name:'Aluminium', charge:3, ionSymbol:'Al\u00B3\u207A', delocElectrons:3, mp:660, conductivity:37.7, density:2.70, color:'#64748B', cationColor:'#E2E8F0' },
+    Fe: { symbol:'Fe', name:'Iron', charge:2, ionSymbol:'Fe\u00B2\u207A', delocElectrons:2, mp:1538, conductivity:10.0, density:7.874, color:'#78716C', cationColor:'#D6D3D1' },
+    Cu: { symbol:'Cu', name:'Copper', charge:2, ionSymbol:'Cu\u00B2\u207A', delocElectrons:1, mp:1085, conductivity:59.6, density:8.96, color:'#D97706', cationColor:'#FDE68A' },
+    Ag: { symbol:'Ag', name:'Silver', charge:1, ionSymbol:'Ag\u207A', delocElectrons:1, mp:962, conductivity:63.0, density:10.49, color:'#94A3B8', cationColor:'#F1F5F9' },
+    Au: { symbol:'Au', name:'Gold', charge:3, ionSymbol:'Au\u00B3\u207A', delocElectrons:1, mp:1064, conductivity:45.2, density:19.30, color:'#EAB308', cationColor:'#FEF9C3' }
+  };
+  var METAL_ORDER = ['Li','Na','Mg','Al','Fe','Cu','Ag','Au'];
+
+  var ALLOYS = {
+    bronze:    { name:'Bronze', base:'Cu', baseColor:'#D97706', additions:[{symbol:'Sn',pct:12,radius:1.4,color:'#94A3B8'}], type:'substitutional', hardness:3.0, baseHardness:1.0, uses:'Statues, bells, bearings' },
+    steel:     { name:'Steel', base:'Fe', baseColor:'#78716C', additions:[{symbol:'C',pct:2,radius:0.5,color:'#1E293B'}], type:'interstitial', hardness:4.0, baseHardness:2.0, uses:'Construction, tools, vehicles' },
+    stainless: { name:'Stainless Steel', base:'Fe', baseColor:'#78716C', additions:[{symbol:'Cr',pct:18,radius:1.1,color:'#0D9488'},{symbol:'Ni',pct:8,radius:1.05,color:'#7C3AED'}], type:'substitutional', hardness:3.5, baseHardness:2.0, uses:'Kitchen equipment, medical instruments' },
+    brass:     { name:'Brass', base:'Cu', baseColor:'#D97706', additions:[{symbol:'Zn',pct:33,radius:1.05,color:'#64748B'}], type:'substitutional', hardness:2.5, baseHardness:1.0, uses:'Musical instruments, fittings' },
+    duralumin: { name:'Duralumin', base:'Al', baseColor:'#94A3B8', additions:[{symbol:'Cu',pct:4,radius:1.1,color:'#D97706'}], type:'substitutional', hardness:3.0, baseHardness:0.5, uses:'Aircraft, bicycle frames' }
+  };
+
+  // ── STATE ──
+  var _activeTab = 'seaOfElectrons';
+  var _selectedMetal = 'Na';
+  var _fieldOn = false;
+  var _temperature = 300;
+  var _electrons = [];
+  var _animFrame = null;
+  var _propMode = 'malleability';
+  var _propAnimating = false;
+  var _propAnimT = 0;
+  var _propInterval = null;
+  var _selectedAlloy = 'bronze';
+  var _alloyAnimating = false;
+  var _alloyAnimT = 0;
+  var _alloyInterval = null;
+  var _bandType = 'metal';
+
+  // ── PALETTE ──
+  var paletteSearch = document.getElementById('paletteSearch');
+  var paletteList = document.getElementById('paletteList');
+
+  function buildPalette() {
+    while (paletteList.firstChild) paletteList.removeChild(paletteList.firstChild);
+    var filter = paletteSearch.value.toLowerCase();
+    paletteList.appendChild(el('div', 'palette-category', 'Elements'));
+    for (var i = 0; i < METAL_ORDER.length; i++) {
+      var key = METAL_ORDER[i];
+      var m = METALS[key];
+      if (filter && m.name.toLowerCase().indexOf(filter) === -1 && m.symbol.toLowerCase().indexOf(filter) === -1) continue;
+      var btn = el('button', 'palette-item' + (key === _selectedMetal ? ' active' : ''), m.symbol + ' \u2014 ' + m.name);
+      btn.setAttribute('data-metal', key);
+      btn.addEventListener('click', function() {
+        _selectedMetal = this.getAttribute('data-metal');
+        buildPalette();
+        initElectrons();
+        refreshTab();
+      });
+      paletteList.appendChild(btn);
+    }
+  }
+  paletteSearch.addEventListener('input', buildPalette);
+
+  // ── TAB SWITCHING ──
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  var tabContents = document.querySelectorAll('.tab-content');
+
+  function switchTab(tabId) {
+    if (tabId === 'bandTheory' && !document.body.classList.contains('hl-active')) return;
+    stopAll();
+    _activeTab = tabId;
+    for (var i = 0; i < tabBtns.length; i++) tabBtns[i].classList.toggle('active', tabBtns[i].getAttribute('data-tab') === tabId);
+    for (var j = 0; j < tabContents.length; j++) tabContents[j].classList.toggle('active', tabContents[j].id === 'tab-' + tabId);
+    refreshTab();
+  }
+  for (var i = 0; i < tabBtns.length; i++) tabBtns[i].addEventListener('click', function() { switchTab(this.getAttribute('data-tab')); });
+
+  function stopAll() {
+    if (_animFrame) { cancelAnimationFrame(_animFrame); _animFrame = null; }
+    if (_propInterval) { clearInterval(_propInterval); _propInterval = null; }
+    if (_alloyInterval) { clearInterval(_alloyInterval); _alloyInterval = null; }
+    _propAnimating = false;
+    _alloyAnimating = false;
+  }
+
+  function refreshTab() {
+    setTimeout(function() {
+      if (_activeTab === 'seaOfElectrons') { initElectrons(); startSea(); }
+      else if (_activeTab === 'properties') renderProps();
+      else if (_activeTab === 'alloys') renderAlloys();
+      else if (_activeTab === 'bandTheory') renderBand();
+    }, 20);
+  }
+
+  // ══════════════════════════════════════════
+  // TAB 1 — SEA OF ELECTRONS
+  // ══════════════════════════════════════════
+  function initElectrons() {
+    var canvas = document.getElementById('seaCanvas');
+    if (!canvas) return;
+    var w = canvas.offsetWidth || 600;
+    var h = parseInt(canvas.dataset.baseHeight || canvas.getAttribute('height') || 380);
+    var metal = METALS[_selectedMetal];
+    var n = Math.min(metal.delocElectrons * 25, 80);
+    _electrons = [];
+    for (var i = 0; i < n; i++) _electrons.push({ x: Math.random() * w, y: Math.random() * h, vx: (Math.random() - 0.5) * 2, vy: (Math.random() - 0.5) * 2 });
+  }
+
+  function startSea() {
+    if (_animFrame) cancelAnimationFrame(_animFrame);
+    var canvas = document.getElementById('seaCanvas');
+    if (!canvas || !canvas.offsetWidth) return;
+    (function frame() { renderSea(); _animFrame = requestAnimationFrame(frame); })();
+  }
+
+  function renderSea() {
+    var canvas = document.getElementById('seaCanvas');
+    if (!canvas || !canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var W = canvas.offsetWidth, H = parseInt(canvas.dataset.baseHeight || 380);
+    var metal = METALS[_selectedMetal];
+
+    ctx.fillStyle = '#1E293B';
+    ctx.fillRect(0, 0, W, H);
+
+    // Cation lattice
+    var cols = 7, rows = 5;
+    var sx = W / (cols + 1), sy = H / (rows + 1);
+    var cr = Math.min(sx, sy) * 0.28;
+
+    for (var r = 0; r < rows; r++) {
+      for (var c = 0; c < cols; c++) {
+        var cx = sx * (c + 1), cy = sy * (r + 1);
+        // Glow
+        var grd = ctx.createRadialGradient(cx, cy, cr * 0.5, cx, cy, cr * 1.5);
+        grd.addColorStop(0, metal.cationColor);
+        grd.addColorStop(1, 'rgba(30,41,59,0)');
+        ctx.fillStyle = grd;
+        ctx.beginPath(); ctx.arc(cx, cy, cr * 1.5, 0, Math.PI * 2); ctx.fill();
+        // Body
+        ctx.beginPath(); ctx.arc(cx, cy, cr, 0, Math.PI * 2);
+        ctx.fillStyle = metal.cationColor; ctx.fill();
+        ctx.strokeStyle = metal.color; ctx.lineWidth = 2; ctx.stroke();
+        // Label
+        ctx.fillStyle = '#1E293B';
+        ctx.font = 'bold ' + Math.max(10, cr * 0.55) + 'px "Fira Code"';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(metal.ionSymbol, cx, cy);
+      }
+    }
+
+    // Electrons
+    var spd = Math.sqrt(_temperature / 300);
+    var drift = _fieldOn ? 1.5 : 0;
+    for (var i = 0; i < _electrons.length; i++) {
+      var e = _electrons[i];
+      e.vx += (Math.random() - 0.5) * 0.8 * spd + drift * 0.05;
+      e.vy += (Math.random() - 0.5) * 0.8 * spd;
+      e.vx *= 0.92; e.vy *= 0.92;
+      var mx = 3 * spd;
+      e.vx = Math.max(-mx, Math.min(mx, e.vx));
+      e.vy = Math.max(-mx, Math.min(mx, e.vy));
+      e.x += e.vx; e.y += e.vy;
+      if (e.x < 0) e.x = W; if (e.x > W) e.x = 0;
+      if (e.y < 0) e.y = H; if (e.y > H) e.y = 0;
+      ctx.beginPath(); ctx.arc(e.x, e.y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#60A5FA'; ctx.fill();
+      ctx.beginPath(); ctx.arc(e.x - e.vx * 2, e.y - e.vy * 2, 2, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(96,165,250,0.3)'; ctx.fill();
+    }
+
+    // Field arrow
+    if (_fieldOn) {
+      ctx.save();
+      ctx.strokeStyle = '#FBBF24'; ctx.fillStyle = '#FBBF24'; ctx.lineWidth = 3;
+      var ay = H - 25;
+      ctx.beginPath(); ctx.moveTo(20, ay); ctx.lineTo(W - 40, ay); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(W - 40, ay - 8); ctx.lineTo(W - 20, ay); ctx.lineTo(W - 40, ay + 8); ctx.fill();
+      ctx.font = '600 12px Inter'; ctx.textAlign = 'center';
+      ctx.fillText('Electric Field (E)', W / 2, ay - 10);
+      ctx.font = 'bold 14px "Fira Code"';
+      ctx.fillStyle = '#EF4444'; ctx.textAlign = 'left'; ctx.fillText('(+)', 10, ay + 20);
+      ctx.fillStyle = '#60A5FA'; ctx.textAlign = 'right'; ctx.fillText('(\u2212)', W - 10, ay + 20);
+      ctx.restore();
+    }
+
+    // Legend
+    ctx.font = '500 11px Inter'; ctx.textAlign = 'left';
+    ctx.fillStyle = metal.cationColor;
+    ctx.beginPath(); ctx.arc(15, 15, 5, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#CBD5E1'; ctx.fillText(metal.ionSymbol + ' cation', 25, 18);
+    ctx.fillStyle = '#60A5FA';
+    ctx.beginPath(); ctx.arc(15, 32, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#CBD5E1'; ctx.fillText('Delocalized e\u207B', 25, 35);
+
+    // Info chips
+    var infoDiv = document.getElementById('seaInfo');
+    while (infoDiv.firstChild) infoDiv.removeChild(infoDiv.firstChild);
+    infoDiv.appendChild(el('span', 'info-chip', metal.ionSymbol + ' cations'));
+    infoDiv.appendChild(el('span', 'info-chip teal', metal.delocElectrons + ' e\u207B per atom'));
+    infoDiv.appendChild(el('span', 'info-chip amber', 'Charge: ' + metal.charge + '+'));
+    if (_fieldOn) infoDiv.appendChild(el('span', 'info-chip teal', 'Current flowing \u2192'));
+
+    // Teacher
+    var td = document.getElementById('seaTeacher');
+    td.textContent = '';
+    var b = el('strong', '', 'Teaching Notes: ');
+    td.appendChild(b);
+    td.appendChild(document.createTextNode(metal.name + ' has ' + metal.delocElectrons + ' delocalized electron(s) per atom. The cations (' + metal.ionSymbol + ') are held in position by electrostatic attraction to the "sea" of delocalized electrons. '));
+    if (metal.charge > 1) {
+      td.appendChild(document.createTextNode('Higher charge (' + metal.charge + '+) and more delocalized electrons lead to stronger metallic bonding (MP: ' + metal.mp + ' \u00B0C).'));
+    } else {
+      td.appendChild(document.createTextNode('With 1 delocalized electron and 1+ charge, ' + metal.name + ' has relatively weak metallic bonding (MP: ' + metal.mp + ' \u00B0C).'));
+    }
+  }
+
+  document.getElementById('fieldToggle').addEventListener('change', function() { _fieldOn = this.checked; });
+  document.getElementById('tempSlider').addEventListener('input', function() {
+    _temperature = parseInt(this.value);
+    document.getElementById('tempVal').textContent = _temperature + ' K';
+  });
+
+  // ══════════════════════════════════════════
+  // TAB 2 — PROPERTIES
+  // ══════════════════════════════════════════
+  var propBtns = document.querySelectorAll('[data-prop]');
+  for (var p = 0; p < propBtns.length; p++) {
+    propBtns[p].addEventListener('click', function() {
+      _propMode = this.getAttribute('data-prop');
+      for (var j = 0; j < propBtns.length; j++) propBtns[j].classList.toggle('active', propBtns[j] === this);
+      _propAnimating = false; _propAnimT = 0;
+      if (_propInterval) { clearInterval(_propInterval); _propInterval = null; }
+      renderProps();
+    });
+  }
+
+  document.getElementById('propsActionBtn').addEventListener('click', function() {
+    if (_propAnimating) return;
+    _propAnimating = true; _propAnimT = 0;
+    if (_propInterval) clearInterval(_propInterval);
+    _propInterval = setInterval(function() {
+      _propAnimT += 0.02;
+      if (_propAnimT >= 1) { _propAnimT = 1; clearInterval(_propInterval); _propInterval = null; }
+      drawPropsCanvas();
+    }, 30);
+  });
+  document.getElementById('propsResetBtn').addEventListener('click', function() {
+    _propAnimating = false; _propAnimT = 0;
+    if (_propInterval) { clearInterval(_propInterval); _propInterval = null; }
+    renderProps();
+  });
+
+  function renderProps() {
+    drawPropsCanvas();
+    renderPropsExplain();
+    renderPropsTable();
+    var btn = document.getElementById('propsActionBtn');
+    var labels = { malleability:'Apply Force', electrical:'Apply Voltage', thermal:'Apply Heat', ductility:'Pull' };
+    btn.textContent = labels[_propMode] || 'Apply Force';
+  }
+
+  function drawPropsCanvas() {
+    var canvas = document.getElementById('propsCanvas');
+    if (!canvas || !canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var W = canvas.offsetWidth, H = parseInt(canvas.dataset.baseHeight || 340);
+    var metal = METALS[_selectedMetal];
+    ctx.fillStyle = '#F8FAFC'; ctx.fillRect(0, 0, W, H);
+
+    if (_propMode === 'malleability') drawMalleability(ctx, W, H, metal);
+    else if (_propMode === 'electrical') drawElectrical(ctx, W, H, metal);
+    else if (_propMode === 'thermal') drawThermal(ctx, W, H, metal);
+    else if (_propMode === 'ductility') drawDuctility(ctx, W, H, metal);
+  }
+
+  function drawGrid(ctx, startX, startY, cols, rows, spacing, radius, color, border) {
+    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+      var cx = startX + c * spacing, cy = startY + r * spacing;
+      ctx.beginPath(); ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.fillStyle = color; ctx.fill();
+      ctx.strokeStyle = border; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+  }
+
+  function drawScatteredElectrons(ctx, startX, startY, totalW, totalH, n) {
+    for (var i = 0; i < n; i++) {
+      ctx.beginPath();
+      ctx.arc(startX + Math.random() * totalW, startY + Math.random() * totalH, 2.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#60A5FA'; ctx.fill();
+    }
+  }
+
+  function drawMalleability(ctx, W, H, metal) {
+    var cx = W / 2, sp = 32, rad = 13, cols = 7, topR = 3, botR = 3;
+    var tw = (cols - 1) * sp, sx = cx - tw / 2;
+    ctx.font = '600 14px Inter'; ctx.fillStyle = '#1E293B'; ctx.textAlign = 'center';
+    ctx.fillText('Malleability \u2014 Layers Can Slide', cx, 25);
+
+    var slideX = _propAnimT * sp * 1.5;
+    var botY = H / 2 + 20;
+    drawGrid(ctx, sx, botY, cols, botR, sp, rad, metal.cationColor, metal.color);
+    drawGrid(ctx, sx + slideX, botY - topR * sp, cols, topR, sp, rad, metal.cationColor, metal.color);
+    drawScatteredElectrons(ctx, sx, botY - topR * sp - 5, tw + slideX, (topR + botR) * sp + 10, 20);
+
+    if (_propAnimating || _propAnimT > 0) {
+      ctx.save(); ctx.strokeStyle = '#EF4444'; ctx.fillStyle = '#EF4444'; ctx.lineWidth = 3;
+      var ay = botY - topR * sp + sp;
+      ctx.beginPath(); ctx.moveTo(sx - 40, ay); ctx.lineTo(sx - 10 + slideX, ay); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sx - 10 + slideX, ay - 6); ctx.lineTo(sx + slideX, ay); ctx.lineTo(sx - 10 + slideX, ay + 6); ctx.fill();
+      ctx.font = '600 11px Inter'; ctx.textAlign = 'right'; ctx.fillText('Force', sx - 45, ay + 4);
+      ctx.restore();
+    }
+    if (_propAnimT >= 1) {
+      ctx.font = '600 13px Caveat'; ctx.fillStyle = '#0D9488'; ctx.textAlign = 'center';
+      ctx.fillText('Layers slide but electrons reposition \u2014 no fracture!', cx, H - 15);
+    }
+  }
+
+  function drawElectrical(ctx, W, H, metal) {
+    var cx = W / 2, sp = 34, cols = 7, rows = 5;
+    var tw = (cols - 1) * sp, sx = cx - tw / 2, sy = 55, rad = 12;
+    ctx.font = '600 14px Inter'; ctx.fillStyle = '#1E293B'; ctx.textAlign = 'center';
+    ctx.fillText('Electrical Conductivity \u2014 Electron Flow', cx, 25);
+    drawGrid(ctx, sx, sy, cols, rows, sp, rad, metal.cationColor, metal.color);
+
+    for (var i = 0; i < 30; i++) {
+      var t = (i / 30 + _propAnimT * 2) % 1;
+      var ex = _propAnimating ? sx + t * tw : sx + (i / 30) * tw;
+      var ey = sy + (i % rows) * sp + Math.sin(i * 1.7 + _propAnimT * 10) * 8;
+      ctx.beginPath(); ctx.arc(ex, ey, 3, 0, Math.PI * 2); ctx.fillStyle = '#60A5FA'; ctx.fill();
+      if (_propAnimating) { ctx.beginPath(); ctx.arc(ex - 6, ey, 2, 0, Math.PI * 2); ctx.fillStyle = 'rgba(96,165,250,0.3)'; ctx.fill(); }
+    }
+
+    if (_propAnimating) {
+      ctx.save(); ctx.strokeStyle = '#FBBF24'; ctx.lineWidth = 2; ctx.setLineDash([4, 4]);
+      var batY = sy + rows * sp + 30;
+      ctx.beginPath(); ctx.moveTo(sx, batY); ctx.lineTo(sx + tw, batY); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.font = 'bold 12px "Fira Code"'; ctx.textAlign = 'center';
+      ctx.fillStyle = '#EF4444'; ctx.fillText('(+)', sx - 15, batY + 4);
+      ctx.fillStyle = '#60A5FA'; ctx.fillText('(\u2212)', sx + tw + 15, batY + 4);
+      ctx.restore();
+    }
+    ctx.font = '600 12px "Fira Code"'; ctx.fillStyle = '#0D9488'; ctx.textAlign = 'center';
+    ctx.fillText('\u03C3 = ' + metal.conductivity + ' MS/m', cx, H - 12);
+  }
+
+  function drawThermal(ctx, W, H, metal) {
+    var cx = W / 2, sp = 34, cols = 8, rows = 5;
+    var tw = (cols - 1) * sp, sx = cx - tw / 2, sy = 55, rad = 12;
+    ctx.font = '600 14px Inter'; ctx.fillStyle = '#1E293B'; ctx.textAlign = 'center';
+    ctx.fillText('Thermal Conductivity \u2014 Kinetic Energy Transfer', cx, 25);
+
+    var now = Date.now();
+    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+      var cx2 = sx + c * sp, cy2 = sy + r * sp;
+      var gt = c / (cols - 1);
+      if (_propAnimating) gt = lerp(c < cols / 2 ? 0 : 1, c / (cols - 1), Math.min(_propAnimT * 2, 1));
+      var cr = Math.round(lerp(239, 96, gt)), cg = Math.round(lerp(68, 165, gt)), cb = Math.round(lerp(68, 250, gt));
+      var vib = _propAnimating ? (1 - gt) * 4 * Math.sin(now / 50 + c + r) : 0;
+      ctx.beginPath(); ctx.arc(cx2 + vib, cy2 + vib * 0.5, rad, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(' + cr + ',' + cg + ',' + cb + ',0.3)'; ctx.fill();
+      ctx.beginPath(); ctx.arc(cx2 + vib, cy2 + vib * 0.5, rad * 0.7, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgb(' + cr + ',' + cg + ',' + cb + ')'; ctx.fill();
+    }
+    if (_propAnimating) for (var i = 0; i < 12; i++) {
+      var t = (i / 12 + _propAnimT * 1.5) % 1;
+      var ex = sx + t * tw, ey = sy + (i % rows) * sp + Math.sin(i * 2.3 + _propAnimT * 8) * 10;
+      ctx.beginPath(); ctx.arc(ex, ey, 3, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgb(' + Math.round(lerp(239, 96, t)) + ',120,' + Math.round(lerp(68, 250, t)) + ')'; ctx.fill();
+    }
+    ctx.font = 'bold 13px Inter'; ctx.textAlign = 'left'; ctx.fillStyle = '#EF4444';
+    ctx.fillText('HOT', sx - 5, sy + rows * sp + 25);
+    ctx.textAlign = 'right'; ctx.fillStyle = '#3B82F6';
+    ctx.fillText('COLD', sx + tw + 5, sy + rows * sp + 25);
+    if (_propAnimT >= 1) {
+      ctx.font = '600 13px Caveat'; ctx.fillStyle = '#0D9488'; ctx.textAlign = 'center';
+      ctx.fillText('Electrons transfer KE from hot to cold regions rapidly', W / 2, H - 12);
+    }
+  }
+
+  function drawDuctility(ctx, W, H, metal) {
+    var cx = W / 2, sp = 30, rad = 11, baseRows = 4, baseCols = 6;
+    ctx.font = '600 14px Inter'; ctx.fillStyle = '#1E293B'; ctx.textAlign = 'center';
+    ctx.fillText('Ductility \u2014 Drawing into Wire', cx, 25);
+
+    var cols = _propAnimating ? Math.round(lerp(baseCols, 10, _propAnimT)) : baseCols;
+    var cSp = _propAnimating ? lerp(sp, sp * 0.65, _propAnimT) : sp;
+    var cRad = _propAnimating ? lerp(rad, rad * 0.7, _propAnimT) : rad;
+    var cRows = _propAnimating ? Math.max(2, Math.round(lerp(baseRows, 2, _propAnimT))) : baseRows;
+    var tw = (cols - 1) * cSp, sx = cx - tw / 2, sy = H / 2 - cRows * cSp / 2;
+
+    drawGrid(ctx, sx, sy, cols, cRows, cSp, cRad, metal.cationColor, metal.color);
+    drawScatteredElectrons(ctx, sx - 5, sy - cSp * 0.3, tw + 10, cRows * cSp + cSp * 0.6, 15);
+
+    if (_propAnimating) {
+      ctx.save(); ctx.strokeStyle = '#EF4444'; ctx.fillStyle = '#EF4444'; ctx.lineWidth = 2.5;
+      var my = sy + (cRows - 1) * cSp / 2;
+      ctx.beginPath(); ctx.moveTo(sx - 10, my); ctx.lineTo(sx - 30, my); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sx - 30, my - 5); ctx.lineTo(sx - 38, my); ctx.lineTo(sx - 30, my + 5); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(sx + tw + 10, my); ctx.lineTo(sx + tw + 30, my); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(sx + tw + 30, my - 5); ctx.lineTo(sx + tw + 38, my); ctx.lineTo(sx + tw + 30, my + 5); ctx.fill();
+      ctx.restore();
+    }
+    if (_propAnimT >= 1) {
+      ctx.font = '600 13px Caveat'; ctx.fillStyle = '#0D9488'; ctx.textAlign = 'center';
+      ctx.fillText('Non-directional bonding allows reshaping without breaking', cx, H - 12);
+    }
+  }
+
+  function renderPropsExplain() {
+    var div = document.getElementById('propsExplain');
+    var metal = METALS[_selectedMetal];
+    while (div.firstChild) div.removeChild(div.firstChild);
+    var texts = {
+      malleability: ['Malleability: ', 'Metals can be hammered into thin sheets. When force is applied, layers of cations slide over each other. The delocalized electrons reposition around the shifted cations, maintaining the metallic bond. Unlike ionic compounds, there is no repulsion between like-charged ions when layers move.'],
+      electrical: ['Electrical conductivity: ', metal.name + ' has a conductivity of ' + metal.conductivity + ' MS/m. When a potential difference is applied, the delocalized electrons flow through the lattice toward the positive terminal. More delocalized electrons and smaller cation size generally increase conductivity.'],
+      thermal: ['Thermal conductivity: ', 'Delocalized electrons absorb kinetic energy at the hot end and rapidly transfer it through the lattice to the cold end. This electron-mediated mechanism is much faster than lattice vibrations alone, which is why metals conduct heat better than non-metals.'],
+      ductility: ['Ductility: ', 'Metals can be drawn into thin wires. The non-directional nature of metallic bonding allows atoms to be rearranged without breaking bonds. The delocalized electrons continuously adjust to maintain bonding in the new arrangement.']
+    };
+    var t = texts[_propMode];
+    var strong = el('strong', '', t[0]);
+    div.appendChild(strong);
+    div.appendChild(document.createTextNode(t[1]));
+
+    var td = document.getElementById('propsTeacher');
+    var tNotes = {
+      malleability: 'Compare with ionic: In ionic lattices, sliding layers brings like-charged ions into contact, causing electrostatic repulsion and fracture. This is why ionic compounds are brittle but metals are malleable.',
+      electrical: 'Key factor: Conductivity depends on number of delocalized electrons and lattice structure. Cu and Ag have the highest conductivity because their s-electrons are very mobile.',
+      thermal: 'Wiedemann-Franz Law: Good electrical conductors are also good thermal conductors, because both properties depend on free electron mobility.',
+      ductility: 'Contrast with covalent network: Diamond is extremely hard but not ductile because covalent bonds are directional. Metallic bonding is non-directional, allowing deformation.'
+    };
+    td.textContent = '';
+    td.appendChild(el('strong', '', 'Teaching Note: '));
+    td.appendChild(document.createTextNode(tNotes[_propMode]));
+  }
+
+  function renderPropsTable() {
+    var tbody = document.getElementById('propsTableBody');
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    for (var i = 0; i < METAL_ORDER.length; i++) {
+      var key = METAL_ORDER[i];
+      var m = METALS[key];
+      var tr = document.createElement('tr');
+      if (key === _selectedMetal) tr.className = 'highlight';
+      var cells = [
+        el('td', '', ''), el('td', '', '' + m.mp),
+        el('td', '', '' + m.conductivity), el('td', '', '' + m.density),
+        el('td', '', '' + m.delocElectrons)
+      ];
+      var nameStrong = el('strong', '', m.symbol);
+      cells[0].appendChild(nameStrong);
+      cells[0].appendChild(document.createTextNode(' ' + m.name));
+      for (var c = 0; c < cells.length; c++) tr.appendChild(cells[c]);
+      tbody.appendChild(tr);
+    }
+  }
+
+  // ══════════════════════════════════════════
+  // TAB 3 — ALLOYS
+  // ══════════════════════════════════════════
+  var alloySelect = document.getElementById('alloySelect');
+  alloySelect.addEventListener('change', function() {
+    _selectedAlloy = this.value;
+    _alloyAnimating = false; _alloyAnimT = 0;
+    if (_alloyInterval) { clearInterval(_alloyInterval); _alloyInterval = null; }
+    renderAlloys();
+  });
+  document.getElementById('alloyForceBtn').addEventListener('click', function() {
+    if (_alloyAnimating) return;
+    _alloyAnimating = true; _alloyAnimT = 0;
+    if (_alloyInterval) clearInterval(_alloyInterval);
+    _alloyInterval = setInterval(function() {
+      _alloyAnimT += 0.015;
+      if (_alloyAnimT >= 1) { _alloyAnimT = 1; clearInterval(_alloyInterval); _alloyInterval = null; }
+      drawAlloyCanvases();
+    }, 30);
+  });
+  document.getElementById('alloyResetBtn').addEventListener('click', function() {
+    _alloyAnimating = false; _alloyAnimT = 0;
+    if (_alloyInterval) { clearInterval(_alloyInterval); _alloyInterval = null; }
+    renderAlloys();
+  });
+
+  function renderAlloys() { drawAlloyCanvases(); renderAlloyExplain(); drawHardness(); }
+
+  function drawAlloyCanvases() {
+    var alloy = ALLOYS[_selectedAlloy];
+    drawPureLattice(alloy);
+    drawMixLattice(alloy);
+  }
+
+  function drawPureLattice(alloy) {
+    var canvas = document.getElementById('alloyPureCanvas');
+    if (!canvas || !canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var W = canvas.offsetWidth, H = parseInt(canvas.dataset.baseHeight || 260);
+    ctx.fillStyle = '#F8FAFC'; ctx.fillRect(0, 0, W, H);
+
+    var sp = 28, rad = 11;
+    var cols = Math.floor((W - 20) / sp), rows = Math.floor((H - 20) / sp);
+    var sx = (W - (cols - 1) * sp) / 2, sy = (H - (rows - 1) * sp) / 2;
+    var half = Math.floor(rows / 2);
+    var slideX = _alloyAnimating ? _alloyAnimT * sp * 2 : 0;
+
+    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+      var off = r < half ? slideX : 0;
+      var cx = sx + c * sp + off, cy = sy + r * sp;
+      if (cx < -rad || cx > W + rad) continue;
+      ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+      ctx.fillStyle = alloy.baseColor; ctx.globalAlpha = 0.3; ctx.fill();
+      ctx.globalAlpha = 1; ctx.strokeStyle = alloy.baseColor; ctx.lineWidth = 1.5; ctx.stroke();
+    }
+    if (_alloyAnimT >= 0.8) {
+      ctx.font = '600 11px Caveat'; ctx.fillStyle = '#EF4444'; ctx.textAlign = 'center';
+      ctx.fillText('Layers slide easily', W / 2, H - 8);
+    }
+  }
+
+  function drawMixLattice(alloy) {
+    var canvas = document.getElementById('alloyMixCanvas');
+    if (!canvas || !canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var W = canvas.offsetWidth, H = parseInt(canvas.dataset.baseHeight || 260);
+    ctx.fillStyle = '#F8FAFC'; ctx.fillRect(0, 0, W, H);
+
+    var sp = 28, rad = 11;
+    var cols = Math.floor((W - 20) / sp), rows = Math.floor((H - 20) / sp);
+    var sx = (W - (cols - 1) * sp) / 2, sy = (H - (rows - 1) * sp) / 2;
+    var half = Math.floor(rows / 2);
+    var slideX = _alloyAnimating ? _alloyAnimT * sp * 0.3 : 0;
+
+    var seed = 42;
+    function pRand() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+
+    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+      var off = r < half ? slideX : 0;
+      var cx = sx + c * sp + off, cy = sy + r * sp;
+      if (cx < -rad || cx > W + rad) continue;
+
+      var rnd = pRand(), isAdd = false, addIdx = 0, tot = 0;
+      for (var a = 0; a < alloy.additions.length; a++) {
+        tot += alloy.additions[a].pct / 100;
+        if (rnd < tot && !isAdd) { isAdd = true; addIdx = a; }
+      }
+
+      if (isAdd && alloy.type === 'substitutional') {
+        var add = alloy.additions[addIdx];
+        var ar = rad * add.radius;
+        ctx.beginPath(); ctx.arc(cx, cy, ar, 0, Math.PI * 2);
+        ctx.fillStyle = add.color; ctx.globalAlpha = 0.5; ctx.fill();
+        ctx.globalAlpha = 1; ctx.strokeStyle = add.color; ctx.lineWidth = 1.5; ctx.stroke();
+        ctx.font = 'bold 8px "Fira Code"'; ctx.fillStyle = '#FFF';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(add.symbol, cx, cy);
+      } else {
+        ctx.beginPath(); ctx.arc(cx, cy, rad, 0, Math.PI * 2);
+        ctx.fillStyle = alloy.baseColor; ctx.globalAlpha = 0.3; ctx.fill();
+        ctx.globalAlpha = 1; ctx.strokeStyle = alloy.baseColor; ctx.lineWidth = 1.5; ctx.stroke();
+      }
+      if (isAdd && alloy.type === 'interstitial') {
+        var ai = alloy.additions[addIdx];
+        var ir = rad * ai.radius * 0.5;
+        ctx.beginPath(); ctx.arc(cx + sp * 0.35, cy + sp * 0.35, ir, 0, Math.PI * 2);
+        ctx.fillStyle = ai.color; ctx.globalAlpha = 0.7; ctx.fill();
+        ctx.globalAlpha = 1; ctx.strokeStyle = ai.color; ctx.lineWidth = 1; ctx.stroke();
+        ctx.font = 'bold 7px "Fira Code"'; ctx.fillStyle = '#FFF';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(ai.symbol, cx + sp * 0.35, cy + sp * 0.35);
+      }
+    }
+    if (_alloyAnimT >= 0.8) {
+      ctx.font = '600 11px Caveat'; ctx.fillStyle = '#0D9488'; ctx.textAlign = 'center';
+      ctx.fillText('Layers blocked \u2014 harder!', W / 2, H - 8);
+    }
+  }
+
+  function renderAlloyExplain() {
+    var div = document.getElementById('alloyExplain');
+    var alloy = ALLOYS[_selectedAlloy];
+    var addNames = alloy.additions.map(function(a) { return a.symbol + ' (' + a.pct + '%)'; }).join(', ');
+    while (div.firstChild) div.removeChild(div.firstChild);
+
+    var b = el('strong', '', alloy.name);
+    div.appendChild(b);
+    div.appendChild(document.createTextNode(' (' + alloy.base + ' + ' + addNames + '): '));
+    var b2 = el('strong', '', alloy.type.charAt(0).toUpperCase() + alloy.type.slice(1) + ' alloy. ');
+    div.appendChild(b2);
+
+    var typeText = alloy.type === 'interstitial'
+      ? 'The smaller ' + alloy.additions[0].symbol + ' atoms fit into the gaps (interstices) between the larger ' + alloy.base + ' atoms. '
+      : 'The ' + addNames + ' atoms replace some ' + alloy.base + ' atoms in the lattice. ';
+    div.appendChild(document.createTextNode(typeText));
+    div.appendChild(document.createTextNode('The different-sized atoms disrupt the regular arrangement, preventing layers from sliding as easily. This makes the alloy harder and stronger than the pure metal. Uses: ' + alloy.uses + '.'));
+
+    var td = document.getElementById('alloyTeacher');
+    td.textContent = '';
+    td.appendChild(el('strong', '', 'Key IB point: '));
+    td.appendChild(document.createTextNode('Alloys are harder because atoms of different sizes disrupt the regular packing, preventing layers from sliding. Students should distinguish substitutional (similar-sized atoms replace base atoms) from interstitial (smaller atoms fill gaps). ' + alloy.name + ' is a classic ' + alloy.type + ' alloy example.'));
+  }
+
+  function drawHardness() {
+    var canvas = document.getElementById('hardnessCanvas');
+    if (!canvas || !canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var W = canvas.offsetWidth, H = parseInt(canvas.dataset.baseHeight || 110);
+    ctx.fillStyle = '#F8FAFC'; ctx.fillRect(0, 0, W, H);
+
+    var alloy = ALLOYS[_selectedAlloy];
+    var barH = 22, maxBar = W - 170, sx = 120;
+
+    // Pure
+    var pw = (alloy.baseHardness / 5) * maxBar;
+    ctx.font = '500 11px Inter'; ctx.textAlign = 'right'; ctx.fillStyle = '#1E293B';
+    ctx.fillText('Pure ' + alloy.base, sx - 10, 32);
+    ctx.beginPath(); ctx.roundRect(sx, 19, pw, barH, 4);
+    ctx.fillStyle = alloy.baseColor; ctx.globalAlpha = 0.4; ctx.fill();
+    ctx.globalAlpha = 1; ctx.strokeStyle = alloy.baseColor; ctx.lineWidth = 1.5; ctx.stroke();
+
+    // Alloy
+    var aw = (alloy.hardness / 5) * maxBar;
+    ctx.textAlign = 'right'; ctx.fillStyle = '#1E293B';
+    ctx.fillText(alloy.name, sx - 10, 72);
+    ctx.beginPath(); ctx.roundRect(sx, 59, aw, barH, 4);
+    ctx.fillStyle = '#0D9488'; ctx.globalAlpha = 0.3; ctx.fill();
+    ctx.globalAlpha = 1; ctx.strokeStyle = '#0D9488'; ctx.lineWidth = 1.5; ctx.stroke();
+
+    ctx.font = '600 10px "Fira Code"'; ctx.textAlign = 'left';
+    ctx.fillStyle = alloy.baseColor; ctx.fillText(alloy.baseHardness.toFixed(1), sx + pw + 6, 34);
+    ctx.fillStyle = '#0D9488'; ctx.fillText(alloy.hardness.toFixed(1), sx + aw + 6, 74);
+
+    ctx.font = '500 9px Inter'; ctx.fillStyle = '#94A3B8'; ctx.textAlign = 'center';
+    ctx.fillText('Relative Hardness', W / 2, H - 5);
+  }
+
+  // ══════════════════════════════════════════
+  // TAB 4 — BAND THEORY (HL)
+  // ══════════════════════════════════════════
+  var bandBtns = document.querySelectorAll('[data-band]');
+  for (var b = 0; b < bandBtns.length; b++) {
+    bandBtns[b].addEventListener('click', function() {
+      _bandType = this.getAttribute('data-band');
+      for (var j = 0; j < bandBtns.length; j++) bandBtns[j].classList.toggle('active', bandBtns[j] === this);
+      renderBand();
+    });
+  }
+
+  function renderBand() {
+    var canvas = document.getElementById('bandCanvas');
+    if (!canvas || !canvas.offsetWidth) return;
+    var ctx = setupCanvas(canvas);
+    var W = canvas.offsetWidth, H = parseInt(canvas.dataset.baseHeight || 360);
+    ctx.fillStyle = '#F8FAFC'; ctx.fillRect(0, 0, W, H);
+
+    var cx = W / 2, bw = 180, bh = 60;
+
+    // Energy axis
+    ctx.strokeStyle = '#94A3B8'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(40, 30); ctx.lineTo(40, H - 30); ctx.stroke();
+    ctx.fillStyle = '#94A3B8'; ctx.beginPath();
+    ctx.moveTo(35, 35); ctx.lineTo(40, 20); ctx.lineTo(45, 35); ctx.fill();
+    ctx.save(); ctx.font = '500 11px Inter'; ctx.textAlign = 'center';
+    ctx.translate(18, H / 2); ctx.rotate(-Math.PI / 2);
+    ctx.fillText('Energy', 0, 0); ctx.restore();
+
+    var cfgs = {
+      metal:        { title:'Metal (Conductor)', cY:100, vY:100+bh-10, gap:0, overlap:true, fillLvl:0.7, gapLabel:'' },
+      insulator:    { title:'Insulator', cY:80, vY:240, gap:100, overlap:false, fillLvl:0, gapLabel:'> 5 eV' },
+      semiconductor:{ title:'Semiconductor', cY:100, vY:200, gap:40, overlap:false, fillLvl:0.15, gapLabel:'< 3 eV' }
+    };
+    var cfg = cfgs[_bandType];
+    var bx = cx - bw / 2;
+
+    ctx.font = '600 14px Inter'; ctx.fillStyle = '#1E293B'; ctx.textAlign = 'center';
+    ctx.fillText(cfg.title, cx, 25);
+
+    // Conduction band
+    ctx.beginPath(); ctx.roundRect(bx, cfg.cY, bw, bh, 6);
+    ctx.fillStyle = 'rgba(96,165,250,0.3)'; ctx.fill();
+    ctx.strokeStyle = '#3B82F6'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.font = '600 12px Inter'; ctx.fillStyle = '#3B82F6'; ctx.textAlign = 'left';
+    ctx.fillText('Conduction Band', bx + bw + 12, cfg.cY + bh / 2 + 4);
+
+    if (cfg.fillLvl > 0) {
+      var ne = Math.round(cfg.fillLvl * 12);
+      for (var i = 0; i < ne; i++) {
+        ctx.beginPath(); ctx.arc(bx + 15 + (i % 6) * 26, cfg.cY + 15 + Math.floor(i / 6) * 20, 4, 0, Math.PI * 2);
+        ctx.fillStyle = '#60A5FA'; ctx.fill();
+      }
+    }
+
+    // Valence band
+    ctx.beginPath(); ctx.roundRect(bx, cfg.vY, bw, bh, 6);
+    ctx.fillStyle = 'rgba(13,148,136,0.3)'; ctx.fill();
+    ctx.strokeStyle = '#0D9488'; ctx.lineWidth = 2; ctx.stroke();
+    ctx.font = '600 12px Inter'; ctx.fillStyle = '#0D9488'; ctx.textAlign = 'left';
+    ctx.fillText('Valence Band', bx + bw + 12, cfg.vY + bh / 2 + 4);
+
+    var ve = cfg.overlap ? 8 : 12;
+    for (var i = 0; i < ve; i++) {
+      ctx.beginPath(); ctx.arc(bx + 15 + (i % 6) * 26, cfg.vY + 15 + Math.floor(i / 6) * 20, 4, 0, Math.PI * 2);
+      ctx.fillStyle = '#0D9488'; ctx.fill();
+    }
+
+    if (!cfg.overlap) {
+      var gt = cfg.cY + bh, gb = cfg.vY, gm = (gt + gb) / 2;
+      ctx.save(); ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 1;
+      for (var y = gt + 5; y < gb; y += 8) { ctx.beginPath(); ctx.moveTo(bx + 10, y); ctx.lineTo(bx + bw - 10, y); ctx.stroke(); }
+      ctx.restore();
+      ctx.font = 'bold 12px "Fira Code"'; ctx.fillStyle = '#EF4444'; ctx.textAlign = 'center';
+      ctx.fillText('Band Gap', cx, gm + 4);
+      ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(bx - 15, gt + 2); ctx.lineTo(bx - 15, gb - 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(bx - 20, gt + 2); ctx.lineTo(bx - 10, gt + 2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(bx - 20, gb - 2); ctx.lineTo(bx - 10, gb - 2); ctx.stroke();
+      ctx.font = '500 10px "Fira Code"'; ctx.textAlign = 'right'; ctx.fillText(cfg.gapLabel, bx - 22, gm + 4);
+    } else {
+      ctx.font = '600 12px Caveat'; ctx.fillStyle = '#D97706'; ctx.textAlign = 'center';
+      ctx.fillText('Bands overlap!', cx, cfg.vY + bh + 20);
+    }
+
+    var explainDiv = document.getElementById('bandExplain');
+    var explains = {
+      metal: 'In metals, the valence band and conduction band overlap. Electrons can move freely into the conduction band with no energy gap to overcome. This is why metals are good conductors of electricity.',
+      insulator: 'In insulators, there is a large band gap (> 5 eV) between the valence band and conduction band. Electrons cannot gain enough energy to jump across, so no conduction occurs.',
+      semiconductor: 'In semiconductors, the band gap is small (< 3 eV). At room temperature, some electrons gain enough thermal energy to jump to the conduction band. Conductivity increases with temperature (opposite of metals).'
+    };
+    explainDiv.textContent = explains[_bandType];
+
+    var td = document.getElementById('bandTeacher');
+    td.textContent = '';
+    td.appendChild(el('strong', '', 'IB Note: '));
+    td.appendChild(document.createTextNode('Band theory is only lightly touched in HL. Students should understand: (1) metals have overlapping bands allowing conduction, (2) insulators have large gaps preventing electron movement, (3) semiconductors have small gaps allowing temperature-dependent conduction. No detailed calculations required.'));
+  }
+
+  // ── EXPORT ──
+  function exportCSV() {
+    var rows = [['Tab','Metal','Property','Value','Timestamp']];
+    var ts = new Date().toISOString(), m = METALS[_selectedMetal];
+    if (_activeTab === 'seaOfElectrons') {
+      rows.push(['Sea of Electrons', m.name, 'Charge', m.charge + '+', ts]);
+      rows.push(['Sea of Electrons', m.name, 'Delocalized e-', m.delocElectrons, ts]);
+    } else if (_activeTab === 'properties') {
+      rows.push(['Properties', m.name, 'MP (C)', m.mp, ts]);
+      rows.push(['Properties', m.name, 'Conductivity (MS/m)', m.conductivity, ts]);
+    } else if (_activeTab === 'alloys') {
+      var al = ALLOYS[_selectedAlloy];
+      rows.push(['Alloys', al.name, 'Type', al.type, ts]);
+      rows.push(['Alloys', al.name, 'Hardness', al.hardness, ts]);
+    }
+    var csv = rows.map(function(r) { return r.join(','); }).join('\n');
+    var blob = new Blob([csv], { type: 'text/csv' });
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'MetallicBonding_export.csv';
+    a.click();
+  }
+
+  // ── KEYBOARD ──
+  document.addEventListener('keydown', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    switch (e.key.toLowerCase()) {
+      case 'h':
+        var hl = document.getElementById('hlToggle');
+        hl.checked = !hl.checked;
+        document.body.classList.toggle('hl-active', hl.checked);
+        if (!hl.checked && _activeTab === 'bandTheory') switchTab('seaOfElectrons');
+        break;
+      case 't':
+        var tc = document.getElementById('teacherToggle');
+        tc.checked = !tc.checked;
+        document.body.classList.toggle('teacher-active', tc.checked);
+        break;
+      case '1': switchTab('seaOfElectrons'); break;
+      case '2': switchTab('properties'); break;
+      case '3': switchTab('alloys'); break;
+      case '4': switchTab('bandTheory'); break;
+      case 'r':
+        _propAnimating = false; _propAnimT = 0;
+        _alloyAnimating = false; _alloyAnimT = 0;
+        stopAll(); initElectrons(); refreshTab();
+        break;
+      case '/': e.preventDefault(); paletteSearch.focus(); break;
+      case ' ':
+        e.preventDefault();
+        if (_activeTab === 'seaOfElectrons') {
+          var fc = document.getElementById('fieldToggle');
+          fc.checked = !fc.checked; _fieldOn = fc.checked;
+        }
+        break;
+      case 'e': exportCSV(); break;
+      case 'arrowup': case 'arrowdown':
+        e.preventDefault();
+        var items = paletteList.querySelectorAll('.palette-item');
+        if (!items.length) return;
+        var ai = -1;
+        for (var i = 0; i < items.length; i++) if (items[i].classList.contains('active')) { ai = i; break; }
+        ai = e.key === 'ArrowUp' ? (ai <= 0 ? items.length - 1 : ai - 1) : (ai >= items.length - 1 ? 0 : ai + 1);
+        items[ai].click();
+        items[ai].scrollIntoView({ block: 'nearest' });
+        break;
+    }
+  });
+
+  document.getElementById('hlToggle').addEventListener('change', function() {
+    document.body.classList.toggle('hl-active', this.checked);
+    if (!this.checked && _activeTab === 'bandTheory') switchTab('seaOfElectrons');
+  });
+  document.getElementById('teacherToggle').addEventListener('change', function() {
+    document.body.classList.toggle('teacher-active', this.checked);
+  });
+  window.addEventListener('resize', function() { if (_activeTab === 'seaOfElectrons') initElectrons(); refreshTab(); });
+
+  // ── INIT ──
+  buildPalette();
+  initElectrons();
+  startSea();
+})();
+</script>
+<footer>SimEngine &mdash; Metallic Bonding &bull; H=HL T=Teacher</footer>
+</body>
+</html>

@@ -27,7 +27,8 @@
     --sim-canvas-bg: #FAFBFC;
     --hl-badge-bg: #7C3AED;
     --hl-border: rgba(124, 58, 237, 0.2);
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -41,9 +42,9 @@
 
   /* ── Header ── */
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    background: var(--navy);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: .75rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -326,9 +327,12 @@
     .bond-columns { grid-template-columns: 1fr; }
     .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
   }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <!-- Header -->
 <div class="header">
@@ -345,14 +349,14 @@
 </div>
 
 <!-- Tab Bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="hess"><span class="tab-num">1</span>Hess's Law</button>
-  <button class="tab-btn" data-tab="bond"><span class="tab-num">2</span>Bond Enthalpies</button>
-  <button class="tab-btn hl-tab" data-tab="bornhaber"><span class="tab-num">3</span>Born-Haber Cycles</button>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="hess" role="tab"><span class="tab-num">1</span>Hess's Law</button>
+  <button class="tab-btn" data-tab="bond" role="tab"><span class="tab-num">2</span>Bond Enthalpies</button>
+  <button class="tab-btn hl-tab" data-tab="bornhaber" role="tab"><span class="tab-num">3</span>Born-Haber Cycles</button>
 </div>
 
 <!-- Main Content -->
-<div class="sim-container">
+<div class="sim-container" id="main-content">
   <div class="sim-top-row">
 
     <!-- Left: Palette -->
@@ -362,7 +366,7 @@
         <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search problems">
         <div id="paletteList"></div>
         <div class="preset-section" id="presetSection">
-          <select id="presetSelect">
+          <select aria-label="Select preset reaction" id="presetSelect">
             <option value="">Teacher Presets...</option>
           </select>
         </div>
@@ -373,7 +377,7 @@
     <div class="main-panel">
 
       <!-- Tab 1: Hess's Law -->
-      <div class="tab-content active" id="tab-hess">
+      <div class="tab-content active" id="tab-hess" role="tabpanel">
         <div class="sim-card">
           <div class="sim-card-header">Hess's Law Solver</div>
           <div class="sim-card-body" id="hessBody">
@@ -391,7 +395,7 @@
       </div>
 
       <!-- Tab 2: Bond Enthalpies -->
-      <div class="tab-content" id="tab-bond">
+      <div class="tab-content" id="tab-bond" role="tabpanel">
         <div class="sim-card">
           <div class="sim-card-header">Bond Enthalpy Calculator</div>
           <div class="sim-card-body" id="bondBody">
@@ -409,7 +413,7 @@
       </div>
 
       <!-- Tab 3: Born-Haber Cycles -->
-      <div class="tab-content" id="tab-bornhaber">
+      <div class="tab-content" id="tab-bornhaber" role="tabpanel">
         <div class="sim-card">
           <div class="sim-card-header">Born-Haber Cycle Builder</div>
           <div class="sim-card-body" id="bhBody">
@@ -1822,5 +1826,6 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 
 })();
 </script>
+<footer>SimEngine &mdash; Hess's Law &bull; H=HL T=Teacher</footer>
 </body>
 </html>

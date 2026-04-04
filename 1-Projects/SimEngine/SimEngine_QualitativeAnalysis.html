@@ -1,0 +1,1207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Qualitative Analysis Lab — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--blue-bg:#EFF6FF;--teal-bg:#F0FDFA;--amber-bg:#FFFBEB;--red-bg:#FEF2F2;--purple-bg:#F5F3FF;--toggle-on:#0D9488;--green:#16A34A;--orange:#EA580C;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+  .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-right{display:flex;align-items:center;gap:.75rem;}
+  .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
+  .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.35rem;}
+  .sim-toggle{position:relative;width:40px;height:22px;display:inline-block;}
+  .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:11px;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.25rem;background:none;border:none;border-bottom:3px solid transparent;font-size:.82rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+  .tab-btn .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);font-size:.65rem;font-weight:700;color:var(--text-muted);}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .sim-container{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+  .sim-card{background:var(--card-bg);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;margin-bottom:1.5rem;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-weight:600;font-size:.85rem;}
+  .sim-card-body{padding:1.25rem;}
+  .scenario-box{background:var(--blue-bg);border:1px solid #BFDBFE;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.88rem;line-height:1.7;}
+  .btn{padding:.5rem 1.25rem;border:none;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+  .btn-teal{background:var(--teal);color:white;} .btn-teal:hover{background:#0F766E;}
+  .btn-teal:disabled{background:#CBD5E1;cursor:not-allowed;}
+  .btn-outline{background:white;color:var(--text);border:1px solid var(--border);} .btn-outline:hover{background:#F8FAFC;}
+  .btn-row{display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;}
+  .feedback{padding:.75rem 1rem;border-radius:8px;margin-top:1rem;font-size:.88rem;font-weight:500;}
+  .feedback.correct{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;}
+  .feedback.incorrect{background:var(--red-bg);color:var(--red);border:1px solid #FECACA;}
+  .feedback.info{background:var(--blue-bg);color:#1E40AF;border:1px solid #BFDBFE;}
+  .result-table{width:100%;border-collapse:collapse;margin-top:1rem;font-size:.82rem;}
+  .result-table th,.result-table td{padding:.5rem .75rem;border:1px solid var(--border);text-align:left;}
+  .result-table th{background:var(--navy);color:white;font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;}
+  .result-table td{font-size:.82rem;}
+  .result-table tr:nth-child(even){background:#F8FAFC;}
+  .teacher-panel{display:none;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.82rem;}
+  body.teacher-active .teacher-panel{display:block;}
+  .preset-section{display:none;margin-bottom:1rem;}
+  .preset-section select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--border);font-size:.8rem;font-family:inherit;}
+  body.teacher-active .preset-section{display:block;}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+
+  /* Flame test canvas */
+  .flame-area{display:flex;gap:1.5rem;flex-wrap:wrap;align-items:flex-start;}
+  .flame-canvas-wrap{flex:0 0 280px;}
+  .flame-canvas-wrap canvas{border:1px solid var(--border);border-radius:8px;background:#1a1a2e;}
+  .flame-controls{flex:1;min-width:260px;}
+
+  /* Ion test grid */
+  .ion-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:.5rem;margin:1rem 0;}
+  .ion-btn{padding:.6rem .5rem;border:1px solid var(--border);border-radius:8px;background:white;font-size:.8rem;font-weight:500;cursor:pointer;font-family:inherit;text-align:center;transition:.2s;}
+  .ion-btn:hover{border-color:var(--teal);background:var(--teal-bg);}
+  .ion-btn.selected{border-color:var(--teal);background:var(--teal-bg);font-weight:700;color:var(--teal);}
+
+  /* Precipitation well plate */
+  .well-plate{display:grid;grid-template-columns:auto repeat(6,1fr);gap:2px;margin:1rem 0;font-size:.72rem;font-weight:600;}
+  .well-header{padding:.4rem;text-align:center;background:var(--navy);color:white;border-radius:4px;font-size:.68rem;}
+  .well-row-label{padding:.4rem;text-align:center;background:var(--navy);color:white;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:.68rem;}
+  .well{width:100%;aspect-ratio:1;border-radius:50%;border:2px solid var(--border);cursor:pointer;transition:.3s;display:flex;align-items:center;justify-content:center;font-size:.6rem;color:var(--text-muted);background:white;}
+  .well:hover{border-color:var(--teal);transform:scale(1.05);}
+  .well.mixed{border-color:#94A3B8;}
+  .well.precipitate{border-width:3px;}
+
+  /* Challenge card */
+  .challenge-card{background:white;border:2px solid var(--border);border-radius:12px;padding:1.25rem;margin-bottom:1rem;}
+  .challenge-title{font-size:.95rem;font-weight:700;color:var(--navy);margin-bottom:.75rem;}
+  .test-result-row{display:flex;gap:.75rem;align-items:center;padding:.5rem .75rem;border:1px solid var(--border);border-radius:8px;margin-bottom:.5rem;background:#F8FAFC;}
+  .test-result-label{font-size:.8rem;font-weight:600;color:var(--text-muted);min-width:120px;}
+  .test-result-value{font-size:.85rem;font-weight:600;}
+  .answer-options{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:.5rem;margin:1rem 0;}
+  .answer-btn{padding:.6rem .75rem;border:1px solid var(--border);border-radius:8px;background:white;font-size:.82rem;font-weight:500;cursor:pointer;font-family:inherit;transition:.2s;text-align:center;}
+  .answer-btn:hover{border-color:var(--teal);background:var(--teal-bg);}
+  .answer-btn.selected{border-color:var(--blue);background:var(--blue-bg);color:var(--blue);font-weight:700;}
+  .answer-btn.correct-answer{border-color:var(--green);background:#DCFCE7;color:var(--green);font-weight:700;}
+  .answer-btn.wrong-answer{border-color:var(--red);background:var(--red-bg);color:var(--red);}
+  .score-bar{display:flex;gap:1.5rem;align-items:center;padding:.75rem 1rem;background:white;border:1px solid var(--border);border-radius:8px;margin-bottom:1.25rem;flex-wrap:wrap;}
+  .score-item{font-size:.82rem;font-weight:500;}
+  .score-item span{font-family:'Fira Code',monospace;color:var(--teal);font-weight:700;}
+  .practice-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.75rem;margin-bottom:1.25rem;}
+  .stat-card{background:white;border:1px solid var(--border);border-radius:8px;padding:.75rem;text-align:center;}
+  .stat-card .stat-label{font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .stat-card .stat-value{font-size:1.3rem;font-weight:700;color:var(--teal);font-family:'Fira Code',monospace;}
+  @media(max-width:700px){.flame-area{flex-direction:column;}.flame-canvas-wrap{flex:none;width:100%;}.tab-btn{padding:.6rem .7rem;font-size:.75rem;}.well-plate{font-size:.6rem;}.ion-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));}}
+  .ia-guide-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--teal);color:white;border:none;border-radius:8px 0 0 8px;padding:.75rem .4rem;cursor:pointer;font-size:.75rem;font-weight:700;writing-mode:vertical-rl;z-index:201;font-family:inherit;}
+  .ia-guide-toggle:hover{background:#0F766E;}
+  .ia-guide-panel{position:fixed;right:0;top:0;width:320px;height:100%;background:white;border-left:2px solid var(--teal);box-shadow:-4px 0 12px rgba(0,0,0,.1);transform:translateX(100%);transition:transform .3s ease;z-index:200;overflow-y:auto;padding:1.25rem 1rem;}
+  .ia-guide-panel.open{transform:translateX(0);}
+  .ia-guide-panel h3{font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:.75rem;}
+  .ia-guide-panel .ia-section{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+  .ia-guide-panel .ia-section:last-of-type{border-bottom:none;}
+  .ia-guide-panel .ia-label{font-size:.72rem;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.35rem;}
+  .ia-guide-panel .ia-hint{font-size:.82rem;line-height:1.6;color:var(--text);}
+  .ia-guide-panel .ia-vars dt{font-weight:600;color:var(--text);margin-top:.4rem;font-size:.8rem;}
+  .ia-guide-panel .ia-vars dd{color:var(--text-muted);margin-left:1rem;font-size:.8rem;line-height:1.5;}
+  .ia-guide-panel .btn-open-scaffold{display:block;width:100%;margin-top:1rem;text-align:center;text-decoration:none;}
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div>
+    <h1>Qualitative Analysis Lab<span class="subtitle">IB Chemistry — S3.1, R3.1</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">S3.1</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle HL content" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle teacher mode" id="teacherToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="flame" role="tab"><span class="tab-num">1</span>Flame Tests</button>
+  <button class="tab-btn" data-tab="precip" role="tab"><span class="tab-num">2</span>Precipitation</button>
+  <button class="tab-btn" data-tab="identify" role="tab"><span class="tab-num">3</span>Ion ID Challenge</button>
+  <button class="tab-btn" data-tab="practice" role="tab"><span class="tab-num">4</span>Practice</button>
+</div>
+
+<div class="sim-container" id="main-content">
+
+  <div class="preset-section" id="presetSection">
+    <select aria-label="Select teacher preset" id="presetSelect">
+      <option value="">Teacher Presets...</option>
+    </select>
+  </div>
+
+  <!-- TAB 1: FLAME TESTS -->
+  <div class="tab-content active" id="tab-flame" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Flame Tests — Metal Ion Identification</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          Flame tests identify metal ions by the characteristic colour they emit when heated in a Bunsen flame.
+          The metal ion's electrons are excited to higher energy levels and emit photons of specific wavelengths as they return to the ground state.
+        </div>
+        <div class="flame-area">
+          <div class="flame-canvas-wrap">
+            <canvas id="flameCanvas" role="img" aria-label="Flame test color display" width="280" height="360"></canvas>
+          </div>
+          <div class="flame-controls">
+            <div style="font-size:.78rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.5rem;">Select a metal ion to test:</div>
+            <div class="ion-grid" id="flameIonGrid"></div>
+            <div id="flameResult"></div>
+            <div class="teacher-panel" id="flameTeacher"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: PRECIPITATION -->
+  <div class="tab-content" id="tab-precip" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Precipitation Reactions — Anion &amp; Cation Testing</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          When two ionic solutions are mixed, an insoluble precipitate may form if the product exceeds its solubility.
+          Click a well to mix cation + anion solutions and observe the result. Use the solubility rules to predict outcomes.
+        </div>
+        <div id="precipArea"></div>
+        <div id="precipResult"></div>
+        <div class="teacher-panel" id="precipTeacher"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: ION ID CHALLENGE -->
+  <div class="tab-content" id="tab-identify" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Ion Identification Challenge</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          You are given an unknown ionic compound. Use flame tests, precipitation reactions, and solubility observations to identify the ions present.
+        </div>
+        <div id="identifyArea"></div>
+        <div class="teacher-panel" id="identifyTeacher"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: PRACTICE -->
+  <div class="tab-content" id="tab-practice" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Mixed Practice</div>
+      <div class="sim-card-body">
+        <div class="practice-stats">
+          <div class="stat-card"><div class="stat-label">Flame Tests</div><div class="stat-value" id="statFlame">0/0</div></div>
+          <div class="stat-card"><div class="stat-label">Precipitation</div><div class="stat-value" id="statPrecip">0/0</div></div>
+          <div class="stat-card"><div class="stat-label">Ion ID</div><div class="stat-value" id="statID">0/0</div></div>
+          <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="statTotal">0/0</div></div>
+        </div>
+        <div class="btn-row" style="margin-top:0;margin-bottom:1rem;">
+          <button class="btn btn-teal" id="btnNextPractice">Next Question</button>
+          <button class="btn btn-outline" id="btnResetStats">Reset Scores</button>
+        </div>
+        <div id="practiceContent"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp;
+  <kbd>1</kbd>&ndash;<kbd>4</kbd> Tabs &nbsp;
+  <kbd>R</kbd> Reset &nbsp; <kbd>N</kbd> New Test &nbsp; <kbd>I</kbd> IA Guide
+</div>
+
+<button class="ia-guide-toggle" id="iaToggle">IA Guide</button>
+<div class="ia-guide-panel" id="iaPanel">
+  <h3>IA Guide — Qualitative Analysis</h3>
+  <div class="ia-section">
+    <div class="ia-label">Example Research Question</div>
+    <div class="ia-hint">How can flame tests and precipitation reactions be used to identify unknown ionic compounds?</div>
+  </div>
+  <div class="ia-section">
+    <div class="ia-label">Variables</div>
+    <dl class="ia-vars">
+      <dt>IV:</dt><dd>Identity of unknown compound (unknowns A–F)</dd>
+      <dt>DV:</dt><dd>Observed flame colour / precipitate formation</dd>
+      <dt>CVs:</dt><dd>Concentration of reagents (0.1 mol dm&#8315;&#179;), sample size, observation conditions</dd>
+    </dl>
+  </div>
+  <div class="ia-section">
+    <div class="ia-label">Data Recording Prompt</div>
+    <div class="ia-hint">Record observations systematically: flame colour, precipitate colour with NaOH/AgNO&#8323;, solubility in excess. Use a results table.</div>
+  </div>
+  <a href="SimEngine_IAScaffold.html?lab=qualitative" class="btn btn-teal btn-open-scaffold">Open Full IA Scaffold &#8594;</a>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════ */
+function el(id){return document.getElementById(id);}
+function ce(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function clearEl(e){while(e&&e.firstChild)e.removeChild(e.firstChild);}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function shuffle(arr){var a=arr.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+function setupCanvas(canvas){
+  var dpr=window.devicePixelRatio||1;
+  var w=canvas.width, h=canvas.height;
+  canvas.width=w*dpr; canvas.height=h*dpr;
+  canvas.style.width=w+'px'; canvas.style.height=h+'px';
+  var ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx._cssW=w; ctx._cssH=h;
+  return ctx;
+}
+
+/* ═══════════════════════════════════════════════════
+   CHEMISTRY DATA
+   ═══════════════════════════════════════════════════ */
+
+var FLAME_IONS = [
+  { ion:'Li\u207A',  name:'Lithium',   color:'Crimson red',  hex:'#DC143C', wavelength:670, rgb:[220,20,60],   glow:'rgba(220,20,60,0.4)' },
+  { ion:'Na\u207A',  name:'Sodium',    color:'Yellow',       hex:'#FFD700', wavelength:589, rgb:[255,215,0],   glow:'rgba(255,215,0,0.5)' },
+  { ion:'K\u207A',   name:'Potassium', color:'Lilac/violet', hex:'#C8A2C8', wavelength:766, rgb:[200,162,200], glow:'rgba(200,162,200,0.4)' },
+  { ion:'Ca\u00B2\u207A', name:'Calcium',  color:'Orange-red',   hex:'#FF4500', wavelength:622, rgb:[255,69,0],    glow:'rgba(255,69,0,0.4)' },
+  { ion:'Sr\u00B2\u207A', name:'Strontium',color:'Red',          hex:'#FF0000', wavelength:640, rgb:[255,0,0],     glow:'rgba(255,0,0,0.4)' },
+  { ion:'Ba\u00B2\u207A', name:'Barium',   color:'Apple green',  hex:'#8DB600', wavelength:554, rgb:[141,182,0],   glow:'rgba(141,182,0,0.4)' },
+  { ion:'Cu\u00B2\u207A', name:'Copper',   color:'Blue-green',   hex:'#00CED1', wavelength:510, rgb:[0,206,209],   glow:'rgba(0,206,209,0.4)' }
+];
+
+var PRECIP_CATIONS = [
+  { ion:'Na\u207A',        name:'Sodium',    formula:'Na\u207A' },
+  { ion:'Ca\u00B2\u207A',  name:'Calcium',   formula:'Ca\u00B2\u207A' },
+  { ion:'Ba\u00B2\u207A',  name:'Barium',    formula:'Ba\u00B2\u207A' },
+  { ion:'Fe\u00B2\u207A',  name:'Iron(II)',   formula:'Fe\u00B2\u207A' },
+  { ion:'Fe\u00B3\u207A',  name:'Iron(III)',  formula:'Fe\u00B3\u207A' },
+  { ion:'Cu\u00B2\u207A',  name:'Copper(II)', formula:'Cu\u00B2\u207A' },
+  { ion:'Ag\u207A',        name:'Silver',    formula:'Ag\u207A' },
+  { ion:'Pb\u00B2\u207A',  name:'Lead(II)',   formula:'Pb\u00B2\u207A' }
+];
+
+var PRECIP_ANIONS = [
+  { ion:'Cl\u207B',         name:'Chloride',   formula:'Cl\u207B' },
+  { ion:'SO\u2084\u00B2\u207B', name:'Sulfate',    formula:'SO\u2084\u00B2\u207B' },
+  { ion:'OH\u207B',         name:'Hydroxide',  formula:'OH\u207B' },
+  { ion:'CO\u2083\u00B2\u207B', name:'Carbonate',  formula:'CO\u2083\u00B2\u207B' },
+  { ion:'I\u207B',          name:'Iodide',     formula:'I\u207B' },
+  { ion:'NO\u2083\u207B',   name:'Nitrate',    formula:'NO\u2083\u207B' }
+];
+
+// Precipitation results: cation index x anion index
+// S=soluble (no precipitate), I=insoluble precipitate with color, SS=slightly soluble
+var PRECIP_MATRIX = {
+  // Na+
+  'Na\u207A+Cl\u207B':       {result:'S', ppt:null},
+  'Na\u207A+SO\u2084\u00B2\u207B': {result:'S', ppt:null},
+  'Na\u207A+OH\u207B':       {result:'S', ppt:null},
+  'Na\u207A+CO\u2083\u00B2\u207B': {result:'S', ppt:null},
+  'Na\u207A+I\u207B':        {result:'S', ppt:null},
+  'Na\u207A+NO\u2083\u207B': {result:'S', ppt:null},
+  // Ca2+
+  'Ca\u00B2\u207A+Cl\u207B':       {result:'S', ppt:null},
+  'Ca\u00B2\u207A+SO\u2084\u00B2\u207B': {result:'SS', ppt:{name:'CaSO\u2084',color:'#FFFFFF',desc:'White precipitate (slightly soluble)'}},
+  'Ca\u00B2\u207A+OH\u207B':       {result:'SS', ppt:{name:'Ca(OH)\u2082',color:'#FFFFFF',desc:'White precipitate (slightly soluble)'}},
+  'Ca\u00B2\u207A+CO\u2083\u00B2\u207B': {result:'I', ppt:{name:'CaCO\u2083',color:'#FFFFFF',desc:'White precipitate'}},
+  'Ca\u00B2\u207A+I\u207B':        {result:'S', ppt:null},
+  'Ca\u00B2\u207A+NO\u2083\u207B': {result:'S', ppt:null},
+  // Ba2+
+  'Ba\u00B2\u207A+Cl\u207B':       {result:'S', ppt:null},
+  'Ba\u00B2\u207A+SO\u2084\u00B2\u207B': {result:'I', ppt:{name:'BaSO\u2084',color:'#FFFFFF',desc:'White precipitate (very insoluble)'}},
+  'Ba\u00B2\u207A+OH\u207B':       {result:'S', ppt:null},
+  'Ba\u00B2\u207A+CO\u2083\u00B2\u207B': {result:'I', ppt:{name:'BaCO\u2083',color:'#FFFFFF',desc:'White precipitate'}},
+  'Ba\u00B2\u207A+I\u207B':        {result:'S', ppt:null},
+  'Ba\u00B2\u207A+NO\u2083\u207B': {result:'S', ppt:null},
+  // Fe2+
+  'Fe\u00B2\u207A+Cl\u207B':       {result:'S', ppt:null},
+  'Fe\u00B2\u207A+SO\u2084\u00B2\u207B': {result:'S', ppt:null},
+  'Fe\u00B2\u207A+OH\u207B':       {result:'I', ppt:{name:'Fe(OH)\u2082',color:'#556B2F',desc:'Dark green (dirty green) precipitate'}},
+  'Fe\u00B2\u207A+CO\u2083\u00B2\u207B': {result:'I', ppt:{name:'FeCO\u2083',color:'#8B8B83',desc:'Off-white precipitate (decomposes)'}},
+  'Fe\u00B2\u207A+I\u207B':        {result:'S', ppt:null},
+  'Fe\u00B2\u207A+NO\u2083\u207B': {result:'S', ppt:null},
+  // Fe3+
+  'Fe\u00B3\u207A+Cl\u207B':       {result:'S', ppt:null},
+  'Fe\u00B3\u207A+SO\u2084\u00B2\u207B': {result:'S', ppt:null},
+  'Fe\u00B3\u207A+OH\u207B':       {result:'I', ppt:{name:'Fe(OH)\u2083',color:'#8B4513',desc:'Rust brown precipitate'}},
+  'Fe\u00B3\u207A+CO\u2083\u00B2\u207B': {result:'I', ppt:{name:'Fe\u2082(CO\u2083)\u2083',color:'#8B4513',desc:'Brown precipitate (decomposes)'}},
+  'Fe\u00B3\u207A+I\u207B':        {result:'S', ppt:null},
+  'Fe\u00B3\u207A+NO\u2083\u207B': {result:'S', ppt:null},
+  // Cu2+
+  'Cu\u00B2\u207A+Cl\u207B':       {result:'S', ppt:null},
+  'Cu\u00B2\u207A+SO\u2084\u00B2\u207B': {result:'S', ppt:null},
+  'Cu\u00B2\u207A+OH\u207B':       {result:'I', ppt:{name:'Cu(OH)\u2082',color:'#4169E1',desc:'Blue precipitate'}},
+  'Cu\u00B2\u207A+CO\u2083\u00B2\u207B': {result:'I', ppt:{name:'CuCO\u2083',color:'#2E8B57',desc:'Blue-green precipitate'}},
+  'Cu\u00B2\u207A+I\u207B':        {result:'I', ppt:{name:'CuI',color:'#FFFDD0',desc:'Cream/white precipitate + I\u2082 (brown)'}},
+  'Cu\u00B2\u207A+NO\u2083\u207B': {result:'S', ppt:null},
+  // Ag+
+  'Ag\u207A+Cl\u207B':       {result:'I', ppt:{name:'AgCl',color:'#FFFFFF',desc:'White precipitate (curdy)'}},
+  'Ag\u207A+SO\u2084\u00B2\u207B': {result:'SS', ppt:{name:'Ag\u2082SO\u2084',color:'#FFFFFF',desc:'White precipitate (slightly soluble)'}},
+  'Ag\u207A+OH\u207B':       {result:'I', ppt:{name:'AgOH',color:'#8B4513',desc:'Brown precipitate (decomposes to Ag\u2082O)'}},
+  'Ag\u207A+CO\u2083\u00B2\u207B': {result:'I', ppt:{name:'Ag\u2082CO\u2083',color:'#FFFDD0',desc:'White/cream precipitate'}},
+  'Ag\u207A+I\u207B':        {result:'I', ppt:{name:'AgI',color:'#FFFF99',desc:'Yellow precipitate'}},
+  'Ag\u207A+NO\u2083\u207B': {result:'S', ppt:null},
+  // Pb2+
+  'Pb\u00B2\u207A+Cl\u207B':       {result:'I', ppt:{name:'PbCl\u2082',color:'#FFFFFF',desc:'White precipitate (soluble in hot water)'}},
+  'Pb\u00B2\u207A+SO\u2084\u00B2\u207B': {result:'I', ppt:{name:'PbSO\u2084',color:'#FFFFFF',desc:'White precipitate'}},
+  'Pb\u00B2\u207A+OH\u207B':       {result:'I', ppt:{name:'Pb(OH)\u2082',color:'#FFFFFF',desc:'White precipitate'}},
+  'Pb\u00B2\u207A+CO\u2083\u00B2\u207B': {result:'I', ppt:{name:'PbCO\u2083',color:'#FFFFFF',desc:'White precipitate'}},
+  'Pb\u00B2\u207A+I\u207B':        {result:'I', ppt:{name:'PbI\u2082',color:'#FFD700',desc:'Bright yellow precipitate'}},
+  'Pb\u00B2\u207A+NO\u2083\u207B': {result:'S', ppt:null}
+};
+
+// Unknown compounds for Tab 3
+var UNKNOWNS = [
+  { cation:0, anion:0, compound:'NaCl',   cationName:'Na\u207A', anionName:'Cl\u207B', flameIdx:1 }, // Na+ yellow flame, soluble in everything
+  { cation:3, anion:2, compound:'FeSO\u2084', cationName:'Fe\u00B2\u207A', anionName:'SO\u2084\u00B2\u207B', flameIdx:null }, // no flame, green hydroxide ppt
+  { cation:5, anion:1, compound:'CuSO\u2084', cationName:'Cu\u00B2\u207A', anionName:'SO\u2084\u00B2\u207B', flameIdx:6 }, // blue-green flame, blue hydroxide ppt
+  { cation:6, anion:4, compound:'AgNO\u2083', cationName:'Ag\u207A', anionName:'NO\u2083\u207B', flameIdx:null }, // no flame, white AgCl ppt
+  { cation:2, anion:0, compound:'BaCl\u2082', cationName:'Ba\u00B2\u207A', anionName:'Cl\u207B', flameIdx:5 }, // green flame, white BaSO4 ppt
+  { cation:1, anion:3, compound:'CaCO\u2083', cationName:'Ca\u00B2\u207A', anionName:'CO\u2083\u00B2\u207B', flameIdx:3 }, // orange-red flame, white ppt with sulfate
+  { cation:7, anion:5, compound:'Pb(NO\u2083)\u2082', cationName:'Pb\u00B2\u207A', anionName:'NO\u2083\u207B', flameIdx:null }, // no flame, yellow PbI2, white PbCl2
+  { cation:4, anion:0, compound:'FeCl\u2083', cationName:'Fe\u00B3\u207A', anionName:'Cl\u207B', flameIdx:null }, // no flame, brown hydroxide ppt
+  { cation:0, anion:3, compound:'Na\u2082CO\u2083', cationName:'Na\u207A', anionName:'CO\u2083\u00B2\u207B', flameIdx:1 }, // yellow flame, ppt with Ca, Ba etc.
+  { cation:5, anion:0, compound:'CuCl\u2082', cationName:'Cu\u00B2\u207A', anionName:'Cl\u207B', flameIdx:6 } // blue-green flame, blue hydroxide ppt, white AgCl
+];
+
+/* ═══════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════ */
+var _activeTab = 'flame';
+var _hlMode = false;
+var _teacherMode = false;
+var _selectedFlame = -1;
+var _currentUnknown = null;
+var _unknownTests = [];
+var _scores = {flame:{c:0,t:0}, precip:{c:0,t:0}, id:{c:0,t:0}};
+
+/* ═══════════════════════════════════════════════════
+   TAB 1: FLAME TESTS
+   ═══════════════════════════════════════════════════ */
+
+function drawFlame(ctx, flameData){
+  var w = ctx._cssW || 280, h = ctx._cssH || 360;
+  ctx.clearRect(0,0,w,h);
+
+  // dark background
+  ctx.fillStyle = '#1a1a2e';
+  ctx.fillRect(0,0,w,h);
+
+  // Bunsen burner base
+  ctx.fillStyle = '#555';
+  ctx.fillRect(w/2-20, h-60, 40, 60);
+  ctx.fillStyle = '#444';
+  ctx.fillRect(w/2-30, h-65, 60, 10);
+
+  // Wire loop
+  ctx.strokeStyle = '#999';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(w/2+40, h-100);
+  ctx.lineTo(w/2+10, h/2+20);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(w/2+10, h/2+10, 8, 0, Math.PI*2);
+  ctx.stroke();
+
+  if(!flameData){
+    // Default blue flame
+    drawFlameShape(ctx, w/2, h-65, 50, 120, [60,120,255], 'rgba(60,120,255,0.2)');
+    ctx.fillStyle = '#94A3B8';
+    ctx.font = '500 13px Inter,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Select an ion to test', w/2, 30);
+    return;
+  }
+
+  // Coloured flame
+  var rgb = flameData.rgb;
+  drawFlameShape(ctx, w/2, h-65, 55, 140, rgb, flameData.glow);
+
+  // Label
+  ctx.fillStyle = 'white';
+  ctx.font = '700 14px Inter,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(flameData.ion + ' \u2014 ' + flameData.name, w/2, 25);
+  ctx.font = '600 12px Inter,sans-serif';
+  ctx.fillStyle = flameData.hex;
+  ctx.fillText(flameData.color, w/2, 45);
+  ctx.fillStyle = 'rgba(255,255,255,0.6)';
+  ctx.font = '400 11px "Fira Code",monospace';
+  ctx.fillText('\u03BB = ' + flameData.wavelength + ' nm', w/2, 63);
+}
+
+function drawFlameShape(ctx, cx, baseY, width, height, rgb, glowColor){
+  // glow
+  var grad = ctx.createRadialGradient(cx, baseY-height*0.4, 10, cx, baseY-height*0.4, width*1.8);
+  grad.addColorStop(0, glowColor);
+  grad.addColorStop(1, 'transparent');
+  ctx.fillStyle = grad;
+  ctx.fillRect(cx-width*2, baseY-height-30, width*4, height+60);
+
+  // flame body
+  var flameGrad = ctx.createLinearGradient(cx, baseY, cx, baseY-height);
+  flameGrad.addColorStop(0, 'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',0.9)');
+  flameGrad.addColorStop(0.3, 'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',0.8)');
+  flameGrad.addColorStop(0.7, 'rgba('+Math.min(255,rgb[0]+40)+','+Math.min(255,rgb[1]+40)+','+Math.min(255,rgb[2]+40)+',0.6)');
+  flameGrad.addColorStop(1, 'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+',0.1)');
+
+  ctx.fillStyle = flameGrad;
+  ctx.beginPath();
+  ctx.moveTo(cx-width*0.4, baseY);
+  // left side
+  ctx.bezierCurveTo(cx-width, baseY-height*0.3, cx-width*0.7, baseY-height*0.7, cx, baseY-height);
+  // right side
+  ctx.bezierCurveTo(cx+width*0.7, baseY-height*0.7, cx+width, baseY-height*0.3, cx+width*0.4, baseY);
+  ctx.closePath();
+  ctx.fill();
+
+  // inner bright core
+  var coreGrad = ctx.createLinearGradient(cx, baseY, cx, baseY-height*0.5);
+  coreGrad.addColorStop(0, 'rgba(255,255,255,0.4)');
+  coreGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = coreGrad;
+  ctx.beginPath();
+  ctx.moveTo(cx-width*0.15, baseY);
+  ctx.bezierCurveTo(cx-width*0.3, baseY-height*0.2, cx-width*0.2, baseY-height*0.4, cx, baseY-height*0.5);
+  ctx.bezierCurveTo(cx+width*0.2, baseY-height*0.4, cx+width*0.3, baseY-height*0.2, cx+width*0.15, baseY);
+  ctx.closePath();
+  ctx.fill();
+}
+
+function buildFlameGrid(){
+  var grid = el('flameIonGrid');
+  clearEl(grid);
+  for(var i=0;i<FLAME_IONS.length;i++){
+    var btn = ce('button','ion-btn',FLAME_IONS[i].ion + ' ' + FLAME_IONS[i].name);
+    btn.setAttribute('data-idx',i.toString());
+    btn.addEventListener('click', function(){
+      var idx = parseInt(this.getAttribute('data-idx'));
+      selectFlameIon(idx);
+    });
+    grid.appendChild(btn);
+  }
+}
+
+function selectFlameIon(idx){
+  _selectedFlame = idx;
+  var ctx = el('flameCanvas').getContext('2d');
+  drawFlame(ctx, FLAME_IONS[idx]);
+
+  // highlight button
+  var btns = el('flameIonGrid').querySelectorAll('.ion-btn');
+  for(var i=0;i<btns.length;i++) btns[i].classList.toggle('selected', i===idx);
+
+  // result info
+  var res = el('flameResult');
+  clearEl(res);
+  var ion = FLAME_IONS[idx];
+  var info = ce('div','feedback info');
+  info.textContent = ion.ion + ' produces a ' + ion.color.toLowerCase() + ' flame (\u03BB = ' + ion.wavelength + ' nm). ' +
+    'This is due to electron transitions specific to the ' + ion.name.toLowerCase() + ' ion.';
+  res.appendChild(info);
+
+  // teacher panel
+  var teacher = el('flameTeacher');
+  clearEl(teacher);
+  var title = ce('div',null,'\ud83c\udf93 Teacher Notes'); title.style.fontWeight='700'; title.style.marginBottom='.5rem';
+  teacher.appendChild(title);
+  var notes = [
+    'IB exam tip: Students must memorise flame colours for Li, Na, K, Ca, Ba, Cu',
+    'Sodium contamination: Na\u207A impurity gives persistent yellow that can mask other colours \u2192 view through blue glass to filter',
+    'Strontium (red) vs Lithium (crimson red): Sr is brighter red, Li has more crimson/magenta tint',
+    'Key concept: Flame colours arise from electronic transitions between quantised energy levels',
+    'Connection to emission spectra: Each element has a unique set of emission lines'
+  ];
+  for(var i=0;i<notes.length;i++){
+    var p = ce('div',null,notes[i]); p.style.marginBottom='.3rem';
+    teacher.appendChild(p);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   TAB 2: PRECIPITATION
+   ═══════════════════════════════════════════════════ */
+
+function buildPrecipTable(){
+  var area = el('precipArea');
+  clearEl(area);
+
+  var grid = ce('div','well-plate');
+  // number of columns = anions + 1 (for row label)
+  grid.style.gridTemplateColumns = 'auto repeat('+PRECIP_ANIONS.length+',1fr)';
+
+  // corner cell
+  var corner = ce('div','well-header','\u2193 Cation / Anion \u2192');
+  grid.appendChild(corner);
+
+  // anion headers
+  for(var j=0;j<PRECIP_ANIONS.length;j++){
+    var h = ce('div','well-header',PRECIP_ANIONS[j].formula);
+    grid.appendChild(h);
+  }
+
+  // rows
+  for(var i=0;i<PRECIP_CATIONS.length;i++){
+    var rowLabel = ce('div','well-row-label',PRECIP_CATIONS[i].formula);
+    grid.appendChild(rowLabel);
+
+    for(var j=0;j<PRECIP_ANIONS.length;j++){
+      var well = ce('div','well');
+      well.setAttribute('data-cat',i.toString());
+      well.setAttribute('data-an',j.toString());
+      well.addEventListener('click', function(){
+        var ci = parseInt(this.getAttribute('data-cat'));
+        var ai = parseInt(this.getAttribute('data-an'));
+        mixWell(this, ci, ai);
+      });
+      grid.appendChild(well);
+    }
+  }
+
+  area.appendChild(grid);
+}
+
+function mixWell(wellEl, catIdx, anIdx){
+  var cat = PRECIP_CATIONS[catIdx];
+  var an = PRECIP_ANIONS[anIdx];
+  var key = cat.ion + '+' + an.ion;
+  var data = PRECIP_MATRIX[key];
+
+  if(!data){
+    wellEl.style.background = '#E0E0E0';
+    wellEl.classList.add('mixed');
+    return;
+  }
+
+  if(data.result === 'S'){
+    wellEl.style.background = 'rgba(200,220,255,0.3)';
+    wellEl.classList.add('mixed');
+    wellEl.title = 'No precipitate (soluble)';
+  } else {
+    var color = data.ppt ? data.ppt.color : '#FFFFFF';
+    wellEl.style.background = color;
+    wellEl.classList.add('mixed','precipitate');
+    wellEl.style.borderColor = '#666';
+    wellEl.title = data.ppt ? data.ppt.desc : 'Precipitate formed';
+  }
+
+  // Show result below
+  var res = el('precipResult');
+  clearEl(res);
+
+  var fb = ce('div','feedback');
+  if(data.result === 'S'){
+    fb.className = 'feedback info';
+    fb.textContent = cat.formula + ' + ' + an.formula + ' \u2192 No precipitate (all products are soluble)';
+  } else {
+    fb.className = 'feedback correct';
+    var txt = cat.formula + ' + ' + an.formula + ' \u2192 ' + data.ppt.name + ' precipitate! ' + data.ppt.desc;
+    if(data.result === 'SS') txt += ' (slightly soluble)';
+    fb.textContent = txt;
+  }
+  res.appendChild(fb);
+
+  // teacher
+  var teacher = el('precipTeacher');
+  clearEl(teacher);
+  var title = ce('div',null,'\ud83c\udf93 Teacher Notes'); title.style.fontWeight='700'; title.style.marginBottom='.5rem';
+  teacher.appendChild(title);
+
+  var rule = 'Solubility rule: ';
+  if(an.ion.indexOf('Cl')>=0||an.ion.indexOf('Br')>=0||an.ion.indexOf('I')>=0){
+    rule += 'All halides are soluble EXCEPT AgX, PbX\u2082';
+  } else if(an.ion.indexOf('SO')>=0){
+    rule += 'All sulfates are soluble EXCEPT BaSO\u2084, PbSO\u2084, CaSO\u2084';
+  } else if(an.ion.indexOf('OH')>=0){
+    rule += 'All hydroxides are insoluble EXCEPT Group 1, Ba(OH)\u2082';
+  } else if(an.ion.indexOf('CO')>=0){
+    rule += 'All carbonates are insoluble EXCEPT Group 1, NH\u2084\u207A';
+  } else if(an.ion.indexOf('NO')>=0){
+    rule += 'All nitrates are soluble (no exceptions)';
+  }
+  var p1 = ce('div',null,rule); p1.style.marginBottom='.3rem';
+  teacher.appendChild(p1);
+
+  if(data.ppt){
+    var ionic = ce('div',null,'Net ionic equation: '+cat.formula+' + '+an.formula+' \u2192 '+data.ppt.name+'(s)');
+    ionic.style.marginBottom='.3rem'; ionic.style.fontFamily='"Fira Code",monospace';
+    teacher.appendChild(ionic);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   TAB 3: ION ID CHALLENGE
+   ═══════════════════════════════════════════════════ */
+
+function newUnknown(){
+  _currentUnknown = UNKNOWNS[Math.floor(Math.random()*UNKNOWNS.length)];
+  _unknownTests = [];
+  buildIdentifyUI();
+}
+
+function buildIdentifyUI(){
+  var area = el('identifyArea');
+  clearEl(area);
+
+  var unk = _currentUnknown;
+  if(!unk){
+    var p = ce('p',null,'Click "New Test" or press N to get an unknown compound.');
+    p.style.cssText='color:var(--text-muted);font-size:.88rem;text-align:center;padding:2rem 0;';
+    area.appendChild(p);
+    var btn = ce('button','btn btn-teal','Start Challenge');
+    btn.addEventListener('click', newUnknown);
+    btn.style.display='block'; btn.style.margin='0 auto';
+    area.appendChild(btn);
+    return;
+  }
+
+  var card = ce('div','challenge-card');
+  var title = ce('div','challenge-title','Unknown Ionic Compound');
+  card.appendChild(title);
+
+  var desc = ce('div',null,'A white crystalline solid has been dissolved in water to give a clear, colourless solution. Identify the cation and anion.');
+  desc.style.cssText='font-size:.85rem;margin-bottom:1rem;color:var(--text-muted);';
+  // Adjust appearance if solution is coloured
+  var cat = PRECIP_CATIONS[unk.cation];
+  if(cat.ion.indexOf('Cu')>=0) desc.textContent = 'A blue crystalline solid has been dissolved in water to give a blue solution. Identify the cation and anion.';
+  else if(cat.ion.indexOf('Fe\u00B2')>=0) desc.textContent = 'A green solid has been dissolved in water to give a pale green solution. Identify the cation and anion.';
+  else if(cat.ion.indexOf('Fe\u00B3')>=0) desc.textContent = 'A yellow-brown solid has been dissolved in water to give a yellow solution. Identify the cation and anion.';
+  card.appendChild(desc);
+
+  // Test buttons
+  var testSection = ce('div');
+  var testLabel = ce('div',null,'Choose a test to perform:');
+  testLabel.style.cssText='font-size:.82rem;font-weight:600;margin-bottom:.5rem;';
+  testSection.appendChild(testLabel);
+
+  var tests = [
+    {id:'flame', label:'Flame test'},
+    {id:'naoh', label:'Add NaOH(aq)'},
+    {id:'agno3', label:'Add AgNO\u2083(aq)'},
+    {id:'bacl2', label:'Add BaCl\u2082(aq)'},
+    {id:'na2co3', label:'Add Na\u2082CO\u2083(aq)'},
+    {id:'hcl', label:'Add dilute HCl'}
+  ];
+
+  var testGrid = ce('div');
+  testGrid.style.cssText='display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;';
+  for(var i=0;i<tests.length;i++){
+    var tb = ce('button','btn btn-outline',tests[i].label);
+    tb.setAttribute('data-test',tests[i].id);
+    tb.addEventListener('click', function(){
+      performTest(this.getAttribute('data-test'));
+    });
+    testGrid.appendChild(tb);
+  }
+  testSection.appendChild(testGrid);
+  card.appendChild(testSection);
+
+  // Test results area
+  var resultsArea = ce('div');
+  resultsArea.id = 'testResults';
+  card.appendChild(resultsArea);
+
+  // Show previous test results
+  for(var i=0;i<_unknownTests.length;i++){
+    var row = ce('div','test-result-row');
+    var lbl = ce('div','test-result-label',_unknownTests[i].test);
+    var val = ce('div','test-result-value',_unknownTests[i].result);
+    if(_unknownTests[i].color) val.style.color = _unknownTests[i].color;
+    row.appendChild(lbl); row.appendChild(val);
+    resultsArea.appendChild(row);
+  }
+
+  // Answer section
+  var ansSection = ce('div');
+  ansSection.style.cssText='margin-top:1.25rem;border-top:1px solid var(--border);padding-top:1rem;';
+
+  var ansLabel = ce('div',null,'Your identification:');
+  ansLabel.style.cssText='font-size:.82rem;font-weight:600;margin-bottom:.5rem;';
+  ansSection.appendChild(ansLabel);
+
+  // Cation guess
+  var catLabel = ce('div',null,'Cation:');
+  catLabel.style.cssText='font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.3rem;';
+  ansSection.appendChild(catLabel);
+
+  var catGrid = ce('div','answer-options');
+  catGrid.id = 'cationAnswer';
+  for(var i=0;i<PRECIP_CATIONS.length;i++){
+    var b = ce('button','answer-btn',PRECIP_CATIONS[i].formula);
+    b.setAttribute('data-idx',i.toString());
+    b.addEventListener('click', function(){
+      var btns = catGrid.querySelectorAll('.answer-btn');
+      for(var j=0;j<btns.length;j++) btns[j].classList.remove('selected');
+      this.classList.add('selected');
+    });
+    catGrid.appendChild(b);
+  }
+  ansSection.appendChild(catGrid);
+
+  // Anion guess
+  var anLabel = ce('div',null,'Anion:');
+  anLabel.style.cssText='font-size:.78rem;font-weight:600;color:var(--text-muted);margin-top:.75rem;margin-bottom:.3rem;';
+  ansSection.appendChild(anLabel);
+
+  var anGrid = ce('div','answer-options');
+  anGrid.id = 'anionAnswer';
+  for(var i=0;i<PRECIP_ANIONS.length;i++){
+    var b = ce('button','answer-btn',PRECIP_ANIONS[i].formula);
+    b.setAttribute('data-idx',i.toString());
+    b.addEventListener('click', function(){
+      var btns = anGrid.querySelectorAll('.answer-btn');
+      for(var j=0;j<btns.length;j++) btns[j].classList.remove('selected');
+      this.classList.add('selected');
+    });
+    anGrid.appendChild(b);
+  }
+  ansSection.appendChild(anGrid);
+
+  var submitRow = ce('div','btn-row');
+  var submitBtn = ce('button','btn btn-teal','Check Answer');
+  submitBtn.addEventListener('click', checkIdentifyAnswer);
+  var newBtn = ce('button','btn btn-outline','New Unknown');
+  newBtn.addEventListener('click', newUnknown);
+  submitRow.appendChild(submitBtn);
+  submitRow.appendChild(newBtn);
+  ansSection.appendChild(submitRow);
+
+  var fbDiv = ce('div'); fbDiv.id = 'identifyFeedback';
+  ansSection.appendChild(fbDiv);
+
+  card.appendChild(ansSection);
+  area.appendChild(card);
+
+  // Teacher panel
+  var teacher = el('identifyTeacher');
+  clearEl(teacher);
+  var tTitle = ce('div',null,'\ud83c\udf93 Answer: '+unk.compound+' ('+unk.cationName+' + '+unk.anionName+')');
+  tTitle.style.fontWeight='700'; tTitle.style.marginBottom='.5rem';
+  teacher.appendChild(tTitle);
+}
+
+function performTest(testId){
+  var unk = _currentUnknown;
+  if(!unk) return;
+  var cat = PRECIP_CATIONS[unk.cation];
+  var an = PRECIP_ANIONS[unk.anion];
+  var result = '';
+  var color = null;
+
+  switch(testId){
+    case 'flame':
+      if(unk.flameIdx != null){
+        var fi = FLAME_IONS[unk.flameIdx];
+        result = fi.color + ' flame';
+        color = fi.hex;
+      } else {
+        result = 'No characteristic flame colour';
+        color = '#94A3B8';
+      }
+      break;
+    case 'naoh':
+      // Test cation with OH-
+      var key = cat.ion + '+OH\u207B';
+      var data = PRECIP_MATRIX[key];
+      if(data && data.ppt){
+        result = data.ppt.desc;
+        color = data.ppt.color === '#FFFFFF' ? '#334155' : data.ppt.color;
+      } else {
+        result = 'No precipitate';
+      }
+      break;
+    case 'agno3':
+      // Test anion with Ag+
+      var key2 = 'Ag\u207A+'+an.ion;
+      var data2 = PRECIP_MATRIX[key2];
+      if(data2 && data2.ppt){
+        result = data2.ppt.desc;
+        color = data2.ppt.color === '#FFFFFF' ? '#334155' : data2.ppt.color;
+      } else {
+        result = 'No precipitate';
+      }
+      break;
+    case 'bacl2':
+      // Test anion with Ba2+
+      var key3 = 'Ba\u00B2\u207A+'+an.ion;
+      var data3 = PRECIP_MATRIX[key3];
+      if(data3 && data3.ppt){
+        result = data3.ppt.desc;
+        color = data3.ppt.color === '#FFFFFF' ? '#334155' : data3.ppt.color;
+      } else {
+        result = 'No precipitate';
+      }
+      break;
+    case 'na2co3':
+      // Test cation with CO3 2-
+      var key4 = cat.ion + '+CO\u2083\u00B2\u207B';
+      var data4 = PRECIP_MATRIX[key4];
+      if(data4 && data4.ppt){
+        result = data4.ppt.desc;
+        color = data4.ppt.color === '#FFFFFF' ? '#334155' : data4.ppt.color;
+      } else {
+        result = 'No precipitate';
+      }
+      break;
+    case 'hcl':
+      // Tests carbonate (fizzing) or general
+      if(an.ion.indexOf('CO')>=0){
+        result = 'Fizzing/effervescence observed (CO\u2082 gas produced)';
+        color = '#0D9488';
+      } else {
+        result = 'No visible reaction';
+      }
+      break;
+  }
+
+  var testNames = {flame:'Flame test',naoh:'NaOH(aq)',agno3:'AgNO\u2083(aq)',bacl2:'BaCl\u2082(aq)',na2co3:'Na\u2082CO\u2083(aq)',hcl:'Dilute HCl'};
+  _unknownTests.push({test:testNames[testId], result:result, color:color});
+  buildIdentifyUI(); // rebuild to show new result
+}
+
+function checkIdentifyAnswer(){
+  var unk = _currentUnknown;
+  if(!unk) return;
+
+  var catBtns = document.querySelectorAll('#cationAnswer .answer-btn.selected');
+  var anBtns = document.querySelectorAll('#anionAnswer .answer-btn.selected');
+
+  if(catBtns.length===0 || anBtns.length===0){
+    var fb = el('identifyFeedback');
+    clearEl(fb);
+    var msg = ce('div','feedback incorrect','Please select both a cation and an anion.');
+    fb.appendChild(msg);
+    return;
+  }
+
+  var catGuess = parseInt(catBtns[0].getAttribute('data-idx'));
+  var anGuess = parseInt(anBtns[0].getAttribute('data-idx'));
+  var catCorrect = catGuess === unk.cation;
+  var anCorrect = anGuess === unk.anion;
+
+  var fb = el('identifyFeedback');
+  clearEl(fb);
+
+  // Highlight correct/wrong
+  var allCatBtns = document.querySelectorAll('#cationAnswer .answer-btn');
+  var allAnBtns = document.querySelectorAll('#anionAnswer .answer-btn');
+  for(var i=0;i<allCatBtns.length;i++){
+    if(i===unk.cation) allCatBtns[i].classList.add('correct-answer');
+    else if(allCatBtns[i].classList.contains('selected')) allCatBtns[i].classList.add('wrong-answer');
+  }
+  for(var i=0;i<allAnBtns.length;i++){
+    if(i===unk.anion) allAnBtns[i].classList.add('correct-answer');
+    else if(allAnBtns[i].classList.contains('selected')) allAnBtns[i].classList.add('wrong-answer');
+  }
+
+  if(catCorrect && anCorrect){
+    var msg = ce('div','feedback correct',
+      'Correct! The compound is '+unk.compound+' ('+unk.cationName+' + '+unk.anionName+')');
+    fb.appendChild(msg);
+    _scores.id.c++; _scores.id.t++;
+  } else {
+    var parts = [];
+    if(!catCorrect) parts.push('Cation: '+unk.cationName);
+    if(!anCorrect) parts.push('Anion: '+unk.anionName);
+    var msg = ce('div','feedback incorrect',
+      'Not quite. The compound is '+unk.compound+'. Correct: '+parts.join(', '));
+    fb.appendChild(msg);
+    _scores.id.t++;
+  }
+  updateStats();
+}
+
+/* ═══════════════════════════════════════════════════
+   TAB 4: PRACTICE
+   ═══════════════════════════════════════════════════ */
+
+function newPracticeQ(){
+  var area = el('practiceContent');
+  clearEl(area);
+
+  var type = pick(['flame','flame','precip','precip','id']);
+
+  if(type === 'flame'){
+    // random flame test question
+    var ion = pick(FLAME_IONS);
+    var qType = pick(['color_to_ion','ion_to_color']);
+
+    var card = ce('div','challenge-card');
+    var title = ce('div','challenge-title', qType==='color_to_ion' ? 'Flame Test: Identify the Ion' : 'Flame Test: Name the Colour');
+    card.appendChild(title);
+
+    if(qType === 'color_to_ion'){
+      var q = ce('div',null,'A flame test produces a '+ion.color.toLowerCase()+' flame. Which metal ion is present?');
+      q.style.cssText='font-size:.88rem;margin-bottom:1rem;';
+      card.appendChild(q);
+
+      var opts = ce('div','answer-options');
+      var choices = shuffle(FLAME_IONS.slice()).slice(0,4);
+      if(!choices.find(function(c){return c.ion===ion.ion;})){
+        choices[0] = ion;
+        choices = shuffle(choices);
+      }
+      for(var i=0;i<choices.length;i++){
+        var b = ce('button','answer-btn', choices[i].ion+' '+choices[i].name);
+        b.setAttribute('data-ion',choices[i].ion);
+        b.addEventListener('click', (function(correctIon, btn){
+          return function(){
+            var btns = opts.querySelectorAll('.answer-btn');
+            for(var j=0;j<btns.length;j++){
+              if(btns[j].getAttribute('data-ion')===correctIon) btns[j].classList.add('correct-answer');
+              else if(btns[j]===this) btns[j].classList.add('wrong-answer');
+              btns[j].style.pointerEvents='none';
+            }
+            var correct = this.getAttribute('data-ion') === correctIon;
+            _scores.flame.t++;
+            if(correct) _scores.flame.c++;
+            updateStats();
+          };
+        })(ion.ion, null));
+        opts.appendChild(b);
+      }
+      card.appendChild(opts);
+    } else {
+      var q = ce('div',null,'What colour flame does '+ion.ion+' ('+ion.name+') produce?');
+      q.style.cssText='font-size:.88rem;margin-bottom:1rem;';
+      card.appendChild(q);
+
+      var opts = ce('div','answer-options');
+      var colorChoices = shuffle(FLAME_IONS.map(function(f){return f.color;}));
+      colorChoices = colorChoices.filter(function(c,i,a){return a.indexOf(c)===i;}).slice(0,4);
+      if(colorChoices.indexOf(ion.color)<0){ colorChoices[0]=ion.color; colorChoices=shuffle(colorChoices); }
+      for(var i=0;i<colorChoices.length;i++){
+        var b = ce('button','answer-btn', colorChoices[i]);
+        b.setAttribute('data-color',colorChoices[i]);
+        b.addEventListener('click', (function(correctColor){
+          return function(){
+            var btns = opts.querySelectorAll('.answer-btn');
+            for(var j=0;j<btns.length;j++){
+              if(btns[j].getAttribute('data-color')===correctColor) btns[j].classList.add('correct-answer');
+              else if(btns[j]===this) btns[j].classList.add('wrong-answer');
+              btns[j].style.pointerEvents='none';
+            }
+            var correct = this.getAttribute('data-color')===correctColor;
+            _scores.flame.t++;
+            if(correct) _scores.flame.c++;
+            updateStats();
+          };
+        })(ion.color));
+        opts.appendChild(b);
+      }
+      card.appendChild(opts);
+    }
+    area.appendChild(card);
+
+  } else if(type === 'precip'){
+    // precipitation prediction
+    var cat = pick(PRECIP_CATIONS);
+    var an = pick(PRECIP_ANIONS);
+    var key = cat.ion+'+'+an.ion;
+    var data = PRECIP_MATRIX[key];
+
+    var card = ce('div','challenge-card');
+    var title = ce('div','challenge-title','Predict the Outcome');
+    card.appendChild(title);
+
+    var q = ce('div',null,'What happens when a solution containing '+cat.formula+' ions is mixed with a solution containing '+an.formula+' ions?');
+    q.style.cssText='font-size:.88rem;margin-bottom:1rem;';
+    card.appendChild(q);
+
+    var opts = ce('div','answer-options');
+    var correctAns = (data && data.ppt) ? 'precipitate' : 'soluble';
+    var choices = [
+      {label:'No precipitate (soluble)', val:'soluble'},
+      {label:'White precipitate', val:'precipitate'},
+      {label:'Coloured precipitate', val:'precipitate'}
+    ];
+    if(data && data.ppt && data.ppt.color !== '#FFFFFF'){
+      choices[1] = {label:'White precipitate',val:'wrong_color'};
+    } else if(data && data.ppt){
+      choices[2] = {label:'Coloured precipitate',val:'wrong_color'};
+    }
+
+    for(var i=0;i<choices.length;i++){
+      var b = ce('button','answer-btn',choices[i].label);
+      b.setAttribute('data-val',choices[i].val);
+      b.addEventListener('click', (function(correct, pptData){
+        return function(){
+          var isCorrect = this.getAttribute('data-val') === correct;
+          var btns = opts.querySelectorAll('.answer-btn');
+          for(var j=0;j<btns.length;j++){
+            if(btns[j].getAttribute('data-val')===correct) btns[j].classList.add('correct-answer');
+            else if(btns[j]===this && !isCorrect) btns[j].classList.add('wrong-answer');
+            btns[j].style.pointerEvents='none';
+          }
+          _scores.precip.t++;
+          if(isCorrect) _scores.precip.c++;
+          updateStats();
+
+          // Show explanation
+          var fb = ce('div','feedback');
+          if(pptData && pptData.ppt){
+            fb.className='feedback info';
+            fb.textContent = pptData.ppt.name + ': ' + pptData.ppt.desc;
+          } else {
+            fb.className='feedback info';
+            fb.textContent = 'Both products are soluble \u2014 no precipitate forms.';
+          }
+          card.appendChild(fb);
+        };
+      })(correctAns, data));
+      opts.appendChild(b);
+    }
+    card.appendChild(opts);
+    area.appendChild(card);
+
+  } else {
+    // Quick ion ID
+    newUnknown();
+    switchTab('identify');
+  }
+}
+
+function updateStats(){
+  var f=_scores.flame, p=_scores.precip, id=_scores.id;
+  el('statFlame').textContent = f.c+'/'+f.t;
+  el('statPrecip').textContent = p.c+'/'+p.t;
+  el('statID').textContent = id.c+'/'+id.t;
+  el('statTotal').textContent = (f.c+p.c+id.c)+'/'+(f.t+p.t+id.t);
+}
+
+/* ═══════════════════════════════════════════════════
+   PRESETS
+   ═══════════════════════════════════════════════════ */
+
+var PRESETS = [
+  { n:'Li vs Na vs K flames', tab:'flame', apply:function(){ selectFlameIon(0); }},
+  { n:'Cu blue-green flame', tab:'flame', apply:function(){ selectFlameIon(6); }},
+  { n:'Halide test (Ag\u207A)', tab:'precip', apply:function(){ }},
+  { n:'Sulfate test (Ba\u00B2\u207A)', tab:'precip', apply:function(){ }},
+  { n:'Hydroxide colours', tab:'precip', apply:function(){ }},
+  { n:'Ion ID Challenge', tab:'identify', apply:function(){ newUnknown(); }}
+];
+
+function buildPresets(){
+  var sel = el('presetSelect');
+  clearEl(sel);
+  var def = ce('option',null,'Teacher Presets...'); def.value=''; sel.appendChild(def);
+  for(var i=0;i<PRESETS.length;i++){
+    var opt = ce('option',null,PRESETS[i].n); opt.value=i.toString(); sel.appendChild(opt);
+  }
+}
+
+/* ═══════════════════════════════════════════════════
+   TABS, TOGGLES, KEYBOARD
+   ═══════════════════════════════════════════════════ */
+
+function switchTab(tabId){
+  _activeTab = tabId;
+  var btns = document.querySelectorAll('.tab-btn');
+  var tabs = document.querySelectorAll('.tab-content');
+  for(var i=0;i<btns.length;i++) btns[i].classList.toggle('active', btns[i].getAttribute('data-tab')===tabId);
+  for(var i=0;i<tabs.length;i++) tabs[i].classList.toggle('active', tabs[i].id==='tab-'+tabId);
+}
+
+/* ═══════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════ */
+
+function init(){
+  setupCanvas(el('flameCanvas'));
+  buildFlameGrid();
+  drawFlame(el('flameCanvas').getContext('2d'), null);
+  buildPrecipTable();
+  buildIdentifyUI();
+  buildPresets();
+
+  // Tabs
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  for(var i=0;i<tabBtns.length;i++){
+    tabBtns[i].addEventListener('click', function(){ switchTab(this.getAttribute('data-tab')); });
+  }
+
+  // Toggles
+  el('hlToggle').addEventListener('change', function(){
+    _hlMode=this.checked; document.body.classList.toggle('hl-active',_hlMode);
+  });
+  el('teacherToggle').addEventListener('change', function(){
+    _teacherMode=this.checked; document.body.classList.toggle('teacher-active',_teacherMode);
+  });
+
+  // Presets
+  el('presetSelect').addEventListener('change', function(){
+    var idx=parseInt(this.value);
+    if(!isNaN(idx)&&PRESETS[idx]){
+      if(PRESETS[idx].tab) switchTab(PRESETS[idx].tab);
+      PRESETS[idx].apply();
+    }
+    this.value='';
+  });
+
+  // Practice buttons
+  el('btnNextPractice').addEventListener('click', newPracticeQ);
+  el('btnResetStats').addEventListener('click', function(){
+    _scores={flame:{c:0,t:0},precip:{c:0,t:0},id:{c:0,t:0}};
+    updateStats();
+    clearEl(el('practiceContent'));
+  });
+
+  // Keyboard
+  document.addEventListener('keydown', function(e){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA') return;
+    var key=e.key.toUpperCase();
+    if(key==='H'){el('hlToggle').checked=!el('hlToggle').checked;el('hlToggle').dispatchEvent(new Event('change'));}
+    else if(key==='T'){el('teacherToggle').checked=!el('teacherToggle').checked;el('teacherToggle').dispatchEvent(new Event('change'));}
+    else if(key==='1') switchTab('flame');
+    else if(key==='2') switchTab('precip');
+    else if(key==='3') switchTab('identify');
+    else if(key==='4') switchTab('practice');
+    else if(key==='R'){
+      if(_activeTab==='flame'){_selectedFlame=-1;drawFlame(el('flameCanvas').getContext('2d'),null);clearEl(el('flameResult'));clearEl(el('flameTeacher'));var b=el('flameIonGrid').querySelectorAll('.ion-btn');for(var i=0;i<b.length;i++)b[i].classList.remove('selected');}
+      else if(_activeTab==='precip'){buildPrecipTable();clearEl(el('precipResult'));clearEl(el('precipTeacher'));}
+      else if(_activeTab==='identify'){_currentUnknown=null;_unknownTests=[];buildIdentifyUI();}
+    }
+    else if(key==='N'){
+      if(_activeTab==='identify') newUnknown();
+      else if(_activeTab==='practice') newPracticeQ();
+    }
+    else if(key==='I'){
+      var iap = document.getElementById('iaPanel');
+      if(iap) iap.classList.toggle('open');
+    }
+  });
+
+  // IA Guide panel toggle
+  var iaToggleBtn = document.getElementById('iaToggle');
+  if(iaToggleBtn) iaToggleBtn.addEventListener('click', function(){ document.getElementById('iaPanel').classList.toggle('open'); });
+}
+
+init();
+
+})();
+</script>
+<footer>SimEngine &mdash; Qualitative Analysis &bull; H=HL T=Teacher</footer>
+</body>
+</html>

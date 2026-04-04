@@ -1,0 +1,1712 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Equilibrium Explorer — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Caveat:wght@400;600;700&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+
+    /* SimEngine additions */
+    --sim-canvas-bg: #FAFBFC;
+    --sim-particle-hot: #EF4444;
+    --sim-particle-cold: #3B82F6;
+    --sim-particle-neutral: #64748B;
+    --sim-grid: #E2E8F0;
+    --sim-axis: #1E293B;
+    --sim-data-1: #0D9488;
+    --sim-data-2: #2563EB;
+    --sim-data-3: #D97706;
+    --sim-data-4: #7C3AED;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+    --orange: #F59E0B;
+}
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* -- Header -- */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: .75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .header .subtitle {
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.15);
+    color: white;
+  }
+  .header-badge.hl {
+    background: var(--hl-badge-bg);
+    display: none;
+  }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* -- Main layout -- */
+  .sim-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .sim-top-row {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sim-graph-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* -- Cards -- */
+  .sim-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy);
+    color: white;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sim-card-body {
+    padding: 1rem;
+  }
+
+  /* -- Particle canvas -- */
+  .particle-canvas-wrap {
+    position: relative;
+    background: var(--sim-canvas-bg);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #sim-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* -- Control panel -- */
+  .control-panel { display: flex; flex-direction: column; gap: 0.5rem; }
+  .sim-slider-group { margin-bottom: 0.75rem; }
+  .sim-slider-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+  }
+  .sim-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .sim-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+    color: var(--teal);
+    font-weight: 600;
+  }
+  .sim-slider {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border);
+    border-radius: 3px;
+    outline: none;
+  }
+  .sim-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .sim-slider::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+  }
+
+  .sim-dropdown-group { margin-bottom: 0.75rem; }
+  .sim-dropdown {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    background: white;
+    margin-top: 0.3rem;
+  }
+
+  /* -- Playback buttons -- */
+  .sim-playback {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+  }
+  .sim-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sim-btn:hover { background: var(--light-bg); }
+  .sim-btn.primary {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+  .sim-btn.primary:hover { background: #0B8377; }
+  .sim-btn.active {
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+
+  /* -- Speed buttons -- */
+  .sim-speed-row {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  .sim-speed-row .sim-label { margin-right: 0.5rem; }
+  .sim-speed-btn {
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sim-speed-btn.active {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+
+  /* -- Perturbation buttons -- */
+  .sim-perturb-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.4rem;
+    margin: 0.75rem 0;
+  }
+  .sim-perturb-grid .sim-btn {
+    padding: 0.4rem 0.5rem;
+    font-size: 0.75rem;
+    text-align: center;
+  }
+  .sim-perturb-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.3rem;
+  }
+
+  /* -- Info readout -- */
+  .sim-info {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .sim-info-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .sim-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.2rem 0;
+    font-size: 0.8rem;
+  }
+  .sim-info-label { color: var(--text-muted); }
+  .sim-info-value {
+    font-family: 'Fira Code', monospace;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .sim-info-status {
+    font-family: 'Fira Code', monospace;
+    font-weight: 600;
+    font-size: 0.8rem;
+    padding: 0.3rem 0;
+  }
+
+  /* -- Toggle -- */
+  .sim-toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sim-toggle {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+  }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1;
+    border-radius: 22px;
+    transition: 0.2s;
+    --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider {
+    background: var(--toggle-on);
+  }
+  .sim-toggle input:checked + .sim-toggle-slider::before {
+    transform: translateX(18px);
+  }
+  .sim-toggle-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  /* -- Graph canvases -- */
+  .graph-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* -- HL panel -- */
+  .hl-panel {
+    display: none;
+    border: 2px solid var(--hl-border);
+    margin-bottom: 1.5rem;
+  }
+  body.hl-active .hl-panel { display: block; }
+  .hl-panel .sim-card-header {
+    background: var(--purple);
+  }
+  .hl-readout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+  .hl-readout-item {
+    text-align: center;
+  }
+  .hl-readout-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+  .hl-readout-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+  }
+  .hl-note {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* -- Teacher mode -- */
+  body.teacher-active .sim-top-row {
+    grid-template-columns: 1fr;
+  }
+  body.teacher-active .control-panel-card { display: none; }
+  body.teacher-active .caption-bar { display: block; }
+
+  .caption-bar {
+    display: none;
+    background: var(--navy);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+    text-align: center;
+    border-radius: 0 0 12px 12px;
+    font-family: 'Caveat', cursive;
+    font-weight: 600;
+  }
+
+  /* -- Footer -- */
+  .footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+
+  /* -- Responsive -- */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .sim-graph-row { grid-template-columns: 1fr; }
+    .hl-readout-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .sim-container { padding: 0.75rem; }
+    .header { padding: 1rem; }
+    .header h1 { font-size: 1.2rem; }
+  }
+
+  /* -- Volume disabled note -- */
+  .volume-note {
+    font-size: 0.75rem;
+    color: var(--amber);
+    font-style: italic;
+    margin-top: 0.25rem;
+    display: none;
+  }
+  .volume-note.visible { display: block; }
+
+  /* ── Keyboard hint bar ── */
+  .keyboard-hint {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    background: white;
+    margin: 0 0.1rem;
+  }
+
+  /* ── Palette search ── */
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+
+  /* ── Teacher presets ── */
+  .preset-section{display:none;margin-top:.75rem;} .preset-section select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--border);font-size:.8rem;font-family:inherit;} body.teacher-active .preset-section{display:block;}
+
+  /* -- Data Collection Panel -- */
+  .data-panel {
+    margin-top: 1rem;
+  }
+  .data-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
+    user-select: none;
+  }
+  .data-panel-header:hover { color: var(--text); }
+  .data-panel-arrow {
+    font-size: 0.65rem;
+    line-height: 1;
+  }
+  .data-panel-body {
+    display: none;
+    padding-top: 0.5rem;
+  }
+  .data-panel-body.open {
+    display: block;
+  }
+  .data-config {
+    margin-bottom: 0.75rem;
+  }
+  .data-config label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+  }
+  .data-config select,
+  .data-config input[type="number"] {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    background: white;
+    color: var(--text);
+  }
+  .data-config-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .var-checkboxes {
+    margin-bottom: 0.75rem;
+  }
+  .var-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text);
+    padding: 0.15rem 0;
+    cursor: pointer;
+  }
+  .var-checkboxes label input[type="checkbox"] {
+    margin: 0;
+  }
+  .progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+    margin: 0.5rem 0;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .progress-text {
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .data-btn {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .data-btn:hover { background: var(--light-bg); }
+  .data-btn-primary {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+  .data-btn-primary:hover { background: #0B8377; }
+  .data-btn-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .snapshot-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .snapshot-table th,
+  .snapshot-table td {
+    padding: 0.2rem 0.4rem;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Fira Code', monospace;
+  }
+  .snapshot-table th {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: right;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .data-section-hidden { display: none; }
+  .data-complete-msg {
+    font-size: 0.8rem;
+    color: var(--green);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .sweep-config {
+    border-top: 1px solid var(--border);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .sweep-config .data-config-row {
+    margin-bottom: 0.5rem;
+  }
+  .snapshot-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  /* -- Print -- */
+  @media print {
+    .header-controls, .perturbation-btns, .playback-controls, .speed-controls,
+    .sim-playback, .sim-speed-row, .sim-toggle-group,
+    .sim-slider-group, .sim-dropdown-group, .sim-btn,
+    .sim-perturb-grid, .caption-bar, .data-panel { display: none !important; }
+    canvas { border: 1px solid #ccc; }
+    .sim-card { break-inside: avoid; page-break-inside: avoid; box-shadow: none; }
+    .hl-panel { page-break-before: always; }
+    body { font-size: 13px; }
+  }
+
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>Equilibrium Explorer</h1>
+    <div class="subtitle">IB Chemistry SimEngine — Reactivity 7.1</div>
+  </div>
+  <div class="header-right">
+    <span class="header-badge hl" id="hl-badge">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="sim-container" id="main-content">
+
+  <!-- Top row: particle canvas + controls -->
+  <div class="sim-top-row">
+
+    <!-- Particle canvas card -->
+    <div class="sim-card">
+      <div class="sim-card-header">Particle Simulation</div>
+      <div class="sim-card-body" style="padding: 0;">
+        <div class="particle-canvas-wrap">
+          <canvas id="sim-canvas" role="img" aria-label="Equilibrium particle simulation showing forward and reverse reactions"></canvas>
+        </div>
+        <div class="caption-bar" id="captionBar">
+          Press Space to play/pause. Use controls to explore equilibrium shifts.
+        </div>
+      </div>
+    </div>
+
+    <!-- Control panel card -->
+    <div class="sim-card control-panel-card">
+      <div class="sim-card-header">Controls</div>
+      <div class="sim-card-body control-panel">
+        <input type="text" class="palette-search" id="rxnSearch" placeholder="Search reactions..." aria-label="Search reactions">
+        <div id="controlDropdowns"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect" aria-label="Teacher presets">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+        <div id="controlSliders"></div>
+
+        <!-- Perturbation buttons -->
+        <div class="sim-perturb-title">Perturbations</div>
+        <div class="sim-perturb-grid" id="perturbBtns"></div>
+
+        <div class="sim-playback" id="playbackBtns"></div>
+        <div class="sim-speed-row" id="speedBtns">
+          <span class="sim-label">Speed:</span>
+        </div>
+
+        <!-- Q vs K info panel -->
+        <div class="sim-info">
+          <div class="sim-info-title">Q vs K Readout</div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">K<sub>c</sub></span>
+            <span class="sim-info-value" id="info-kc">&mdash;</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Q</span>
+            <span class="sim-info-value" id="info-q">&mdash;</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Status</span>
+            <span class="sim-info-status" id="info-status" aria-live="polite">&mdash;</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Reactants</span>
+            <span class="sim-info-value" id="info-reactants">&mdash;</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Products</span>
+            <span class="sim-info-value" id="info-products">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Data Collection Panel -->
+        <div class="data-panel">
+          <div class="data-panel-header" id="dataPanelHeader">
+            <span class="data-panel-arrow" id="dataPanelArrow">&#9654;</span>
+            <span>Data Collection</span>
+          </div>
+          <div class="data-panel-body" id="dataPanelBody">
+
+            <!-- Config: Duration + Points -->
+            <div class="data-config-row">
+              <div class="data-config">
+                <label for="dataDuration">Duration</label>
+                <select id="dataDuration">
+                  <option value="10">10 s</option>
+                  <option value="30" selected>30 s</option>
+                  <option value="60">60 s</option>
+                  <option value="120">120 s</option>
+                </select>
+              </div>
+              <div class="data-config">
+                <label for="dataPoints">Data Points</label>
+                <select id="dataPoints">
+                  <option value="10">10</option>
+                  <option value="20" selected>20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Variable Checkboxes -->
+            <div class="data-config">
+              <label>Variables</label>
+              <div class="var-checkboxes" id="varCheckboxes"></div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="data-btn-row" id="dataControlBtns">
+              <button class="data-btn data-btn-primary" id="btnStartRun">Start Collection</button>
+              <button class="data-btn" id="btnSnapshot">Snapshot</button>
+            </div>
+
+            <!-- Progress section (hidden) -->
+            <div id="dataProgressSection" class="data-section-hidden">
+              <div class="progress-bar">
+                <div class="progress-bar-fill" id="dataProgressFill"></div>
+              </div>
+              <div class="progress-text" id="dataProgressText">Recording...</div>
+              <div class="data-btn-row">
+                <button class="data-btn" id="btnStopRun">Stop Early</button>
+              </div>
+            </div>
+
+            <!-- Complete section (hidden) -->
+            <div id="dataCompleteSection" class="data-section-hidden">
+              <div class="data-complete-msg" id="dataCompleteMsg">&#10003; Collection complete</div>
+              <div class="data-btn-row">
+                <button class="data-btn data-btn-primary" id="btnDownloadRun">Download CSV</button>
+                <button class="data-btn" id="btnClearRun">Clear</button>
+              </div>
+            </div>
+
+            <!-- Snapshots section -->
+            <div style="margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">
+              <div class="snapshot-count" id="snapshotCount">Snapshots: 0</div>
+              <div id="snapshotTableWrap" class="data-section-hidden">
+                <table class="snapshot-table" id="snapshotTable">
+                  <thead id="snapshotTableHead"></thead>
+                  <tbody id="snapshotTableBody"></tbody>
+                </table>
+              </div>
+              <div id="snapshotBtns" class="data-btn-row data-section-hidden">
+                <button class="data-btn" id="btnDownloadSnapshots">Download Snapshots</button>
+              </div>
+            </div>
+
+            <!-- Sweep section (teacher only) -->
+            <div class="sweep-config data-section-hidden" id="sweepSection">
+              <div class="data-config">
+                <label for="sweepParam">Vary Parameter</label>
+                <select id="sweepParam">
+                  <option value="temperature">Temperature</option>
+                  <option value="volume">Volume</option>
+                </select>
+              </div>
+              <div class="data-config-row">
+                <div class="data-config">
+                  <label for="sweepFrom">From</label>
+                  <input type="number" id="sweepFrom" value="200">
+                </div>
+                <div class="data-config">
+                  <label for="sweepTo">To</label>
+                  <input type="number" id="sweepTo" value="800">
+                </div>
+              </div>
+              <div class="data-config-row">
+                <div class="data-config">
+                  <label for="sweepSteps">Steps</label>
+                  <input type="number" id="sweepSteps" value="10" min="2" max="50">
+                </div>
+                <div class="data-config">
+                  <label for="sweepSettle">Settle (frames)</label>
+                  <input type="number" id="sweepSettle" value="60" min="10" max="300">
+                </div>
+              </div>
+              <div class="data-btn-row">
+                <button class="data-btn data-btn-primary" id="btnStartSweep">Run Sweep</button>
+              </div>
+              <div id="sweepProgressSection" class="data-section-hidden">
+                <div class="progress-bar">
+                  <div class="progress-bar-fill" id="sweepProgressFill"></div>
+                </div>
+                <div class="progress-text" id="sweepProgressText">Sweeping...</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Graph row -->
+  <div class="sim-graph-row">
+    <div class="sim-card">
+      <div class="sim-card-header">Concentration vs Time</div>
+      <div class="sim-card-body">
+        <canvas id="conc-canvas" class="graph-canvas" role="img" aria-label="Concentration versus time graph for reactants and products"></canvas>
+      </div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-card-header">Forward / Reverse Rates</div>
+      <div class="sim-card-body">
+        <canvas id="rate-canvas" class="graph-canvas" role="img" aria-label="Forward and reverse reaction rates graph"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- HL panel -->
+  <div class="sim-card hl-panel" id="hl-panel">
+    <div class="sim-card-header">Equilibrium Thermodynamics — HL</div>
+    <div class="sim-card-body">
+      <div class="hl-readout-grid">
+        <div class="hl-readout-item">
+          <div class="hl-readout-label">K<sub>c</sub></div>
+          <div class="hl-readout-value" id="hl-kc">&mdash;</div>
+        </div>
+        <div class="hl-readout-item">
+          <div class="hl-readout-label">K<sub>p</sub></div>
+          <div class="hl-readout-value" id="hl-kp">&mdash;</div>
+        </div>
+        <div class="hl-readout-item">
+          <div class="hl-readout-label">&Delta;G&deg;</div>
+          <div class="hl-readout-value" id="hl-dg">&mdash;</div>
+        </div>
+      </div>
+      <div class="hl-note">
+        Collision-based reaction model active in HL mode. Particles must collide with sufficient kinetic energy (E &ge; E<sub>a</sub>) for a reaction event to occur. Forward reactions convert two reactant particles to products; reverse reactions convert two product particles to reactants.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">IB Chemistry SimEngine — Equilibrium Explorer &bull; Reactivity 7.1 — Chemical Equilibrium</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search
+</div>
+
+<!-- ENGINE -->
+<script src="../../3-Resources/SimEngine/SimEngine_Core.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  // -- Canvas setup (HiDPI) --
+  function setupCanvas(id, w, h, responsive) {
+    var c = document.getElementById(id);
+    var dpr = window.devicePixelRatio || 1;
+    c.width = w * dpr;
+    c.height = h * dpr;
+    if (responsive) {
+      c.style.width = '100%';
+      c.style.height = 'auto';
+    } else {
+      c.style.width = w + 'px';
+      c.style.height = h + 'px';
+    }
+    var ctx = c.getContext('2d');
+    ctx.scale(dpr, dpr);
+    return ctx;
+  }
+
+  // -- Defaults --
+  var DEFAULTS = {
+    playing: true,
+    temperature: 298,
+    volume: 2.0,
+    reaction: 'N2O4_NO2',
+    hlEnabled: false,
+    mode: 'student',
+    speed: 1
+  };
+
+  // -- Canvas contexts --
+  var SIM_W = 840;
+  var SIM_H = 420;
+  var simCtx = setupCanvas('sim-canvas', SIM_W, SIM_H, true);
+
+  // -- Initialize State --
+  SimEngine.State.reset(DEFAULTS);
+
+  // -- Helper: compute piston right edge from volume --
+  function getCurrentPistonRight() {
+    var vol = SimEngine.State.get('volume') || DEFAULTS.volume;
+    var fraction = vol / 5.0;
+    return fraction * SIM_W;
+  }
+
+  // -- Helper: check if volume slider should be enabled --
+  function updateVolumeSliderState(rxnKey) {
+    var rxnData = SimEngine.Reaction.REACTIONS[rxnKey];
+    var slider = document.getElementById('volSlider');
+    var note = document.getElementById('volNote');
+    if (slider) {
+      var isAqueous = (rxnData && rxnData.phase === 'aqueous');
+      slider.disabled = isAqueous;
+      slider.style.opacity = isAqueous ? '0.4' : '1';
+    }
+    if (note) {
+      note.classList.toggle('visible', !!(rxnData && rxnData.phase === 'aqueous'));
+    }
+  }
+
+  // -- Create Controls --
+
+  // Reaction dropdown
+  SimEngine.Controls.createDropdown({
+    id: 'reactionSelect', label: 'Reaction',
+    options: [
+      { value: 'N2O4_NO2',    text: 'N\u2082O\u2084 \u21CC 2NO\u2082' },
+      { value: 'haber',       text: 'N\u2082 + 3H\u2082 \u21CC 2NH\u2083 (Haber)' },
+      { value: 'cobalt',      text: 'Co(H\u2082O)\u2086\u00B2\u207A \u21CC CoCl\u2084\u00B2\u207B' },
+      { value: 'thiocyanate', text: 'Fe\u00B3\u207A + SCN\u207B \u21CC FeSCN\u00B2\u207A' }
+    ],
+    value: DEFAULTS.reaction,
+    stateKey: 'reaction', container: 'controlDropdowns'
+  });
+
+  // Temperature slider
+  SimEngine.Controls.createSlider({
+    id: 'tempSlider', label: 'Temperature', unit: ' K',
+    min: 200, max: 800, step: 10, value: DEFAULTS.temperature,
+    stateKey: 'temperature', container: 'controlSliders'
+  });
+
+  // Volume slider
+  SimEngine.Controls.createSlider({
+    id: 'volSlider', label: 'Volume', unit: ' L',
+    min: 0.5, max: 5.0, step: 0.1, value: DEFAULTS.volume,
+    stateKey: 'volume', container: 'controlSliders'
+  });
+
+  // Volume disabled note for aqueous reactions
+  var volNote = document.createElement('div');
+  volNote.id = 'volNote';
+  volNote.className = 'volume-note';
+  volNote.textContent = 'Volume changes do not apply to aqueous reactions.';
+  document.getElementById('controlSliders').appendChild(volNote);
+
+  // Perturbation buttons
+  SimEngine.Controls.createButton({
+    id: 'addReactantBtn', text: '+ Reactant',
+    container: 'perturbBtns',
+    onClick: function () { SimEngine.Reaction.perturb('addReactant'); }
+  });
+  SimEngine.Controls.createButton({
+    id: 'removeReactantBtn', text: '- Reactant',
+    container: 'perturbBtns',
+    onClick: function () { SimEngine.Reaction.perturb('removeReactant'); }
+  });
+  SimEngine.Controls.createButton({
+    id: 'addProductBtn', text: '+ Product',
+    container: 'perturbBtns',
+    onClick: function () { SimEngine.Reaction.perturb('addProduct'); }
+  });
+  SimEngine.Controls.createButton({
+    id: 'removeProductBtn', text: '- Product',
+    container: 'perturbBtns',
+    onClick: function () { SimEngine.Reaction.perturb('removeProduct'); }
+  });
+
+  // Playback buttons
+  var playBtn = SimEngine.Controls.createButton({
+    id: 'playBtn', text: 'Play', className: 'primary',
+    container: 'playbackBtns',
+    onClick: function () { SimEngine.State.set('playing', true); }
+  });
+  var pauseBtn = SimEngine.Controls.createButton({
+    id: 'pauseBtn', text: 'Pause',
+    container: 'playbackBtns',
+    onClick: function () { SimEngine.State.set('playing', false); }
+  });
+  SimEngine.Controls.createButton({
+    id: 'resetBtn', text: 'Reset',
+    container: 'playbackBtns',
+    onClick: function () { resetSim(); }
+  });
+
+  // Speed buttons
+  var speeds = [1, 2, 4];
+  speeds.forEach(function (s) {
+    var btn = document.createElement('button');
+    btn.className = 'sim-speed-btn' + (s === 1 ? ' active' : '');
+    btn.textContent = s + 'x';
+    btn.addEventListener('click', function () {
+      SimEngine.State.set('speed', s);
+      document.querySelectorAll('.sim-speed-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+    document.getElementById('speedBtns').appendChild(btn);
+  });
+
+  // Header toggles (SL/HL and Teacher/Student)
+  SimEngine.Controls.createToggle({
+    id: 'hlToggle', label: 'HL', labelOn: 'HL', labelOff: 'SL',
+    checked: false, stateKey: 'hlEnabled',
+    container: 'headerToggles', colorOn: '#7C3AED'
+  });
+  SimEngine.Controls.createToggle({
+    id: 'modeToggle', label: 'Mode', labelOn: 'Teacher', labelOff: 'Student',
+    checked: false, stateKey: 'mode',
+    container: 'headerToggles'
+  });
+
+  // -- Create Graphs --
+  var concGraph = SimEngine.Graph.create('conc-canvas', {
+    width: 440, height: 280,
+    title: 'Concentration vs Time',
+    xLabel: 'Time (frames)',
+    yLabel: 'Fraction',
+    xRange: [0, 600],
+    yRange: [0, 1],
+    autoScaleY: false
+  });
+  concGraph.addSeries('reactants', '#3B82F6', 2);
+  concGraph.addSeries('products', '#DC2626', 2);
+
+  var rateGraph = SimEngine.Graph.create('rate-canvas', {
+    width: 440, height: 280,
+    title: 'Forward / Reverse Rates',
+    xLabel: 'Time (frames)',
+    yLabel: 'Rate (events/frame)',
+    xRange: [0, 600],
+    yRange: [0, 5],
+    autoScaleY: true
+  });
+  rateGraph.addSeries('forward', '#0D9488', 2);
+  rateGraph.addSeries('reverse', '#D97706', 2);
+
+  // -- Initialize Reaction module --
+  SimEngine.Reaction.init({
+    reactionKey: DEFAULTS.reaction,
+    particleCount: 200,
+    bounds: { left: 0, top: 0, right: getCurrentPistonRight(), bottom: SIM_H },
+    temperature: DEFAULTS.temperature,
+    mode: 'color-change'
+  });
+
+  // -- Info panel update --
+  function updateInfoPanel() {
+    var Kc = SimEngine.Reaction.getKc();
+    var Q = SimEngine.Reaction.getQ();
+    var conc = SimEngine.Reaction.getConcentrations();
+
+    document.getElementById('info-kc').textContent = Kc.toExponential(2);
+    document.getElementById('info-q').textContent = Q.toExponential(2);
+    document.getElementById('info-reactants').textContent = conc.reactants;
+    document.getElementById('info-products').textContent = conc.products;
+
+    var statusEl = document.getElementById('info-status');
+    if (SimEngine.Reaction.isAtEquilibrium()) {
+      statusEl.textContent = 'At equilibrium (Q \u2248 K)';
+      statusEl.style.color = 'var(--green)';
+    } else if (Q < Kc) {
+      statusEl.textContent = 'Q < K \u2192 shifts right';
+      statusEl.style.color = 'var(--blue)';
+    } else {
+      statusEl.textContent = 'Q > K \u2192 shifts left';
+      statusEl.style.color = 'var(--red)';
+    }
+
+    // HL panel
+    if (SimEngine.State.get('hlEnabled')) {
+      document.getElementById('hl-kc').textContent = Kc.toExponential(3);
+      var rxn = SimEngine.Reaction.REACTIONS[SimEngine.State.get('reaction')];
+      document.getElementById('hl-kp').textContent = rxn.phase === 'gas' ? SimEngine.Reaction.getKp().toExponential(3) : 'N/A (aqueous)';
+      document.getElementById('hl-dg').textContent = (SimEngine.Reaction.getDeltaG() / 1000).toFixed(1) + ' kJ/mol';
+    }
+  }
+
+  // -- State change handlers --
+  SimEngine.State.on('reaction', function (data) {
+    SimEngine.Reaction.init({
+      reactionKey: data.value,
+      particleCount: 200,
+      bounds: { left: 0, top: 0, right: getCurrentPistonRight(), bottom: SIM_H },
+      temperature: SimEngine.State.get('temperature'),
+      mode: SimEngine.State.get('hlEnabled') ? 'collision' : 'color-change'
+    });
+    // Clear graphs
+    concGraph.clearSeries('reactants');
+    concGraph.clearSeries('products');
+    rateGraph.clearSeries('forward');
+    rateGraph.clearSeries('reverse');
+    frameCount = 0;
+    // Disable volume for aqueous
+    updateVolumeSliderState(data.value);
+  });
+
+  SimEngine.State.on('temperature', function (data) {
+    SimEngine.Reaction.setTemperature(data.value);
+  });
+
+  SimEngine.State.on('volume', function (data) {
+    SimEngine.Reaction.setVolume(data.value);
+  });
+
+  SimEngine.State.on('playing', function (data) {
+    playing = data.value;
+    playBtn.classList.toggle('active', !!data.value);
+    pauseBtn.classList.toggle('active', !data.value);
+  });
+
+  SimEngine.State.on('hlEnabled', function (data) {
+    document.body.classList.toggle('hl-active', data.value);
+    SimEngine.Reaction.setMode(data.value ? 'collision' : 'color-change');
+    // Sync the toggle checkbox if triggered by keyboard
+    var hlCheckbox = document.getElementById('hlToggle');
+    if (hlCheckbox) hlCheckbox.checked = data.value;
+    // Update header accent
+    var header = document.querySelector('.header');
+    if (header) {
+      header.style.background = data.value
+        ? 'linear-gradient(135deg, #3B1F6E, #5B21B6)'
+        : 'linear-gradient(135deg, #1B2A4A, #2D4A7A)';
+    }
+  });
+
+  SimEngine.State.on('mode', function (data) {
+    var isTeacher = (data.value === true || data.value === 'teacher');
+    document.body.classList.toggle('teacher-active', isTeacher);
+    // Sync the toggle checkbox if triggered by keyboard
+    var modeCheckbox = document.getElementById('modeToggle');
+    if (modeCheckbox) modeCheckbox.checked = isTeacher;
+  });
+
+  SimEngine.State.on('reset', function () {
+    resetSim();
+  });
+
+  function resetSim() {
+    SimEngine.State.reset(DEFAULTS);
+    SimEngine.Reaction.init({
+      reactionKey: DEFAULTS.reaction,
+      particleCount: 200,
+      bounds: { left: 0, top: 0, right: getCurrentPistonRight(), bottom: SIM_H },
+      temperature: DEFAULTS.temperature,
+      mode: 'color-change'
+    });
+    concGraph.clearSeries('reactants');
+    concGraph.clearSeries('products');
+    rateGraph.clearSeries('forward');
+    rateGraph.clearSeries('reverse');
+    concGraph.draw();
+    rateGraph.draw();
+    frameCount = 0;
+    document.body.classList.remove('hl-active', 'teacher-active');
+    // Restore header style
+    var header = document.querySelector('.header');
+    if (header) header.style.background = 'linear-gradient(135deg, #1B2A4A, #2D4A7A)';
+    updateVolumeSliderState(DEFAULTS.reaction);
+  }
+
+  // -- Data Collection Setup --
+  SimEngine.DataCollector.registerVariables([
+    { key: 'time', label: 'Time (s)', getter: function() { return parseFloat((frameCount / 60).toFixed(2)); }, default: true },
+    { key: 'reactantFrac', label: 'Reactant Fraction', getter: function() { return SimEngine.Reaction.getConcentrations().reactantFraction; }, default: true },
+    { key: 'productFrac', label: 'Product Fraction', getter: function() { return SimEngine.Reaction.getConcentrations().productFraction; }, default: true },
+    { key: 'rateForward', label: 'Forward Rate', getter: function() { return SimEngine.Reaction.getRates().forward; }, default: true },
+    { key: 'rateReverse', label: 'Reverse Rate', getter: function() { return SimEngine.Reaction.getRates().reverse; }, default: true },
+    { key: 'Q', label: 'Q', getter: function() { return SimEngine.Reaction.getQ(); } },
+    { key: 'Kc', label: 'Kc', getter: function() { return SimEngine.Reaction.getKc(); } },
+    { key: 'Kp', label: 'Kp', getter: function() { return SimEngine.Reaction.getKp(); }, hl: true },
+    { key: 'deltaG', label: 'dG (kJ/mol)', getter: function() { return SimEngine.Reaction.getDeltaG() / 1000; }, hl: true },
+    { key: 'temperature', label: 'Temperature (K)', getter: function() { return SimEngine.Reaction.getTemperature(); } },
+    { key: 'reactantCount', label: 'Reactant Count', getter: function() { return SimEngine.Reaction.getConcentrations().reactants; } },
+    { key: 'productCount', label: 'Product Count', getter: function() { return SimEngine.Reaction.getConcentrations().products; } }
+  ]);
+
+  // Build variable checkboxes dynamically
+  function buildVarCheckboxes() {
+    var container = document.getElementById('varCheckboxes');
+    // Clear existing
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    var vars = SimEngine.DataCollector.getVariables();
+    var hlEnabled = SimEngine.State.get('hlEnabled');
+    for (var i = 0; i < vars.length; i++) {
+      var v = vars[i];
+      if (v.hl && !hlEnabled) { continue; }
+      var lbl = document.createElement('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = v.key;
+      if (v.default) { cb.checked = true; }
+      var span = document.createElement('span');
+      span.textContent = v.label;
+      lbl.appendChild(cb);
+      lbl.appendChild(span);
+      container.appendChild(lbl);
+    }
+  }
+  buildVarCheckboxes();
+
+  // Get selected variable keys from checkboxes
+  function getSelectedVarKeys() {
+    var container = document.getElementById('varCheckboxes');
+    var checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    var keys = [];
+    for (var i = 0; i < checkboxes.length; i++) {
+      if (checkboxes[i].checked) {
+        keys.push(checkboxes[i].value);
+      }
+    }
+    return keys;
+  }
+
+  // Panel toggle
+  document.getElementById('dataPanelHeader').addEventListener('click', function() {
+    var body = document.getElementById('dataPanelBody');
+    var arrow = document.getElementById('dataPanelArrow');
+    var isOpen = body.classList.contains('open');
+    if (isOpen) {
+      body.classList.remove('open');
+      arrow.textContent = '\u25B6';
+    } else {
+      body.classList.add('open');
+      arrow.textContent = '\u25BC';
+    }
+  });
+
+  // Start Collection button
+  document.getElementById('btnStartRun').addEventListener('click', function() {
+    var duration = parseInt(document.getElementById('dataDuration').value, 10);
+    var points = parseInt(document.getElementById('dataPoints').value, 10);
+    var vars = getSelectedVarKeys();
+    if (vars.length === 0) { return; }
+
+    SimEngine.DataCollector.startRun({
+      durationSec: duration,
+      pointCount: points,
+      variables: vars
+    });
+
+    // Show progress, hide controls and complete
+    document.getElementById('dataControlBtns').classList.add('data-section-hidden');
+    document.getElementById('dataProgressSection').classList.remove('data-section-hidden');
+    document.getElementById('dataCompleteSection').classList.add('data-section-hidden');
+  });
+
+  // Stop Early button
+  document.getElementById('btnStopRun').addEventListener('click', function() {
+    SimEngine.DataCollector.stopRun();
+  });
+
+  // Snapshot button
+  document.getElementById('btnSnapshot').addEventListener('click', function() {
+    SimEngine.DataCollector.recordSnapshot();
+  });
+
+  // Download Run CSV button
+  document.getElementById('btnDownloadRun').addEventListener('click', function() {
+    var rxnKey = SimEngine.State.get('reaction') || 'equilibrium';
+    var filename = 'simengine_' + rxnKey + '_run.csv';
+    SimEngine.DataCollector.download(filename, 'run');
+  });
+
+  // Download Snapshots button
+  document.getElementById('btnDownloadSnapshots').addEventListener('click', function() {
+    var rxnKey = SimEngine.State.get('reaction') || 'equilibrium';
+    var filename = 'simengine_' + rxnKey + '_snapshots.csv';
+    SimEngine.DataCollector.download(filename, 'snapshots');
+  });
+
+  // Clear button
+  document.getElementById('btnClearRun').addEventListener('click', function() {
+    SimEngine.DataCollector.clearData();
+    // Reset UI
+    document.getElementById('dataCompleteSection').classList.add('data-section-hidden');
+    document.getElementById('dataProgressSection').classList.add('data-section-hidden');
+    document.getElementById('dataControlBtns').classList.remove('data-section-hidden');
+    document.getElementById('dataProgressFill').style.width = '0%';
+    document.getElementById('dataProgressText').textContent = 'Recording...';
+  });
+
+  // Start Sweep button
+  document.getElementById('btnStartSweep').addEventListener('click', function() {
+    var paramKey = document.getElementById('sweepParam').value;
+    var from = parseFloat(document.getElementById('sweepFrom').value);
+    var to = parseFloat(document.getElementById('sweepTo').value);
+    var steps = parseInt(document.getElementById('sweepSteps').value, 10);
+    var settle = parseInt(document.getElementById('sweepSettle').value, 10);
+    var vars = getSelectedVarKeys();
+
+    SimEngine.DataCollector.startSweep({
+      paramKey: paramKey,
+      from: from,
+      to: to,
+      steps: steps,
+      settleFrames: settle,
+      variables: vars
+    });
+
+    document.getElementById('sweepProgressSection').classList.remove('data-section-hidden');
+    document.getElementById('sweepProgressFill').style.width = '0%';
+    document.getElementById('sweepProgressText').textContent = 'Sweeping... 0/' + steps + ' steps';
+  });
+
+  // -- Data Collection Event Listeners --
+
+  SimEngine.State.on('dataCollectionProgress', function(data) {
+    var pct = data.percent || 0;
+    document.getElementById('dataProgressFill').style.width = pct + '%';
+    document.getElementById('dataProgressText').textContent = 'Recording... ' + data.collected + '/' + data.total + ' points';
+  });
+
+  SimEngine.State.on('dataCollectionComplete', function() {
+    document.getElementById('dataProgressSection').classList.add('data-section-hidden');
+    document.getElementById('dataCompleteSection').classList.remove('data-section-hidden');
+  });
+
+  SimEngine.State.on('dataCollectionStop', function(data) {
+    document.getElementById('dataProgressSection').classList.add('data-section-hidden');
+    if (data.collected > 0) {
+      document.getElementById('dataCompleteSection').classList.remove('data-section-hidden');
+    } else {
+      document.getElementById('dataControlBtns').classList.remove('data-section-hidden');
+    }
+  });
+
+  SimEngine.State.on('snapshotRecorded', function(data) {
+    document.getElementById('snapshotCount').textContent = 'Snapshots: ' + data.count;
+
+    // Show table and download button
+    document.getElementById('snapshotTableWrap').classList.remove('data-section-hidden');
+    document.getElementById('snapshotBtns').classList.remove('data-section-hidden');
+
+    // Build/update snapshot table (show first 3 columns: time, reactantFrac, productFrac)
+    var displayKeys = ['time', 'reactantFrac', 'productFrac'];
+    var displayLabels = ['Time (s)', 'Reactant Frac', 'Product Frac'];
+
+    var thead = document.getElementById('snapshotTableHead');
+    // Rebuild header
+    while (thead.firstChild) { thead.removeChild(thead.firstChild); }
+    var headerRow = document.createElement('tr');
+    for (var h = 0; h < displayLabels.length; h++) {
+      var th = document.createElement('th');
+      th.textContent = displayLabels[h];
+      headerRow.appendChild(th);
+    }
+    thead.appendChild(headerRow);
+
+    // Rebuild body with all snapshots
+    var tbody = document.getElementById('snapshotTableBody');
+    while (tbody.firstChild) { tbody.removeChild(tbody.firstChild); }
+    var snapshots = SimEngine.DataCollector.getSnapshots();
+    for (var s = 0; s < snapshots.length; s++) {
+      var tr = document.createElement('tr');
+      for (var c = 0; c < displayKeys.length; c++) {
+        var td = document.createElement('td');
+        var val = snapshots[s][displayKeys[c]];
+        if (typeof val === 'number') {
+          td.textContent = val < 0.01 && val !== 0 ? val.toExponential(2) : val.toFixed(4);
+        } else {
+          td.textContent = val !== undefined ? String(val) : '';
+        }
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+  });
+
+  SimEngine.State.on('sweepProgress', function(data) {
+    var pct = data.percent || 0;
+    document.getElementById('sweepProgressFill').style.width = pct + '%';
+    document.getElementById('sweepProgressText').textContent = 'Sweeping... ' + data.step + '/' + data.total + ' steps';
+  });
+
+  SimEngine.State.on('sweepComplete', function() {
+    document.getElementById('sweepProgressSection').classList.add('data-section-hidden');
+    // Auto-download sweep CSV
+    var rxnKey = SimEngine.State.get('reaction') || 'equilibrium';
+    var filename = 'simengine_' + rxnKey + '_sweep.csv';
+    SimEngine.DataCollector.download(filename, 'sweep');
+  });
+
+  SimEngine.State.on('dataCleared', function() {
+    // Reset snapshot UI
+    document.getElementById('snapshotCount').textContent = 'Snapshots: 0';
+    document.getElementById('snapshotTableWrap').classList.add('data-section-hidden');
+    document.getElementById('snapshotBtns').classList.add('data-section-hidden');
+    var tbody = document.getElementById('snapshotTableBody');
+    while (tbody.firstChild) { tbody.removeChild(tbody.firstChild); }
+    var thead = document.getElementById('snapshotTableHead');
+    while (thead.firstChild) { thead.removeChild(thead.firstChild); }
+    // Reset run UI
+    document.getElementById('dataCompleteSection').classList.add('data-section-hidden');
+    document.getElementById('dataProgressSection').classList.add('data-section-hidden');
+    document.getElementById('dataControlBtns').classList.remove('data-section-hidden');
+    document.getElementById('dataProgressFill').style.width = '0%';
+  });
+
+  // -- Teacher mode: show/hide sweep section --
+  function updateTeacherDataUI() {
+    var mode = SimEngine.State.get('mode');
+    var isTeacher = (mode === true || mode === 'teacher');
+    var sweepSection = document.getElementById('sweepSection');
+    if (isTeacher) {
+      sweepSection.classList.remove('data-section-hidden');
+    } else {
+      sweepSection.classList.add('data-section-hidden');
+    }
+  }
+  updateTeacherDataUI();
+
+  // Rebuild checkboxes when HL changes
+  SimEngine.State.on('hlEnabled', function() {
+    buildVarCheckboxes();
+  });
+
+  // Update sweep visibility when mode changes
+  SimEngine.State.on('mode', function() {
+    updateTeacherDataUI();
+  });
+
+  // -- Canvas legend --
+  function drawLegend(ctx) {
+    var speciesList = SimEngine.Reaction.getSpeciesList();
+    if (!speciesList || speciesList.length === 0) return;
+
+    var padding = 8;
+    var lineHeight = 18;
+    var circleR = 5;
+    var legendH = speciesList.length * lineHeight + padding * 2;
+    var legendW = 140;
+    var lx = SIM_W - legendW - 10;
+    var ly = 10;
+
+    // Background
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 1;
+    if (ctx.roundRect) {
+      ctx.beginPath();
+      ctx.roundRect(lx, ly, legendW, legendH, 6);
+      ctx.fill();
+      ctx.stroke();
+    } else {
+      ctx.fillRect(lx, ly, legendW, legendH);
+      ctx.strokeRect(lx, ly, legendW, legendH);
+    }
+
+    // Items
+    ctx.font = "500 11px 'Inter', sans-serif";
+    ctx.textAlign = 'left';
+    for (var i = 0; i < speciesList.length; i++) {
+      var sp = speciesList[i];
+      var cy = ly + padding + i * lineHeight + lineHeight / 2;
+
+      // Color circle
+      ctx.fillStyle = sp.color;
+      ctx.beginPath();
+      ctx.arc(lx + padding + circleR, cy, circleR, 0, 2 * Math.PI);
+      ctx.fill();
+
+      // Label
+      ctx.fillStyle = '#1E293B';
+      ctx.fillText(sp.label + ' (' + sp.side + ')', lx + padding + circleR * 2 + 6, cy + 4);
+    }
+  }
+
+  // -- Animation loop --
+  var _raf = window.requestAnimationFrame || function (cb) { setTimeout(cb, 16); };
+  var frameCount = 0;
+  var playing = true;
+
+  function animate() {
+    _raf(animate);
+    if (!playing) return;
+
+    var speed = SimEngine.State.get('speed') || 1;
+    for (var s = 0; s < speed; s++) {
+      SimEngine.Reaction.step(1);
+    }
+    frameCount++;
+
+    // Data collection tick (once per frame, outside speed loop)
+    SimEngine.DataCollector.tick();
+
+    // Clear and render particles
+    simCtx.clearRect(0, 0, SIM_W, SIM_H);
+
+    // Draw container border
+    simCtx.strokeStyle = '#CBD5E1';
+    simCtx.lineWidth = 2;
+    simCtx.strokeRect(1, 1, SIM_W - 2, SIM_H - 2);
+
+    // Draw piston if gas phase
+    var rxnKey = SimEngine.State.get('reaction');
+    var rxnData = SimEngine.Reaction.REACTIONS[rxnKey];
+    var bounds = SimEngine.Reaction.getBounds();
+    if (rxnData && rxnData.phase === 'gas') {
+      simCtx.fillStyle = '#94A3B8';
+      simCtx.fillRect(bounds.right - 3, 0, 6, SIM_H);
+      // Piston handle lines
+      simCtx.strokeStyle = '#64748B';
+      simCtx.lineWidth = 1;
+      var midX = bounds.right;
+      for (var yy = 10; yy < SIM_H - 5; yy += 15) {
+        simCtx.beginPath();
+        simCtx.moveTo(midX - 2, yy);
+        simCtx.lineTo(midX + 2, yy);
+        simCtx.stroke();
+      }
+    }
+
+    SimEngine.Reaction.render(simCtx);
+    drawLegend(simCtx);
+
+    // Update graphs every 3 frames
+    if (frameCount % 3 === 0) {
+      var conc = SimEngine.Reaction.getConcentrations();
+      concGraph.addPoint('reactants', frameCount, conc.reactantFraction);
+      concGraph.addPoint('products', frameCount, conc.productFraction);
+
+      // Auto-scroll x range if needed
+      if (frameCount > 580) {
+        concGraph.setRanges([frameCount - 580, frameCount + 20], null);
+        rateGraph.setRanges([frameCount - 580, frameCount + 20], null);
+      }
+      concGraph.draw();
+
+      var rates = SimEngine.Reaction.getRates();
+      rateGraph.addPoint('forward', frameCount, rates.forward);
+      rateGraph.addPoint('reverse', frameCount, rates.reverse);
+      rateGraph.draw();
+    }
+
+    // Update info panel every 10 frames
+    if (frameCount % 10 === 0) {
+      updateInfoPanel();
+    }
+  }
+
+  // -- Keyboard shortcuts --
+  SimEngine.Controls.initKeyboard();
+
+  // -- Palette search filtering --
+  var rxnSearchInput = document.getElementById('rxnSearch');
+  var reactionSelect = document.getElementById('reactionSelect');
+
+  function filterReactionDropdown(query) {
+    var q = query.toLowerCase();
+    var options = reactionSelect.options;
+    var firstVisible = null;
+    for (var i = 0; i < options.length; i++) {
+      var text = options[i].textContent.toLowerCase();
+      var match = !q || text.indexOf(q) !== -1;
+      options[i].hidden = !match;
+      if (match && !firstVisible) firstVisible = options[i];
+    }
+  }
+
+  rxnSearchInput.addEventListener('input', function () {
+    filterReactionDropdown(this.value);
+  });
+
+  // -- "/" keyboard shortcut to focus search --
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+      if (e.key === 'Escape') {
+        e.target.blur();
+        rxnSearchInput.value = '';
+        filterReactionDropdown('');
+      }
+      return;
+    }
+    if (e.key === '/') {
+      e.preventDefault();
+      rxnSearchInput.focus();
+    }
+  });
+
+  // -- Teacher presets --
+  var PRESETS = [
+    {
+      name: 'N\u2082O\u2084 \u21CC 2NO\u2082',
+      apply: function () {
+        reactionSelect.value = 'N2O4_NO2';
+        reactionSelect.dispatchEvent(new Event('change'));
+        SimEngine.State.set('temperature', 400);
+        var tempSlider = document.getElementById('tempSlider');
+        if (tempSlider) { tempSlider.value = 400; }
+      }
+    },
+    {
+      name: 'Le Chatelier Demo',
+      apply: function () {
+        reactionSelect.value = 'N2O4_NO2';
+        reactionSelect.dispatchEvent(new Event('change'));
+        SimEngine.State.set('temperature', 350);
+        var tempSlider = document.getElementById('tempSlider');
+        if (tempSlider) { tempSlider.value = 350; }
+        SimEngine.State.set('volume', 2.0);
+        var volSlider = document.getElementById('volSlider');
+        if (volSlider) { volSlider.value = 2.0; }
+      }
+    },
+    {
+      name: 'Kc Calculation',
+      apply: function () {
+        reactionSelect.value = 'haber';
+        reactionSelect.dispatchEvent(new Event('change'));
+        SimEngine.State.set('temperature', 500);
+        var tempSlider = document.getElementById('tempSlider');
+        if (tempSlider) { tempSlider.value = 500; }
+        SimEngine.State.set('volume', 1.0);
+        var volSlider = document.getElementById('volSlider');
+        if (volSlider) { volSlider.value = 1.0; }
+        // Enable HL mode so Kc panel is visible
+        if (!SimEngine.State.get('hlEnabled')) {
+          SimEngine.State.set('hlEnabled', true);
+        }
+      }
+    }
+  ];
+
+  var presetSelect = document.getElementById('presetSelect');
+  for (var pi = 0; pi < PRESETS.length; pi++) {
+    var pOpt = document.createElement('option');
+    pOpt.value = String(pi);
+    pOpt.textContent = PRESETS[pi].name;
+    presetSelect.appendChild(pOpt);
+  }
+  presetSelect.addEventListener('change', function () {
+    if (!presetSelect.value) return;
+    var preset = PRESETS[parseInt(presetSelect.value, 10)];
+    preset.apply();
+    presetSelect.value = '';
+  });
+
+  // -- Initial state --
+  updateVolumeSliderState(DEFAULTS.reaction);
+  updateInfoPanel();
+  concGraph.draw();
+  rateGraph.draw();
+
+  // -- Start animation --
+  animate();
+})();
+</script>
+
+<footer>SimEngine &mdash; Chemical Equilibrium &bull; H=HL T=Teacher</footer>
+</body>
+</html>

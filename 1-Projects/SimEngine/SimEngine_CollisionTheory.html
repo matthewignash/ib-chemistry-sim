@@ -1,0 +1,1673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Collision Theory Explorer — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Caveat:wght@400;600;700&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+
+    --sim-canvas-bg: #FAFBFC;
+    --sim-particle-hot: #EF4444;
+    --sim-particle-cold: #3B82F6;
+    --sim-particle-neutral: #64748B;
+    --sim-grid: #E2E8F0;
+    --sim-axis: #1E293B;
+    --sim-data-1: #0D9488;
+    --sim-data-2: #2563EB;
+    --sim-data-3: #D97706;
+    --sim-data-4: #7C3AED;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+    --orange: #F59E0B;
+}
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* -- Header -- */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: .75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .header .subtitle {
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    cursor: pointer;
+    user-select: none;
+  }
+  .header-badge:hover { background: rgba(255,255,255,0.25); }
+  .header-badge.active {
+    background: var(--teal);
+  }
+  .header-badge.hl {
+    background: var(--hl-badge-bg);
+    display: none;
+  }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* -- Main layout -- */
+  .sim-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .sim-top-row {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sim-graph-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* -- Cards -- */
+  .sim-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy);
+    color: white;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sim-card-body {
+    padding: 1rem;
+  }
+
+  /* -- Particle canvas -- */
+  .particle-canvas-wrap {
+    position: relative;
+    background: var(--sim-canvas-bg);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #sim-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* -- Control panel -- */
+  .control-panel { display: flex; flex-direction: column; gap: 0.5rem; }
+  .sim-slider-group { margin-bottom: 0.75rem; }
+  .sim-slider-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+  }
+  .sim-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .sim-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+    color: var(--teal);
+    font-weight: 600;
+  }
+  .sim-slider {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border);
+    border-radius: 3px;
+    outline: none;
+  }
+  .sim-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .sim-slider::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+  }
+
+  .sim-dropdown-group { margin-bottom: 0.75rem; }
+  .sim-dropdown {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    background: white;
+    margin-top: 0.3rem;
+  }
+
+  /* -- Playback buttons -- */
+  .sim-playback {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+  }
+  .sim-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sim-btn:hover { background: var(--light-bg); }
+  .sim-btn.primary {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+  .sim-btn.primary:hover { background: #0B8377; }
+  .sim-btn.active {
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+
+  /* -- Speed buttons -- */
+  .sim-speed-row {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  .sim-speed-row .sim-label { margin-right: 0.5rem; }
+  .sim-speed-btn {
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sim-speed-btn.active {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+
+  /* -- Toggle -- */
+  .sim-toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .sim-toggle {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+  }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1;
+    border-radius: 22px;
+    transition: 0.2s;
+    --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider {
+    background: var(--toggle-on);
+  }
+  .sim-toggle input:checked + .sim-toggle-slider::before {
+    transform: translateX(18px);
+  }
+  .sim-toggle-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .catalyst-disabled {
+    opacity: 0.4;
+    pointer-events: none;
+  }
+
+  /* -- Info readout -- */
+  .sim-info {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .sim-info-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .sim-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.2rem 0;
+    font-size: 0.8rem;
+  }
+  .sim-info-label { color: var(--text-muted); }
+  .sim-info-value {
+    font-family: 'Fira Code', monospace;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* -- Graph canvases -- */
+  .graph-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* -- HL panel -- */
+  .hl-panel {
+    display: none;
+    border: 2px solid var(--hl-border);
+    margin-bottom: 1.5rem;
+  }
+  body.hl-active .hl-panel { display: block; }
+  .hl-panel .sim-card-header {
+    background: var(--purple);
+  }
+  .hl-readout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    align-items: start;
+  }
+  .hl-readout-item {
+    text-align: center;
+  }
+  .hl-readout-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+  .hl-readout-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+  }
+  .hl-note {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* -- Keyboard shortcut hints -- */
+  .shortcut-hint {
+    display: none;
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--border);
+    line-height: 1.8;
+  }
+  body.teacher-active .shortcut-hint { display: block; }
+  .shortcut-key {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.65rem;
+    background: var(--light-bg);
+    margin: 0 0.1rem;
+  }
+
+  /* -- Data Collection Panel -- */
+  .data-panel {
+    margin-top: 1rem;
+  }
+  .data-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
+    user-select: none;
+  }
+  .data-panel-header:hover { color: var(--text); }
+  .data-panel-arrow {
+    font-size: 0.65rem;
+    line-height: 1;
+  }
+  .data-panel-body {
+    display: none;
+    padding-top: 0.5rem;
+  }
+  .data-panel-body.open {
+    display: block;
+  }
+  .data-config {
+    margin-bottom: 0.75rem;
+  }
+  .data-config label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+  }
+  .data-config select,
+  .data-config input[type="number"] {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    background: white;
+    color: var(--text);
+  }
+  .data-config-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .var-checkboxes {
+    margin-bottom: 0.75rem;
+  }
+  .var-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text);
+    padding: 0.15rem 0;
+    cursor: pointer;
+  }
+  .var-checkboxes label input[type="checkbox"] {
+    margin: 0;
+  }
+  .progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+    margin: 0.5rem 0;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .progress-text {
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .data-btn {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .data-btn:hover { background: var(--light-bg); }
+  .data-btn-primary {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+  .data-btn-primary:hover { background: #0B8377; }
+  .data-btn-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .snapshot-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .snapshot-table th,
+  .snapshot-table td {
+    padding: 0.2rem 0.4rem;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Fira Code', monospace;
+  }
+  .snapshot-table th {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: right;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  /* -- Keyboard hint bar -- */
+  .keyboard-hint {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    background: white;
+    margin: 0 0.1rem;
+  }
+
+  /* -- Palette search -- */
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+
+  /* -- Teacher presets -- */
+  .preset-section { display: none; margin-top: 0.75rem; }
+  .preset-section select {
+    width: 100%; padding: 0.4rem; border-radius: 6px; border: 1px solid var(--border);
+    font-size: 0.8rem; font-family: inherit;
+  }
+  body.teacher-active .preset-section { display: block; }
+
+  /* -- Footer -- */
+  .footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+
+  /* -- Responsive -- */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .sim-graph-row { grid-template-columns: 1fr; }
+    .hl-readout-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .sim-container { padding: 0.75rem; }
+    .header { padding: 1rem; }
+    .header h1 { font-size: 1.2rem; }
+  }
+
+  /* -- Print -- */
+  @media print {
+    .header-controls, .perturbation-btns, .playback-controls, .speed-controls,
+    .sim-playback, .sim-speed-row, .sim-toggle-group,
+    .sim-slider-group, .sim-dropdown-group, .sim-btn,
+    .sim-perturb-grid, .caption-bar, .data-panel { display: none !important; }
+    .control-panel-card { display: none !important; }
+    canvas { border: 1px solid #ccc; }
+    .sim-card { break-inside: avoid; page-break-inside: avoid; box-shadow: none; }
+    .hl-panel { page-break-before: always; }
+    body { font-size: 13px; }
+  }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>Collision Theory Explorer</h1>
+    <div class="subtitle">IB Chemistry SimEngine — Reactivity R2.2</div>
+  </div>
+  <div class="header-right">
+    <span class="header-badge active" id="badge-sl">SL</span>
+    <span class="header-badge hl" id="badge-hl">HL</span>
+    <span class="header-badge" id="badge-teacher">Teacher</span>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="sim-container" id="main-content">
+
+  <!-- Top row: canvases stacked left, controls right -->
+  <div class="sim-top-row">
+
+    <!-- Left column: canvases -->
+    <div style="display:flex; flex-direction:column; gap:1.5rem;">
+      <!-- Particle canvas card -->
+      <div class="sim-card">
+        <div class="sim-card-header">Particle Simulation</div>
+        <div class="sim-card-body" style="padding: 0;">
+          <div class="particle-canvas-wrap">
+            <canvas id="sim-canvas" aria-label="Particle collision simulation" role="img"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- MB Distribution card -->
+      <div class="sim-card">
+        <div class="sim-card-header">Maxwell-Boltzmann Distribution</div>
+        <div class="sim-card-body" style="padding: 0;">
+          <canvas id="mb-canvas" class="graph-canvas" aria-label="Maxwell-Boltzmann distribution" role="img"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right column: controls -->
+    <div class="sim-card control-panel-card">
+      <div class="sim-card-header">Controls</div>
+      <div class="sim-card-body control-panel" id="controlPanel">
+        <!-- Palette search -->
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search reactions..." aria-label="Search reactions">
+
+        <!-- Reaction dropdown -->
+        <div class="sim-dropdown-group">
+          <label class="sim-label" for="reactionSelect">Reaction</label>
+          <select id="reactionSelect" class="sim-dropdown"></select>
+        </div>
+
+        <!-- Teacher presets -->
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect" aria-label="Teacher presets"><option value="">Teacher Presets...</option></select>
+        </div>
+
+        <!-- Temperature slider -->
+        <div id="tempSliderContainer"></div>
+
+        <!-- Concentration slider -->
+        <div id="concSliderContainer"></div>
+
+        <!-- Catalyst toggle -->
+        <div id="catalystToggleContainer"></div>
+
+        <!-- Playback -->
+        <div class="sim-playback">
+          <button class="sim-btn primary" id="btnPlayPause">Pause</button>
+          <button class="sim-btn" id="btnReset">Reset</button>
+        </div>
+
+        <!-- Speed -->
+        <div class="sim-speed-row" id="speedRow">
+          <span class="sim-label">Speed</span>
+          <button class="sim-speed-btn active" data-speed="1">1x</button>
+          <button class="sim-speed-btn" data-speed="2">2x</button>
+          <button class="sim-speed-btn" data-speed="4">4x</button>
+        </div>
+
+        <!-- Collision Statistics -->
+        <div class="sim-info" id="statsPanel" aria-live="polite">
+          <div class="sim-info-title">Collision Statistics</div>
+          <div class="sim-info-row"><span class="sim-info-label">Collision freq</span><span class="sim-info-value" id="stat-collFreq">0.0 /frame</span></div>
+          <div class="sim-info-row"><span class="sim-info-label">Fraction > Ea</span><span class="sim-info-value" id="stat-fracEa">0.0%</span></div>
+          <div class="sim-info-row"><span class="sim-info-label">Successful coll.</span><span class="sim-info-value" id="stat-successColl">0.0 /frame</span></div>
+          <div class="sim-info-row"><span class="sim-info-label">Current rate</span><span class="sim-info-value" id="stat-rate">0.000</span></div>
+          <div class="sim-info-row"><span class="sim-info-label">[A] remaining</span><span class="sim-info-value" id="stat-concA">1.00 M</span></div>
+          <div class="sim-info-row"><span class="sim-info-label">Temperature</span><span class="sim-info-value" id="stat-temp">298 K</span></div>
+          <div class="sim-info-row hl-only-row" style="display:none;"><span class="sim-info-label">k value</span><span class="sim-info-value" id="stat-kValue">--</span></div>
+        </div>
+
+        <!-- Keyboard shortcut hints (teacher mode) -->
+        <div class="shortcut-hint" id="shortcutHint"></div>
+
+        <!-- Data Collection -->
+        <div class="data-panel" id="dataPanel"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Graph row -->
+  <div class="sim-graph-row">
+    <div class="sim-card">
+      <div class="sim-card-header">Rate vs Time</div>
+      <div class="sim-card-body" style="padding: 0;">
+        <canvas id="rate-canvas" class="graph-canvas" aria-label="Reaction rate graph" role="img"></canvas>
+      </div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-card-header">Concentration vs Time</div>
+      <div class="sim-card-body" style="padding: 0;">
+        <canvas id="conc-canvas" class="graph-canvas" aria-label="Concentration graph" role="img"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- HL Panel -->
+  <div class="sim-card hl-panel" id="hlPanel">
+    <div class="sim-card-header">HL: Energy Profile &amp; Arrhenius Equation</div>
+    <div class="sim-card-body">
+      <div class="hl-readout-grid">
+        <div>
+          <canvas id="energy-canvas" width="400" height="200" style="display:block; width:100%; max-width:400px; height:auto;" aria-label="Energy profile diagram" role="img"></canvas>
+        </div>
+        <div>
+          <div class="hl-readout-item" style="margin-bottom:1rem;">
+            <div class="hl-readout-label">Arrhenius Equation</div>
+            <div class="hl-readout-value" id="hl-arrhenius" style="font-size:0.85rem;"></div>
+          </div>
+          <div class="hl-readout-item" style="margin-bottom:0.75rem;">
+            <div class="hl-readout-label">Activation Energy (Ea)</div>
+            <div class="hl-readout-value" id="hl-ea">-- kJ/mol</div>
+          </div>
+          <div class="hl-readout-item" style="margin-bottom:0.75rem;">
+            <div class="hl-readout-label">Catalysed Ea</div>
+            <div class="hl-readout-value" id="hl-catEa">N/A</div>
+          </div>
+          <div class="hl-readout-item" style="margin-bottom:0.75rem;">
+            <div class="hl-readout-label">Current k</div>
+            <div class="hl-readout-value" id="hl-kCurrent">--</div>
+          </div>
+          <div class="hl-readout-item">
+            <div class="hl-readout-label">Temperature</div>
+            <div class="hl-readout-value" id="hl-temp">298 K</div>
+          </div>
+        </div>
+      </div>
+      <div class="hl-note">
+        The Arrhenius equation shows how rate constant k depends exponentially on temperature.
+        A catalyst provides an alternative pathway with lower Ea, increasing k without changing the Maxwell-Boltzmann distribution.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search
+</div>
+
+<div class="footer">
+  IB Chemistry SimEngine — Collision Theory Explorer — R2.2
+</div>
+
+<script src="../../3-Resources/SimEngine/SimEngine_Core.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ── Constants ─────────────────────────────
+  var CANVAS_W = 840, CANVAS_H = 300;
+  var MB_W = 840, MB_H = 220;
+  var GRAPH_W = 440, GRAPH_H = 280;
+  var DPR = window.devicePixelRatio || 1;
+
+  // ── State ─────────────────────────────────
+  var playing = true;
+  var speed = 1;
+  var frameCount = 0;
+  var currentReaction = 'model_A_B';
+  var currentT = 298;
+  var currentConc = 1.0;
+  var catalystEnabled = false;
+  var hlActive = false;
+  var teacherMode = false;
+
+  // ── Canvas setup ──────────────────────────
+  function setupHiDPI(canvas, w, h) {
+    canvas.width = w * DPR;
+    canvas.height = h * DPR;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(DPR, DPR);
+    return ctx;
+  }
+
+  var simCanvas = document.getElementById('sim-canvas');
+  var simCtx = setupHiDPI(simCanvas, CANVAS_W, CANVAS_H);
+
+  var energyCanvas = document.getElementById('energy-canvas');
+  var energyCtx = setupHiDPI(energyCanvas, 400, 200);
+
+  // ── Graph instances ───────────────────────
+  var mbGraph = SimEngine.Graph.create('mb-canvas', {
+    width: MB_W, height: MB_H,
+    title: 'Maxwell-Boltzmann Distribution',
+    xLabel: 'Particle Speed',
+    yLabel: 'Fraction',
+    xRange: [0, 5],
+    yRange: [0, 1],
+    autoScaleY: true
+  });
+
+  var rateGraph = SimEngine.Graph.create('rate-canvas', {
+    width: GRAPH_W, height: GRAPH_H,
+    title: 'Forward Rate vs Time',
+    xLabel: 'Time (s)',
+    yLabel: 'Rate',
+    xRange: [0, 10],
+    yRange: [0, 0.1],
+    autoScaleY: true
+  });
+  rateGraph.addSeries('forward', '#0D9488', 2);
+
+  var concGraph = SimEngine.Graph.create('conc-canvas', {
+    width: GRAPH_W, height: GRAPH_H,
+    title: 'Concentration vs Time',
+    xLabel: 'Time (s)',
+    yLabel: '[Concentration] (M)',
+    xRange: [0, 10],
+    yRange: [0, 1.5],
+    autoScaleY: true
+  });
+  concGraph.addSeries('concA', '#3B82F6', 2);
+  concGraph.addSeries('concProd', '#EF4444', 2);
+
+  // ── Build reaction dropdown ───────────────
+  var reactionSelect = document.getElementById('reactionSelect');
+  var REACTIONS = SimEngine.Reaction.REACTIONS;
+
+  var irreversibleKeys = [];
+  var equilibriumKeys = [];
+  for (var key in REACTIONS) {
+    if (REACTIONS[key].irreversible) irreversibleKeys.push(key);
+    else equilibriumKeys.push(key);
+  }
+
+  var optIrr = document.createElement('optgroup');
+  optIrr.label = 'Irreversible (Rate Studies)';
+  for (var i = 0; i < irreversibleKeys.length; i++) {
+    var opt = document.createElement('option');
+    opt.value = irreversibleKeys[i];
+    opt.textContent = REACTIONS[irreversibleKeys[i]].equation;
+    if (irreversibleKeys[i] === currentReaction) opt.selected = true;
+    optIrr.appendChild(opt);
+  }
+  reactionSelect.appendChild(optIrr);
+
+  var optEq = document.createElement('optgroup');
+  optEq.label = 'Equilibrium';
+  for (var j = 0; j < equilibriumKeys.length; j++) {
+    var opt2 = document.createElement('option');
+    opt2.value = equilibriumKeys[j];
+    opt2.textContent = REACTIONS[equilibriumKeys[j]].equation;
+    optEq.appendChild(opt2);
+  }
+  reactionSelect.appendChild(optEq);
+
+  reactionSelect.addEventListener('change', function () {
+    currentReaction = reactionSelect.value;
+    updateCatalystToggleState();
+    initSimulation();
+  });
+
+  // ── Temperature slider ────────────────────
+  SimEngine.Controls.createSlider({
+    id: 'tempSlider',
+    label: 'Temperature',
+    min: 200, max: 800, step: 10, value: 298,
+    unit: ' K',
+    stateKey: 'temperature',
+    container: 'tempSliderContainer'
+  });
+
+  SimEngine.State.on('temperature', function (e) {
+    currentT = e.value;
+    SimEngine.Reaction.setTemperature(currentT);
+  });
+
+  // ── Concentration slider ──────────────────
+  SimEngine.Controls.createSlider({
+    id: 'concSlider',
+    label: 'Initial [A]',
+    min: 0.1, max: 2.0, step: 0.1, value: 1.0,
+    unit: ' M',
+    stateKey: 'concentration',
+    container: 'concSliderContainer'
+  });
+
+  SimEngine.State.on('concentration', function (e) {
+    currentConc = e.value;
+    initSimulation();
+  });
+
+  // ── Catalyst toggle ───────────────────────
+  SimEngine.Controls.createToggle({
+    id: 'catalystToggle',
+    label: 'Catalyst',
+    checked: false,
+    labelOn: 'ON',
+    labelOff: 'OFF',
+    colorOn: '#7C3AED',
+    stateKey: 'catalyst',
+    container: 'catalystToggleContainer'
+  });
+
+  SimEngine.State.on('catalyst', function (e) {
+    catalystEnabled = e.value;
+    SimEngine.Reaction.setCatalyst(catalystEnabled);
+  });
+
+  function updateCatalystToggleState() {
+    var rxn = REACTIONS[currentReaction];
+    var container = document.getElementById('catalystToggleContainer');
+    if (rxn && rxn.catEa_f != null) {
+      container.classList.remove('catalyst-disabled');
+    } else {
+      container.classList.add('catalyst-disabled');
+      catalystEnabled = false;
+      SimEngine.State.set('catalyst', false);
+    }
+  }
+  updateCatalystToggleState();
+
+  // ── Playback buttons ──────────────────────
+  document.getElementById('btnPlayPause').addEventListener('click', function () {
+    playing = !playing;
+    this.textContent = playing ? 'Pause' : 'Play';
+  });
+
+  document.getElementById('btnReset').addEventListener('click', function () {
+    SimEngine.State.set('temperature', 298);
+    currentT = 298;
+    initSimulation();
+    playing = true;
+    document.getElementById('btnPlayPause').textContent = 'Pause';
+  });
+
+  // ── Speed buttons ─────────────────────────
+  var speedBtns = document.querySelectorAll('#speedRow .sim-speed-btn');
+  for (var si = 0; si < speedBtns.length; si++) {
+    speedBtns[si].addEventListener('click', (function (btn) {
+      return function () {
+        speed = parseInt(btn.getAttribute('data-speed'));
+        for (var k = 0; k < speedBtns.length; k++) speedBtns[k].classList.remove('active');
+        btn.classList.add('active');
+      };
+    })(speedBtns[si]));
+  }
+
+  // ── Shortcut hint (built via DOM) ─────────
+  (function () {
+    var hint = document.getElementById('shortcutHint');
+    var shortcuts = [
+      ['Space', 'Play/Pause'], ['R', 'Reset'], ['H', 'Toggle HL'],
+      ['T', 'Teacher mode'], ['C', 'Catalyst']
+    ];
+    for (var i = 0; i < shortcuts.length; i++) {
+      var keyEl = document.createElement('span');
+      keyEl.className = 'shortcut-key';
+      keyEl.textContent = shortcuts[i][0];
+      hint.appendChild(keyEl);
+      hint.appendChild(document.createTextNode(' ' + shortcuts[i][1] + ' '));
+    }
+    hint.appendChild(document.createElement('br'));
+    var upEl = document.createElement('span');
+    upEl.className = 'shortcut-key';
+    upEl.textContent = '\u2191';
+    var dnEl = document.createElement('span');
+    dnEl.className = 'shortcut-key';
+    dnEl.textContent = '\u2193';
+    hint.appendChild(upEl);
+    hint.appendChild(dnEl);
+    hint.appendChild(document.createTextNode(' Temperature +/-50K'));
+  })();
+
+  // ── HL / Teacher toggles ──────────────────
+  function toggleHL(setActive) {
+    if (typeof setActive === 'boolean') hlActive = setActive;
+    else hlActive = !hlActive;
+    document.body.classList.toggle('hl-active', hlActive);
+    var hlRows = document.querySelectorAll('.hl-only-row');
+    for (var i = 0; i < hlRows.length; i++) {
+      hlRows[i].style.display = hlActive ? 'flex' : 'none';
+    }
+    document.getElementById('badge-sl').classList.toggle('active', !hlActive);
+  }
+
+  function toggleTeacher() {
+    teacherMode = !teacherMode;
+    document.body.classList.toggle('teacher-active', teacherMode);
+    document.getElementById('badge-teacher').classList.toggle('active', teacherMode);
+  }
+
+  document.getElementById('badge-sl').addEventListener('click', function () { toggleHL(false); });
+  document.getElementById('badge-hl').addEventListener('click', function () { toggleHL(true); });
+  document.getElementById('badge-teacher').addEventListener('click', function () { toggleTeacher(); });
+
+  // ── Initialize simulation ─────────────────
+  function initSimulation() {
+    var rxn = REACTIONS[currentReaction];
+    var mode = rxn.irreversible ? 'color-change' : 'collision';
+    SimEngine.Reaction.init({
+      reactionKey: currentReaction,
+      mode: mode,
+      bounds: { left: 0, top: 0, right: CANVAS_W, bottom: CANVAS_H },
+      temperature: currentT,
+      initialConc: currentConc,
+      catalyst: catalystEnabled,
+      particleCount: Math.round(currentConc * SimEngine.Reaction.CONC_SCALE)
+    });
+    frameCount = 0;
+
+    rateGraph.clearSeries('forward');
+    concGraph.clearSeries('concA');
+    concGraph.clearSeries('concProd');
+    rateGraph.setRanges([0, 10], null);
+    concGraph.setRanges([0, 10], null);
+  }
+
+  initSimulation();
+
+  // ── Keyboard shortcuts ────────────────────
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+    switch (e.code) {
+      case 'Space':
+        e.preventDefault();
+        playing = !playing;
+        document.getElementById('btnPlayPause').textContent = playing ? 'Pause' : 'Play';
+        break;
+      case 'KeyR':
+        SimEngine.State.set('temperature', 298);
+        currentT = 298;
+        initSimulation();
+        playing = true;
+        document.getElementById('btnPlayPause').textContent = 'Pause';
+        break;
+      case 'KeyH':
+        toggleHL();
+        break;
+      case 'KeyT':
+        toggleTeacher();
+        break;
+      case 'KeyC':
+        var rxn = REACTIONS[currentReaction];
+        if (rxn && rxn.catEa_f != null) {
+          catalystEnabled = !catalystEnabled;
+          SimEngine.State.set('catalyst', catalystEnabled);
+        }
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        currentT = Math.min(800, currentT + 50);
+        SimEngine.State.set('temperature', currentT);
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        currentT = Math.max(200, currentT - 50);
+        SimEngine.State.set('temperature', currentT);
+        break;
+    }
+  });
+
+  // ── DataCollector registration ────────────
+  SimEngine.DataCollector.registerVariables([
+    { key: 'time', label: 'Time (s)', getter: function () { return SimEngine.Reaction.getSimTime(); }, default: true },
+    { key: 'concA', label: '[A] (M)', getter: function () { return SimEngine.Reaction.getConcentrations().reactants / SimEngine.Reaction.CONC_SCALE; }, default: true },
+    { key: 'rate', label: 'Rate', getter: function () { return SimEngine.Reaction.getRates().forward; }, default: true },
+    { key: 'temperature', label: 'T (K)', getter: function () { return SimEngine.Reaction.getTemperature(); } },
+    { key: 'collisionFreq', label: 'Collision freq', getter: function () { return SimEngine.Reaction.getCollisionFrequency(); } },
+    { key: 'fractionAboveEa', label: 'Fraction > Ea', getter: function () { return SimEngine.Reaction.getFractionAboveEa(SimEngine.Reaction.getTemperature()); } },
+    { key: 'kForward', label: 'k (forward)', getter: function () { return SimEngine.Reaction.getCurrentK(); }, hl: true }
+  ]);
+
+  // ── Build data collection panel ───────────
+  (function buildDataPanel() {
+    var panel = document.getElementById('dataPanel');
+
+    var header = document.createElement('div');
+    header.className = 'data-panel-header';
+    var arrow = document.createElement('span');
+    arrow.className = 'data-panel-arrow';
+    arrow.textContent = '\u25B6';
+    header.appendChild(arrow);
+    header.appendChild(document.createTextNode(' Data Collection'));
+
+    var body = document.createElement('div');
+    body.className = 'data-panel-body';
+    body.id = 'dataPanelBody';
+
+    header.addEventListener('click', function () {
+      body.classList.toggle('open');
+      arrow.textContent = body.classList.contains('open') ? '\u25BC' : '\u25B6';
+    });
+
+    // Variable checkboxes
+    var vars = SimEngine.DataCollector.getVariables();
+    var checkDiv = document.createElement('div');
+    checkDiv.className = 'var-checkboxes';
+    for (var vi = 0; vi < vars.length; vi++) {
+      var lbl = document.createElement('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = vars[vi].key;
+      cb.checked = !!vars[vi].default;
+      if (vars[vi].hl) lbl.style.display = hlActive ? 'flex' : 'none';
+      lbl.appendChild(cb);
+      lbl.appendChild(document.createTextNode(vars[vi].label));
+      checkDiv.appendChild(lbl);
+    }
+    body.appendChild(checkDiv);
+
+    // Config row
+    var cfgRow = document.createElement('div');
+    cfgRow.className = 'data-config-row';
+
+    var durDiv = document.createElement('div');
+    durDiv.className = 'data-config';
+    var durLabel = document.createElement('label');
+    durLabel.textContent = 'Duration (s)';
+    var durInput = document.createElement('input');
+    durInput.type = 'number';
+    durInput.id = 'dataDuration';
+    durInput.value = '10';
+    durInput.min = '1';
+    durInput.max = '120';
+    durDiv.appendChild(durLabel);
+    durDiv.appendChild(durInput);
+
+    var ptDiv = document.createElement('div');
+    ptDiv.className = 'data-config';
+    var ptLabel = document.createElement('label');
+    ptLabel.textContent = 'Points';
+    var ptInput = document.createElement('input');
+    ptInput.type = 'number';
+    ptInput.id = 'dataPoints';
+    ptInput.value = '60';
+    ptInput.min = '5';
+    ptInput.max = '600';
+    ptDiv.appendChild(ptLabel);
+    ptDiv.appendChild(ptInput);
+
+    cfgRow.appendChild(durDiv);
+    cfgRow.appendChild(ptDiv);
+    body.appendChild(cfgRow);
+
+    // Progress
+    var progText = document.createElement('div');
+    progText.className = 'progress-text';
+    progText.id = 'dataProgressText';
+    progText.textContent = 'Ready';
+    body.appendChild(progText);
+
+    var progBar = document.createElement('div');
+    progBar.className = 'progress-bar';
+    var progFill = document.createElement('div');
+    progFill.className = 'progress-bar-fill';
+    progFill.id = 'dataProgressFill';
+    progBar.appendChild(progFill);
+    body.appendChild(progBar);
+
+    // Buttons
+    var btnRow = document.createElement('div');
+    btnRow.className = 'data-btn-row';
+
+    var btnStart = document.createElement('button');
+    btnStart.className = 'data-btn data-btn-primary';
+    btnStart.textContent = 'Start Collection';
+    btnStart.addEventListener('click', function () {
+      var cbs = checkDiv.querySelectorAll('input[type="checkbox"]:checked');
+      var keys = [];
+      for (var ci = 0; ci < cbs.length; ci++) keys.push(cbs[ci].value);
+      if (keys.length === 0) return;
+      if (!playing) {
+        playing = true;
+        document.getElementById('btnPlayPause').textContent = 'Pause';
+      }
+      SimEngine.DataCollector.startRun({
+        durationSec: parseInt(document.getElementById('dataDuration').value) || 10,
+        pointCount: parseInt(document.getElementById('dataPoints').value) || 60,
+        variables: keys
+      });
+    });
+
+    var btnSnapshot = document.createElement('button');
+    btnSnapshot.className = 'data-btn';
+    btnSnapshot.textContent = 'Snapshot';
+    btnSnapshot.addEventListener('click', function () {
+      SimEngine.DataCollector.recordSnapshot();
+    });
+
+    var btnDownload = document.createElement('button');
+    btnDownload.className = 'data-btn';
+    btnDownload.textContent = 'Download CSV';
+    btnDownload.addEventListener('click', function () {
+      var run = SimEngine.DataCollector.getRun();
+      if (run.length > 0) {
+        SimEngine.DataCollector.download('collision_theory_data.csv', 'run');
+      } else {
+        SimEngine.DataCollector.download('collision_theory_snapshots.csv', 'snapshots');
+      }
+    });
+
+    var btnClear = document.createElement('button');
+    btnClear.className = 'data-btn';
+    btnClear.textContent = 'Clear';
+    btnClear.addEventListener('click', function () {
+      SimEngine.DataCollector.clearData();
+      document.getElementById('snapshotTableDiv').textContent = '';
+      document.getElementById('dataProgressText').textContent = 'Ready';
+      document.getElementById('dataProgressFill').style.width = '0%';
+    });
+
+    btnRow.appendChild(btnStart);
+    btnRow.appendChild(btnSnapshot);
+    btnRow.appendChild(btnDownload);
+    btnRow.appendChild(btnClear);
+    body.appendChild(btnRow);
+
+    // Snapshot table container
+    var tableDiv = document.createElement('div');
+    tableDiv.id = 'snapshotTableDiv';
+    body.appendChild(tableDiv);
+
+    panel.appendChild(header);
+    panel.appendChild(body);
+
+    // Data collection event listeners
+    SimEngine.State.on('dataCollectionProgress', function (e) {
+      document.getElementById('dataProgressText').textContent = 'Collecting... ' + e.percent + '%';
+      document.getElementById('dataProgressFill').style.width = e.percent + '%';
+    });
+    SimEngine.State.on('dataCollectionComplete', function () {
+      document.getElementById('dataProgressText').textContent = 'Complete! (' + SimEngine.DataCollector.getRun().length + ' points)';
+      document.getElementById('dataProgressFill').style.width = '100%';
+    });
+    SimEngine.State.on('snapshotRecorded', function () {
+      var snaps = SimEngine.DataCollector.getSnapshots();
+      if (snaps.length === 0) return;
+      var keys = Object.keys(snaps[0]);
+      var container = document.getElementById('snapshotTableDiv');
+      container.textContent = '';
+
+      var table = document.createElement('table');
+      table.className = 'snapshot-table';
+      var thead = document.createElement('tr');
+      for (var hi = 0; hi < keys.length; hi++) {
+        var th = document.createElement('th');
+        th.textContent = keys[hi];
+        thead.appendChild(th);
+      }
+      table.appendChild(thead);
+      for (var ri = 0; ri < snaps.length; ri++) {
+        var tr = document.createElement('tr');
+        for (var ci = 0; ci < keys.length; ci++) {
+          var td = document.createElement('td');
+          var val = snaps[ri][keys[ci]];
+          td.textContent = (typeof val === 'number') ? val.toPrecision(4) : String(val);
+          tr.appendChild(td);
+        }
+        table.appendChild(tr);
+      }
+      container.appendChild(table);
+    });
+  })();
+
+  // ── Render particle canvas ────────────────
+  function renderParticles() {
+    simCtx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+    simCtx.fillStyle = '#FAFBFC';
+    simCtx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+
+    // Container walls
+    simCtx.strokeStyle = '#1E293B';
+    simCtx.lineWidth = 2;
+    simCtx.strokeRect(1, 1, CANVAS_W - 2, CANVAS_H - 2);
+
+    // Particles
+    SimEngine.Reaction.render(simCtx);
+
+    // Legend
+    var speciesList = SimEngine.Reaction.getSpeciesList();
+    if (speciesList && speciesList.length > 0) {
+      simCtx.font = "500 11px 'Inter', sans-serif";
+      for (var si = 0; si < speciesList.length; si++) {
+        var sp = speciesList[si];
+        var lx = 10 + si * 80;
+        var ly = CANVAS_H - 10;
+        simCtx.fillStyle = sp.color;
+        simCtx.beginPath();
+        simCtx.arc(lx, ly - 3, 5, 0, Math.PI * 2);
+        simCtx.fill();
+        simCtx.fillStyle = '#1E293B';
+        simCtx.fillText(sp.label, lx + 9, ly);
+      }
+    }
+  }
+
+  // ── Update MB distribution ────────────────
+  function updateMB() {
+    var hist = SimEngine.Reaction.getSpeedHistogram(25);
+    var theory = SimEngine.Reaction.getMBTheoryCurve(currentT, 80);
+    var eaSpeed = SimEngine.Reaction.getEaThresholdSpeed();
+
+    var maxX = Math.max(hist.maxSpeed || 1, theory.maxSpeed || 1, eaSpeed * 1.2 || 1);
+    mbGraph.setRanges([0, maxX], null);
+    mbGraph.setHistogramData(hist.bins, hist.counts, '#0D9488');
+    mbGraph.setOverlayCurve(theory.speeds, theory.densities, '#EF4444');
+    mbGraph.setVerticalLine(eaSpeed, '#7C3AED', 'Ea');
+    mbGraph.setShadedRegion(eaSpeed, maxX, 'rgba(124,58,237,0.15)');
+    mbGraph.draw();
+  }
+
+  // ── Update rate graph ─────────────────────
+  function updateRateGraph() {
+    var t = SimEngine.Reaction.getSimTime();
+    var rate = SimEngine.Reaction.getRates().forward;
+    rateGraph.addPoint('forward', t, rate);
+    if (t > rateGraph.xRange[1] * 0.9) {
+      rateGraph.setRanges([0, t * 1.2], null);
+    }
+    rateGraph.draw();
+  }
+
+  // ── Update concentration graph ────────────
+  function updateConcGraph() {
+    var t = SimEngine.Reaction.getSimTime();
+    var conc = SimEngine.Reaction.getConcentrations();
+    var cScale = SimEngine.Reaction.CONC_SCALE;
+    concGraph.addPoint('concA', t, conc.reactants / cScale);
+    concGraph.addPoint('concProd', t, conc.products / cScale);
+    if (t > concGraph.xRange[1] * 0.9) {
+      concGraph.setRanges([0, t * 1.2], null);
+    }
+    concGraph.draw();
+  }
+
+  // ── Update collision stats ────────────────
+  function updateStats() {
+    var collFreq = SimEngine.Reaction.getCollisionFrequency();
+    var fracEa = SimEngine.Reaction.getFractionAboveEa(currentT);
+    var rate = SimEngine.Reaction.getRates().forward;
+    var conc = SimEngine.Reaction.getConcentrations();
+    var cScale = SimEngine.Reaction.CONC_SCALE;
+
+    document.getElementById('stat-collFreq').textContent = collFreq.toFixed(1) + ' /frame';
+    document.getElementById('stat-fracEa').textContent = (fracEa * 100).toFixed(1) + '%';
+    document.getElementById('stat-successColl').textContent = (fracEa * collFreq).toFixed(1) + ' /frame';
+    document.getElementById('stat-rate').textContent = rate.toFixed(3);
+    document.getElementById('stat-concA').textContent = (conc.reactants / cScale).toFixed(2) + ' M';
+    document.getElementById('stat-temp').textContent = currentT + ' K';
+
+    if (hlActive) {
+      var k = SimEngine.Reaction.getCurrentK();
+      document.getElementById('stat-kValue').textContent = k.toExponential(3);
+    }
+  }
+
+  // ── Update HL panel ───────────────────────
+  function updateHLPanel() {
+    if (!hlActive) return;
+    var rxn = SimEngine.Reaction.getReactionData();
+    if (!rxn) return;
+
+    var Ea = rxn.Ea_f;
+    var catEa = rxn.catEa_f;
+    var dH = rxn.dH;
+    var k = SimEngine.Reaction.getCurrentK();
+
+    document.getElementById('hl-ea').textContent = (Ea / 1000).toFixed(1) + ' kJ/mol';
+    document.getElementById('hl-catEa').textContent = catEa != null ? (catEa / 1000).toFixed(1) + ' kJ/mol' : 'N/A';
+    document.getElementById('hl-kCurrent').textContent = k.toExponential(3);
+    document.getElementById('hl-temp').textContent = currentT + ' K';
+
+    var arrhStr = 'k = ' + k.toExponential(2);
+    arrhStr += '  (Ea=' + (Ea / 1000).toFixed(0) + ' kJ/mol, T=' + currentT + ' K)';
+    if (catalystEnabled && catEa != null) {
+      arrhStr += '  [cat: Ea=' + (catEa / 1000).toFixed(0) + ' kJ/mol]';
+    }
+    document.getElementById('hl-arrhenius').textContent = arrhStr;
+
+    drawEnergyProfile(rxn);
+  }
+
+  // ── Draw energy profile diagram ───────────
+  function drawEnergyProfile(rxn) {
+    var w = 400, h = 200;
+    var ctx = energyCtx;
+    ctx.clearRect(0, 0, w, h);
+
+    var Ea = rxn.Ea_f;
+    var dH = rxn.dH;
+    var catEa = rxn.catEa_f;
+
+    var maxE = Ea * 1.2;
+    var minE = Math.min(dH, 0) - maxE * 0.1;
+    var range = maxE - minE;
+
+    function eToY(e) { return 20 + (1 - (e - minE) / range) * (h - 50); }
+    function xPos(frac) { return 40 + frac * (w - 80); }
+
+    var reactantY = eToY(0);
+    var productY = eToY(dH);
+    var tsY = eToY(Ea);
+
+    // Axes
+    ctx.strokeStyle = '#64748B';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(35, 15);
+    ctx.lineTo(35, h - 25);
+    ctx.lineTo(w - 20, h - 25);
+    ctx.stroke();
+
+    // Y-axis label
+    ctx.fillStyle = '#64748B';
+    ctx.font = "500 11px 'Inter', sans-serif";
+    ctx.save();
+    ctx.translate(12, h / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textAlign = 'center';
+    ctx.fillText('Energy', 0, 0);
+    ctx.restore();
+
+    // X-axis label
+    ctx.textAlign = 'center';
+    ctx.fillText('Reaction Progress', w / 2, h - 8);
+
+    // Uncatalysed pathway
+    ctx.strokeStyle = '#1E293B';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(xPos(0), reactantY);
+    ctx.lineTo(xPos(0.15), reactantY);
+    ctx.bezierCurveTo(xPos(0.3), reactantY, xPos(0.35), tsY, xPos(0.5), tsY);
+    ctx.bezierCurveTo(xPos(0.65), tsY, xPos(0.7), productY, xPos(0.85), productY);
+    ctx.lineTo(xPos(1), productY);
+    ctx.stroke();
+
+    // Catalysed pathway
+    if (catEa != null) {
+      var catTsY = eToY(catEa);
+      ctx.strokeStyle = '#7C3AED';
+      ctx.lineWidth = 2;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.moveTo(xPos(0.15), reactantY);
+      ctx.bezierCurveTo(xPos(0.3), reactantY, xPos(0.35), catTsY, xPos(0.5), catTsY);
+      ctx.bezierCurveTo(xPos(0.65), catTsY, xPos(0.7), productY, xPos(0.85), productY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = '#7C3AED';
+      ctx.font = "600 10px 'Inter', sans-serif";
+      ctx.textAlign = 'left';
+      ctx.fillText('cat. Ea=' + (catEa / 1000).toFixed(0) + ' kJ', xPos(0.52), catTsY - 4);
+    }
+
+    // Labels
+    ctx.font = "600 11px 'Inter', sans-serif";
+    ctx.textAlign = 'left';
+    ctx.fillStyle = '#3B82F6';
+    ctx.fillText('Reactants', xPos(0), reactantY - 8);
+    ctx.fillStyle = '#EF4444';
+    ctx.fillText('Products', xPos(0.85), productY - 8);
+
+    // Ea annotation
+    ctx.strokeStyle = '#D97706';
+    ctx.lineWidth = 1.5;
+    var eaX = xPos(0.3);
+    ctx.beginPath();
+    ctx.moveTo(eaX, reactantY);
+    ctx.lineTo(eaX, tsY);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(eaX - 4, reactantY - 6);
+    ctx.lineTo(eaX, reactantY);
+    ctx.lineTo(eaX + 4, reactantY - 6);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(eaX - 4, tsY + 6);
+    ctx.lineTo(eaX, tsY);
+    ctx.lineTo(eaX + 4, tsY + 6);
+    ctx.stroke();
+    ctx.fillStyle = '#D97706';
+    ctx.font = "600 10px 'Inter', sans-serif";
+    ctx.textAlign = 'center';
+    ctx.fillText('Ea=' + (Ea / 1000).toFixed(0) + ' kJ', eaX, (reactantY + tsY) / 2 + 4);
+
+    // dH annotation
+    if (Math.abs(dH) > 1000) {
+      var dhX = xPos(0.78);
+      ctx.strokeStyle = '#059669';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(dhX, reactantY);
+      ctx.lineTo(dhX, productY);
+      ctx.stroke();
+      ctx.fillStyle = '#059669';
+      ctx.font = "600 10px 'Inter', sans-serif";
+      ctx.textAlign = 'left';
+      var dhSign = dH < 0 ? '' : '+';
+      ctx.fillText('\u0394H=' + dhSign + (dH / 1000).toFixed(0) + ' kJ', dhX + 4, (reactantY + productY) / 2 + 4);
+    }
+  }
+
+  // ── Animation loop ────────────────────────
+  function animate() {
+    requestAnimationFrame(animate);
+
+    if (playing) {
+      for (var s = 0; s < speed; s++) {
+        SimEngine.Reaction.step(1);
+        SimEngine.DataCollector.tick();
+        frameCount++;
+      }
+    }
+
+    renderParticles();
+
+    if (frameCount % 15 === 0) {
+      updateMB();
+    }
+
+    if (frameCount % 10 === 0 && playing) {
+      updateRateGraph();
+      updateConcGraph();
+    }
+
+    if (playing) {
+      updateStats();
+    }
+
+    if (hlActive && frameCount % 30 === 0) {
+      updateHLPanel();
+    }
+  }
+
+  // ── Palette search filtering ──────────────
+  var paletteSearchInput = document.getElementById('paletteSearch');
+  paletteSearchInput.addEventListener('input', function () {
+    var query = this.value.toLowerCase();
+    var options = reactionSelect.querySelectorAll('option');
+    var optgroups = reactionSelect.querySelectorAll('optgroup');
+    for (var oi = 0; oi < options.length; oi++) {
+      var text = options[oi].textContent.toLowerCase();
+      options[oi].style.display = (!query || text.indexOf(query) !== -1) ? '' : 'none';
+    }
+    for (var gi = 0; gi < optgroups.length; gi++) {
+      var visibleOpts = optgroups[gi].querySelectorAll('option');
+      var anyVisible = false;
+      for (var vi = 0; vi < visibleOpts.length; vi++) {
+        if (visibleOpts[vi].style.display !== 'none') { anyVisible = true; break; }
+      }
+      optgroups[gi].style.display = anyVisible ? '' : 'none';
+    }
+  });
+
+  // ── Teacher presets ──────────────────────
+  (function () {
+    var presetSelect = document.getElementById('presetSelect');
+    var presets = [
+      { label: 'Temperature Effect — 700 K', value: 'temp_effect' },
+      { label: 'Catalyst Demo — Lower Ea', value: 'catalyst_demo' },
+      { label: 'Concentration Effect — High [A]', value: 'conc_effect' }
+    ];
+    for (var pi = 0; pi < presets.length; pi++) {
+      var opt = document.createElement('option');
+      opt.value = presets[pi].value;
+      opt.textContent = presets[pi].label;
+      presetSelect.appendChild(opt);
+    }
+
+    presetSelect.addEventListener('change', function () {
+      var val = this.value;
+      if (!val) return;
+
+      if (val === 'temp_effect') {
+        // Set temperature to 700 K to show dramatic KE distribution shift
+        currentT = 700;
+        SimEngine.State.set('temperature', 700);
+        // Disable catalyst to isolate temperature variable
+        catalystEnabled = false;
+        SimEngine.State.set('catalyst', false);
+        initSimulation();
+      } else if (val === 'catalyst_demo') {
+        // Pick a reaction that supports catalyst, set moderate temp, enable catalyst
+        // Find first reaction with catEa_f
+        for (var key in REACTIONS) {
+          if (REACTIONS[key].catEa_f != null) {
+            reactionSelect.value = key;
+            currentReaction = key;
+            break;
+          }
+        }
+        currentT = 350;
+        SimEngine.State.set('temperature', 350);
+        catalystEnabled = true;
+        SimEngine.State.set('catalyst', true);
+        updateCatalystToggleState();
+        initSimulation();
+      } else if (val === 'conc_effect') {
+        // Set concentration to maximum (2.0 M), moderate temperature
+        currentT = 400;
+        SimEngine.State.set('temperature', 400);
+        currentConc = 2.0;
+        SimEngine.State.set('concentration', 2.0);
+        catalystEnabled = false;
+        SimEngine.State.set('catalyst', false);
+        initSimulation();
+      }
+
+      // Ensure playing
+      playing = true;
+      document.getElementById('btnPlayPause').textContent = 'Pause';
+      this.value = '';
+    });
+  })();
+
+  // ── Add '/' shortcut for search focus ────
+  (function () {
+    var origKeydown = null;
+    document.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === '/') {
+        e.preventDefault();
+        paletteSearchInput.focus();
+      }
+    });
+  })();
+
+  // Initial draws
+  updateMB();
+  updateStats();
+  updateHLPanel();
+  animate();
+
+})();
+</script>
+<footer>SimEngine &mdash; Collision Theory &bull; H=HL T=Teacher</footer>
+</body>
+</html>

@@ -1,0 +1,1992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rate Law Lab — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Caveat:wght@400;600;700&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+    --sim-canvas-bg: #FAFBFC;
+    --sim-grid: #E2E8F0;
+    --sim-axis: #1E293B;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+    --orange: #F59E0B;
+}
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* -- Header -- */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: .75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
+  .header .subtitle { font-size: 0.9rem; opacity: 0.85; }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.15);
+    color: white;
+    cursor: pointer;
+  }
+  .header-badge:hover { background: rgba(255,255,255,0.25); }
+  .header-badge.hl { background: var(--hl-badge-bg); display: none; }
+  body.hl-active .header-badge.hl { display: inline-block; }
+  .header-badge.active { background: rgba(255,255,255,0.3); }
+
+  /* -- Main layout -- */
+  .sim-container { max-width: 1200px; margin: 0 auto; padding: 1.5rem; }
+
+  /* -- Tab bar -- */
+  .sim-tab-bar { display: flex; gap: 0; border-bottom: 2px solid var(--border); margin-bottom: 1.5rem; }
+  .sim-tab { padding: 0.75rem 1.5rem; border: none; background: none; font-family: 'Inter', sans-serif; font-size: 0.95rem; font-weight: 600; cursor: pointer; border-bottom: 3px solid transparent; color: var(--text-muted); transition: all 0.15s; }
+  .sim-tab:hover { color: var(--text); }
+  .sim-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* -- Top row -- */
+  .sim-top-row {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* -- Cards -- */
+  .sim-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy);
+    color: white;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sim-card-body { padding: 1rem; }
+
+  /* -- Particle canvas -- */
+  .particle-canvas-wrap {
+    position: relative;
+    background: var(--sim-canvas-bg);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #sim-canvas { display: block; width: 100%; height: auto; }
+
+  /* -- Control panel -- */
+  .control-panel { display: flex; flex-direction: column; gap: 0.5rem; }
+  .sim-slider-group { margin-bottom: 0.75rem; }
+  .sim-slider-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+  }
+  .sim-label { font-size: 0.85rem; font-weight: 500; color: var(--text); }
+  .sim-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+    color: var(--teal);
+    font-weight: 600;
+  }
+  .sim-slider {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border);
+    border-radius: 3px;
+    outline: none;
+  }
+  .sim-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .sim-slider::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+  }
+  .sim-slider:disabled { opacity: 0.5; }
+
+  .sim-dropdown-group { margin-bottom: 0.75rem; }
+  .sim-dropdown {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    background: white;
+    margin-top: 0.3rem;
+  }
+  .sim-dropdown:disabled { opacity: 0.5; }
+
+  /* -- Playback buttons -- */
+  .sim-playback { display: flex; gap: 0.5rem; margin: 0.75rem 0; flex-wrap: wrap; }
+  .sim-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sim-btn:hover { background: var(--light-bg); }
+  .sim-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .sim-btn.primary { background: var(--teal); color: white; border-color: var(--teal); }
+  .sim-btn.primary:hover { background: #0B8377; }
+  .sim-btn.active { background: var(--blue); color: white; border-color: var(--blue); }
+  .sim-btn.danger { background: var(--red); color: white; border-color: var(--red); }
+  .sim-btn.danger:hover { background: #B91C1C; }
+  .sim-btn.send { background: var(--purple); color: white; border-color: var(--purple); }
+  .sim-btn.send:hover { background: #6D28D9; }
+
+  /* -- Toggle -- */
+  .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute; cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1; border-radius: 22px; transition: 0.2s;
+    --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
+    background: white; border-radius: 50%; transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider { background: var(--toggle-on); }
+  .sim-toggle input:checked + .sim-toggle-slider::before { transform: translateX(18px); }
+  .sim-toggle-label { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); }
+
+  /* -- Graph canvases -- */
+  .graph-canvas { display: block; width: 100%; height: auto; }
+
+  /* -- Info readout -- */
+  .sim-info { margin-top: 1rem; padding-top: 0.75rem; border-top: 1px solid var(--border); }
+  .sim-info-title {
+    font-size: 0.75rem; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--text-muted); margin-bottom: 0.5rem;
+  }
+  .sim-info-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 0.2rem 0; font-size: 0.8rem;
+  }
+  .sim-info-label { color: var(--text-muted); }
+  .sim-info-value { font-family: 'Fira Code', monospace; font-weight: 500; color: var(--text); }
+
+  /* -- Data table -- */
+  .data-table-wrap { overflow-x: auto; margin-top: 1rem; }
+  .data-table {
+    width: 100%; border-collapse: collapse; font-size: 0.8rem;
+  }
+  .data-table th, .data-table td {
+    padding: 0.4rem 0.6rem;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table th {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600; color: var(--text-muted);
+    text-align: right; font-size: 0.75rem;
+    text-transform: uppercase; letter-spacing: 0.03em;
+    background: var(--light-bg);
+  }
+  .data-table td {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.78rem;
+  }
+  .data-table .run-color-dot {
+    display: inline-block; width: 10px; height: 10px;
+    border-radius: 50%; margin-right: 0.3rem; vertical-align: middle;
+  }
+
+  /* -- Analyzer tab -- */
+  .analyzer-top {
+    display: grid;
+    grid-template-columns: 220px 1fr 1fr 1fr;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+  .analyzer-controls { display: flex; flex-direction: column; gap: 0.75rem; }
+  .analysis-plot-card {
+    border: 2px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    background: white;
+    transition: border-color 0.2s;
+  }
+  .analysis-plot-card.best { border-color: var(--green); }
+  .analysis-plot-label {
+    padding: 0.4rem 0.6rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: center;
+    background: var(--light-bg);
+  }
+  .analysis-plot-card.best .analysis-plot-label {
+    background: #ECFDF5;
+    color: var(--green);
+  }
+  .analysis-plot-r2 {
+    padding: 0.3rem 0.6rem;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.78rem;
+    text-align: center;
+    color: var(--text-muted);
+  }
+  .analysis-plot-card.best .analysis-plot-r2 {
+    color: var(--green);
+    font-weight: 600;
+  }
+
+  /* -- Results panel -- */
+  .results-panel {
+    background: var(--teal-bg);
+    border: 1px solid var(--teal);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .results-panel h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--teal);
+    margin-bottom: 0.5rem;
+  }
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+  }
+  .results-item-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.15rem;
+  }
+  .results-item-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  /* -- HL panel -- */
+  .hl-panel {
+    display: none;
+    border: 2px solid var(--hl-border);
+    margin-bottom: 1.5rem;
+  }
+  body.hl-active .hl-panel { display: block; }
+  .hl-panel .sim-card-header { background: var(--purple); }
+  .hl-note {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+
+  /* -- Initial rates panel -- */
+  .initial-rates-panel {
+    background: var(--blue-bg);
+    border: 1px solid var(--blue);
+    border-radius: 10px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .initial-rates-panel h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--blue);
+    margin-bottom: 0.5rem;
+  }
+
+  /* -- Manual entry -- */
+  .manual-entry { margin-bottom: 1rem; }
+  .manual-entry textarea {
+    width: 100%;
+    height: 120px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.5rem;
+    resize: vertical;
+  }
+
+  /* -- Run checkboxes -- */
+  .run-checkboxes { margin-bottom: 0.75rem; }
+  .run-checkboxes label {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-size: 0.8rem; color: var(--text); padding: 0.15rem 0; cursor: pointer;
+  }
+  .run-checkboxes label input[type="checkbox"] { margin: 0; }
+
+  /* -- Radio group -- */
+  .radio-group { margin-bottom: 0.75rem; }
+  .radio-group label {
+    display: flex; align-items: center; gap: 0.4rem;
+    font-size: 0.8rem; color: var(--text); padding: 0.15rem 0; cursor: pointer;
+  }
+  .radio-group label input[type="radio"] { margin: 0; }
+
+  /* -- Teacher mode -- */
+  body.teacher-active .sim-top-row { grid-template-columns: 1fr; }
+  body.teacher-active .control-panel-card { display: none; }
+
+  /* -- Footer -- */
+  .footer {
+    text-align: center; padding: 1.5rem;
+    color: var(--text-muted); font-size: 0.8rem;
+    border-top: 1px solid var(--border); margin-top: 1rem;
+  }
+
+  /* -- Responsive -- */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .analyzer-top { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .sim-container { padding: 0.75rem; }
+    .header { padding: 1rem; }
+    .header h1 { font-size: 1.2rem; }
+  }
+
+  /* -- Palette search -- */
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.8rem; font-family: inherit; margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+
+  /* -- Preset section -- */
+  .preset-section{display:none;margin-top:.75rem;} .preset-section select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--border);font-size:.8rem;font-family:inherit;} body.teacher-active .preset-section{display:block;}
+
+  /* -- Keyboard hint -- */
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px;
+    background: white; border: 1px solid var(--border); font-family: 'Fira Code', monospace;
+    font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  /* -- Print -- */
+  @media print {
+    .sim-playback, .sim-toggle-group, .sim-slider-group,
+    .sim-dropdown-group, .sim-btn, .sim-tab-bar { display: none !important; }
+    canvas { border: 1px solid #ccc; }
+    .sim-card { break-inside: avoid; page-break-inside: avoid; box-shadow: none; }
+    .hl-panel { page-break-before: always; }
+    body { font-size: 13px; }
+  }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>Rate Law Lab</h1>
+    <div class="subtitle">R2.2 — Rate Expression &amp; Arrhenius</div>
+  </div>
+  <div class="header-right">
+    <span class="header-badge" id="badge-sl">SL</span>
+    <span class="header-badge hl" id="badge-hl">HL</span>
+    <span class="header-badge" id="badge-teacher">Teacher</span>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="sim-container" id="main-content">
+
+  <!-- Tab bar -->
+  <div class="sim-tab-bar" role="tablist">
+    <button class="sim-tab active" data-tab="experiment" role="tab" aria-selected="true" aria-controls="tab-experiment">Virtual Experiment</button>
+    <button class="sim-tab" data-tab="analyzer" role="tab" aria-selected="false" aria-controls="tab-analyzer">Rate Law Analyzer</button>
+  </div>
+
+  <!-- ========== TAB 1: VIRTUAL EXPERIMENT ========== -->
+  <div class="tab-content active" id="tab-experiment" role="tabpanel">
+
+    <!-- Top row: particle canvas + controls -->
+    <div class="sim-top-row">
+
+      <!-- Particle canvas card -->
+      <div class="sim-card">
+        <div class="sim-card-header">Particle Simulation</div>
+        <div class="sim-card-body" style="padding: 0;">
+          <div class="particle-canvas-wrap">
+            <canvas id="sim-canvas" aria-label="Reaction simulation" role="img"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Control panel -->
+      <div class="sim-card control-panel-card">
+        <div class="sim-card-header">Controls</div>
+        <div class="sim-card-body control-panel" id="controlPanel">
+          <!-- Controls injected by JS -->
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Concentration vs time graph -->
+    <div class="sim-card" style="margin-bottom: 1.5rem;">
+      <div class="sim-card-header">[A] vs Time (multi-run overlay)</div>
+      <div class="sim-card-body" style="padding: 0.5rem; text-align: center;">
+        <canvas id="graph-conc-time" class="graph-canvas" aria-label="Concentration vs time graph" role="img"></canvas>
+      </div>
+    </div>
+
+    <!-- Data table -->
+    <div class="sim-card">
+      <div class="sim-card-header">Run Summary</div>
+      <div class="sim-card-body data-table-wrap">
+        <table class="data-table" id="runSummaryTable">
+          <thead>
+            <tr>
+              <th style="text-align:left;">Run</th>
+              <th>[A]&#x2080;</th>
+              <th>[B]&#x2080;</th>
+              <th>T (K)</th>
+              <th>Catalyst</th>
+              <th>Initial Rate (M/s)</th>
+              <th>t&#xBD; (s)</th>
+            </tr>
+          </thead>
+          <tbody id="runSummaryBody"></tbody>
+        </table>
+        <p id="noRunsMsg" style="text-align:center; color: var(--text-muted); font-size: 0.85rem; padding: 1rem;">No runs yet. Configure settings and click Run.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== TAB 2: RATE LAW ANALYZER ========== -->
+  <div class="tab-content" id="tab-analyzer" role="tabpanel">
+
+    <!-- Analyzer top: controls + 3 plots -->
+    <div class="analyzer-top">
+
+      <!-- Analysis controls -->
+      <div class="sim-card">
+        <div class="sim-card-header">Analysis Controls</div>
+        <div class="sim-card-body analyzer-controls">
+          <div class="sim-dropdown-group">
+            <label class="sim-label" for="dataSource">Data Source</label>
+            <select id="dataSource" class="sim-dropdown">
+              <option value="experiment">From Experiment</option>
+              <option value="preset_1st">Preset: 1st Order</option>
+              <option value="preset_2nd">Preset: 2nd Order</option>
+              <option value="preset_zero">Preset: Zero Order</option>
+              <option value="manual">Manual Entry</option>
+            </select>
+          </div>
+
+          <!-- Run selection (shown when from experiment) -->
+          <div id="runSelectionArea" class="run-checkboxes">
+            <div class="sim-label" style="margin-bottom: 0.3rem;">Select Runs</div>
+            <div id="runCheckboxes"></div>
+          </div>
+
+          <!-- Analysis method -->
+          <div class="radio-group">
+            <div class="sim-label" style="margin-bottom: 0.3rem;">Method</div>
+            <label><input type="radio" name="analysisMethod" value="integrated" checked> Integrated Rate Law</label>
+            <label><input type="radio" name="analysisMethod" value="initialRates"> Method of Initial Rates</label>
+          </div>
+
+          <button class="sim-btn primary" id="analyzeBtn" style="width:100%;">Analyze</button>
+        </div>
+      </div>
+
+      <!-- Plot 1: [A] vs t -->
+      <div class="analysis-plot-card" id="plotCard0">
+        <div class="analysis-plot-label" id="plotLabel0">[A] vs t</div>
+        <div style="text-align:center; padding: 0.25rem;">
+          <canvas id="analysis-plot-0" class="graph-canvas" aria-label="Zero-order analysis plot" role="img"></canvas>
+        </div>
+        <div class="analysis-plot-r2" id="plotR2_0">R² = --</div>
+      </div>
+
+      <!-- Plot 2: ln[A] vs t -->
+      <div class="analysis-plot-card" id="plotCard1">
+        <div class="analysis-plot-label" id="plotLabel1">ln[A] vs t</div>
+        <div style="text-align:center; padding: 0.25rem;">
+          <canvas id="analysis-plot-1" class="graph-canvas" aria-label="First-order analysis plot" role="img"></canvas>
+        </div>
+        <div class="analysis-plot-r2" id="plotR2_1">R² = --</div>
+      </div>
+
+      <!-- Plot 3: 1/[A] vs t -->
+      <div class="analysis-plot-card" id="plotCard2">
+        <div class="analysis-plot-label" id="plotLabel2">1/[A] vs t</div>
+        <div style="text-align:center; padding: 0.25rem;">
+          <canvas id="analysis-plot-2" class="graph-canvas" aria-label="Second-order analysis plot" role="img"></canvas>
+        </div>
+        <div class="analysis-plot-r2" id="plotR2_2">R² = --</div>
+      </div>
+    </div>
+
+    <!-- Manual entry area (hidden by default) -->
+    <div id="manualEntryArea" class="manual-entry" style="display:none;">
+      <div class="sim-card">
+        <div class="sim-card-header">Manual Data Entry</div>
+        <div class="sim-card-body">
+          <p style="font-size:0.8rem; color: var(--text-muted); margin-bottom:0.5rem;">Paste CSV data: time,concentration (one pair per line, header optional)</p>
+          <textarea id="manualCSV" aria-label="Manual CSV data entry" placeholder="time,concentration&#10;0,1.00&#10;5,0.78&#10;10,0.61&#10;15,0.47&#10;20,0.37"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results panel -->
+    <div class="results-panel" id="resultsPanel" style="display:none;" aria-live="polite">
+      <h3>Integrated Rate Law Results</h3>
+      <div class="results-grid" id="resultsGrid"></div>
+    </div>
+
+    <!-- Method of initial rates panel -->
+    <div class="initial-rates-panel" id="initialRatesPanel" style="display:none;" aria-live="polite">
+      <h3>Method of Initial Rates</h3>
+      <div id="initialRatesContent"></div>
+      <div style="text-align:center; margin-top: 0.5rem;">
+        <canvas id="graph-initial-rates" class="graph-canvas" aria-label="Initial rates graph" role="img"></canvas>
+      </div>
+    </div>
+
+    <!-- Arrhenius panel (HL only) -->
+    <div class="hl-panel sim-card" id="arrheniusPanel">
+      <div class="sim-card-header">Arrhenius Analysis: ln(k) vs 1/T</div>
+      <div class="sim-card-body">
+        <div style="text-align:center;">
+          <canvas id="graph-arrhenius" class="graph-canvas" aria-label="Arrhenius plot" role="img"></canvas>
+        </div>
+        <div id="arrheniusResults" style="margin-top: 0.75rem;" aria-live="polite"></div>
+        <div class="hl-note">HL: The Arrhenius equation ln(k) = ln(A) - Ea/(RT) allows determination of activation energy from kinetic data at multiple temperatures.</div>
+      </div>
+    </div>
+
+  </div><!-- end tab-analyzer -->
+
+</div><!-- end sim-container -->
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd> <kbd>2</kbd> Tabs &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search
+</div>
+
+<div class="footer">
+  IB Chemistry SimEngine — Rate Law Lab — For educational use
+</div>
+
+<script src="../../3-Resources/SimEngine/SimEngine_Core.js"></script>
+<script>
+(function () {
+  'use strict';
+
+  // ── Constants ──────────────────────────────
+  var DPR = window.devicePixelRatio || 1;
+  var CANVAS_W = 580, CANVAS_H = 300;
+  var RUN_COLORS = ['#0D9488', '#2563EB', '#D97706', '#7C3AED', '#DC2626', '#059669', '#EA580C', '#4F46E5'];
+  var R_GAS = 8.314;
+
+  // ── State ──────────────────────────────────
+  var runs = [];
+  var currentRunIndex = -1;
+  var isRunning = false;
+  var isPaused = false;
+  var animFrameId = null;
+  var hlEnabled = false;
+  var teacherMode = false;
+
+  var selectedReaction = 'model_A_B';
+  var selectedConcA = 1.0;
+  var selectedConcB = 1.0;
+  var selectedTemp = 298;
+  var selectedCatalyst = false;
+
+  var IRREVERSIBLE_KEYS = [
+    'model_A_B', 'model_AB_C', 'model_2A_B',
+    'h2o2_decomp', 'iodine_clock', 'marble_hcl', 'thiosulfate_hcl'
+  ];
+
+  // ── DOM refs ───────────────────────────────
+  var simCanvas, simCtx;
+  var concTimeGraph;
+  var analysisGraphs = [null, null, null];
+  var arrheniusGraph = null;
+  var initialRatesGraph = null;
+  var reactionDropdown, concASlider, concBSlider, tempSlider, catalystToggle;
+  var runBtn, clearBtn, sendBtn;
+
+  // ── Utility: linear regression ─────────────
+  function linearRegression(xs, ys) {
+    var n = xs.length;
+    if (n < 2) return { slope: 0, intercept: 0, r2: 0 };
+    var sumX = 0, sumY = 0, sumXX = 0, sumXY = 0;
+    var i;
+    for (i = 0; i < n; i++) {
+      sumX += xs[i]; sumY += ys[i];
+      sumXX += xs[i] * xs[i];
+      sumXY += xs[i] * ys[i];
+    }
+    var denom = n * sumXX - sumX * sumX;
+    if (Math.abs(denom) < 1e-15) return { slope: 0, intercept: sumY / n, r2: 0 };
+    var slope = (n * sumXY - sumX * sumY) / denom;
+    var intercept = (sumY - slope * sumX) / n;
+    var ssRes = 0, ssTot = 0;
+    var meanY = sumY / n;
+    for (i = 0; i < n; i++) {
+      var pred = slope * xs[i] + intercept;
+      ssRes += (ys[i] - pred) * (ys[i] - pred);
+      ssTot += (ys[i] - meanY) * (ys[i] - meanY);
+    }
+    var r2 = ssTot > 0 ? 1 - ssRes / ssTot : 0;
+    return { slope: slope, intercept: intercept, r2: r2 };
+  }
+
+  // ── Utility: generate preset dataset ───────
+  function generatePreset(type) {
+    var data = [];
+    var concA0, k, tMax;
+    if (type === 'preset_1st') {
+      concA0 = 1.0; k = 0.05; tMax = 60;
+      for (var t = 0; t <= tMax; t += 1) {
+        var c = concA0 * Math.exp(-k * t);
+        c += c * (Math.random() - 0.5) * 0.04;
+        data.push({ t: t, concA: Math.max(c, 0.001) });
+      }
+    } else if (type === 'preset_2nd') {
+      concA0 = 1.0; k = 0.2; tMax = 30;
+      for (var t = 0; t <= tMax; t += 0.5) {
+        var c = 1.0 / (1.0 / concA0 + k * t);
+        c += c * (Math.random() - 0.5) * 0.04;
+        data.push({ t: t, concA: Math.max(c, 0.001) });
+      }
+    } else if (type === 'preset_zero') {
+      concA0 = 1.0; k = 0.02; tMax = 40;
+      for (var t = 0; t <= tMax; t += 1) {
+        var c = concA0 - k * t;
+        c += c * (Math.random() - 0.5) * 0.04;
+        data.push({ t: t, concA: Math.max(c, 0.001) });
+      }
+    }
+    return { concA0: concA0, data: data };
+  }
+
+  // ── Utility: parse manual CSV ──────────────
+  function parseManualCSV(text) {
+    var lines = text.trim().split('\n');
+    var data = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      var parts = line.split(/[,\t]+/);
+      if (parts.length < 2) continue;
+      var t = parseFloat(parts[0]);
+      var c = parseFloat(parts[1]);
+      if (isNaN(t) || isNaN(c)) continue;
+      data.push({ t: t, concA: c });
+    }
+    return data;
+  }
+
+  function reactionHasB(key) {
+    var rxn = SimEngine.Reaction.REACTIONS[key];
+    return rxn && rxn.stoich.reactants.length > 1;
+  }
+
+  function reactionHasCatalyst(key) {
+    var rxn = SimEngine.Reaction.REACTIONS[key];
+    return rxn && rxn.catEa_f != null;
+  }
+
+  // ── Utility: safe DOM text/element builders ─
+  function setText(id, text) {
+    var el = document.getElementById(id);
+    if (el) el.textContent = text;
+  }
+
+  function clearChildren(el) {
+    while (el.firstChild) el.removeChild(el.firstChild);
+  }
+
+  function makeResultItemEl(label, value) {
+    var div = document.createElement('div');
+    var labelDiv = document.createElement('div');
+    labelDiv.className = 'results-item-label';
+    labelDiv.textContent = label;
+    var valDiv = document.createElement('div');
+    valDiv.className = 'results-item-value';
+    valDiv.textContent = value;
+    div.appendChild(labelDiv);
+    div.appendChild(valDiv);
+    return div;
+  }
+
+  // ── Tab switching ──────────────────────────
+  function switchTab(tabId) {
+    var tabs = document.querySelectorAll('.sim-tab');
+    var contents = document.querySelectorAll('.tab-content');
+    for (var i = 0; i < tabs.length; i++) {
+      var isActive = tabs[i].getAttribute('data-tab') === tabId;
+      if (isActive) tabs[i].classList.add('active');
+      else tabs[i].classList.remove('active');
+    }
+    for (var i = 0; i < contents.length; i++) {
+      var isActive = contents[i].id === 'tab-' + tabId;
+      if (isActive) contents[i].classList.add('active');
+      else contents[i].classList.remove('active');
+    }
+    if (tabId === 'analyzer') {
+      for (var i = 0; i < 3; i++) {
+        if (analysisGraphs[i]) analysisGraphs[i].draw();
+      }
+      if (arrheniusGraph) arrheniusGraph.draw();
+      if (initialRatesGraph) initialRatesGraph.draw();
+    }
+  }
+
+  // ── HL / Teacher badges ────────────────────
+  function toggleHL() {
+    hlEnabled = !hlEnabled;
+    if (hlEnabled) document.body.classList.add('hl-active');
+    else document.body.classList.remove('hl-active');
+  }
+
+  function toggleTeacher() {
+    teacherMode = !teacherMode;
+    if (teacherMode) {
+      document.body.classList.add('teacher-active');
+      document.getElementById('badge-teacher').classList.add('active');
+    } else {
+      document.body.classList.remove('teacher-active');
+      document.getElementById('badge-teacher').classList.remove('active');
+    }
+  }
+
+  // ── HiDPI canvas setup ─────────────────────
+  function setupHiDPICanvas(canvas, w, h) {
+    canvas.width = w * DPR;
+    canvas.height = h * DPR;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    var ctx = canvas.getContext('2d');
+    ctx.scale(DPR, DPR);
+    return ctx;
+  }
+
+  // ── Data source change ─────────────────────
+  function onDataSourceChange() {
+    var source = document.getElementById('dataSource').value;
+    document.getElementById('runSelectionArea').style.display = (source === 'experiment') ? 'block' : 'none';
+    document.getElementById('manualEntryArea').style.display = (source === 'manual') ? 'block' : 'none';
+  }
+
+  // ── Build controls ─────────────────────────
+  function buildControls() {
+    var panel = document.getElementById('controlPanel');
+
+    // Palette search input
+    var searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.className = 'palette-search';
+    searchInput.id = 'paletteSearch';
+    searchInput.placeholder = 'Search reactions...';
+    searchInput.setAttribute('aria-label', 'Search reactions');
+    searchInput.addEventListener('input', function () {
+      filterReactionDropdown(searchInput.value);
+    });
+    panel.appendChild(searchInput);
+
+    // Reaction preset dropdown
+    var rxnGroup = document.createElement('div');
+    rxnGroup.className = 'sim-dropdown-group';
+    var rxnLabel = document.createElement('label');
+    rxnLabel.className = 'sim-label';
+    rxnLabel.setAttribute('for', 'rxnPreset');
+    rxnLabel.textContent = 'Reaction';
+    rxnGroup.appendChild(rxnLabel);
+
+    var rxnSel = document.createElement('select');
+    rxnSel.id = 'rxnPreset';
+    rxnSel.className = 'sim-dropdown';
+    for (var i = 0; i < IRREVERSIBLE_KEYS.length; i++) {
+      var key = IRREVERSIBLE_KEYS[i];
+      var rxn = SimEngine.Reaction.REACTIONS[key];
+      var opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = rxn.equation;
+      rxnSel.appendChild(opt);
+    }
+    rxnSel.value = selectedReaction;
+    rxnSel.addEventListener('change', function () {
+      selectedReaction = rxnSel.value;
+      updateControlVisibility();
+    });
+    rxnGroup.appendChild(rxnSel);
+    panel.appendChild(rxnGroup);
+    reactionDropdown = rxnSel;
+
+    // [A]0 slider
+    panel.appendChild(buildSliderGroup('concAGroup', '[A]\u2080 (M)', 'concAValue', '1.00',
+      0.10, 2.00, 0.05, 1.00, function (val) {
+        selectedConcA = val;
+        setText('concAValue', val.toFixed(2));
+      }));
+    concASlider = document.getElementById('concAGroup').querySelector('input[type="range"]');
+
+    // [B]0 slider
+    panel.appendChild(buildSliderGroup('concBGroup', '[B]\u2080 (M)', 'concBValue', '1.00',
+      0.10, 2.00, 0.05, 1.00, function (val) {
+        selectedConcB = val;
+        setText('concBValue', val.toFixed(2));
+      }));
+    concBSlider = document.getElementById('concBGroup').querySelector('input[type="range"]');
+
+    // Temperature slider
+    panel.appendChild(buildSliderGroup('tempGroup', 'Temperature (K)', 'tempValue', '298',
+      250, 400, 1, 298, function (val) {
+        selectedTemp = Math.round(val);
+        setText('tempValue', String(selectedTemp));
+      }));
+    tempSlider = document.getElementById('tempGroup').querySelector('input[type="range"]');
+
+    // Catalyst toggle
+    var catGroup = document.createElement('div');
+    catGroup.className = 'sim-toggle-group';
+    catGroup.id = 'catalystGroup';
+    var catSpan = document.createElement('span');
+    catSpan.className = 'sim-label';
+    catSpan.textContent = 'Catalyst';
+    catGroup.appendChild(catSpan);
+
+    var catToggleWrap = document.createElement('label');
+    catToggleWrap.className = 'sim-toggle';
+    var catInput = document.createElement('input');
+    catInput.type = 'checkbox';
+    catInput.id = 'catalystToggle';
+    var catSliderEl = document.createElement('span');
+    catSliderEl.className = 'sim-toggle-slider';
+    catToggleWrap.appendChild(catInput);
+    catToggleWrap.appendChild(catSliderEl);
+    catGroup.appendChild(catToggleWrap);
+
+    var catLabel = document.createElement('span');
+    catLabel.className = 'sim-toggle-label';
+    catLabel.textContent = 'OFF';
+    catGroup.appendChild(catLabel);
+
+    catInput.addEventListener('change', function () {
+      selectedCatalyst = catInput.checked;
+      catLabel.textContent = catInput.checked ? 'ON' : 'OFF';
+    });
+    panel.appendChild(catGroup);
+    catalystToggle = catInput;
+
+    // Buttons
+    var btnRow = document.createElement('div');
+    btnRow.className = 'sim-playback';
+
+    runBtn = document.createElement('button');
+    runBtn.className = 'sim-btn primary';
+    runBtn.textContent = 'Run';
+    runBtn.addEventListener('click', onRunClick);
+
+    clearBtn = document.createElement('button');
+    clearBtn.className = 'sim-btn danger';
+    clearBtn.textContent = 'Clear Runs';
+    clearBtn.addEventListener('click', onClearClick);
+
+    sendBtn = document.createElement('button');
+    sendBtn.className = 'sim-btn send';
+    sendBtn.textContent = 'Send to Analyzer';
+    sendBtn.addEventListener('click', onSendClick);
+    sendBtn.disabled = true;
+
+    btnRow.appendChild(runBtn);
+    btnRow.appendChild(clearBtn);
+    btnRow.appendChild(sendBtn);
+    panel.appendChild(btnRow);
+
+    // Teacher presets section
+    var presetSection = document.createElement('div');
+    presetSection.className = 'preset-section';
+    presetSection.id = 'presetSection';
+    var presetSelect = document.createElement('select');
+    presetSelect.id = 'presetSelect';
+    presetSelect.setAttribute('aria-label', 'Teacher presets');
+    var defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = 'Teacher Presets...';
+    presetSelect.appendChild(defaultOpt);
+
+    var presets = [
+      { value: 'first_order_decay', label: 'First Order Decay' },
+      { value: 'second_order', label: 'Second Order' },
+      { value: 'initial_rates', label: 'Method of Initial Rates' }
+    ];
+    for (var p = 0; p < presets.length; p++) {
+      var pOpt = document.createElement('option');
+      pOpt.value = presets[p].value;
+      pOpt.textContent = presets[p].label;
+      presetSelect.appendChild(pOpt);
+    }
+    presetSelect.addEventListener('change', function () {
+      if (presetSelect.value) {
+        applyTeacherPreset(presetSelect.value);
+        presetSelect.value = '';
+      }
+    });
+    presetSection.appendChild(presetSelect);
+    panel.appendChild(presetSection);
+
+    // Sim info readout
+    var info = document.createElement('div');
+    info.className = 'sim-info';
+    info.id = 'simInfo';
+
+    var infoTitle = document.createElement('div');
+    infoTitle.className = 'sim-info-title';
+    infoTitle.textContent = 'Current Run';
+    info.appendChild(infoTitle);
+
+    var infoFields = [
+      ['Time', 'infoTime'],
+      ['[A]', 'infoConcA'],
+      ['Rate', 'infoRate'],
+      ['k', 'infoK']
+    ];
+    for (var i = 0; i < infoFields.length; i++) {
+      var row = document.createElement('div');
+      row.className = 'sim-info-row';
+      var lbl = document.createElement('span');
+      lbl.className = 'sim-info-label';
+      lbl.textContent = infoFields[i][0];
+      var val = document.createElement('span');
+      val.className = 'sim-info-value';
+      val.id = infoFields[i][1];
+      val.textContent = '--';
+      row.appendChild(lbl);
+      row.appendChild(val);
+      info.appendChild(row);
+    }
+    panel.appendChild(info);
+
+    updateControlVisibility();
+  }
+
+  function buildSliderGroup(groupId, label, valueId, defaultText, min, max, step, value, onChange) {
+    var group = document.createElement('div');
+    group.className = 'sim-slider-group';
+    group.id = groupId;
+
+    var row = document.createElement('div');
+    row.className = 'sim-slider-row';
+    var lbl = document.createElement('label');
+    lbl.className = 'sim-label';
+    lbl.textContent = label;
+    var valSpan = document.createElement('span');
+    valSpan.className = 'sim-value';
+    valSpan.id = valueId;
+    valSpan.textContent = defaultText;
+    row.appendChild(lbl);
+    row.appendChild(valSpan);
+    group.appendChild(row);
+
+    var input = document.createElement('input');
+    input.type = 'range';
+    input.className = 'sim-slider';
+    input.min = String(min);
+    input.max = String(max);
+    input.step = String(step);
+    input.value = String(value);
+    input.addEventListener('input', function () {
+      onChange(parseFloat(input.value));
+    });
+    group.appendChild(input);
+
+    return group;
+  }
+
+  function updateControlVisibility() {
+    var hasB = reactionHasB(selectedReaction);
+    var hasCat = reactionHasCatalyst(selectedReaction);
+    document.getElementById('concBGroup').style.display = hasB ? 'block' : 'none';
+    document.getElementById('catalystGroup').style.display = hasCat ? 'flex' : 'none';
+  }
+
+  function setControlsEnabled(enabled) {
+    if (reactionDropdown) reactionDropdown.disabled = !enabled;
+    if (concASlider) concASlider.disabled = !enabled;
+    if (concBSlider) concBSlider.disabled = !enabled;
+    if (tempSlider) tempSlider.disabled = !enabled;
+    if (catalystToggle) catalystToggle.disabled = !enabled;
+    if (clearBtn) clearBtn.disabled = !enabled;
+    var hasCompleted = false;
+    for (var i = 0; i < runs.length; i++) {
+      if (runs[i].complete) { hasCompleted = true; break; }
+    }
+    if (sendBtn) sendBtn.disabled = !enabled || !hasCompleted;
+  }
+
+  // ── Run management ─────────────────────────
+  function onRunClick() {
+    if (isRunning && !isPaused) {
+      isPaused = true;
+      runBtn.textContent = 'Resume';
+      runBtn.classList.remove('active');
+      runBtn.classList.add('primary');
+      return;
+    }
+    if (isRunning && isPaused) {
+      isPaused = false;
+      runBtn.textContent = 'Pause';
+      runBtn.classList.remove('primary');
+      runBtn.classList.add('active');
+      return;
+    }
+
+    // Start new run
+    var runId = runs.length + 1;
+    var color = RUN_COLORS[(runId - 1) % RUN_COLORS.length];
+
+    var initConfig = {
+      reactionKey: selectedReaction,
+      mode: 'color-change',
+      bounds: { left: 0, top: 0, right: CANVAS_W, bottom: CANVAS_H },
+      temperature: selectedTemp,
+      initialConc: selectedConcA,
+      catalyst: selectedCatalyst
+    };
+    if (reactionHasB(selectedReaction)) {
+      initConfig.initialConcB = selectedConcB;
+    }
+    SimEngine.Reaction.init(initConfig);
+    SimEngine.Reaction.clearConcTimeSeries();
+
+    var run = {
+      id: runId,
+      reactionKey: selectedReaction,
+      concA0: selectedConcA,
+      concB0: reactionHasB(selectedReaction) ? selectedConcB : null,
+      T: selectedTemp,
+      catalyst: selectedCatalyst,
+      color: color,
+      data: [],
+      complete: false,
+      initialRate: null,
+      halfLife: null
+    };
+    runs.push(run);
+    currentRunIndex = runs.length - 1;
+
+    concTimeGraph.addSeries('run_' + runId, color, 2);
+
+    isRunning = true;
+    isPaused = false;
+    runBtn.textContent = 'Pause';
+    runBtn.classList.remove('primary');
+    runBtn.classList.add('active');
+    setControlsEnabled(false);
+
+    document.getElementById('noRunsMsg').style.display = 'none';
+
+    if (!animFrameId) {
+      animFrameId = requestAnimationFrame(animLoop);
+    }
+  }
+
+  function onClearClick() {
+    runs = [];
+    currentRunIndex = -1;
+    isRunning = false;
+    isPaused = false;
+    runBtn.textContent = 'Run';
+    runBtn.classList.remove('active');
+    runBtn.classList.add('primary');
+
+    if (concTimeGraph) {
+      concTimeGraph.series = [];
+      concTimeGraph.setRanges([0, 60], [0, 2]);
+      concTimeGraph.draw();
+    }
+
+    var tbody = document.getElementById('runSummaryBody');
+    clearChildren(tbody);
+    document.getElementById('noRunsMsg').style.display = 'block';
+
+    setControlsEnabled(true);
+    sendBtn.disabled = true;
+    setText('infoTime', '--');
+    setText('infoConcA', '--');
+    setText('infoRate', '--');
+    setText('infoK', '--');
+  }
+
+  function onSendClick() {
+    var hasCompleted = false;
+    for (var i = 0; i < runs.length; i++) {
+      if (runs[i].complete) { hasCompleted = true; break; }
+    }
+    if (!hasCompleted) return;
+
+    switchTab('analyzer');
+    document.getElementById('dataSource').value = 'experiment';
+    onDataSourceChange();
+    buildRunCheckboxes();
+  }
+
+  function buildRunCheckboxes() {
+    var container = document.getElementById('runCheckboxes');
+    clearChildren(container);
+    for (var i = 0; i < runs.length; i++) {
+      var run = runs[i];
+      if (!run.complete) continue;
+      var label = document.createElement('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.checked = true;
+      cb.value = String(run.id);
+      var dot = document.createElement('span');
+      dot.className = 'run-color-dot';
+      dot.style.background = run.color;
+      label.appendChild(cb);
+      label.appendChild(dot);
+      label.appendChild(document.createTextNode('Run ' + run.id + ' ([A]\u2080=' + run.concA0.toFixed(2) + ', T=' + run.T + 'K)'));
+      container.appendChild(label);
+    }
+  }
+
+  // ── Complete a run ─────────────────────────
+  function completeRun(runIndex) {
+    var run = runs[runIndex];
+    run.complete = true;
+    isRunning = false;
+    isPaused = false;
+    currentRunIndex = -1;
+
+    runBtn.textContent = 'Run';
+    runBtn.classList.remove('active');
+    runBtn.classList.add('primary');
+    setControlsEnabled(true);
+
+    // Compute initial rate
+    if (run.data.length >= 5) {
+      var ts = [], cs = [];
+      for (var i = 0; i < 5; i++) {
+        ts.push(run.data[i].t);
+        cs.push(run.data[i].concA);
+      }
+      var reg = linearRegression(ts, cs);
+      run.initialRate = -reg.slope;
+    } else if (run.data.length >= 2) {
+      run.initialRate = -(run.data[1].concA - run.data[0].concA) / (run.data[1].t - run.data[0].t);
+    }
+
+    // Compute half-life
+    var halfConc = run.concA0 * 0.5;
+    for (var i = 0; i < run.data.length; i++) {
+      if (run.data[i].concA <= halfConc) {
+        run.halfLife = run.data[i].t;
+        break;
+      }
+    }
+
+    updateRunSummaryTable();
+  }
+
+  function updateRunSummaryTable() {
+    var tbody = document.getElementById('runSummaryBody');
+    clearChildren(tbody);
+    for (var i = 0; i < runs.length; i++) {
+      var run = runs[i];
+      if (!run.complete) continue;
+
+      var tr = document.createElement('tr');
+
+      // Run cell with color dot
+      var tdRun = document.createElement('td');
+      tdRun.style.textAlign = 'left';
+      var dot = document.createElement('span');
+      dot.className = 'run-color-dot';
+      dot.style.background = run.color;
+      tdRun.appendChild(dot);
+      tdRun.appendChild(document.createTextNode('Run ' + run.id));
+      tr.appendChild(tdRun);
+
+      var tdA = document.createElement('td');
+      tdA.textContent = run.concA0.toFixed(2);
+      tr.appendChild(tdA);
+
+      var tdB = document.createElement('td');
+      tdB.textContent = run.concB0 !== null ? run.concB0.toFixed(2) : '--';
+      tr.appendChild(tdB);
+
+      var tdT = document.createElement('td');
+      tdT.textContent = String(run.T);
+      tr.appendChild(tdT);
+
+      var tdCat = document.createElement('td');
+      tdCat.textContent = run.catalyst ? 'Yes' : 'No';
+      tr.appendChild(tdCat);
+
+      var tdRate = document.createElement('td');
+      tdRate.textContent = run.initialRate !== null ? run.initialRate.toExponential(3) : '--';
+      tr.appendChild(tdRate);
+
+      var tdHL = document.createElement('td');
+      tdHL.textContent = run.halfLife !== null ? run.halfLife.toFixed(1) : '> t_max';
+      tr.appendChild(tdHL);
+
+      tbody.appendChild(tr);
+    }
+  }
+
+  // ── Animation loop ─────────────────────────
+  var frameSkip = 0;
+
+  function animLoop() {
+    animFrameId = requestAnimationFrame(animLoop);
+
+    if (!isRunning || isPaused) {
+      drawParticleCanvas();
+      return;
+    }
+
+    var run = runs[currentRunIndex];
+    if (!run) return;
+
+    // Step simulation
+    SimEngine.Reaction.step(1.0);
+    SimEngine.DataCollector.tick();
+
+    var simTime = SimEngine.Reaction.getSimTime();
+    var concA = 0;
+    var concB = 0;
+    var concP = 0;
+
+    var ts = SimEngine.Reaction.getConcTimeSeries();
+    if (ts.count > 0) {
+      concA = ts.concA[ts.count - 1];
+      concB = ts.concB[ts.count - 1];
+      concP = ts.concProduct[ts.count - 1];
+    }
+
+    // Record data point every ~10 frames
+    frameSkip++;
+    if (frameSkip >= 10) {
+      frameSkip = 0;
+      run.data.push({ t: simTime, concA: concA, concB: concB, concP: concP });
+      concTimeGraph.addPoint('run_' + run.id, simTime, concA);
+      concTimeGraph.setRanges([0, Math.max(simTime * 1.1, 10)], null);
+    }
+
+    // Update info readout
+    setText('infoTime', simTime.toFixed(1) + ' s');
+    setText('infoConcA', concA.toFixed(3) + ' M');
+    setText('infoRate', SimEngine.Reaction.getRates().forward.toFixed(4));
+    setText('infoK', SimEngine.Reaction.getCurrentK().toExponential(3));
+
+    // Check end conditions
+    if (simTime >= 60 || concA < 0.01 * run.concA0) {
+      completeRun(currentRunIndex);
+    }
+
+    drawParticleCanvas();
+    concTimeGraph.draw();
+  }
+
+  function drawParticleCanvas() {
+    simCtx.clearRect(0, 0, CANVAS_W, CANVAS_H);
+    simCtx.fillStyle = '#FAFBFC';
+    simCtx.fillRect(0, 0, CANVAS_W, CANVAS_H);
+    simCtx.strokeStyle = '#E2E8F0';
+    simCtx.lineWidth = 1;
+    simCtx.strokeRect(0.5, 0.5, CANVAS_W - 1, CANVAS_H - 1);
+
+    if (isRunning || currentRunIndex >= 0) {
+      SimEngine.Reaction.render(simCtx);
+    }
+
+    if (!isRunning && runs.length === 0) {
+      simCtx.fillStyle = '#94A3B8';
+      simCtx.font = "500 16px 'Inter', sans-serif";
+      simCtx.textAlign = 'center';
+      simCtx.fillText('Configure settings and click Run to start', CANVAS_W / 2, CANVAS_H / 2);
+    }
+  }
+
+  // ── Analysis ───────────────────────────────
+  function runAnalysis() {
+    var source = document.getElementById('dataSource').value;
+    var method = document.querySelector('input[name="analysisMethod"]:checked').value;
+
+    var analysisRuns = [];
+
+    if (source === 'experiment') {
+      var checkboxes = document.querySelectorAll('#runCheckboxes input[type="checkbox"]:checked');
+      for (var i = 0; i < checkboxes.length; i++) {
+        var runId = parseInt(checkboxes[i].value, 10);
+        for (var j = 0; j < runs.length; j++) {
+          if (runs[j].id === runId && runs[j].complete) {
+            analysisRuns.push(runs[j]);
+            break;
+          }
+        }
+      }
+      if (analysisRuns.length === 0) {
+        alert('No runs selected. Complete at least one experiment first.');
+        return;
+      }
+    } else if (source === 'manual') {
+      var csv = document.getElementById('manualCSV').value;
+      var data = parseManualCSV(csv);
+      if (data.length < 3) {
+        alert('Please enter at least 3 data points (time,concentration).');
+        return;
+      }
+      analysisRuns.push({
+        id: 0, reactionKey: null, concA0: data[0].concA, concB0: null, T: 298,
+        catalyst: false, color: '#0D9488', data: data, complete: true, initialRate: null, halfLife: null
+      });
+    } else {
+      var preset = generatePreset(source);
+      analysisRuns.push({
+        id: 0, reactionKey: null, concA0: preset.concA0, concB0: null, T: 298,
+        catalyst: false, color: '#0D9488', data: preset.data, complete: true, initialRate: null, halfLife: null
+      });
+    }
+
+    if (method === 'integrated') {
+      doIntegratedRateLawAnalysis(analysisRuns[0]);
+      document.getElementById('initialRatesPanel').style.display = 'none';
+    } else {
+      doInitialRatesAnalysis(analysisRuns);
+    }
+
+    doArrheniusAnalysis(analysisRuns);
+  }
+
+  function doIntegratedRateLawAnalysis(run) {
+    var data = run.data;
+    if (data.length < 3) return;
+
+    var times = [], concAs = [], lnAs = [], invAs = [];
+    for (var i = 0; i < data.length; i++) {
+      var c = data[i].concA;
+      if (c <= 0) c = 0.001;
+      times.push(data[i].t);
+      concAs.push(c);
+      lnAs.push(Math.log(c));
+      invAs.push(1.0 / c);
+    }
+
+    var reg0 = linearRegression(times, concAs);
+    var reg1 = linearRegression(times, lnAs);
+    var reg2 = linearRegression(times, invAs);
+    var regs = [reg0, reg1, reg2];
+    var labels = ['[A] vs t', 'ln[A] vs t', '1/[A] vs t'];
+    var orders = [0, 1, 2];
+    var yArrays = [concAs, lnAs, invAs];
+    var yLabels = ['[A] (M)', 'ln[A]', '1/[A] (M\u207B\u00B9)'];
+
+    var bestIdx = 0;
+    for (var i = 1; i < 3; i++) {
+      if (regs[i].r2 > regs[bestIdx].r2) bestIdx = i;
+    }
+
+    for (var i = 0; i < 3; i++) {
+      var g = analysisGraphs[i];
+      g.series = [];
+      g.title = labels[i];
+      g.yLabel = yLabels[i];
+      g.xLabel = 'Time (s)';
+      g.autoScaleY = true;
+
+      g.addSeries('data', run.color || '#0D9488', 2);
+      for (var j = 0; j < times.length; j++) {
+        g.addPoint('data', times[j], yArrays[i][j]);
+      }
+
+      g.addSeries('fit', '#DC2626', 1.5);
+      var xMin = times[0];
+      var xMax = times[times.length - 1];
+      g.addPoint('fit', xMin, regs[i].slope * xMin + regs[i].intercept);
+      g.addPoint('fit', xMax, regs[i].slope * xMax + regs[i].intercept);
+
+      g.setRanges([xMin, xMax * 1.05], null);
+      g.draw();
+
+      var card = document.getElementById('plotCard' + i);
+      if (i === bestIdx) card.classList.add('best');
+      else card.classList.remove('best');
+
+      var r2Text = 'R\u00B2 = ' + regs[i].r2.toFixed(4);
+      if (i === bestIdx) {
+        r2Text += '  \u2605 LINEAR \u2014 Order ' + orders[i];
+      }
+      setText('plotR2_' + i, r2Text);
+    }
+
+    // Results
+    var order = orders[bestIdx];
+    var reg = regs[bestIdx];
+    var kVal, kUnit, halfLife;
+    if (order === 0) {
+      kVal = -reg.slope;
+      kUnit = 'M/s';
+      halfLife = run.concA0 / (2 * kVal);
+    } else if (order === 1) {
+      kVal = -reg.slope;
+      kUnit = 's\u207B\u00B9';
+      halfLife = Math.log(2) / kVal;
+    } else {
+      kVal = reg.slope;
+      kUnit = 'M\u207B\u00B9s\u207B\u00B9';
+      halfLife = 1.0 / (kVal * run.concA0);
+    }
+
+    var panel = document.getElementById('resultsPanel');
+    panel.style.display = 'block';
+    var grid = document.getElementById('resultsGrid');
+    clearChildren(grid);
+    grid.appendChild(makeResultItemEl('Order', String(order)));
+    grid.appendChild(makeResultItemEl('k', kVal.toExponential(3) + ' ' + kUnit));
+    grid.appendChild(makeResultItemEl('R\u00B2', reg.r2.toFixed(4)));
+    grid.appendChild(makeResultItemEl('Half-life', halfLife.toFixed(2) + ' s'));
+    grid.appendChild(makeResultItemEl('[A]\u2080', run.concA0.toFixed(2) + ' M'));
+  }
+
+  function doInitialRatesAnalysis(analysisRuns) {
+    if (analysisRuns.length < 2) {
+      alert('Method of Initial Rates requires at least 2 runs with different initial concentrations.');
+      return;
+    }
+
+    var logConcs = [], logRates = [];
+    var tableData = [];
+
+    for (var i = 0; i < analysisRuns.length; i++) {
+      var run = analysisRuns[i];
+      var rate0 = run.initialRate;
+      if (rate0 === null || rate0 <= 0) {
+        if (run.data.length >= 5) {
+          var tArr = [], cArr = [];
+          for (var j = 0; j < 5; j++) { tArr.push(run.data[j].t); cArr.push(run.data[j].concA); }
+          rate0 = -linearRegression(tArr, cArr).slope;
+        } else continue;
+      }
+      if (rate0 <= 0 || run.concA0 <= 0) continue;
+      var lc = Math.log10(run.concA0);
+      var lr = Math.log10(rate0);
+      logConcs.push(lc);
+      logRates.push(lr);
+      tableData.push({ id: run.id, concA0: run.concA0, rate0: rate0, logC: lc, logR: lr });
+    }
+
+    if (logConcs.length < 2) {
+      alert('Not enough valid data points for initial rates analysis.');
+      return;
+    }
+
+    var reg = linearRegression(logConcs, logRates);
+    var orderEst = Math.round(reg.slope);
+
+    var panel = document.getElementById('initialRatesPanel');
+    panel.style.display = 'block';
+    var content = document.getElementById('initialRatesContent');
+    clearChildren(content);
+
+    // Build table using DOM
+    var table = document.createElement('table');
+    table.className = 'data-table';
+    var thead = document.createElement('thead');
+    var headRow = document.createElement('tr');
+    var headCells = ['Run', '[A]\u2080', 'Rate\u2080 (M/s)', 'log([A]\u2080)', 'log(Rate\u2080)'];
+    for (var h = 0; h < headCells.length; h++) {
+      var th = document.createElement('th');
+      th.textContent = headCells[h];
+      headRow.appendChild(th);
+    }
+    thead.appendChild(headRow);
+    table.appendChild(thead);
+
+    var tbody = document.createElement('tbody');
+    for (var i = 0; i < tableData.length; i++) {
+      var tr = document.createElement('tr');
+      var vals = [
+        String(tableData[i].id),
+        tableData[i].concA0.toFixed(2),
+        tableData[i].rate0.toExponential(3),
+        tableData[i].logC.toFixed(3),
+        tableData[i].logR.toFixed(3)
+      ];
+      for (var v = 0; v < vals.length; v++) {
+        var td = document.createElement('td');
+        td.textContent = vals[v];
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+    table.appendChild(tbody);
+    content.appendChild(table);
+
+    var resultP = document.createElement('p');
+    resultP.style.cssText = 'margin-top:0.75rem; font-size: 0.9rem;';
+    var strong = document.createElement('strong');
+    strong.textContent = 'Order from initial rates: ' + orderEst;
+    resultP.appendChild(strong);
+    resultP.appendChild(document.createTextNode(' (slope = ' + reg.slope.toFixed(2) + ', R\u00B2 = ' + reg.r2.toFixed(3) + ')'));
+    content.appendChild(resultP);
+
+    // Plot
+    if (initialRatesGraph) {
+      initialRatesGraph.series = [];
+      initialRatesGraph.addSeries('data', '#2563EB', 2);
+      for (var i = 0; i < logConcs.length; i++) {
+        initialRatesGraph.addPoint('data', logConcs[i], logRates[i]);
+      }
+      initialRatesGraph.addSeries('fit', '#DC2626', 1.5);
+      var xMin = Math.min.apply(null, logConcs) - 0.1;
+      var xMax = Math.max.apply(null, logConcs) + 0.1;
+      initialRatesGraph.addPoint('fit', xMin, reg.slope * xMin + reg.intercept);
+      initialRatesGraph.addPoint('fit', xMax, reg.slope * xMax + reg.intercept);
+      initialRatesGraph.setRanges([xMin, xMax], null);
+      initialRatesGraph.draw();
+    }
+
+    // Hide integrated results and clear analysis plots
+    document.getElementById('resultsPanel').style.display = 'none';
+    for (var i = 0; i < 3; i++) {
+      analysisGraphs[i].series = [];
+      analysisGraphs[i].draw();
+      document.getElementById('plotCard' + i).classList.remove('best');
+      setText('plotR2_' + i, 'R\u00B2 = --');
+    }
+  }
+
+  function doArrheniusAnalysis(analysisRuns) {
+    var temps = {};
+    for (var i = 0; i < analysisRuns.length; i++) {
+      temps[analysisRuns[i].T] = true;
+    }
+    var uniqueTemps = Object.keys(temps);
+
+    var arrhResultsEl = document.getElementById('arrheniusResults');
+
+    if (uniqueTemps.length < 2) {
+      clearChildren(arrhResultsEl);
+      var p = document.createElement('p');
+      p.style.cssText = 'color: var(--text-muted); font-size: 0.85rem;';
+      p.textContent = 'Need runs at different temperatures for Arrhenius analysis.';
+      arrhResultsEl.appendChild(p);
+      if (arrheniusGraph) {
+        arrheniusGraph.series = [];
+        arrheniusGraph.draw();
+      }
+      return;
+    }
+
+    var invTs = [], lnKs = [];
+    for (var i = 0; i < analysisRuns.length; i++) {
+      var run = analysisRuns[i];
+      if (run.data.length < 5) continue;
+
+      var times = [], lnAs = [], invAs = [];
+      for (var j = 0; j < run.data.length; j++) {
+        var c = run.data[j].concA;
+        if (c <= 0) c = 0.001;
+        times.push(run.data[j].t);
+        lnAs.push(Math.log(c));
+        invAs.push(1.0 / c);
+      }
+      var reg1 = linearRegression(times, lnAs);
+      var reg2 = linearRegression(times, invAs);
+
+      var k;
+      if (reg1.r2 > reg2.r2) {
+        k = -reg1.slope;
+      } else {
+        k = reg2.slope;
+      }
+      if (k <= 0) continue;
+
+      invTs.push(1.0 / run.T);
+      lnKs.push(Math.log(k));
+    }
+
+    if (invTs.length < 2) {
+      clearChildren(arrhResultsEl);
+      var p = document.createElement('p');
+      p.style.cssText = 'color: var(--text-muted); font-size: 0.85rem;';
+      p.textContent = 'Insufficient data for Arrhenius analysis.';
+      arrhResultsEl.appendChild(p);
+      return;
+    }
+
+    var reg = linearRegression(invTs, lnKs);
+    var Ea = -reg.slope * R_GAS;
+    var EaKJ = Ea / 1000;
+
+    var knownEa = '';
+    if (analysisRuns.length > 0 && analysisRuns[0].reactionKey) {
+      var rxn = SimEngine.Reaction.REACTIONS[analysisRuns[0].reactionKey];
+      if (rxn && rxn.Ea_f) {
+        knownEa = ' (literature: ' + (rxn.Ea_f / 1000).toFixed(1) + ' kJ/mol)';
+      }
+    }
+
+    clearChildren(arrhResultsEl);
+    var grid = document.createElement('div');
+    grid.className = 'results-grid';
+    grid.appendChild(makeResultItemEl('Ea', EaKJ.toFixed(1) + ' kJ/mol' + knownEa));
+    grid.appendChild(makeResultItemEl('Slope', reg.slope.toFixed(0)));
+    grid.appendChild(makeResultItemEl('R\u00B2', reg.r2.toFixed(4)));
+    grid.appendChild(makeResultItemEl('ln(A)', reg.intercept.toFixed(2)));
+    arrhResultsEl.appendChild(grid);
+
+    if (arrheniusGraph) {
+      arrheniusGraph.series = [];
+      arrheniusGraph.addSeries('data', '#7C3AED', 2);
+      for (var i = 0; i < invTs.length; i++) {
+        arrheniusGraph.addPoint('data', invTs[i], lnKs[i]);
+      }
+      arrheniusGraph.addSeries('fit', '#DC2626', 1.5);
+      var xMin = Math.min.apply(null, invTs) * 0.998;
+      var xMax = Math.max.apply(null, invTs) * 1.002;
+      arrheniusGraph.addPoint('fit', xMin, reg.slope * xMin + reg.intercept);
+      arrheniusGraph.addPoint('fit', xMax, reg.slope * xMax + reg.intercept);
+      arrheniusGraph.setRanges([xMin, xMax], null);
+      arrheniusGraph.draw();
+    }
+  }
+
+  // ── DataCollector setup ────────────────────
+  function setupDataCollector() {
+    SimEngine.DataCollector.registerVariables([
+      { key: 'time', label: 'Time (s)', getter: function () { return SimEngine.Reaction.getSimTime(); }, default: true },
+      { key: 'concA', label: '[A] (M)', getter: function () {
+        var ts = SimEngine.Reaction.getConcTimeSeries();
+        return ts.count > 0 ? ts.concA[ts.count - 1] : 0;
+      }, default: true },
+      { key: 'concB', label: '[B] (M)', getter: function () {
+        var ts = SimEngine.Reaction.getConcTimeSeries();
+        return ts.count > 0 ? ts.concB[ts.count - 1] : 0;
+      } },
+      { key: 'concP', label: '[Product] (M)', getter: function () {
+        var ts = SimEngine.Reaction.getConcTimeSeries();
+        return ts.count > 0 ? ts.concProduct[ts.count - 1] : 0;
+      }, default: true },
+      { key: 'rate', label: 'Rate (M/s)', getter: function () { return SimEngine.Reaction.getRates().forward; }, default: true },
+      { key: 'lnConcA', label: 'ln[A]', getter: function () {
+        var ts = SimEngine.Reaction.getConcTimeSeries();
+        var c = ts.count > 0 ? ts.concA[ts.count - 1] : 0.001;
+        return Math.log(Math.max(c, 0.001));
+      }, hl: true },
+      { key: 'invConcA', label: '1/[A]', getter: function () {
+        var ts = SimEngine.Reaction.getConcTimeSeries();
+        var c = ts.count > 0 ? ts.concA[ts.count - 1] : 0.001;
+        return 1.0 / Math.max(c, 0.001);
+      }, hl: true },
+      { key: 'temperature', label: 'T (K)', getter: function () { return SimEngine.Reaction.getTemperature(); } },
+      { key: 'kValue', label: 'k', getter: function () { return SimEngine.Reaction.getCurrentK(); }, hl: true }
+    ]);
+  }
+
+  // ── Palette search: filter reaction dropdown ─
+  function filterReactionDropdown(query) {
+    var q = query.toLowerCase().trim();
+    var dropdown = document.getElementById('rxnPreset');
+    if (!dropdown) return;
+    var options = dropdown.querySelectorAll('option');
+    var firstVisible = null;
+    for (var i = 0; i < options.length; i++) {
+      var text = options[i].textContent.toLowerCase();
+      var val = options[i].value.toLowerCase();
+      var match = !q || text.indexOf(q) !== -1 || val.indexOf(q) !== -1;
+      options[i].style.display = match ? '' : 'none';
+      options[i].disabled = !match;
+      if (match && !firstVisible) firstVisible = options[i];
+    }
+    // If current selection is hidden, select first visible
+    var currentOpt = dropdown.options[dropdown.selectedIndex];
+    if (currentOpt && currentOpt.style.display === 'none' && firstVisible) {
+      dropdown.value = firstVisible.value;
+      selectedReaction = firstVisible.value;
+      updateControlVisibility();
+    }
+  }
+
+  // ── Teacher presets ───────────────────────
+  function applyTeacherPreset(presetKey) {
+    // Clear any existing runs first
+    if (!isRunning) onClearClick();
+
+    if (presetKey === 'first_order_decay') {
+      // First-order reaction demo: H2O2 decomposition, moderate concentration, room temp
+      selectedReaction = 'h2o2_decomp';
+      selectedConcA = 1.00;
+      selectedConcB = 1.00;
+      selectedTemp = 298;
+      selectedCatalyst = false;
+    } else if (presetKey === 'second_order') {
+      // Second-order reaction: 2A -> B model reaction, higher concentration
+      selectedReaction = 'model_2A_B';
+      selectedConcA = 1.50;
+      selectedConcB = 1.00;
+      selectedTemp = 298;
+      selectedCatalyst = false;
+    } else if (presetKey === 'initial_rates') {
+      // Method of initial rates: model A+B->C, set up for multiple runs at different [A]
+      selectedReaction = 'model_AB_C';
+      selectedConcA = 0.50;
+      selectedConcB = 1.00;
+      selectedTemp = 298;
+      selectedCatalyst = false;
+    } else {
+      return;
+    }
+
+    // Update UI controls to match
+    if (reactionDropdown) {
+      reactionDropdown.value = selectedReaction;
+    }
+    if (concASlider) {
+      concASlider.value = String(selectedConcA);
+      setText('concAValue', selectedConcA.toFixed(2));
+    }
+    if (concBSlider) {
+      concBSlider.value = String(selectedConcB);
+      setText('concBValue', selectedConcB.toFixed(2));
+    }
+    if (tempSlider) {
+      tempSlider.value = String(selectedTemp);
+      setText('tempValue', String(selectedTemp));
+    }
+    if (catalystToggle) {
+      catalystToggle.checked = selectedCatalyst;
+      var catLabel = catalystToggle.closest('.sim-toggle-group');
+      if (catLabel) {
+        var labelSpan = catLabel.querySelector('.sim-toggle-label');
+        if (labelSpan) labelSpan.textContent = selectedCatalyst ? 'ON' : 'OFF';
+      }
+    }
+
+    updateControlVisibility();
+
+    // Switch to experiment tab
+    switchTab('experiment');
+
+    // For initial rates preset, auto-run the first trial
+    if (presetKey === 'initial_rates') {
+      onRunClick();
+    }
+  }
+
+  // ── Keyboard shortcuts ─────────────────────
+  function setupKeyboard() {
+    document.addEventListener('keydown', function (e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+      switch (e.code) {
+        case 'Space':
+          e.preventDefault();
+          if (isRunning) onRunClick();
+          break;
+        case 'KeyR':
+          if (!isRunning) onClearClick();
+          break;
+        case 'KeyH':
+          toggleHL();
+          break;
+        case 'KeyT':
+          toggleTeacher();
+          break;
+        case 'Digit1':
+          switchTab('experiment');
+          break;
+        case 'Digit2':
+          switchTab('analyzer');
+          break;
+        case 'Slash':
+          e.preventDefault();
+          var searchEl = document.getElementById('paletteSearch');
+          if (searchEl) searchEl.focus();
+          break;
+      }
+    });
+  }
+
+  // ── Event listeners for header badges ──────
+  function setupBadgeListeners() {
+    document.getElementById('badge-hl').addEventListener('click', toggleHL);
+    document.getElementById('badge-teacher').addEventListener('click', toggleTeacher);
+    document.getElementById('dataSource').addEventListener('change', onDataSourceChange);
+    document.getElementById('analyzeBtn').addEventListener('click', runAnalysis);
+
+    // Tab buttons
+    var tabBtns = document.querySelectorAll('.sim-tab');
+    for (var i = 0; i < tabBtns.length; i++) {
+      (function (btn) {
+        btn.addEventListener('click', function () {
+          switchTab(btn.getAttribute('data-tab'));
+        });
+      })(tabBtns[i]);
+    }
+  }
+
+  // ── Initialization ─────────────────────────
+  function init() {
+    // Setup particle canvas (HiDPI)
+    simCanvas = document.getElementById('sim-canvas');
+    simCtx = setupHiDPICanvas(simCanvas, CANVAS_W, CANVAS_H);
+
+    // Setup concentration-time graph
+    concTimeGraph = SimEngine.Graph.create('graph-conc-time', {
+      width: 880, height: 280,
+      title: '[A] vs Time',
+      xLabel: 'Time (s)',
+      yLabel: '[A] (M)',
+      xRange: [0, 60],
+      yRange: [0, 2],
+      autoScaleY: true
+    });
+
+    // Setup 3 analysis graphs
+    var analysisNames = ['[A] vs t', 'ln[A] vs t', '1/[A] vs t'];
+    var analysisYLabels = ['[A] (M)', 'ln[A]', '1/[A] (M\u207B\u00B9)'];
+    for (var i = 0; i < 3; i++) {
+      analysisGraphs[i] = SimEngine.Graph.create('analysis-plot-' + i, {
+        width: 270, height: 220,
+        title: analysisNames[i],
+        xLabel: 'Time (s)',
+        yLabel: analysisYLabels[i],
+        xRange: [0, 60],
+        yRange: [0, 2],
+        autoScaleY: true
+      });
+    }
+
+    // Arrhenius graph
+    arrheniusGraph = SimEngine.Graph.create('graph-arrhenius', {
+      width: 400, height: 250,
+      title: 'ln(k) vs 1/T',
+      xLabel: '1/T (K\u207B\u00B9)',
+      yLabel: 'ln(k)',
+      xRange: [0.002, 0.004],
+      yRange: [-10, 0],
+      autoScaleY: true
+    });
+
+    // Initial rates graph
+    initialRatesGraph = SimEngine.Graph.create('graph-initial-rates', {
+      width: 400, height: 250,
+      title: 'log(Rate\u2080) vs log([A]\u2080)',
+      xLabel: 'log([A]\u2080)',
+      yLabel: 'log(Rate\u2080)',
+      xRange: [-2, 1],
+      yRange: [-4, 0],
+      autoScaleY: true
+    });
+
+    // Build controls
+    buildControls();
+    setupBadgeListeners();
+    setupDataCollector();
+    setupKeyboard();
+
+    // Initial draws
+    drawParticleCanvas();
+    if (concTimeGraph) concTimeGraph.draw();
+    for (var i = 0; i < 3; i++) {
+      if (analysisGraphs[i]) analysisGraphs[i].draw();
+    }
+    if (arrheniusGraph) arrheniusGraph.draw();
+    if (initialRatesGraph) initialRatesGraph.draw();
+
+    // Start animation frame
+    animFrameId = requestAnimationFrame(animLoop);
+  }
+
+  // Boot
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();
+</script>
+<footer>SimEngine &mdash; Rate Law &bull; H=HL T=Teacher</footer>
+</body>
+</html>

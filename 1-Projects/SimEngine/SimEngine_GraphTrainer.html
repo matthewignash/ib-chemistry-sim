@@ -1,0 +1,1512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graph Interpretation Trainer &mdash; IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--blue-bg:#EFF6FF;--teal-bg:#F0FDFA;--amber-bg:#FFFBEB;--red-bg:#FEF2F2;--purple-bg:#F5F3FF;--toggle-on:#0D9488;--sim-grid:#E2E8F0;--sim-data-1:#0D9488;--sim-data-2:#3B82F6;--sim-data-3:#D97706;--sim-data-4:#7C3AED;--green:#10B981;--orange:#F59E0B;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+  .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-right{display:flex;align-items:center;gap:.75rem;}
+  .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
+  .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.35rem;}
+  .sim-toggle{position:relative;width:40px;height:22px;display:inline-block;}
+  .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:11px;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.5rem;background:none;border:none;border-bottom:3px solid transparent;font-size:.85rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+  .tab-btn .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);font-size:.65rem;font-weight:700;color:var(--text-muted);}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .hl-only-tab{display:none;} body.hl-active .hl-only-tab{display:inline-flex;}
+  .sim-container{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+  .sim-card{background:var(--card-bg);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;margin-bottom:1.5rem;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-weight:600;font-size:.85rem;}
+  .sim-card-body{padding:1.25rem;}
+  .problem-area{max-width:900px;margin:0 auto;}
+  .scenario-box{background:var(--blue-bg);border:1px solid #BFDBFE;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.9rem;line-height:1.7;}
+  .scenario-box .chem{font-family:'Fira Code',monospace;font-size:.85em;}
+  .graph-canvas-wrap{margin-bottom:1.25rem;text-align:center;}
+  .graph-canvas-wrap canvas{border:1px solid var(--border);border-radius:8px;background:var(--sim-canvas-bg);cursor:crosshair;max-width:100%;}
+  .crosshair-readout{font-family:'Fira Code',monospace;font-size:.82rem;color:var(--teal);min-height:1.4em;margin-top:.35rem;text-align:center;}
+  .input-group{margin-bottom:.75rem;}
+  .input-group label{display:block;font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.03em;}
+  .input-group input[type="text"],.input-group input[type="number"]{width:100%;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.9rem;font-family:'Fira Code',monospace;}
+  .input-group input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
+  .input-row{display:flex;gap:.75rem;align-items:flex-end;}
+  .input-row .input-group{flex:1;}
+  .btn{padding:.5rem 1.25rem;border:none;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+  .btn-teal{background:var(--teal);color:white;} .btn-teal:hover{background:#0F766E;}
+  .btn-teal:disabled{background:#CBD5E1;cursor:not-allowed;}
+  .btn-outline{background:white;color:var(--text);border:1px solid var(--border);} .btn-outline:hover{background:#F8FAFC;}
+  .btn-row{display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;}
+  .feedback{padding:.75rem 1rem;border-radius:8px;margin-top:1rem;font-size:.88rem;font-weight:500;}
+  .feedback.correct{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;}
+  .feedback.incorrect{background:var(--red-bg);color:var(--red);border:1px solid #FECACA;}
+  .feedback.partial{background:var(--amber-bg);color:#92400E;border:1px solid #FDE68A;}
+  .step-list{list-style:none;counter-reset:step;}
+  .step-item{border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;margin-bottom:.75rem;background:white;transition:.3s;}
+  .step-item.locked{opacity:.4;pointer-events:none;}
+  .step-item.current{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.1);}
+  .step-item.done{border-color:#86EFAC;background:#F0FDF4;}
+  .step-item.wrong{border-color:#FECACA;background:var(--red-bg);}
+  .step-label{font-size:.8rem;font-weight:600;color:var(--teal);margin-bottom:.35rem;display:flex;align-items:center;gap:.5rem;}
+  .step-label::before{counter-increment:step;content:'Step ' counter(step);background:var(--teal-bg);color:var(--teal);padding:.1rem .5rem;border-radius:4px;font-size:.7rem;}
+  .step-input-row{display:flex;gap:.5rem;align-items:center;}
+  .step-input-row input{flex:1;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;font-family:'Fira Code',monospace;font-size:.85rem;}
+  .step-input-row .btn{padding:.4rem .8rem;font-size:.8rem;}
+  .step-hint{font-size:.75rem;color:var(--text-muted);margin-top:.35rem;font-style:italic;}
+  .step-result{font-size:.82rem;margin-top:.35rem;font-family:'Fira Code',monospace;}
+  .score-bar{display:flex;align-items:center;gap:1.5rem;padding:.75rem 1rem;background:white;border-radius:8px;border:1px solid var(--border);margin-bottom:1.25rem;flex-wrap:wrap;}
+  .score-item{font-size:.82rem;font-weight:500;}
+  .score-item span{font-family:'Fira Code',monospace;color:var(--teal);font-weight:700;}
+  .score-bar .score-total{font-size:.95rem;font-weight:700;color:var(--navy);}
+  .difficulty-bar{display:flex;gap:.5rem;align-items:center;margin-bottom:1rem;}
+  .difficulty-btn{padding:.35rem .85rem;border:1px solid var(--border);border-radius:6px;background:white;font-size:.78rem;font-weight:500;cursor:pointer;font-family:inherit;transition:.2s;}
+  .difficulty-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);font-weight:600;}
+  .radio-group{margin:.75rem 0;}
+  .radio-group label{display:block;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;margin-bottom:.4rem;cursor:pointer;font-size:.85rem;transition:.2s;}
+  .radio-group label:hover{background:#F8FAFC;}
+  .radio-group input{margin-right:.5rem;}
+  .radio-group label.selected-correct{background:#DCFCE7;border-color:#86EFAC;}
+  .radio-group label.selected-wrong{background:var(--red-bg);border-color:#FECACA;}
+  .teacher-panel{display:none;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.82rem;}
+  body.teacher-active .teacher-panel{display:block;}
+  .preset-section{display:none;margin-bottom:1rem;}
+  .preset-section select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--border);font-size:.8rem;font-family:inherit;}
+  body.teacher-active .preset-section{display:block;}
+  .practice-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:.75rem;margin-bottom:1.25rem;}
+  .stat-card{background:white;border:1px solid var(--border);border-radius:8px;padding:.75rem;text-align:center;}
+  .stat-card .stat-label{font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .stat-card .stat-value{font-size:1.4rem;font-weight:700;color:var(--teal);font-family:'Fira Code',monospace;}
+  .tangent-instructions{font-size:.82rem;color:var(--text-muted);text-align:center;padding:.5rem;background:var(--teal-bg);border-radius:6px;margin-bottom:.75rem;}
+  .tangent-instructions.active{color:var(--teal);font-weight:600;}
+  .multi-graph-row{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.25rem;max-width:100%;}
+  .multi-graph-item{text-align:center;min-width:0;}
+  .multi-graph-item canvas{border:1px solid var(--border);border-radius:8px;background:var(--sim-canvas-bg);width:100%;height:auto;}
+  .multi-graph-label{font-size:.78rem;font-weight:600;margin-top:.35rem;color:var(--text-muted);}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  @media(max-width:700px){.problem-area{max-width:100%;}.tab-btn{padding:.6rem .8rem;font-size:.78rem;}.multi-graph-row{grid-template-columns:1fr;}}
+
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div>
+    <h1>Graph Interpretation Trainer<span class="subtitle">IB Chemistry &mdash; Math Skills</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">Phase 7</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="teacherToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" role="tab" data-tab="reading"><span class="tab-num">1</span>Reading Graphs</button>
+  <button class="tab-btn" role="tab" data-tab="gradients"><span class="tab-num">2</span>Gradients &amp; Rates</button>
+  <button class="tab-btn hl-only-tab" role="tab" data-tab="analysis"><span class="tab-num">3</span>Graph Analysis</button>
+  <button class="tab-btn" role="tab" data-tab="practice"><span class="tab-num">4</span>Practice</button>
+</div>
+
+<div class="sim-container" id="main-content">
+
+  <div class="preset-section" id="presetSection">
+    <select id="presetSelect">
+      <option value="">Teacher Presets...</option>
+    </select>
+  </div>
+
+  <!-- TAB 1: READING GRAPHS -->
+  <div class="tab-content active" role="tabpanel" id="tab-reading">
+    <div class="sim-card">
+      <div class="sim-card-header">Reading Values from Graphs</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div class="difficulty-bar">
+            <button class="difficulty-btn active" data-diff="Easy">Easy</button>
+            <button class="difficulty-btn" data-diff="Medium">Medium</button>
+            <button class="difficulty-btn" data-diff="Hard">Hard</button>
+            <button class="btn btn-teal" id="btnNewReading" style="margin-left:auto;">New Problem</button>
+          </div>
+          <div class="scenario-box" id="readingScenario">Click "New Problem" to begin.</div>
+          <div class="graph-canvas-wrap">
+            <canvas id="readingCanvas" width="800" height="450" role="img" aria-label="Interactive graph for reading values exercise"></canvas>
+            <div class="crosshair-readout" id="readingReadout"></div>
+          </div>
+          <div class="input-group">
+            <label>Your Answer</label>
+            <div class="input-row">
+              <div class="input-group" style="margin-bottom:0"><input type="text" id="readingAnswer" placeholder="Enter value..." disabled aria-label="Enter your answer for the graph reading exercise"></div>
+              <span id="readingUnit" style="font-size:.85rem;color:var(--text-muted);padding-bottom:.3rem;"></span>
+              <button class="btn btn-teal" id="btnCheckReading" disabled>Check</button>
+            </div>
+          </div>
+          <div id="readingFeedback" aria-live="polite"></div>
+          <div class="teacher-panel" id="readingTeacher"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: GRADIENTS & RATES -->
+  <div class="tab-content" role="tabpanel" id="tab-gradients">
+    <div class="sim-card">
+      <div class="sim-card-header">Gradients &amp; Rates of Reaction</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div class="difficulty-bar">
+            <button class="difficulty-btn active" data-diff="Easy">Easy</button>
+            <button class="difficulty-btn" data-diff="Medium">Medium</button>
+            <button class="difficulty-btn" data-diff="Hard">Hard</button>
+            <button class="btn btn-teal" id="btnNewGradient" style="margin-left:auto;">New Problem</button>
+          </div>
+          <div class="scenario-box" id="gradientScenario">Click "New Problem" to begin.</div>
+          <div id="tangentInstructions" class="tangent-instructions" style="display:none;"></div>
+          <div class="graph-canvas-wrap">
+            <canvas id="gradientCanvas" width="800" height="450" role="img" aria-label="Interactive graph for gradient and rate calculation exercise"></canvas>
+            <div class="crosshair-readout" id="gradientReadout"></div>
+          </div>
+          <div id="gradientInputArea"></div>
+          <div id="gradientFeedback" aria-live="polite"></div>
+          <div class="teacher-panel" id="gradientTeacher"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: GRAPH ANALYSIS (HL) -->
+  <div class="tab-content" role="tabpanel" id="tab-analysis">
+    <div class="sim-card">
+      <div class="sim-card-header">Graph Analysis (HL)</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div class="btn-row" style="margin-top:0;margin-bottom:1rem;">
+            <button class="btn btn-teal" id="btnNewAnalysis">New Problem</button>
+          </div>
+          <div class="scenario-box" id="analysisScenario">Click "New Problem" to begin.</div>
+          <div id="analysisGraphArea"></div>
+          <div id="analysisInputArea"></div>
+          <div id="analysisFeedback" aria-live="polite"></div>
+          <div class="teacher-panel" id="analysisTeacher"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: PRACTICE MODE -->
+  <div class="tab-content" role="tabpanel" id="tab-practice">
+    <div class="sim-card">
+      <div class="sim-card-header">Mixed Practice</div>
+      <div class="sim-card-body">
+        <div class="problem-area">
+          <div class="practice-stats">
+            <div class="stat-card"><div class="stat-label">Reading</div><div class="stat-value" id="statReading">0/0</div></div>
+            <div class="stat-card"><div class="stat-label">Gradients</div><div class="stat-value" id="statGradient">0/0</div></div>
+            <div class="stat-card"><div class="stat-label">Analysis (HL)</div><div class="stat-value" id="statAnalysis">0/0</div></div>
+            <div class="stat-card"><div class="stat-label">Total</div><div class="stat-value" id="statTotal">0/0</div></div>
+          </div>
+          <div class="difficulty-bar">
+            <button class="difficulty-btn active" data-diff="Easy" id="pracDiffEasy">Easy</button>
+            <button class="difficulty-btn" data-diff="Medium" id="pracDiffMedium">Medium</button>
+            <button class="difficulty-btn" data-diff="Hard" id="pracDiffHard">Hard</button>
+            <button class="btn btn-teal" id="btnNextPractice" style="margin-left:auto;">Next Question</button>
+          </div>
+          <div id="practiceContent"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp;
+  <kbd>1</kbd>&ndash;<kbd>4</kbd> Tabs &nbsp;
+  <kbd>R</kbd> Reset &nbsp; <kbd>N</kbd> New Problem
+</div>
+
+<script>
+(function(){
+'use strict';
+
+// =====================================================
+// UTILITIES
+// =====================================================
+function round(v,dp){var f=Math.pow(10,dp);return Math.round(v*f)/f;}
+function rnd(min,max,dp){var v=min+Math.random()*(max-min);return round(v,dp);}
+function pick(arr){return arr[Math.floor(Math.random()*arr.length)];}
+function clearEl(e){while(e&&e.firstChild)e.removeChild(e.firstChild);}
+function cel(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text)e.textContent=text;return e;}
+function addText(parent,text){parent.appendChild(document.createTextNode(text));}
+function approxEqual(a,b,tol){if(typeof tol==='undefined')tol=0.02;return Math.abs(a-b)<=Math.max(tol*Math.abs(b),tol,0.005);}
+
+function setupCanvas(c){
+  var dpr=window.devicePixelRatio||1;
+  var w=parseInt(c.getAttribute('data-w')||c.getAttribute('width'))||c.offsetWidth;
+  var h=parseInt(c.getAttribute('data-h')||c.getAttribute('height'))||c.offsetHeight;
+  if(!c.getAttribute('data-w')){c.setAttribute('data-w',w);c.setAttribute('data-h',h);}
+  c.width=w*dpr;c.height=h*dpr;
+  var ctx=c.getContext('2d');ctx.scale(dpr,dpr);
+  c.style.width=w+'px';c.style.height=h+'px';
+  return ctx;
+}
+
+// =====================================================
+// GRAPH DRAWING ENGINE
+// =====================================================
+var MARGINS={left:70,right:25,top:30,bottom:50};
+
+function createAxes(ctx,W,H,xRange,yRange,xLabel,yLabel,opts){
+  opts=opts||{};
+  var m=opts.margins||MARGINS;
+  var gw=W-m.left-m.right;
+  var gh=H-m.top-m.bottom;
+
+  function mapX(v){return m.left+(v-xRange[0])/(xRange[1]-xRange[0])*gw;}
+  function mapY(v){return m.top+gh-(v-yRange[0])/(yRange[1]-yRange[0])*gh;}
+  function invX(px){return xRange[0]+(px-m.left)/gw*(xRange[1]-xRange[0]);}
+  function invY(py){return yRange[0]+(m.top+gh-py)/gh*(yRange[1]-yRange[0]);}
+
+  // Background
+  ctx.fillStyle='#F8FAFC';
+  ctx.fillRect(0,0,W,H);
+
+  // Grid
+  var xTicks=opts.xTicks||niceTickCount(xRange[0],xRange[1]);
+  var yTicks=opts.yTicks||niceTickCount(yRange[0],yRange[1]);
+  var xStep=niceStep(xRange[0],xRange[1],xTicks);
+  var yStep=niceStep(yRange[0],yRange[1],yTicks);
+
+  ctx.strokeStyle='#E2E8F0';ctx.lineWidth=0.5;
+  var xStart=Math.ceil(xRange[0]/xStep)*xStep;
+  for(var x=xStart;x<=xRange[1];x=round(x+xStep,10)){
+    var px=mapX(x);
+    ctx.beginPath();ctx.moveTo(px,m.top);ctx.lineTo(px,m.top+gh);ctx.stroke();
+  }
+  var yStart=Math.ceil(yRange[0]/yStep)*yStep;
+  for(var y=yStart;y<=yRange[1];y=round(y+yStep,10)){
+    var py=mapY(y);
+    ctx.beginPath();ctx.moveTo(m.left,py);ctx.lineTo(m.left+gw,py);ctx.stroke();
+  }
+
+  // Axes lines
+  ctx.strokeStyle='#64748B';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(m.left,m.top);ctx.lineTo(m.left,m.top+gh);ctx.lineTo(m.left+gw,m.top+gh);ctx.stroke();
+
+  // X tick labels
+  ctx.fillStyle='#334155';ctx.font="400 10px 'Fira Code',monospace";ctx.textAlign='center';ctx.textBaseline='top';
+  for(var x=xStart;x<=xRange[1];x=round(x+xStep,10)){
+    ctx.fillText(formatTick(x),mapX(x),m.top+gh+6);
+  }
+  // Y tick labels
+  ctx.textAlign='right';ctx.textBaseline='middle';
+  for(var y=yStart;y<=yRange[1];y=round(y+yStep,10)){
+    ctx.fillText(formatTick(y),m.left-8,mapY(y));
+  }
+
+  // Axis labels
+  ctx.fillStyle='#1E293B';ctx.font="500 12px 'Inter',sans-serif";
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText(xLabel,m.left+gw/2,m.top+gh+30);
+  ctx.save();ctx.translate(16,m.top+gh/2);ctx.rotate(-Math.PI/2);ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText(yLabel,0,0);ctx.restore();
+
+  // Title if provided
+  if(opts.title){
+    ctx.fillStyle='#1E293B';ctx.font="600 13px 'Inter',sans-serif";ctx.textAlign='center';ctx.textBaseline='top';
+    ctx.fillText(opts.title,m.left+gw/2,6);
+  }
+
+  return {mapX:mapX,mapY:mapY,invX:invX,invY:invY,gw:gw,gh:gh,m:m,xRange:xRange,yRange:yRange};
+}
+
+function niceTickCount(lo,hi){var range=hi-lo;if(range<=1)return 5;if(range<=10)return 5;if(range<=50)return 5;return 5;}
+function niceStep(lo,hi,ticks){
+  var range=hi-lo;var raw=range/ticks;
+  var mag=Math.pow(10,Math.floor(Math.log10(raw)));
+  var norm=raw/mag;
+  if(norm<=1.5)return mag;if(norm<=3)return 2*mag;if(norm<=7)return 5*mag;return 10*mag;
+}
+function formatTick(v){if(Math.abs(v)<1e-10)return'0';if(Math.abs(v)>=1000||Math.abs(v)<0.01&&v!==0)return v.toExponential(1);var s=parseFloat(v.toPrecision(6));return String(s);}
+
+function drawScatterPoints(ctx,axes,points,color,radius){
+  color=color||'#0D9488';radius=radius||5;
+  ctx.fillStyle=color;
+  for(var i=0;i<points.length;i++){
+    var px=axes.mapX(points[i].x),py=axes.mapY(points[i].y);
+    if(px>=axes.m.left&&px<=axes.m.left+axes.gw&&py>=axes.m.top&&py<=axes.m.top+axes.gh){
+      ctx.beginPath();ctx.arc(px,py,radius,0,Math.PI*2);ctx.fill();
+    }
+  }
+}
+
+function drawConnectedLine(ctx,axes,points,color,lineWidth,dashed){
+  if(points.length<2)return;
+  color=color||'#0D9488';lineWidth=lineWidth||2;
+  ctx.strokeStyle=color;ctx.lineWidth=lineWidth;
+  if(dashed)ctx.setLineDash(dashed);
+  ctx.beginPath();ctx.moveTo(axes.mapX(points[0].x),axes.mapY(points[0].y));
+  for(var i=1;i<points.length;i++){ctx.lineTo(axes.mapX(points[i].x),axes.mapY(points[i].y));}
+  ctx.stroke();ctx.setLineDash([]);
+}
+
+function drawCurveFromFn(ctx,axes,fn,xMin,xMax,color,lineWidth,nSteps){
+  nSteps=nSteps||200;color=color||'#0D9488';lineWidth=lineWidth||2.5;
+  var dx=(xMax-xMin)/nSteps;
+  ctx.strokeStyle=color;ctx.lineWidth=lineWidth;ctx.beginPath();
+  var started=false;
+  for(var i=0;i<=nSteps;i++){
+    var x=xMin+i*dx;var y=fn(x);
+    var px=axes.mapX(x),py=axes.mapY(y);
+    if(!started){ctx.moveTo(px,py);started=true;}else{ctx.lineTo(px,py);}
+  }
+  ctx.stroke();
+}
+
+function drawQueryLine(ctx,axes,axis,value,color){
+  color=color||'#D97706';
+  ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.setLineDash([6,4]);
+  if(axis==='y'){
+    var py=axes.mapY(value);
+    ctx.beginPath();ctx.moveTo(axes.m.left,py);ctx.lineTo(axes.m.left+axes.gw,py);ctx.stroke();
+  } else {
+    var px=axes.mapX(value);
+    ctx.beginPath();ctx.moveTo(px,axes.m.top);ctx.lineTo(px,axes.m.top+axes.gh);ctx.stroke();
+  }
+  ctx.setLineDash([]);
+}
+
+function drawHighlightPoint(ctx,axes,x,y,color,radius){
+  color=color||'#DC2626';radius=radius||7;
+  var px=axes.mapX(x),py=axes.mapY(y);
+  ctx.strokeStyle=color;ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.arc(px,py,radius,0,Math.PI*2);ctx.stroke();
+  ctx.beginPath();ctx.arc(px,py,2,0,Math.PI*2);ctx.fillStyle=color;ctx.fill();
+}
+
+function drawStudentLine(ctx,axes,p1,p2,color){
+  color=color||'#7C3AED';
+  // Extend line to canvas boundaries
+  var dx=p2.x-p1.x,dy=p2.y-p1.y;
+  if(Math.abs(dx)<1e-10)return;
+  var slope=dy/dx;
+  var xL=axes.xRange[0],xR=axes.xRange[1];
+  var yL=p1.y+slope*(xL-p1.x),yR=p1.y+slope*(xR-p1.x);
+  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.setLineDash([8,4]);
+  ctx.beginPath();ctx.moveTo(axes.mapX(xL),axes.mapY(yL));ctx.lineTo(axes.mapX(xR),axes.mapY(yR));ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+// =====================================================
+// CURVE GENERATORS
+// =====================================================
+function beerLambertFn(epsilon,pathLength){
+  return function(c){return epsilon*pathLength*c;};
+}
+
+function heatingCurveFn(params){
+  // params: {rateSolid, meltT, meltDur, rateLiquid, boilT, boilDur, rateGas, startT}
+  return function(t){
+    var p=params;
+    var t1=(p.meltT-p.startT)/p.rateSolid; // time to reach melting point
+    var t2=t1+p.meltDur;                     // end of melting
+    var t3=t2+(p.boilT-p.meltT)/p.rateLiquid;// time to reach boiling
+    var t4=t3+p.boilDur;                      // end of boiling
+    if(t<=t1) return p.startT+p.rateSolid*t;
+    if(t<=t2) return p.meltT;
+    if(t<=t3) return p.meltT+p.rateLiquid*(t-t2);
+    if(t<=t4) return p.boilT;
+    return p.boilT+p.rateGas*(t-t4);
+  };
+}
+
+function expDecayFn(A0,k){
+  return function(t){return A0*Math.exp(-k*t);};
+}
+
+function titrationCurveFn(params){
+  // Simple strong acid-strong base: pH = f(V_base)
+  // params: {Va, Ca, Cb, type}
+  return function(V){
+    var p=params;
+    var molesAcid=p.Ca*p.Va/1000;
+    var molesBase=p.Cb*V/1000;
+    var Veq=p.Ca*p.Va/p.Cb;
+    if(V<Veq*0.001) return -Math.log10(p.Ca);
+    if(V<Veq){
+      var excessH=(molesAcid-molesBase)/((p.Va+V)/1000);
+      if(excessH<=0)excessH=1e-7;
+      return -Math.log10(excessH);
+    }
+    if(Math.abs(V-Veq)<0.05) return 7.0;
+    var excessOH=(molesBase-molesAcid)/((p.Va+V)/1000);
+    if(excessOH<=0)excessOH=1e-7;
+    var pOH=-Math.log10(excessOH);
+    return 14-pOH;
+  };
+}
+
+function charlesLawFn(V0,T0){
+  // V = V0 * T/T0 (T in K)
+  return function(T){return V0*T/T0;};
+}
+
+function arrheniusFn(Ea,lnA){
+  // ln(k) = lnA - Ea/(R*T) so as fn of 1/T: ln(k) = lnA - (Ea/R)*(1/T)
+  return function(invT){return lnA-(Ea/8.314)*invT;};
+}
+
+// =====================================================
+// PROBLEM TEMPLATES: TAB 1 — READING GRAPHS
+// =====================================================
+var READING_TEMPLATES=[
+  {id:'beer_lambert',title:'Beer-Lambert Calibration Curve',difficulty:'Easy',
+   generate:function(){
+     var eps=rnd(80,150,0);
+     var points=[];
+     for(var i=0;i<=5;i++){
+       var c=round(i*0.02,3);
+       var a=round(eps*1*c/100+rnd(-0.008,0.008,3),3);
+       if(a<0)a=0;
+       points.push({x:c,y:a});
+     }
+     var queryA=round(rnd(0.02,0.08,2),3);
+     var answerC=round(queryA*100/(eps*1),4);
+     return {points:points,xRange:[0,0.12],yRange:[0,round(eps*0.1/100+0.2,1)],
+       xLabel:'Concentration / mol dm\u207B\u00B3',yLabel:'Absorbance',
+       question:'From the calibration curve, determine the concentration when the absorbance is '+queryA+'.',
+       queryLine:{axis:'y',value:queryA},
+       answer:answerC,tolerance:0.005,unit:'mol dm\u207B\u00B3',
+       graphType:'scatter_line',color:'#0D9488',
+       explanation:'Draw a horizontal line from A = '+queryA+' to the best-fit line, then drop vertically to the x-axis to read c \u2248 '+answerC+' mol dm\u207B\u00B3.'};
+   }},
+  {id:'heating_curve',title:'Heating Curve',difficulty:'Easy',
+   generate:function(){
+     var substance=pick([
+       {name:'water',meltT:0,boilT:100,startT:-20},
+       {name:'ethanol',meltT:-114,boilT:78,startT:-130},
+       {name:'naphthalene',meltT:80,boilT:218,startT:20}
+     ]);
+     var p={startT:substance.startT,meltT:substance.meltT,meltDur:rnd(2,4,1),
+       rateSolid:rnd(15,25,0),rateLiquid:rnd(10,20,0),boilT:substance.boilT,boilDur:rnd(3,5,1),rateGas:rnd(8,15,0)};
+     var fn=heatingCurveFn(p);
+     var tMax=round((p.meltT-p.startT)/p.rateSolid+p.meltDur+(p.boilT-p.meltT)/p.rateLiquid+p.boilDur+3,0);
+     var queryType=pick(['melt','boil']);
+     var answer,question;
+     if(queryType==='melt'){
+       answer=substance.meltT;
+       question='At what temperature does '+substance.name+' melt? Read the first plateau from the heating curve.';
+     } else {
+       answer=substance.boilT;
+       question='At what temperature does '+substance.name+' boil? Read the second plateau from the heating curve.';
+     }
+     return {fn:fn,xRange:[0,tMax],yRange:[substance.startT-10,substance.boilT+40],
+       xLabel:'Time / min',yLabel:'Temperature / \u00B0C',
+       question:question,answer:answer,tolerance:3,unit:'\u00B0C',
+       graphType:'curve',color:'#0D9488',
+       explanation:'The plateau at '+answer+' \u00B0C indicates the phase change. During a phase change, temperature remains constant as energy breaks/forms intermolecular forces.'};
+   }},
+  {id:'charles_law',title:"Charles's Law",difficulty:'Medium',
+   generate:function(){
+     var V0=rnd(80,120,0);var T0=273;
+     var fn=charlesLawFn(V0,T0);
+     var points=[];
+     for(var T=200;T<=500;T+=50){points.push({x:T,y:round(fn(T),1)});}
+     var question='Extrapolate the V vs T graph to find the x-intercept (where V = 0). What temperature is this?';
+     return {points:points,fn:fn,xRange:[0,550],yRange:[0,round(fn(500)+20,0)],
+       xLabel:'Temperature / K',yLabel:'Volume / cm\u00B3',
+       question:question,answer:0,tolerance:10,unit:'K',
+       graphType:'scatter_line',color:'#3B82F6',showTrendLine:true,
+       explanation:'Extrapolating to V = 0 gives T = 0 K (\u2212273 \u00B0C), which is absolute zero. This is a key prediction of Charles\u2019s Law: V \u221D T (in Kelvin).'};
+   }},
+  {id:'titration_read',title:'Titration Curve',difficulty:'Medium',
+   generate:function(){
+     var Ca=pick([0.100,0.150,0.200]);var Cb=pick([0.100,0.150,0.200]);
+     var Va=pick([20,25]);
+     var Veq=round(Ca*Va/Cb,1);
+     var fn=titrationCurveFn({Va:Va,Ca:Ca,Cb:Cb});
+     var queryV=round(rnd(Veq*0.3,Veq*0.7,1),1);
+     var answerPH=round(fn(queryV),1);
+     return {fn:fn,xRange:[0,round(Veq*2,0)],yRange:[0,14],
+       xLabel:'Volume of NaOH added / cm\u00B3',yLabel:'pH',
+       question:'From the titration curve, what is the pH when '+queryV+' cm\u00B3 of NaOH has been added?',
+       queryLine:{axis:'x',value:queryV},
+       answer:answerPH,tolerance:0.3,unit:'',
+       graphType:'curve',color:'#0D9488',
+       explanation:'Drawing a vertical line at V = '+queryV+' cm\u00B3 and reading across to the y-axis gives pH \u2248 '+answerPH+'.'};
+   }},
+  {id:'equiv_point',title:'Equivalence Point',difficulty:'Medium',
+   generate:function(){
+     var Ca=pick([0.100,0.150,0.200]);var Cb=0.100;var Va=25;
+     var Veq=round(Ca*Va/Cb,1);
+     var fn=titrationCurveFn({Va:Va,Ca:Ca,Cb:Cb});
+     return {fn:fn,xRange:[0,round(Veq*2,0)],yRange:[0,14],
+       xLabel:'Volume of NaOH added / cm\u00B3',yLabel:'pH',
+       question:'Identify the equivalence point volume from this titration curve. At what volume does the steepest rise occur?',
+       answer:Veq,tolerance:1.0,unit:'cm\u00B3',
+       graphType:'curve',color:'#0D9488',
+       explanation:'The equivalence point is at V = '+Veq+' cm\u00B3, where the curve is steepest (greatest dpH/dV). At this point, moles of acid = moles of base.'};
+   }},
+  {id:'conc_time_read',title:'Concentration vs Time',difficulty:'Easy',
+   generate:function(){
+     var A0=rnd(0.8,1.5,2);var k=rnd(0.03,0.08,3);
+     var fn=expDecayFn(A0,k);
+     var tMax=round(Math.log(A0/0.05)/k,0);if(tMax>120)tMax=120;
+     var queryT=round(rnd(tMax*0.2,tMax*0.6,0),0);
+     var answerC=round(fn(queryT),3);
+     return {fn:fn,xRange:[0,tMax],yRange:[0,round(A0+0.2,1)],
+       xLabel:'Time / s',yLabel:'[A] / mol dm\u207B\u00B3',
+       question:'From the concentration-time graph, what is [A] at t = '+queryT+' s?',
+       queryLine:{axis:'x',value:queryT},
+       answer:answerC,tolerance:0.03,unit:'mol dm\u207B\u00B3',
+       graphType:'curve',color:'#0D9488',
+       explanation:'Reading from the curve at t = '+queryT+' s gives [A] \u2248 '+answerC+' mol dm\u207B\u00B3.'};
+   }}
+];
+
+// =====================================================
+// PROBLEM TEMPLATES: TAB 2 — GRADIENTS & RATES
+// =====================================================
+var GRADIENT_TEMPLATES=[
+  {id:'straight_gradient',title:'Gradient from a Straight-Line Graph',difficulty:'Easy',type:'steps',
+   generate:function(){
+     var m=rnd(1.5,8,2);var c=rnd(0,10,1);
+     var points=[];
+     for(var x=0;x<=10;x+=2){points.push({x:x,y:round(m*x+c+rnd(-0.3,0.3,2),2)});}
+     var p1=points[1],p2=points[4];
+     var rise=round(p2.y-p1.y,2);var run=round(p2.x-p1.x,2);
+     var gradient=round(rise/run,2);
+     return {points:points,xRange:[0,12],yRange:[0,round(m*12+c+5,0)],
+       xLabel:'x',yLabel:'y',color:'#3B82F6',
+       highlight:[p1,p2],
+       question:'Calculate the gradient of the line using the two highlighted points.',
+       steps:[
+         {label:'\u0394y = y\u2082 \u2212 y\u2081',answer:rise,unit:'',hint:round(p2.y,2)+' \u2212 '+round(p1.y,2)},
+         {label:'\u0394x = x\u2082 \u2212 x\u2081',answer:run,unit:'',hint:round(p2.x,2)+' \u2212 '+round(p1.x,2)},
+         {label:'Gradient = \u0394y / \u0394x',answer:gradient,unit:'',hint:round(rise,2)+' / '+round(run,2)}
+       ],
+       explanation:'Gradient = '+rise+' / '+run+' = '+gradient};
+   }},
+  {id:'rate_gradient',title:'Rate from Concentration-Time Graph',difficulty:'Medium',type:'steps',
+   generate:function(){
+     var A0=rnd(0.8,1.2,2);var k=rnd(0.04,0.08,3);
+     var fn=expDecayFn(A0,k);
+     var queryT=rnd(5,20,0);
+     // Tangent gradient at queryT: d[A]/dt = -k*A0*e^(-kt)
+     var rate=round(k*A0*Math.exp(-k*queryT),4);
+     var concAtT=round(fn(queryT),4);
+     // Two tangent points for display
+     var dt=5;
+     var tp1={x:queryT-dt,y:round(concAtT+rate*dt,4)};
+     var tp2={x:queryT+dt,y:round(concAtT-rate*dt,4)};
+     var tMax=round(Math.log(A0/0.05)/k,0);if(tMax>120)tMax=120;
+     return {fn:fn,xRange:[0,tMax],yRange:[0,round(A0+0.2,1)],
+       xLabel:'Time / s',yLabel:'[A] / mol dm\u207B\u00B3',color:'#0D9488',
+       tangentPts:[tp1,tp2],queryT:queryT,
+       question:'Determine the rate of reaction at t = '+queryT+' s by calculating the gradient of the tangent.',
+       steps:[
+         {label:'[A] at tangent point 1 (t = '+tp1.x+' s)',answer:round(tp1.y,3),unit:'mol dm\u207B\u00B3',hint:'Read from the tangent line'},
+         {label:'[A] at tangent point 2 (t = '+tp2.x+' s)',answer:round(tp2.y,3),unit:'mol dm\u207B\u00B3',hint:'Read from the tangent line'},
+         {label:'\u0394[A] = y\u2082 \u2212 y\u2081',answer:round(tp2.y-tp1.y,4),unit:'mol dm\u207B\u00B3',hint:round(tp2.y,3)+' \u2212 '+round(tp1.y,3)},
+         {label:'\u0394t = x\u2082 \u2212 x\u2081',answer:round(tp2.x-tp1.x,1),unit:'s',hint:tp2.x+' \u2212 '+tp1.x},
+         {label:'Rate = |\u0394[A] / \u0394t|',answer:rate,unit:'mol dm\u207B\u00B3 s\u207B\u00B9',hint:'|'+round(tp2.y-tp1.y,4)+' / '+round(tp2.x-tp1.x,1)+'|'}
+       ],
+       explanation:'The rate at t = '+queryT+' s is '+rate+' mol dm\u207B\u00B3 s\u207B\u00B9, found from the gradient of the tangent to the curve.'};
+   }},
+  {id:'order_from_rate_conc',title:'Identify Reaction Order',difficulty:'Easy',type:'mcq',
+   generate:function(){
+     var order=pick([0,1,2]);
+     var kVal=rnd(0.01,0.05,3);
+     var points=[];
+     for(var c=0.1;c<=1.0;c=round(c+0.1,1)){
+       var rate;
+       if(order===0) rate=kVal;
+       else if(order===1) rate=kVal*c;
+       else rate=kVal*c*c;
+       points.push({x:round(c,2),y:round(rate+rnd(-0.001,0.001,4),4)});
+     }
+     var labels=['Zero order (rate is constant)','First order (rate \u221D [A])','Second order (rate \u221D [A]\u00B2)'];
+     return {points:points,xRange:[0,1.1],yRange:[0,round(kVal*1.2+0.01,3)],
+       xLabel:'[A] / mol dm\u207B\u00B3',yLabel:'Rate / mol dm\u207B\u00B3 s\u207B\u00B9',color:'#D97706',
+       question:'From the rate vs concentration graph, determine the order of reaction with respect to A.',
+       options:labels,correct:order,
+       explanation:'The graph shows a '+(order===0?'horizontal line (rate independent of [A]) \u2192 zero order.':order===1?'straight line through the origin (rate \u221D [A]) \u2192 first order.':'parabolic curve (rate \u221D [A]\u00B2) \u2192 second order.')};
+   }},
+  {id:'rate_constant_gradient',title:'Rate Constant from Gradient',difficulty:'Medium',type:'steps',
+   generate:function(){
+     var k=rnd(0.02,0.08,3);
+     var points=[];
+     for(var c=0.1;c<=1.0;c=round(c+0.1,1)){
+       points.push({x:round(c,2),y:round(k*c+rnd(-0.001,0.001,4),4)});
+     }
+     var p1=points[1],p2=points[8];
+     var rise=round(p2.y-p1.y,4);var run=round(p2.x-p1.x,2);
+     return {points:points,xRange:[0,1.1],yRange:[0,round(k*1.2,3)],
+       xLabel:'[A] / mol dm\u207B\u00B3',yLabel:'Rate / mol dm\u207B\u00B3 s\u207B\u00B9',color:'#D97706',
+       highlight:[p1,p2],
+       question:'This is a first-order reaction. Calculate the rate constant k from the gradient of the rate vs [A] graph.',
+       steps:[
+         {label:'\u0394(rate)',answer:rise,unit:'mol dm\u207B\u00B3 s\u207B\u00B9',hint:round(p2.y,4)+' \u2212 '+round(p1.y,4)},
+         {label:'\u0394[A]',answer:run,unit:'mol dm\u207B\u00B3',hint:round(p2.x,2)+' \u2212 '+round(p1.x,2)},
+         {label:'k = gradient = \u0394(rate) / \u0394[A]',answer:round(rise/run,4),unit:'s\u207B\u00B9',hint:round(rise,4)+' / '+round(run,2)}
+       ],
+       explanation:'For a first-order reaction, rate = k[A], so the gradient of rate vs [A] equals k = '+round(rise/run,4)+' s\u207B\u00B9.'};
+   }},
+  {id:'initial_rate',title:'Initial Rate from Graph',difficulty:'Hard',type:'steps',
+   generate:function(){
+     var A0=rnd(0.8,1.2,2);var k=rnd(0.04,0.07,3);
+     var fn=expDecayFn(A0,k);
+     var tMax=round(Math.log(A0/0.1)/k,0);if(tMax>100)tMax=100;
+     // Initial rate = k*A0
+     var initRate=round(k*A0,4);
+     var dt=round(tMax*0.15,0);
+     var tp1={x:0,y:A0};
+     var tp2={x:dt,y:round(A0-initRate*dt,4)};
+     return {fn:fn,xRange:[0,tMax],yRange:[0,round(A0+0.2,1)],
+       xLabel:'Time / s',yLabel:'[A] / mol dm\u207B\u00B3',color:'#0D9488',
+       tangentPts:[tp1,tp2],queryT:0,
+       question:'Determine the initial rate of reaction (at t = 0) from the concentration-time graph.',
+       steps:[
+         {label:'[A] at t = 0',answer:A0,unit:'mol dm\u207B\u00B3',hint:'Read the y-intercept'},
+         {label:'[A] at tangent point (t = '+dt+' s)',answer:round(tp2.y,3),unit:'mol dm\u207B\u00B3',hint:'Read from the tangent line at t = '+dt},
+         {label:'\u0394[A]',answer:round(tp2.y-tp1.y,4),unit:'mol dm\u207B\u00B3',hint:round(tp2.y,3)+' \u2212 '+A0},
+         {label:'\u0394t',answer:dt,unit:'s',hint:dt+' \u2212 0'},
+         {label:'Initial rate = |\u0394[A] / \u0394t|',answer:initRate,unit:'mol dm\u207B\u00B3 s\u207B\u00B9',hint:'|'+round(tp2.y-tp1.y,4)+' / '+dt+'|'}
+       ],
+       explanation:'The initial rate = '+initRate+' mol dm\u207B\u00B3 s\u207B\u00B9, found from the gradient of the tangent to the curve at t = 0.'};
+   }}
+];
+
+// =====================================================
+// PROBLEM TEMPLATES: TAB 3 — GRAPH ANALYSIS (HL)
+// =====================================================
+var ANALYSIS_TEMPLATES=[
+  {id:'arrhenius_ea',title:'Determine Ea from Arrhenius Plot',type:'steps',
+   generate:function(){
+     var Ea=rnd(40,100,0)*1000; // J/mol
+     var lnA=rnd(22,32,1);
+     var fn=arrheniusFn(Ea,lnA);
+     var temps=[300,320,340,360,380,400];
+     var points=[];
+     for(var i=0;i<temps.length;i++){
+       var invT=round(1/temps[i],6);
+       var lnk=round(fn(invT)+rnd(-0.12,0.12,2),2);
+       points.push({x:invT,y:lnk});
+     }
+     var p1=points[0],p2=points[5];
+     var rise=round(p2.y-p1.y,2);var run=round(p2.x-p1.x,6);
+     var gradient=round(rise/run,0);
+     var calcEa=round(-gradient*8.314/1000,1);
+     return {points:points,
+       xRange:[round(1/420,5),round(1/280,5)],yRange:[round(fn(1/280)-2,0),round(fn(1/420)+2,0)],
+       xLabel:'1/T / K\u207B\u00B9',yLabel:'ln(k)',color:'#7C3AED',
+       highlight:[p1,p2],
+       question:'From this Arrhenius plot (ln k vs 1/T), determine the activation energy Ea.',
+       steps:[
+         {label:'\u0394(ln k) = ln(k\u2082) \u2212 ln(k\u2081)',answer:rise,unit:'',hint:round(p2.y,2)+' \u2212 '+round(p1.y,2)},
+         {label:'\u0394(1/T)',answer:run,unit:'K\u207B\u00B9',hint:round(p2.x,6)+' \u2212 '+round(p1.x,6)},
+         {label:'Gradient = \u0394(ln k) / \u0394(1/T)',answer:gradient,unit:'K',hint:round(rise,2)+' / '+round(run,6)},
+         {label:'Ea = \u2212gradient \u00D7 R (R = 8.314 J mol\u207B\u00B9 K\u207B\u00B9)',answer:round(-gradient*8.314,0),unit:'J mol\u207B\u00B9',hint:'\u2212('+gradient+') \u00D7 8.314'},
+         {label:'Ea in kJ mol\u207B\u00B9',answer:calcEa,unit:'kJ mol\u207B\u00B9',hint:round(-gradient*8.314,0)+' / 1000'}
+       ],
+       explanation:'The Arrhenius equation: ln(k) = ln(A) \u2212 Ea/(RT). Gradient = \u2212Ea/R, so Ea = '+calcEa+' kJ mol\u207B\u00B9.'};
+   }},
+  {id:'linearization',title:'Linearization',type:'mcq',
+   generate:function(){
+     var scenarios=[
+       {desc:'A student plots rate vs [A] and obtains a curve. The reaction is second order.',
+        options:['rate vs [A]\u00B2','ln(rate) vs ln[A]','1/rate vs [A]','rate vs 1/[A]'],
+        correct:0,
+        explain:'For a second-order reaction, rate = k[A]\u00B2. Plotting rate vs [A]\u00B2 gives a straight line with gradient = k.'},
+       {desc:'A student plots [A] vs time for a first-order reaction and obtains a curve.',
+        options:['ln[A] vs time','1/[A] vs time','[A]\u00B2 vs time','[A] vs 1/time'],
+        correct:0,
+        explain:'For first-order kinetics, ln[A] = ln[A]\u2080 \u2212 kt. Plotting ln[A] vs t gives a straight line with gradient = \u2212k.'},
+       {desc:'A student plots [A] vs time for a second-order reaction and obtains a curve.',
+        options:['1/[A] vs time','ln[A] vs time','[A]\u00B2 vs time','rate vs [A]'],
+        correct:0,
+        explain:'For second-order kinetics, 1/[A] = 1/[A]\u2080 + kt. Plotting 1/[A] vs t gives a straight line with gradient = k.'}
+     ];
+     var s=pick(scenarios);
+     return {question:s.desc+' What should be plotted to obtain a straight-line graph?',
+       options:s.options,correct:s.correct,explanation:s.explain,graphType:'none'};
+   }},
+  {id:'integrated_rate',title:'Determine Order from Integrated Rate Plots',type:'multi_graph',
+   generate:function(){
+     var order=pick([0,1,2]);
+     var A0=rnd(0.8,1.2,2);var k,tMax;
+     if(order===0){k=rnd(0.005,0.01,4);tMax=round(A0/k*0.9,0);}
+     else if(order===1){k=rnd(0.03,0.06,3);tMax=round(3/k,0);}
+     else{k=rnd(0.5,2,2);tMax=round(10/k,0);}
+     if(tMax>150)tMax=150;
+     var points=[];
+     for(var t=0;t<=tMax;t+=round(tMax/10,0)){
+       var A;
+       if(order===0)A=A0-k*t;
+       else if(order===1)A=A0*Math.exp(-k*t);
+       else A=1/(1/A0+k*t);
+       if(A<0.01)A=0.01;
+       points.push({t:t,A:round(A+rnd(-0.01,0.01,3),4),lnA:round(Math.log(A)+rnd(-0.02,0.02,3),3),invA:round(1/A+rnd(-0.05,0.05,2),3)});
+     }
+     var orderNames=['zero','first','second'];
+     return {points:points,order:order,tMax:tMax,
+       question:'Three graphs are shown: [A] vs t, ln[A] vs t, and 1/[A] vs t. Which graph gives a straight line? What is the order?',
+       options:['Zero order ([A] vs t is linear)','First order (ln[A] vs t is linear)','Second order (1/[A] vs t is linear)'],
+       correct:order,
+       explanation:'The '+orderNames[order]+'-order integrated rate plot is linear. For '+orderNames[order]+' order, the straight-line graph confirms the order of reaction.'};
+   }}
+];
+
+// =====================================================
+// STATE
+// =====================================================
+var _isHL=false,_isTeacher=false,_activeTab='reading';
+var _readingDiff='Easy',_readingProblem=null,_readingSubmitted=false,_readingAxes=null;
+var _gradDiff='Easy',_gradProblem=null,_gradSubmitted=false,_gradAxes=null,_gradStepIdx=0;
+var _analysisProblem=null,_analysisSubmitted=false;
+var _pracDifficulty='Easy';
+var _scores={reading:{correct:0,total:0},gradient:{correct:0,total:0},analysis:{correct:0,total:0}};
+
+// =====================================================
+// TAB SWITCHING
+// =====================================================
+var tabBtns=document.querySelectorAll('.tab-btn');
+function switchTab(id){
+  _activeTab=id;
+  for(var i=0;i<tabBtns.length;i++){
+    var btn=tabBtns[i];btn.classList.toggle('active',btn.getAttribute('data-tab')===id);
+  }
+  var tabs=document.querySelectorAll('.tab-content');
+  for(var i=0;i<tabs.length;i++){
+    tabs[i].classList.toggle('active',tabs[i].id==='tab-'+id);
+  }
+  buildPresets();
+}
+for(var i=0;i<tabBtns.length;i++){
+  tabBtns[i].addEventListener('click',function(){switchTab(this.getAttribute('data-tab'));});
+}
+
+// =====================================================
+// HL / TEACHER TOGGLES
+// =====================================================
+document.getElementById('hlToggle').addEventListener('change',function(){
+  _isHL=this.checked;document.body.classList.toggle('hl-active',_isHL);
+});
+document.getElementById('teacherToggle').addEventListener('change',function(){
+  _isTeacher=this.checked;document.body.classList.toggle('teacher-active',_isTeacher);
+});
+
+// =====================================================
+// TAB 1: READING GRAPHS
+// =====================================================
+var readDiffBtns=document.querySelectorAll('#tab-reading .difficulty-btn');
+for(var i=0;i<readDiffBtns.length;i++){
+  readDiffBtns[i].addEventListener('click',function(){
+    _readingDiff=this.getAttribute('data-diff');
+    for(var j=0;j<readDiffBtns.length;j++)readDiffBtns[j].classList.toggle('active',readDiffBtns[j]===this);
+  });
+}
+
+function drawReadingGraph(prob){
+  var canvas=document.getElementById('readingCanvas');
+  canvas.setAttribute('width','800');canvas.setAttribute('height','450');
+  var ctx=setupCanvas(canvas);
+  var axes=createAxes(ctx,800,450,prob.xRange,prob.yRange,prob.xLabel,prob.yLabel,{title:prob.title||''});
+  _readingAxes=axes;
+
+  if(prob.graphType==='scatter_line'){
+    drawScatterPoints(ctx,axes,prob.points,prob.color||'#0D9488',5);
+    if(prob.showTrendLine||prob.points.length>2){
+      drawConnectedLine(ctx,axes,prob.points,prob.color||'#0D9488',2);
+    }
+  } else if(prob.graphType==='curve'&&prob.fn){
+    drawCurveFromFn(ctx,axes,prob.fn,prob.xRange[0],prob.xRange[1],prob.color||'#0D9488',2.5);
+  }
+
+  if(prob.queryLine){
+    drawQueryLine(ctx,axes,prob.queryLine.axis,prob.queryLine.value);
+  }
+}
+
+document.getElementById('btnNewReading').addEventListener('click',function(){
+  var available=READING_TEMPLATES.filter(function(t){
+    if(_readingDiff==='Easy')return t.difficulty==='Easy';
+    if(_readingDiff==='Medium')return t.difficulty!=='Hard';
+    return true;
+  });
+  var tmpl=pick(available);
+  var data=tmpl.generate();
+  _readingProblem=data;_readingSubmitted=false;
+
+  var scn=document.getElementById('readingScenario');clearEl(scn);
+  scn.appendChild(cel('strong','',data.question));
+
+  drawReadingGraph(data);
+
+  document.getElementById('readingAnswer').value='';
+  document.getElementById('readingAnswer').disabled=false;
+  document.getElementById('btnCheckReading').disabled=false;
+  document.getElementById('readingUnit').textContent=data.unit;
+  clearEl(document.getElementById('readingFeedback'));
+  clearEl(document.getElementById('readingTeacher'));
+  document.getElementById('readingReadout').textContent='';
+});
+
+// Canvas mousemove for crosshair readout
+document.getElementById('readingCanvas').addEventListener('mousemove',function(e){
+  if(!_readingAxes||!_readingProblem)return;
+  var rect=this.getBoundingClientRect();
+  var scaleX=800/rect.width;
+  var px=(e.clientX-rect.left)*scaleX;
+  var py=(e.clientY-rect.top)*scaleX;
+  var x=_readingAxes.invX(px),y=_readingAxes.invY(py);
+  if(x>=_readingProblem.xRange[0]&&x<=_readingProblem.xRange[1]&&y>=_readingProblem.yRange[0]&&y<=_readingProblem.yRange[1]){
+    document.getElementById('readingReadout').textContent='x = '+round(x,3)+'  y = '+round(y,3);
+  }
+});
+
+document.getElementById('btnCheckReading').addEventListener('click',function(){
+  if(!_readingProblem||_readingSubmitted)return;
+  _readingSubmitted=true;
+  var userVal=parseFloat(document.getElementById('readingAnswer').value);
+  var fb=document.getElementById('readingFeedback');clearEl(fb);
+  var prob=_readingProblem;
+  var tol=prob.tolerance||0.05;
+  var correct=approxEqual(userVal,prob.answer,tol);
+
+  if(correct){
+    _scores.reading.correct++;_scores.reading.total++;
+    fb.className='feedback correct';
+    fb.textContent='\u2713 Correct! The answer is '+prob.answer+(prob.unit?' '+prob.unit:'')+ '.';
+  } else {
+    _scores.reading.total++;
+    fb.className='feedback incorrect';
+    fb.textContent='\u2717 Incorrect. The answer is '+prob.answer+(prob.unit?' '+prob.unit:'')+'.';
+  }
+
+  var tp=document.getElementById('readingTeacher');clearEl(tp);
+  tp.appendChild(cel('strong','','Explanation: '));
+  addText(tp,prob.explanation);
+
+  document.getElementById('readingAnswer').disabled=true;
+  this.disabled=true;
+  updatePracticeStats();
+});
+
+// =====================================================
+// TAB 2: GRADIENTS & RATES
+// =====================================================
+var gradDiffBtns=document.querySelectorAll('#tab-gradients .difficulty-btn');
+for(var i=0;i<gradDiffBtns.length;i++){
+  gradDiffBtns[i].addEventListener('click',function(){
+    _gradDiff=this.getAttribute('data-diff');
+    for(var j=0;j<gradDiffBtns.length;j++)gradDiffBtns[j].classList.toggle('active',gradDiffBtns[j]===this);
+  });
+}
+
+function drawGradientGraph(prob){
+  var canvas=document.getElementById('gradientCanvas');
+  canvas.setAttribute('width','800');canvas.setAttribute('height','450');
+  var ctx=setupCanvas(canvas);
+  var axes=createAxes(ctx,800,450,prob.xRange,prob.yRange,prob.xLabel,prob.yLabel);
+  _gradAxes=axes;
+
+  if(prob.points){
+    drawScatterPoints(ctx,axes,prob.points,prob.color||'#0D9488',5);
+    if(prob.points.length>2&&!prob.fn){
+      drawConnectedLine(ctx,axes,prob.points,prob.color||'#0D9488',1.5);
+    }
+  }
+  if(prob.fn){
+    drawCurveFromFn(ctx,axes,prob.fn,prob.xRange[0],prob.xRange[1],prob.color||'#0D9488',2.5);
+  }
+  if(prob.highlight){
+    for(var i=0;i<prob.highlight.length;i++){
+      drawHighlightPoint(ctx,axes,prob.highlight[i].x,prob.highlight[i].y,'#DC2626',8);
+    }
+  }
+  if(prob.tangentPts){
+    drawStudentLine(ctx,axes,prob.tangentPts[0],prob.tangentPts[1],'#7C3AED');
+    drawHighlightPoint(ctx,axes,prob.tangentPts[0].x,prob.tangentPts[0].y,'#7C3AED',6);
+    drawHighlightPoint(ctx,axes,prob.tangentPts[1].x,prob.tangentPts[1].y,'#7C3AED',6);
+  }
+  if(typeof prob.queryT==='number'&&prob.queryT>0){
+    drawQueryLine(ctx,axes,'x',prob.queryT,'#D97706');
+  }
+}
+
+function buildGradientSteps(prob){
+  var area=document.getElementById('gradientInputArea');clearEl(area);
+  _gradStepIdx=0;
+
+  var steps=prob.steps;
+  var ol=cel('ol','step-list','');
+  for(var s=0;s<steps.length;s++){
+    var li=cel('li','step-item '+(s===0?'current':'locked'),'');
+    li.setAttribute('data-step',s);
+    var label=cel('div','step-label',steps[s].label+(steps[s].unit?' ('+steps[s].unit+')':''));
+    li.appendChild(label);
+    var row=cel('div','step-input-row','');
+    var inp=document.createElement('input');inp.type='text';inp.placeholder='Enter value...';
+    inp.setAttribute('data-step',s);
+    if(s>0)inp.disabled=true;
+    row.appendChild(inp);
+    var btn=cel('button','btn btn-teal','Check');
+    btn.setAttribute('data-step',s);
+    if(s>0)btn.disabled=true;
+    row.appendChild(btn);
+    li.appendChild(row);
+    var hint=cel('div','step-hint','');
+    li.appendChild(hint);
+    var result=cel('div','step-result','');
+    li.appendChild(result);
+    ol.appendChild(li);
+  }
+  area.appendChild(ol);
+
+  // Wire check buttons
+  var checkBtns=ol.querySelectorAll('.btn');
+  for(var b=0;b<checkBtns.length;b++){
+    checkBtns[b].addEventListener('click',function(){
+      var si=parseInt(this.getAttribute('data-step'));
+      checkGradStep(si);
+    });
+  }
+  // Enter key on inputs
+  var inputs=ol.querySelectorAll('input');
+  for(var n=0;n<inputs.length;n++){
+    inputs[n].addEventListener('keydown',function(e){
+      if(e.key==='Enter'){var si=parseInt(this.getAttribute('data-step'));checkGradStep(si);}
+    });
+  }
+}
+
+function checkGradStep(si){
+  var prob=_gradProblem;if(!prob||!prob.steps)return;
+  var steps=prob.steps;
+  var step=steps[si];
+  var ol=document.getElementById('gradientInputArea').querySelector('.step-list');
+  var li=ol.querySelectorAll('.step-item')[si];
+  var inp=li.querySelector('input');
+  var userVal=parseFloat(inp.value);
+  var result=li.querySelector('.step-result');clearEl(result);
+
+  var tol=Math.abs(step.answer)<0.01?0.005:Math.max(Math.abs(step.answer)*0.05,0.005);
+  if(approxEqual(userVal,step.answer,tol)){
+    li.className='step-item done';
+    result.textContent='\u2713 '+step.answer+(step.unit?' '+step.unit:'');
+    result.style.color='#166534';
+    inp.disabled=true;
+    li.querySelector('.btn').disabled=true;
+
+    // Unlock next step
+    if(si+1<steps.length){
+      var nextLi=ol.querySelectorAll('.step-item')[si+1];
+      nextLi.className='step-item current';
+      nextLi.querySelector('input').disabled=false;
+      nextLi.querySelector('.btn').disabled=false;
+      nextLi.querySelector('input').focus();
+      _gradStepIdx=si+1;
+    } else {
+      // All steps done
+      _scores.gradient.correct++;_scores.gradient.total++;
+      var fb=document.getElementById('gradientFeedback');clearEl(fb);
+      fb.className='feedback correct';
+      fb.textContent='\u2713 All steps correct!';
+      _gradSubmitted=true;
+      var tp=document.getElementById('gradientTeacher');clearEl(tp);
+      tp.appendChild(cel('strong','','Explanation: '));
+      addText(tp,prob.explanation);
+      updatePracticeStats();
+    }
+  } else {
+    li.className='step-item wrong';
+    var hintEl=li.querySelector('.step-hint');
+    hintEl.textContent='Hint: '+step.hint;
+    result.textContent='\u2717 Try again';result.style.color='var(--red)';
+    // Allow retry
+    setTimeout(function(){li.className='step-item current';},800);
+  }
+}
+
+function buildGradientMCQ(prob){
+  var area=document.getElementById('gradientInputArea');clearEl(area);
+  var group=cel('div','radio-group','');
+  for(var i=0;i<prob.options.length;i++){
+    var lbl=document.createElement('label');
+    var radio=document.createElement('input');
+    radio.type='radio';radio.name='gradMcq';radio.value=i;
+    lbl.appendChild(radio);
+    addText(lbl,' '+prob.options[i]);
+    group.appendChild(lbl);
+  }
+  area.appendChild(group);
+  var btn=cel('button','btn btn-teal','Check Answer');
+  area.appendChild(btn);
+
+  btn.addEventListener('click',function(){
+    if(_gradSubmitted)return;
+    var selected=area.querySelector('input[name="gradMcq"]:checked');
+    if(!selected)return;
+    _gradSubmitted=true;
+    var val=parseInt(selected.value);
+    var labels=group.querySelectorAll('label');
+    for(var j=0;j<labels.length;j++){
+      if(j===prob.correct)labels[j].className='selected-correct';
+      else if(j===val&&val!==prob.correct)labels[j].className='selected-wrong';
+    }
+    var fb=document.getElementById('gradientFeedback');clearEl(fb);
+    if(val===prob.correct){
+      _scores.gradient.correct++;_scores.gradient.total++;
+      fb.className='feedback correct';
+      fb.textContent='\u2713 Correct!';
+    } else {
+      _scores.gradient.total++;
+      fb.className='feedback incorrect';
+      fb.textContent='\u2717 Incorrect. The correct answer is: '+prob.options[prob.correct];
+    }
+    var tp=document.getElementById('gradientTeacher');clearEl(tp);
+    tp.appendChild(cel('strong','','Explanation: '));
+    addText(tp,prob.explanation);
+    updatePracticeStats();
+  });
+}
+
+document.getElementById('btnNewGradient').addEventListener('click',function(){
+  var available=GRADIENT_TEMPLATES.filter(function(t){
+    if(_gradDiff==='Easy')return t.difficulty==='Easy';
+    if(_gradDiff==='Medium')return t.difficulty!=='Hard';
+    return true;
+  });
+  var tmpl=pick(available);
+  var data=tmpl.generate();
+  data.type=tmpl.type;data.title=tmpl.title;
+  _gradProblem=data;_gradSubmitted=false;
+
+  var scn=document.getElementById('gradientScenario');clearEl(scn);
+  scn.appendChild(cel('strong','',data.question));
+
+  clearEl(document.getElementById('gradientFeedback'));
+  clearEl(document.getElementById('gradientTeacher'));
+  clearEl(document.getElementById('gradientInputArea'));
+  document.getElementById('tangentInstructions').style.display='none';
+  document.getElementById('gradientReadout').textContent='';
+
+  if(data.graphType!=='none'){
+    drawGradientGraph(data);
+    document.getElementById('gradientCanvas').style.display='';
+  } else {
+    document.getElementById('gradientCanvas').style.display='none';
+  }
+
+  if(data.tangentPts){
+    var inst=document.getElementById('tangentInstructions');
+    inst.style.display='';
+    inst.textContent='A tangent line (purple dashed) is drawn at the point of interest. Use the highlighted points to calculate the gradient.';
+  }
+
+  if(tmpl.type==='steps'){
+    buildGradientSteps(data);
+  } else if(tmpl.type==='mcq'){
+    buildGradientMCQ(data);
+  }
+});
+
+// Canvas mousemove for gradient tab
+document.getElementById('gradientCanvas').addEventListener('mousemove',function(e){
+  if(!_gradAxes||!_gradProblem)return;
+  var rect=this.getBoundingClientRect();
+  var scaleX=800/rect.width;
+  var px=(e.clientX-rect.left)*scaleX;
+  var py=(e.clientY-rect.top)*scaleX;
+  var x=_gradAxes.invX(px),y=_gradAxes.invY(py);
+  var prob=_gradProblem;
+  if(x>=prob.xRange[0]&&x<=prob.xRange[1]&&y>=prob.yRange[0]&&y<=prob.yRange[1]){
+    document.getElementById('gradientReadout').textContent='x = '+round(x,4)+'  y = '+round(y,4);
+  }
+});
+
+// =====================================================
+// TAB 3: GRAPH ANALYSIS (HL)
+// =====================================================
+function drawAnalysisGraphs(prob){
+  var area=document.getElementById('analysisGraphArea');clearEl(area);
+
+  if(prob.graphType==='none')return;
+
+  if(prob.points&&prob.type!=='multi_graph'){
+    // Single graph with steps
+    var wrap=cel('div','graph-canvas-wrap','');
+    var canvas=document.createElement('canvas');canvas.id='analysisCanvas';
+    canvas.setAttribute('width','800');canvas.setAttribute('height','450');
+    wrap.appendChild(canvas);
+    area.appendChild(wrap);
+
+    var ctx=setupCanvas(canvas);
+    var axes=createAxes(ctx,800,450,prob.xRange,prob.yRange,prob.xLabel,prob.yLabel);
+    drawScatterPoints(ctx,axes,prob.points,prob.color||'#7C3AED',5);
+    drawConnectedLine(ctx,axes,prob.points,prob.color||'#7C3AED',1.5);
+    if(prob.highlight){
+      for(var i=0;i<prob.highlight.length;i++){
+        drawHighlightPoint(ctx,axes,prob.highlight[i].x,prob.highlight[i].y,'#DC2626',8);
+      }
+    }
+  }
+}
+
+function drawMultiGraphs(prob){
+  var area=document.getElementById('analysisGraphArea');clearEl(area);
+  var row=cel('div','multi-graph-row','');
+  var graphDefs=[
+    {label:'[A] vs time',yKey:'A',yLabel:'[A] / mol dm\u207B\u00B3'},
+    {label:'ln[A] vs time',yKey:'lnA',yLabel:'ln[A]'},
+    {label:'1/[A] vs time',yKey:'invA',yLabel:'1/[A] / dm\u00B3 mol\u207B\u00B9'}
+  ];
+
+  for(var g=0;g<3;g++){
+    var item=cel('div','multi-graph-item','');
+    var canvas=document.createElement('canvas');
+    canvas.setAttribute('width','280');canvas.setAttribute('height','220');
+    item.appendChild(canvas);
+    var lbl=cel('div','multi-graph-label',graphDefs[g].label);
+    item.appendChild(lbl);
+    row.appendChild(item);
+
+    var pts=[];var yMin=Infinity,yMax=-Infinity;
+    for(var p=0;p<prob.points.length;p++){
+      var yVal=prob.points[p][graphDefs[g].yKey];
+      pts.push({x:prob.points[p].t,y:yVal});
+      if(yVal<yMin)yMin=yVal;if(yVal>yMax)yMax=yVal;
+    }
+    var yPad=(yMax-yMin)*0.1||0.5;
+
+    var ctx=setupCanvas(canvas);
+    var axes=createAxes(ctx,280,220,[0,prob.tMax],[yMin-yPad,yMax+yPad],'Time / s',graphDefs[g].yLabel,
+      {margins:{left:55,right:15,top:15,bottom:40}});
+    drawScatterPoints(ctx,axes,pts,'#0D9488',3);
+    drawConnectedLine(ctx,axes,pts,'#0D9488',1.5);
+  }
+  area.appendChild(row);
+}
+
+function buildAnalysisSteps(prob){
+  var area=document.getElementById('analysisInputArea');clearEl(area);
+  _gradStepIdx=0;// reuse
+
+  var steps=prob.steps;
+  var ol=cel('ol','step-list','');
+  for(var s=0;s<steps.length;s++){
+    var li=cel('li','step-item '+(s===0?'current':'locked'),'');
+    li.setAttribute('data-step',s);
+    var label=cel('div','step-label',steps[s].label+(steps[s].unit?' ('+steps[s].unit+')':''));
+    li.appendChild(label);
+    var row=cel('div','step-input-row','');
+    var inp=document.createElement('input');inp.type='text';inp.placeholder='Enter value...';
+    inp.setAttribute('data-step',s);
+    if(s>0)inp.disabled=true;
+    row.appendChild(inp);
+    var btn=cel('button','btn btn-teal','Check');
+    btn.setAttribute('data-step',s);
+    if(s>0)btn.disabled=true;
+    row.appendChild(btn);
+    li.appendChild(row);
+    var hint=cel('div','step-hint','');
+    li.appendChild(hint);
+    var result=cel('div','step-result','');
+    li.appendChild(result);
+    ol.appendChild(li);
+  }
+  area.appendChild(ol);
+
+  var checkBtns=ol.querySelectorAll('.btn');
+  for(var b=0;b<checkBtns.length;b++){
+    checkBtns[b].addEventListener('click',function(){
+      checkAnalysisStep(parseInt(this.getAttribute('data-step')));
+    });
+  }
+  var inputs=ol.querySelectorAll('input');
+  for(var n=0;n<inputs.length;n++){
+    inputs[n].addEventListener('keydown',function(e){
+      if(e.key==='Enter')checkAnalysisStep(parseInt(this.getAttribute('data-step')));
+    });
+  }
+}
+
+function checkAnalysisStep(si){
+  var prob=_analysisProblem;if(!prob||!prob.steps)return;
+  var steps=prob.steps;var step=steps[si];
+  var area=document.getElementById('analysisInputArea');
+  var ol=area.querySelector('.step-list');
+  var li=ol.querySelectorAll('.step-item')[si];
+  var inp=li.querySelector('input');
+  var userVal=parseFloat(inp.value);
+  var result=li.querySelector('.step-result');clearEl(result);
+
+  var tol=Math.abs(step.answer)<1?Math.max(Math.abs(step.answer)*0.08,0.005):Math.abs(step.answer)*0.05;
+  if(approxEqual(userVal,step.answer,tol)){
+    li.className='step-item done';
+    result.textContent='\u2713 '+step.answer+(step.unit?' '+step.unit:'');
+    result.style.color='#166534';
+    inp.disabled=true;li.querySelector('.btn').disabled=true;
+    if(si+1<steps.length){
+      var nextLi=ol.querySelectorAll('.step-item')[si+1];
+      nextLi.className='step-item current';
+      nextLi.querySelector('input').disabled=false;
+      nextLi.querySelector('.btn').disabled=false;
+      nextLi.querySelector('input').focus();
+    } else {
+      _scores.analysis.correct++;_scores.analysis.total++;
+      var fb=document.getElementById('analysisFeedback');clearEl(fb);
+      fb.className='feedback correct';
+      fb.textContent='\u2713 All steps correct!';
+      _analysisSubmitted=true;
+      var tp=document.getElementById('analysisTeacher');clearEl(tp);
+      tp.appendChild(cel('strong','','Explanation: '));
+      addText(tp,prob.explanation);
+      updatePracticeStats();
+    }
+  } else {
+    li.className='step-item wrong';
+    li.querySelector('.step-hint').textContent='Hint: '+step.hint;
+    result.textContent='\u2717 Try again';result.style.color='var(--red)';
+    setTimeout(function(){li.className='step-item current';},800);
+  }
+}
+
+function buildAnalysisMCQ(prob){
+  var area=document.getElementById('analysisInputArea');clearEl(area);
+  var group=cel('div','radio-group','');
+  for(var i=0;i<prob.options.length;i++){
+    var lbl=document.createElement('label');
+    var radio=document.createElement('input');
+    radio.type='radio';radio.name='analysisMcq';radio.value=i;
+    lbl.appendChild(radio);
+    addText(lbl,' '+prob.options[i]);
+    group.appendChild(lbl);
+  }
+  area.appendChild(group);
+  var btn=cel('button','btn btn-teal','Check Answer');
+  area.appendChild(btn);
+
+  btn.addEventListener('click',function(){
+    if(_analysisSubmitted)return;
+    var selected=area.querySelector('input[name="analysisMcq"]:checked');
+    if(!selected)return;
+    _analysisSubmitted=true;
+    var val=parseInt(selected.value);
+    var labels=group.querySelectorAll('label');
+    for(var j=0;j<labels.length;j++){
+      if(j===prob.correct)labels[j].className='selected-correct';
+      else if(j===val&&val!==prob.correct)labels[j].className='selected-wrong';
+    }
+    var fb=document.getElementById('analysisFeedback');clearEl(fb);
+    if(val===prob.correct){
+      _scores.analysis.correct++;_scores.analysis.total++;
+      fb.className='feedback correct';
+      fb.textContent='\u2713 Correct!';
+    } else {
+      _scores.analysis.total++;
+      fb.className='feedback incorrect';
+      fb.textContent='\u2717 Incorrect. '+prob.options[prob.correct];
+    }
+    var tp=document.getElementById('analysisTeacher');clearEl(tp);
+    tp.appendChild(cel('strong','','Explanation: '));
+    addText(tp,prob.explanation);
+    updatePracticeStats();
+  });
+}
+
+document.getElementById('btnNewAnalysis').addEventListener('click',function(){
+  var tmpl=pick(ANALYSIS_TEMPLATES);
+  var data=tmpl.generate();
+  data.type=tmpl.type;data.title=tmpl.title;
+  _analysisProblem=data;_analysisSubmitted=false;
+
+  var scn=document.getElementById('analysisScenario');clearEl(scn);
+  scn.appendChild(cel('strong','',data.question));
+
+  clearEl(document.getElementById('analysisFeedback'));
+  clearEl(document.getElementById('analysisTeacher'));
+  clearEl(document.getElementById('analysisInputArea'));
+  clearEl(document.getElementById('analysisGraphArea'));
+
+  if(tmpl.type==='multi_graph'){
+    drawMultiGraphs(data);
+    buildAnalysisMCQ(data);
+  } else if(tmpl.type==='mcq'){
+    buildAnalysisMCQ(data);
+  } else if(tmpl.type==='steps'){
+    drawAnalysisGraphs(data);
+    buildAnalysisSteps(data);
+  }
+});
+
+// =====================================================
+// TAB 4: PRACTICE MODE
+// =====================================================
+var pracDiffBtns=document.querySelectorAll('#tab-practice .difficulty-btn');
+for(var i=0;i<pracDiffBtns.length;i++){
+  pracDiffBtns[i].addEventListener('click',function(){
+    _pracDifficulty=this.getAttribute('data-diff');
+    for(var j=0;j<pracDiffBtns.length;j++)pracDiffBtns[j].classList.toggle('active',pracDiffBtns[j]===this);
+  });
+}
+
+document.getElementById('btnNextPractice').addEventListener('click',function(){
+  var content=document.getElementById('practiceContent');clearEl(content);
+  var categories=['reading','gradients'];
+  if(_isHL) categories.push('analysis');
+  var cat=pick(categories);
+
+  var note=cel('div','scenario-box','');
+  if(cat==='reading'){
+    note.appendChild(cel('strong','','Category: Reading Graphs'));
+    note.appendChild(document.createElement('br'));
+    addText(note,'Switching to Tab 1 \u2014 a new reading problem has been generated.');
+    content.appendChild(note);
+    switchTab('reading');
+    document.getElementById('btnNewReading').click();
+  } else if(cat==='gradients'){
+    note.appendChild(cel('strong','','Category: Gradients & Rates'));
+    note.appendChild(document.createElement('br'));
+    addText(note,'Switching to Tab 2 \u2014 a new gradient problem has been generated.');
+    content.appendChild(note);
+    switchTab('gradients');
+    document.getElementById('btnNewGradient').click();
+  } else {
+    note.appendChild(cel('strong','','Category: Graph Analysis (HL)'));
+    note.appendChild(document.createElement('br'));
+    addText(note,'Switching to Tab 3 \u2014 a new analysis problem has been generated.');
+    content.appendChild(note);
+    switchTab('analysis');
+    document.getElementById('btnNewAnalysis').click();
+  }
+});
+
+function updatePracticeStats(){
+  document.getElementById('statReading').textContent=_scores.reading.correct+'/'+_scores.reading.total;
+  document.getElementById('statGradient').textContent=_scores.gradient.correct+'/'+_scores.gradient.total;
+  document.getElementById('statAnalysis').textContent=_scores.analysis.correct+'/'+_scores.analysis.total;
+  var tc=_scores.reading.correct+_scores.gradient.correct+_scores.analysis.correct;
+  var tt=_scores.reading.total+_scores.gradient.total+_scores.analysis.total;
+  document.getElementById('statTotal').textContent=tc+'/'+tt;
+}
+
+// =====================================================
+// PRESETS
+// =====================================================
+var presetSelect=document.getElementById('presetSelect');
+var PRESETS={
+  reading:[
+    {label:'Calibration Curve',action:function(){
+      for(var j=0;j<readDiffBtns.length;j++)readDiffBtns[j].classList.toggle('active',readDiffBtns[j].getAttribute('data-diff')==='Easy');
+      _readingDiff='Easy';document.getElementById('btnNewReading').click();
+    }},
+    {label:'Titration Curve',action:function(){
+      for(var j=0;j<readDiffBtns.length;j++)readDiffBtns[j].classList.toggle('active',readDiffBtns[j].getAttribute('data-diff')==='Medium');
+      _readingDiff='Medium';document.getElementById('btnNewReading').click();
+    }},
+    {label:'Heating Curve',action:function(){
+      for(var j=0;j<readDiffBtns.length;j++)readDiffBtns[j].classList.toggle('active',readDiffBtns[j].getAttribute('data-diff')==='Easy');
+      _readingDiff='Easy';document.getElementById('btnNewReading').click();
+    }}
+  ],
+  gradients:[
+    {label:'Gradient Calculation',action:function(){
+      for(var j=0;j<gradDiffBtns.length;j++)gradDiffBtns[j].classList.toggle('active',gradDiffBtns[j].getAttribute('data-diff')==='Easy');
+      _gradDiff='Easy';document.getElementById('btnNewGradient').click();
+    }},
+    {label:'Rate from Graph',action:function(){
+      for(var j=0;j<gradDiffBtns.length;j++)gradDiffBtns[j].classList.toggle('active',gradDiffBtns[j].getAttribute('data-diff')==='Medium');
+      _gradDiff='Medium';document.getElementById('btnNewGradient').click();
+    }},
+    {label:'Reaction Order (MCQ)',action:function(){
+      for(var j=0;j<gradDiffBtns.length;j++)gradDiffBtns[j].classList.toggle('active',gradDiffBtns[j].getAttribute('data-diff')==='Easy');
+      _gradDiff='Easy';document.getElementById('btnNewGradient').click();
+    }}
+  ],
+  analysis:[
+    {label:'Arrhenius Plot (HL)',action:function(){document.getElementById('btnNewAnalysis').click();}},
+    {label:'Integrated Rate Plots (HL)',action:function(){document.getElementById('btnNewAnalysis').click();}}
+  ],
+  practice:[
+    {label:'Full Practice (Easy)',action:function(){
+      _pracDifficulty='Easy';
+      for(var j=0;j<pracDiffBtns.length;j++)pracDiffBtns[j].classList.toggle('active',pracDiffBtns[j].getAttribute('data-diff')==='Easy');
+      document.getElementById('btnNextPractice').click();
+    }}
+  ]
+};
+
+function buildPresets(){
+  clearEl(presetSelect);
+  var def=document.createElement('option');def.value='';def.textContent='Teacher Presets...';presetSelect.appendChild(def);
+  var presets=PRESETS[_activeTab]||[];
+  for(var i=0;i<presets.length;i++){
+    var opt=document.createElement('option');opt.value=i;opt.textContent=presets[i].label;presetSelect.appendChild(opt);
+  }
+}
+
+presetSelect.addEventListener('change',function(){
+  var idx=parseInt(this.value);if(isNaN(idx))return;
+  var presets=PRESETS[_activeTab]||[];
+  if(presets[idx])presets[idx].action();
+  this.value='';
+});
+
+buildPresets();
+
+// =====================================================
+// KEYBOARD SHORTCUTS
+// =====================================================
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
+  switch(e.key.toLowerCase()){
+    case'h':
+      var hl=document.getElementById('hlToggle');hl.checked=!hl.checked;hl.dispatchEvent(new Event('change'));break;
+    case't':
+      var t=document.getElementById('teacherToggle');t.checked=!t.checked;t.dispatchEvent(new Event('change'));break;
+    case'1':switchTab('reading');break;
+    case'2':switchTab('gradients');break;
+    case'3':if(_isHL)switchTab('analysis');break;
+    case'4':switchTab('practice');break;
+    case'r':
+      _scores={reading:{correct:0,total:0},gradient:{correct:0,total:0},analysis:{correct:0,total:0}};
+      updatePracticeStats();break;
+    case'n':
+      if(_activeTab==='reading')document.getElementById('btnNewReading').click();
+      else if(_activeTab==='gradients')document.getElementById('btnNewGradient').click();
+      else if(_activeTab==='analysis')document.getElementById('btnNewAnalysis').click();
+      else if(_activeTab==='practice')document.getElementById('btnNextPractice').click();
+      break;
+  }
+});
+
+})();
+</script>
+<footer>SimEngine &mdash; Graph Skills Trainer &bull; H=HL T=Teacher</footer>
+</body>
+</html>

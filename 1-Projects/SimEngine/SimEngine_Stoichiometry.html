@@ -28,7 +28,8 @@
     --sim-canvas-bg: #FAFBFC;
     --hl-badge-bg: #7C3AED;
     --hl-border: rgba(124, 58, 237, 0.2);
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -42,9 +43,9 @@
 
   /* ── Header ── */
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    background: var(--navy);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: .75rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -388,9 +389,12 @@
     .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
     .titration-layout { grid-template-columns: 1fr; }
   }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <!-- Header -->
 <div class="header">
@@ -406,15 +410,15 @@
 </div>
 
 <!-- Tab Bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="stoich"><span class="tab-num">1</span>Stoichiometry</button>
-  <button class="tab-btn" data-tab="limiting"><span class="tab-num">2</span>Limiting Reagent</button>
-  <button class="tab-btn" data-tab="titration"><span class="tab-num">3</span>Titration Lab</button>
-  <button class="tab-btn hl-tab" data-tab="gravimetric"><span class="tab-num">4</span>Gravimetric Analysis</button>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="stoich" role="tab"><span class="tab-num">1</span>Stoichiometry</button>
+  <button class="tab-btn" data-tab="limiting" role="tab"><span class="tab-num">2</span>Limiting Reagent</button>
+  <button class="tab-btn" data-tab="titration" role="tab"><span class="tab-num">3</span>Titration Lab</button>
+  <button class="tab-btn hl-tab" data-tab="gravimetric" role="tab"><span class="tab-num">4</span>Gravimetric Analysis</button>
 </div>
 
 <!-- Main Content -->
-<div class="sim-container">
+<div class="sim-container" id="main-content">
   <div class="sim-top-row">
 
     <!-- Sidebar (shared) -->
@@ -424,7 +428,7 @@
         <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search reactions">
         <div id="paletteList"></div>
         <div class="preset-section" id="presetSection">
-          <select id="presetSelect">
+          <select aria-label="Select preset reaction" id="presetSelect">
             <option value="">Teacher Presets...</option>
           </select>
         </div>
@@ -432,7 +436,7 @@
     </div>
 
     <!-- Tab 1: Stoichiometry Workspace -->
-    <div class="tab-content active" id="tab-stoich">
+    <div class="tab-content active" id="tab-stoich" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Stoichiometry Workspace</div>
         <div class="sim-card-body" id="stoichBody">
@@ -444,7 +448,7 @@
     </div>
 
     <!-- Tab 2: Limiting Reagent -->
-    <div class="tab-content" id="tab-limiting">
+    <div class="tab-content" id="tab-limiting" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Limiting Reagent Visualizer</div>
         <div class="sim-card-body" id="limitingBody">
@@ -462,7 +466,7 @@
     </div>
 
     <!-- Tab 3: Titration Lab -->
-    <div class="tab-content" id="tab-titration">
+    <div class="tab-content" id="tab-titration" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Titration Lab</div>
         <div class="sim-card-body" id="titrationBody">
@@ -480,7 +484,7 @@
     </div>
 
     <!-- Tab 4: Gravimetric Analysis (HL) -->
-    <div class="tab-content" id="tab-gravimetric">
+    <div class="tab-content" id="tab-gravimetric" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Gravimetric Analysis</div>
         <div class="sim-card-body" id="gravBody">
@@ -2725,5 +2729,6 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 
 })();
 </script>
+<footer>SimEngine &mdash; Stoichiometry &bull; H=HL T=Teacher</footer>
 </body>
 </html>

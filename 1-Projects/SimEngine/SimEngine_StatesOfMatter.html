@@ -28,7 +28,8 @@
     --sim-canvas-bg: #FAFBFC;
     --hl-badge-bg: #7C3AED;
     --hl-border: rgba(124, 58, 237, 0.2);
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -42,9 +43,9 @@
 
   /* ── Header ── */
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    background: var(--navy);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: .75rem 1.5rem;
     display: flex; align-items: center; justify-content: space-between;
     flex-wrap: wrap; gap: 0.75rem;
   }
@@ -235,9 +236,12 @@
     .palette-panel { max-height: 200px; position: static; }
     .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
   }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <!-- Header -->
 <div class="header">
@@ -253,14 +257,14 @@
 </div>
 
 <!-- Tab Bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="particle"><span class="tab-num">1</span>Particle View</button>
-  <button class="tab-btn" data-tab="heating"><span class="tab-num">2</span>Heating Curve</button>
-  <button class="tab-btn" data-tab="maxwell"><span class="tab-num">3</span>KE Distribution</button>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="particle" role="tab"><span class="tab-num">1</span>Particle View</button>
+  <button class="tab-btn" data-tab="heating" role="tab"><span class="tab-num">2</span>Heating Curve</button>
+  <button class="tab-btn" data-tab="maxwell" role="tab"><span class="tab-num">3</span>KE Distribution</button>
 </div>
 
 <!-- Main Content -->
-<div class="sim-container">
+<div class="sim-container" id="main-content">
   <div class="sim-top-row">
 
     <!-- Sidebar -->
@@ -279,7 +283,7 @@
     </div>
 
     <!-- Tab 1: Particle View -->
-    <div class="tab-content active" id="tab-particle">
+    <div class="tab-content active" id="tab-particle" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Particle Simulation</div>
         <div class="sim-card-body">
@@ -290,7 +294,7 @@
     </div>
 
     <!-- Tab 2: Heating Curve -->
-    <div class="tab-content" id="tab-heating">
+    <div class="tab-content" id="tab-heating" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Heating Curve</div>
         <div class="sim-card-body">
@@ -302,7 +306,7 @@
     </div>
 
     <!-- Tab 3: KE Distribution -->
-    <div class="tab-content" id="tab-maxwell">
+    <div class="tab-content" id="tab-maxwell" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Maxwell-Boltzmann Distribution</div>
         <div class="sim-card-body">
@@ -1529,5 +1533,6 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 
 })();
 </script>
+<footer>SimEngine &mdash; States of Matter &bull; H=HL T=Teacher</footer>
 </body>
 </html>

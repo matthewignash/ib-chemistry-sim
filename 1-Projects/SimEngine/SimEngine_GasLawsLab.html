@@ -28,7 +28,8 @@
     --sim-canvas-bg: #FAFBFC;
     --hl-badge-bg: #7C3AED;
     --hl-border: rgba(124, 58, 237, 0.2);
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -42,9 +43,9 @@
 
   /* ── Header ── */
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    background: var(--navy);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: .75rem 1.5rem;
     display: flex; align-items: center; justify-content: space-between;
     flex-wrap: wrap; gap: 0.75rem;
   }
@@ -285,9 +286,12 @@
     .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
     .property-cards { grid-template-columns: 1fr; }
   }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <!-- Header -->
 <div class="header">
@@ -303,14 +307,14 @@
 </div>
 
 <!-- Tab Bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="labs"><span class="tab-num">1</span>Gas Law Labs</button>
-  <button class="tab-btn" data-tab="calculator"><span class="tab-num">2</span>Ideal Gas Calculator</button>
-  <button class="tab-btn hl-panel" data-tab="real"><span class="tab-num">3</span>Real vs Ideal</button>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="labs" role="tab"><span class="tab-num">1</span>Gas Law Labs</button>
+  <button class="tab-btn" data-tab="calculator" role="tab"><span class="tab-num">2</span>Ideal Gas Calculator</button>
+  <button class="tab-btn hl-panel" data-tab="real" role="tab"><span class="tab-num">3</span>Real vs Ideal</button>
 </div>
 
 <!-- Main Content -->
-<div class="sim-container">
+<div class="sim-container" id="main-content">
   <div class="sim-top-row">
 
     <!-- Sidebar -->
@@ -329,7 +333,7 @@
     </div>
 
     <!-- Tab 1: Gas Law Labs -->
-    <div class="tab-content active" id="tab-labs">
+    <div class="tab-content active" id="tab-labs" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Gas Law Apparatus</div>
         <div class="sim-card-body">
@@ -352,7 +356,7 @@
     </div>
 
     <!-- Tab 2: Ideal Gas Calculator -->
-    <div class="tab-content" id="tab-calculator">
+    <div class="tab-content" id="tab-calculator" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Ideal Gas Calculator</div>
         <div class="sim-card-body" id="calcBody">
@@ -367,7 +371,7 @@
     </div>
 
     <!-- Tab 3: Real vs Ideal (HL) -->
-    <div class="tab-content hl-panel" id="tab-real">
+    <div class="tab-content hl-panel" id="tab-real" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Compressibility Factor (Z) vs Pressure</div>
         <div class="sim-card-body">
@@ -2067,5 +2071,6 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 
 })();
 </script>
+<footer>SimEngine &mdash; Gas Laws Lab &bull; H=HL T=Teacher</footer>
 </body>
 </html>

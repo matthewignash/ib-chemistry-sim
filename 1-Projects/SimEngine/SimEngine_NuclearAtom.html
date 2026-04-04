@@ -28,7 +28,8 @@
     --sim-canvas-bg: #FAFBFC;
     --hl-badge-bg: #7C3AED;
     --hl-border: rgba(124, 58, 237, 0.2);
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -42,9 +43,9 @@
 
   /* ── Header ── */
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    background: var(--navy);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: .75rem 1.5rem;
     display: flex; align-items: center; justify-content: space-between;
     flex-wrap: wrap; gap: 0.75rem;
   }
@@ -281,9 +282,12 @@
     .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
     .spectra-layout { grid-template-columns: 1fr; }
   }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <!-- Header -->
 <div class="header">
@@ -299,15 +303,15 @@
 </div>
 
 <!-- Tab Bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="isotopes"><span class="tab-num">1</span>Isotope Explorer</button>
-  <button class="tab-btn" data-tab="msAnalyze"><span class="tab-num">2</span>Mass Spec: Analyze</button>
-  <button class="tab-btn" data-tab="msBuild"><span class="tab-num">3</span>Mass Spec: Build</button>
-  <button class="tab-btn" data-tab="emission"><span class="tab-num">4</span>Emission Spectra</button>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="isotopes" role="tab"><span class="tab-num">1</span>Isotope Explorer</button>
+  <button class="tab-btn" data-tab="msAnalyze" role="tab"><span class="tab-num">2</span>Mass Spec: Analyze</button>
+  <button class="tab-btn" data-tab="msBuild" role="tab"><span class="tab-num">3</span>Mass Spec: Build</button>
+  <button class="tab-btn" data-tab="emission" role="tab"><span class="tab-num">4</span>Emission Spectra</button>
 </div>
 
 <!-- Main Content -->
-<div class="sim-container">
+<div class="sim-container" id="main-content">
   <div class="sim-top-row">
 
     <!-- Sidebar -->
@@ -325,7 +329,7 @@
     </div>
 
     <!-- Tab 1: Isotope Explorer -->
-    <div class="tab-content active" id="tab-isotopes">
+    <div class="tab-content active" id="tab-isotopes" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Mini Periodic Table</div>
         <div class="sim-card-body" style="padding:0.5rem;">
@@ -343,7 +347,7 @@
     </div>
 
     <!-- Tab 2: Mass Spec Analyze -->
-    <div class="tab-content" id="tab-msAnalyze">
+    <div class="tab-content" id="tab-msAnalyze" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Mass Spectrum — Analyze</div>
         <div class="sim-card-body" id="msAnalyzeBody">
@@ -355,7 +359,7 @@
     </div>
 
     <!-- Tab 3: Mass Spec Build -->
-    <div class="tab-content" id="tab-msBuild">
+    <div class="tab-content" id="tab-msBuild" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Mass Spectrum — Build</div>
         <div class="sim-card-body" id="msBuildBody">
@@ -367,7 +371,7 @@
     </div>
 
     <!-- Tab 4: Emission Spectra -->
-    <div class="tab-content" id="tab-emission">
+    <div class="tab-content" id="tab-emission" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Emission Spectra &amp; Bohr Model</div>
         <div class="sim-card-body" id="emissionBody">
@@ -2834,5 +2838,6 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 
 })();
 </script>
+<footer>SimEngine &mdash; Nuclear &amp; Atomic Structure &bull; H=HL T=Teacher</footer>
 </body>
 </html>

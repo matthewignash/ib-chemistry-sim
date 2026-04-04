@@ -24,7 +24,8 @@
     --blue-bg: #EFF6FF;
     --sim-canvas-bg: #FAFBFC;
     --hl-badge-bg: #7C3AED;
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -37,8 +38,8 @@
   }
 
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
-    color: white; padding: 1.5rem 2rem;
+    background: var(--navy);
+    color: white; padding: .75rem 1.5rem;
     display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;
   }
   .header h1 { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.02em; }
@@ -49,7 +50,12 @@
     display: inline-block; padding: 0.25rem 0.75rem; border-radius: 999px;
     font-size: 0.75rem; font-weight: 600; background: rgba(255,255,255,0.15); color: white;
   }
-  .header-badge.hl { background: var(--hl-badge-bg); }
+  .header-badge.hl { background: var(--hl-badge-bg); display: none; }
+  body.hl-active .header-badge.hl { display: inline-block; }
+  .palette-item.hl-mech { display: none; }
+  body.hl-active .palette-item.hl-mech { display: block; }
+  .palette-category.hl-cat { display: none; }
+  body.hl-active .palette-category.hl-cat { display: block; }
 
   .sim-toggle-group { display: flex; align-items: center; gap: 0.5rem; }
   .sim-toggle { position: relative; display: inline-block; width: 40px; height: 22px; }
@@ -146,27 +152,125 @@
     font-size: 0.65rem; margin: 0 0.1rem;
   }
 
+  /* Tab bar */
+  .tab-bar {
+    max-width: 1200px; margin: 0 auto; padding: 1rem 1.5rem 0;
+    display: flex; gap: 0.25rem; border-bottom: 2px solid var(--border);
+  }
+  .tab-btn {
+    padding: 0.5rem 1.2rem; border: none; background: none; cursor: pointer;
+    font-family: inherit; font-size: 0.82rem; font-weight: 600; color: var(--text-muted);
+    border-bottom: 2px solid transparent; margin-bottom: -2px; transition: all 0.15s;
+  }
+  .tab-btn:hover { color: var(--teal); }
+  .tab-btn.active { color: var(--teal); border-bottom-color: var(--teal); }
+  .tab-btn .tab-num {
+    display: inline-block; width: 18px; height: 18px; line-height: 18px; text-align: center;
+    border-radius: 50%; font-size: 0.65rem; font-weight: 700; margin-right: 0.4rem;
+    background: var(--border); color: var(--text-muted);
+  }
+  .tab-btn.active .tab-num { background: var(--teal); color: white; }
+  .tab-btn.hl-tab { display: none; }
+  body.hl-active .tab-btn.hl-tab { display: inline-flex; }
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* Pathway Decision tab */
+  .decision-controls { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+  .decision-group { flex: 1; min-width: 160px; }
+  .decision-group label {
+    display: block; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--text-muted); margin-bottom: 0.3rem;
+  }
+  .decision-group .btn-group { display: flex; gap: 0.25rem; }
+  .decision-group .btn-group button {
+    flex: 1; padding: 0.4rem 0.5rem; border: 1px solid var(--border); border-radius: 6px;
+    background: white; font-size: 0.75rem; font-weight: 500; cursor: pointer;
+    font-family: inherit; color: var(--text); transition: all 0.15s;
+  }
+  .decision-group .btn-group button:hover { border-color: var(--teal); color: var(--teal); }
+  .decision-group .btn-group button.active { background: var(--teal); color: white; border-color: var(--teal); }
+  .decision-result {
+    padding: 0.75rem 1rem; border-radius: 8px; border: 2px solid var(--border);
+    background: var(--teal-bg); font-size: 0.85rem; margin-bottom: 1rem;
+    display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;
+  }
+  .decision-result .mech-name { font-weight: 700; font-size: 1rem; color: var(--navy); }
+  .decision-result .mech-note { font-size: 0.78rem; color: var(--text-muted); flex-basis: 100%; }
+  .decision-result button {
+    padding: 0.35rem 0.75rem; border-radius: 6px; border: 1px solid var(--teal);
+    background: white; color: var(--teal); font-weight: 600; font-size: 0.75rem;
+    cursor: pointer; font-family: inherit;
+  }
+  .decision-result button:hover { background: var(--teal); color: white; }
+  .ref-table { width: 100%; border-collapse: collapse; font-size: 0.75rem; margin-top: 1rem; }
+  .ref-table th {
+    background: var(--navy); color: white; padding: 0.4rem 0.6rem; text-align: left;
+    font-weight: 600; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .ref-table td { padding: 0.35rem 0.6rem; border-bottom: 1px solid var(--border); }
+  .ref-table tr:hover td { background: var(--teal-bg); }
+  .ref-table tr.highlight td { background: #D1FAE5; font-weight: 600; }
+  .quiz-bar {
+    display: flex; align-items: center; gap: 1rem; padding: 0.5rem 0; margin-top: 0.75rem;
+    border-top: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .quiz-bar button {
+    padding: 0.35rem 0.75rem; border-radius: 6px; border: 1px solid var(--border);
+    background: white; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .quiz-bar button.quiz-active { background: var(--purple); color: white; border-color: var(--purple); }
+  .quiz-bar .score { font-size: 0.78rem; font-weight: 600; font-family: 'Fira Code', monospace; }
+  .quiz-scenario {
+    padding: 0.6rem 0.8rem; background: var(--blue-bg); border-radius: 8px; border: 1px solid #BFDBFE;
+    font-size: 0.82rem; margin-bottom: 0.75rem;
+  }
+  .quiz-scenario strong { color: var(--blue); }
+  .quiz-choices { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-bottom: 0.75rem; }
+  .quiz-choices button {
+    padding: 0.4rem 1rem; border-radius: 6px; border: 1px solid var(--border);
+    background: white; font-size: 0.8rem; font-weight: 600; cursor: pointer; font-family: inherit;
+  }
+  .quiz-choices button:hover { border-color: var(--purple); color: var(--purple); }
+  .quiz-choices button.correct { background: #D1FAE5; border-color: var(--green); color: var(--green); }
+  .quiz-choices button.incorrect { background: #FEE2E2; border-color: var(--red); color: var(--red); }
+  .quiz-feedback { font-size: 0.82rem; padding: 0.5rem 0.75rem; border-radius: 6px; margin-bottom: 0.5rem; }
+  .quiz-feedback.correct { background: #D1FAE5; color: var(--green); }
+  .quiz-feedback.incorrect { background: #FEE2E2; color: var(--red); }
+
   @media (max-width: 900px) {
     .sim-top-row { grid-template-columns: 1fr; }
     .palette-panel { max-height: 200px; position: static; }
     .bottom-row { grid-template-columns: 1fr; }
+    .decision-controls { flex-direction: column; }
   }
+
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <div class="header">
   <div class="header-left">
     <h1>Organic Mechanisms Explorer</h1>
-    <span class="subtitle">IB Chemistry — R3.4 Reaction Mechanisms (HL)</span>
+    <span class="subtitle">IB Chemistry — R3.3 / R3.4 Reaction Mechanisms</span>
   </div>
   <div class="header-right">
-    <span class="header-badge">R3.4</span>
+    <span class="header-badge">R3.3</span>
     <span class="header-badge hl">HL</span>
     <div id="headerToggles"></div>
   </div>
 </div>
 
+<div class="tab-bar" role="tablist" id="main-content">
+  <button class="tab-btn active" role="tab" data-tab="mechanisms"><span class="tab-num">1</span>Mechanisms</button>
+  <button class="tab-btn hl-tab" role="tab" data-tab="pathway"><span class="tab-num">2</span>Pathway Decision</button>
+</div>
+
+<div class="tab-content active" role="tabpanel" id="tab-mechanisms">
+<div class="sim-container">
 <div class="sim-container">
   <div class="sim-top-row">
     <div class="palette-panel sim-card">
@@ -184,14 +288,14 @@
       <div class="sim-card">
         <div class="sim-card-header">Mechanism Animation</div>
         <div class="sim-card-body" style="padding: 0.5rem;">
-          <canvas id="mechCanvas"></canvas>
+          <canvas id="mechCanvas" role="img" aria-label="Organic reaction mechanism animation showing electron movement"></canvas>
           <div class="step-controls" id="stepControls"></div>
         </div>
       </div>
 
       <div class="sim-card">
         <div class="sim-card-header">Step Description</div>
-        <div class="sim-card-body" id="stepDescPanel">
+        <div class="sim-card-body" id="stepDescPanel" aria-live="polite">
           <div class="step-desc" style="color: var(--text-muted);">Select a mechanism from the palette to begin.</div>
         </div>
       </div>
@@ -200,7 +304,7 @@
         <div class="sim-card">
           <div class="sim-card-header">Energy Profile</div>
           <div class="sim-card-body" style="padding: 0.5rem;">
-            <canvas id="energyCanvas"></canvas>
+            <canvas id="energyCanvas" role="img" aria-label="Energy profile diagram for the reaction mechanism"></canvas>
           </div>
         </div>
         <div class="sim-card">
@@ -217,9 +321,79 @@
     <kbd>&larr;</kbd><kbd>&rarr;</kbd> Step &nbsp; <kbd>Space</kbd> Play/Pause &nbsp;
     <kbd>&uarr;</kbd><kbd>&darr;</kbd> Prev/Next mechanism &nbsp;
     <kbd>1</kbd>-<kbd>6</kbd> Reaction &nbsp;
-    <kbd>T</kbd> Teacher &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>Esc</kbd> Deselect
+    <kbd>H</kbd> HL toggle &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>Esc</kbd> Deselect
   </div>
 </div>
+</div><!-- /tab-mechanisms -->
+
+<div class="tab-content" role="tabpanel" id="tab-pathway">
+<div class="sim-container">
+  <div class="sim-card" style="margin-bottom:1rem;">
+    <div class="sim-card-header">SN1 / SN2 / E1 / E2 Decision Tree</div>
+    <div class="sim-card-body">
+      <div class="decision-controls">
+        <div class="decision-group">
+          <label>Substrate Type</label>
+          <div class="btn-group" id="substrateGroup">
+            <button data-val="primary">Primary</button>
+            <button data-val="secondary">Secondary</button>
+            <button data-val="tertiary">Tertiary</button>
+          </div>
+        </div>
+        <div class="decision-group">
+          <label>Nucleophile / Base</label>
+          <div class="btn-group" id="nucleophileGroup">
+            <button data-val="strong">Strong</button>
+            <button data-val="weak">Weak</button>
+          </div>
+        </div>
+        <div class="decision-group">
+          <label>Solvent</label>
+          <div class="btn-group" id="solventGroup">
+            <button data-val="polar_aprotic">Polar Aprotic</button>
+            <button data-val="polar_protic">Polar Protic</button>
+          </div>
+        </div>
+      </div>
+      <div id="decisionResult" class="decision-result" style="display:none;" aria-live="polite">
+        <div>
+          <div class="mech-name" id="decResultMech"></div>
+          <div class="mech-note" id="decResultNote"></div>
+        </div>
+        <button id="viewMechBtn">View Mechanism &rarr;</button>
+      </div>
+      <canvas id="decisionCanvas" height="280" style="width:100%;background:var(--sim-canvas-bg);border-radius:4px;margin-top:0.5rem;" role="img" aria-label="SN1/SN2/E1/E2 decision tree visualization"></canvas>
+    </div>
+  </div>
+
+  <div class="sim-card" style="margin-bottom:1rem;">
+    <div class="sim-card-header">Quiz Mode</div>
+    <div class="sim-card-body" id="quizPanel">
+      <div class="quiz-bar">
+        <button id="quizToggle">Start Quiz</button>
+        <span class="score" id="quizScore"></span>
+      </div>
+      <div id="quizArea" style="display:none;margin-top:0.75rem;"></div>
+    </div>
+  </div>
+
+  <div class="sim-card">
+    <div class="sim-card-header">Reference Table</div>
+    <div class="sim-card-body" style="overflow-x:auto;">
+      <table class="ref-table" id="refTable">
+        <thead>
+          <tr><th>Substrate</th><th>Nuc/Base</th><th>Solvent</th><th>Mechanism</th><th>Key Reasoning</th></tr>
+        </thead>
+        <tbody id="refTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="keyboard-hint">
+    <kbd>H</kbd> HL toggle &nbsp; <kbd>T</kbd> Teacher
+  </div>
+</div>
+</div><!-- /tab-pathway -->
 
 <script>
 // roundRect polyfill
@@ -322,7 +496,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       ]
     },
     {
-      id: 'sn1', name: 'SN1', category: 'substitution',
+      id: 'sn1', name: 'SN1', category: 'substitution', hlOnly: true,
       rate: 'Rate = k[RX]',
       stereo: 'Racemisation (planar carbocation intermediate)',
       conditions: 'Weak/neutral nucleophile, polar protic solvent',
@@ -392,7 +566,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       ]
     },
     {
-      id: 'e2', name: 'E2', category: 'elimination',
+      id: 'e2', name: 'E2', category: 'elimination', hlOnly: true,
       rate: 'Rate = k[RX][base]',
       stereo: 'Anti-periplanar geometry required',
       conditions: 'Strong base (e.g., OH\u207B, OEt\u207B), high temperature',
@@ -469,7 +643,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       ]
     },
     {
-      id: 'e1', name: 'E1', category: 'elimination',
+      id: 'e1', name: 'E1', category: 'elimination', hlOnly: true,
       rate: 'Rate = k[RX]',
       stereo: 'No stereospecificity (Zaitsev product favoured)',
       conditions: 'Weak base, polar protic solvent, high temperature',
@@ -710,7 +884,9 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   var _playing = false;
   var _playTimer = null;
   var _teacherMode = false;
+  var _hlMode = false;
   var _tInput = null;
+  var _hlInput = null;
   var _canvas, _ctx, _eCanvas, _eCtx;
   var CW = 680, CH = 420, EW = 280, EH = 180;
   var _animFrame = null;
@@ -726,16 +902,20 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     while (list.firstChild) list.removeChild(list.firstChild);
     for (var c = 0; c < CATEGORIES.length; c++) {
       var cat = CATEGORIES[c];
+      var allHl = true;
+      for (var mm = 0; mm < MECHANISMS.length; mm++) {
+        if (MECHANISMS[mm].category === cat.key && !MECHANISMS[mm].hlOnly) { allHl = false; break; }
+      }
       var hdr = document.createElement('div');
-      hdr.className = 'palette-category';
-      hdr.textContent = cat.label;
+      hdr.className = 'palette-category' + (allHl ? ' hl-cat' : '');
+      hdr.textContent = cat.label + (allHl ? ' (HL)' : '');
       list.appendChild(hdr);
       for (var m = 0; m < MECHANISMS.length; m++) {
         var mech = MECHANISMS[m];
         if (mech.category !== cat.key) continue;
         var btn = document.createElement('button');
-        btn.className = 'palette-item';
-        btn.textContent = mech.name;
+        btn.className = 'palette-item' + (mech.hlOnly ? ' hl-mech' : '');
+        btn.textContent = mech.name + (mech.hlOnly ? ' (HL)' : '');
         btn.setAttribute('data-mech-id', mech.id);
         btn.addEventListener('click', (function(id) { return function() { selectMech(id); }; })(mech.id));
         list.appendChild(btn);
@@ -877,24 +1057,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       ctx.setLineDash([]); ctx.restore();
     }
 
-    // ── Curly Arrows ──
-    if (prog > 0.1) {
-      for (var ari = 0; ari < step.arrows.length; ari++) {
-        var arr = step.arrows[ari];
-        var fromAtom = null, toAtom = null;
-        for (var fi = 0; fi < step.atoms.length; fi++) {
-          if (step.atoms[fi].id === arr.from) fromAtom = step.atoms[fi];
-          if (step.atoms[fi].id === arr.to) toAtom = step.atoms[fi];
-        }
-        if (!fromAtom || !toAtom) continue;
-        var fx = toX(fromAtom.x), fy = toY(fromAtom.y);
-        var tx = toX(toAtom.x), ty = toY(toAtom.y);
-        var arrowProg = Math.min(1, (prog - 0.1) / 0.7);
-        drawCurlyArrow(ctx, fx, fy, tx, ty, arr.type, arrowProg);
-      }
-    }
-
-    // ── Atom Labels ──
+    // ── Atom Labels (drawn before arrows so arrows appear on top) ──
     for (var li = 0; li < step.atoms.length; li++) {
       var atom = step.atoms[li];
       var label = resolveLabel(atom.role, rxn);
@@ -915,7 +1078,24 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       ctx.restore();
     }
 
-    // ── Charges ──
+    // ── Curly Arrows (drawn after labels so they are visible on top) ──
+    if (prog > 0.1) {
+      for (var ari = 0; ari < step.arrows.length; ari++) {
+        var arr = step.arrows[ari];
+        var fromAtom = null, toAtom = null;
+        for (var fi = 0; fi < step.atoms.length; fi++) {
+          if (step.atoms[fi].id === arr.from) fromAtom = step.atoms[fi];
+          if (step.atoms[fi].id === arr.to) toAtom = step.atoms[fi];
+        }
+        if (!fromAtom || !toAtom) continue;
+        var fx = toX(fromAtom.x), fy = toY(fromAtom.y);
+        var tx = toX(toAtom.x), ty = toY(toAtom.y);
+        var arrowProg = Math.min(1, (prog - 0.1) / 0.7);
+        drawCurlyArrow(ctx, fx, fy, tx, ty, arr.type, arrowProg);
+      }
+    }
+
+    // ── Charges (offset increased to clear label boxes) ──
     for (var ci = 0; ci < step.charges.length; ci++) {
       var ch = step.charges[ci];
       var ca = null;
@@ -926,7 +1106,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       ctx.save();
       ctx.font = '700 12px Inter, sans-serif';
       ctx.fillStyle = '#DC2626'; ctx.textAlign = 'center';
-      ctx.fillText(ch.text, toX(ca.x), toY(ca.y) - 18);
+      ctx.fillText(ch.text, toX(ca.x), toY(ca.y) - 22);
       ctx.restore();
     }
 
@@ -1329,6 +1509,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       case 'arrowright': e.preventDefault(); nextStep(); break;
       case 'arrowleft': e.preventDefault(); prevStep(); break;
       case ' ': e.preventDefault(); togglePlay(); break;
+      case 'h': e.preventDefault(); toggleHL(); break;
       case 't': e.preventDefault(); toggleTeacher(); break;
       case 'r': e.preventDefault(); resetSteps(); break;
       case '/': e.preventDefault(); document.getElementById('mechSearch').focus(); break;
@@ -1359,10 +1540,41 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     _teacherMode = !_teacherMode;
     if (_tInput) _tInput.checked = _teacherMode;
     document.getElementById('presetSection').style.display = _teacherMode ? 'block' : 'none';
+    document.body.classList.toggle('teacher-active', _teacherMode);
+  }
+
+  function toggleHL() {
+    _hlMode = !_hlMode;
+    if (_hlInput) _hlInput.checked = _hlMode;
+    document.body.classList.toggle('hl-active', _hlMode);
+    if (!_hlMode) {
+      if (_selMech && _selMech.hlOnly) selectMech('sn2');
+      if (_activeTabId === 'pathway') switchMainTab('mechanisms');
+    }
   }
 
   function buildHeaderToggles() {
     var container = document.getElementById('headerToggles');
+    // HL toggle
+    var hlGroup = document.createElement('div'); hlGroup.className = 'sim-toggle-group';
+    var slLabel = document.createElement('span'); slLabel.className = 'sim-toggle-label'; slLabel.textContent = 'SL';
+    var hlToggle = document.createElement('label'); hlToggle.className = 'sim-toggle';
+    _hlInput = document.createElement('input'); _hlInput.type = 'checkbox';
+    _hlInput.setAttribute('aria-label', 'Enable HL mode');
+    _hlInput.addEventListener('change', function() {
+      _hlMode = _hlInput.checked;
+      document.body.classList.toggle('hl-active', _hlMode);
+      if (!_hlMode) {
+        if (_selMech && _selMech.hlOnly) selectMech('sn2');
+        if (_activeTabId === 'pathway') switchMainTab('mechanisms');
+      }
+    });
+    var hlSlider = document.createElement('span'); hlSlider.className = 'sim-toggle-slider';
+    hlToggle.appendChild(_hlInput); hlToggle.appendChild(hlSlider);
+    var hlLabel = document.createElement('span'); hlLabel.className = 'sim-toggle-label'; hlLabel.textContent = 'HL';
+    hlGroup.appendChild(slLabel); hlGroup.appendChild(hlToggle); hlGroup.appendChild(hlLabel);
+    container.appendChild(hlGroup);
+    // Teacher toggle
     var tGroup = document.createElement('div'); tGroup.className = 'sim-toggle-group';
     var tLabel = document.createElement('span'); tLabel.className = 'sim-toggle-label'; tLabel.textContent = 'Teacher';
     var tToggle = document.createElement('label'); tToggle.className = 'sim-toggle';
@@ -1371,11 +1583,349 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     _tInput.addEventListener('change', function() {
       _teacherMode = _tInput.checked;
       document.getElementById('presetSection').style.display = _teacherMode ? 'block' : 'none';
+      document.body.classList.toggle('teacher-active', _teacherMode);
     });
     var tSlider = document.createElement('span'); tSlider.className = 'sim-toggle-slider';
+    tSlider.style.cssText = '--toggle-on: var(--amber);';
     tToggle.appendChild(_tInput); tToggle.appendChild(tSlider);
     tGroup.appendChild(tLabel); tGroup.appendChild(tToggle);
     container.appendChild(tGroup);
+  }
+
+  // ═══════════════════════════════════════
+  // Tab Switching
+  // ═══════════════════════════════════════
+  var _activeTabId = 'mechanisms';
+
+  function switchMainTab(tabId) {
+    _activeTabId = tabId;
+    var tabs = document.querySelectorAll('.tab-content');
+    for (var i = 0; i < tabs.length; i++) tabs[i].classList.remove('active');
+    var btns = document.querySelectorAll('.tab-btn');
+    for (var i = 0; i < btns.length; i++) btns[i].classList.remove('active');
+    document.getElementById('tab-' + tabId).classList.add('active');
+    var activeBtn = document.querySelector('.tab-btn[data-tab="' + tabId + '"]');
+    if (activeBtn) activeBtn.classList.add('active');
+    if (tabId === 'pathway') {
+      initDecisionTab();
+    }
+  }
+
+  // ═══════════════════════════════════════
+  // Pathway Decision Data
+  // ═══════════════════════════════════════
+  var DECISION_OUTCOMES = [
+    { substrate: 'primary', nuc: 'strong', solvent: 'polar_aprotic', mech: 'SN2', note: 'Strong nucleophile attacks unhindered primary carbon via backside attack. Aprotic solvent does not solvate the nucleophile.' },
+    { substrate: 'primary', nuc: 'strong', solvent: 'polar_protic', mech: 'SN2', note: 'SN2 still dominates at primary carbon, but rate is slower because protic solvent solvates the nucleophile.' },
+    { substrate: 'primary', nuc: 'weak', solvent: 'polar_aprotic', mech: 'SN2 (slow)', note: 'Weak nucleophile can still perform SN2 at primary carbon but rate is slow. Aprotic solvent helps somewhat.' },
+    { substrate: 'primary', nuc: 'weak', solvent: 'polar_protic', mech: 'SN2 (very slow)', note: 'Weak nucleophile, protic solvent \u2014 SN2 is very slow. SN1 essentially does not occur because primary carbocations are too unstable.' },
+    { substrate: 'secondary', nuc: 'strong', solvent: 'polar_aprotic', mech: 'SN2', note: 'Strong nucleophile can still attack secondary carbon via SN2, especially in aprotic solvent. Some E2 may compete.' },
+    { substrate: 'secondary', nuc: 'strong', solvent: 'polar_protic', mech: 'E2', note: 'Strong base with secondary substrate in protic solvent favors E2 elimination. Steric hindrance disfavors SN2.' },
+    { substrate: 'secondary', nuc: 'weak', solvent: 'polar_aprotic', mech: 'SN2 / E2 mix', note: 'Borderline case. Secondary substrate with moderate nucleophile gives mixture. Temperature and exact conditions determine outcome.' },
+    { substrate: 'secondary', nuc: 'weak', solvent: 'polar_protic', mech: 'SN1 / E1', note: 'Secondary carbocation has moderate stability. Protic solvent stabilizes it. Weak nucleophile waits for carbocation to form.' },
+    { substrate: 'tertiary', nuc: 'strong', solvent: 'polar_aprotic', mech: 'E2', note: 'Backside attack impossible at tertiary carbon (too hindered). Strong base abstracts a proton instead \u2192 E2 elimination.' },
+    { substrate: 'tertiary', nuc: 'strong', solvent: 'polar_protic', mech: 'E2', note: 'Strong base + tertiary substrate = E2 regardless of solvent. Tertiary carbon too hindered for SN2.' },
+    { substrate: 'tertiary', nuc: 'weak', solvent: 'polar_aprotic', mech: 'E2 (slow)', note: 'Tertiary substrate resists SN2. Weak base gives slow E2. Aprotic solvent disfavors SN1 (no cation stabilization).' },
+    { substrate: 'tertiary', nuc: 'weak', solvent: 'polar_protic', mech: 'SN1 / E1', note: 'Tertiary carbocation is very stable. Protic solvent stabilizes it. Weak nucleophile \u2192 SN1. Heat favors E1 over SN1.' }
+  ];
+
+  var _decSub = null, _decNuc = null, _decSol = null;
+  var _decCanvas = null, _decCtx = null;
+  var _quizActive = false, _quizCorrect = 0, _quizTotal = 0, _quizCurrent = null, _quizAnswered = false;
+
+  function getDecisionOutcome(sub, nuc, sol) {
+    for (var i = 0; i < DECISION_OUTCOMES.length; i++) {
+      var o = DECISION_OUTCOMES[i];
+      if (o.substrate === sub && o.nuc === nuc && o.solvent === sol) return o;
+    }
+    return null;
+  }
+
+  function initDecisionTab() {
+    if (!_decCanvas) {
+      _decCanvas = document.getElementById('decisionCanvas');
+      buildRefTable();
+      wireDecisionControls();
+    }
+    var dpr = window.devicePixelRatio || 1;
+    var w = _decCanvas.offsetWidth;
+    var h = parseInt(_decCanvas.dataset.baseHeight || _decCanvas.getAttribute('height') || '280');
+    _decCanvas.width = w * dpr;
+    _decCanvas.height = h * dpr;
+    _decCanvas.style.height = h + 'px';
+    _decCanvas.dataset.baseHeight = h;
+    _decCtx = _decCanvas.getContext('2d');
+    _decCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    drawDecisionTree();
+  }
+
+  function wireDecisionControls() {
+    var groups = [
+      { el: 'substrateGroup', setter: function(v) { _decSub = v; } },
+      { el: 'nucleophileGroup', setter: function(v) { _decNuc = v; } },
+      { el: 'solventGroup', setter: function(v) { _decSol = v; } }
+    ];
+    for (var g = 0; g < groups.length; g++) {
+      (function(grp) {
+        var btns = document.getElementById(grp.el).querySelectorAll('button');
+        for (var b = 0; b < btns.length; b++) {
+          btns[b].addEventListener('click', function() {
+            var siblings = this.parentNode.querySelectorAll('button');
+            for (var s = 0; s < siblings.length; s++) siblings[s].classList.remove('active');
+            this.classList.add('active');
+            grp.setter(this.getAttribute('data-val'));
+            updateDecisionResult();
+            drawDecisionTree();
+          });
+        }
+      })(groups[g]);
+    }
+    document.getElementById('viewMechBtn').addEventListener('click', function() {
+      var outcome = _decSub && _decNuc && _decSol ? getDecisionOutcome(_decSub, _decNuc, _decSol) : null;
+      if (!outcome) return;
+      var mechId = outcome.mech.indexOf('SN2') >= 0 ? 'sn2' : outcome.mech.indexOf('SN1') >= 0 ? 'sn1' :
+                   outcome.mech.indexOf('E2') >= 0 ? 'e2' : outcome.mech.indexOf('E1') >= 0 ? 'e1' : 'sn2';
+      switchMainTab('mechanisms');
+      selectMech(mechId);
+    });
+    document.getElementById('quizToggle').addEventListener('click', function() {
+      _quizActive = !_quizActive;
+      this.textContent = _quizActive ? 'Stop Quiz' : 'Start Quiz';
+      this.classList.toggle('quiz-active', _quizActive);
+      if (_quizActive) { _quizCorrect = 0; _quizTotal = 0; generateQuiz(); }
+      else { document.getElementById('quizArea').style.display = 'none'; }
+      updateQuizScore();
+    });
+  }
+
+  function updateDecisionResult() {
+    var panel = document.getElementById('decisionResult');
+    if (!_decSub || !_decNuc || !_decSol) { panel.style.display = 'none'; return; }
+    var outcome = getDecisionOutcome(_decSub, _decNuc, _decSol);
+    if (!outcome) { panel.style.display = 'none'; return; }
+    panel.style.display = 'flex';
+    document.getElementById('decResultMech').textContent = '\u2192 ' + outcome.mech;
+    document.getElementById('decResultNote').textContent = outcome.note;
+    highlightRefRow(outcome);
+  }
+
+  function highlightRefRow(outcome) {
+    var rows = document.getElementById('refTableBody').querySelectorAll('tr');
+    for (var i = 0; i < rows.length; i++) {
+      rows[i].classList.remove('highlight');
+      if (rows[i].dataset.sub === outcome.substrate && rows[i].dataset.nuc === outcome.nuc && rows[i].dataset.sol === outcome.solvent) {
+        rows[i].classList.add('highlight');
+      }
+    }
+  }
+
+  function buildRefTable() {
+    var body = document.getElementById('refTableBody');
+    var labels = {
+      primary: 'Primary (1\u00B0)', secondary: 'Secondary (2\u00B0)', tertiary: 'Tertiary (3\u00B0)',
+      strong: 'Strong', weak: 'Weak',
+      polar_aprotic: 'Polar aprotic', polar_protic: 'Polar protic'
+    };
+    for (var i = 0; i < DECISION_OUTCOMES.length; i++) {
+      var o = DECISION_OUTCOMES[i];
+      var tr = document.createElement('tr');
+      tr.dataset.sub = o.substrate; tr.dataset.nuc = o.nuc; tr.dataset.sol = o.solvent;
+      var cells = [labels[o.substrate], labels[o.nuc], labels[o.solvent], o.mech, o.note.split('.')[0] + '.'];
+      for (var c = 0; c < cells.length; c++) {
+        var td = document.createElement('td');
+        if (c === 3) { var strong = document.createElement('strong'); strong.textContent = cells[c]; td.appendChild(strong); }
+        else td.textContent = cells[c];
+        tr.appendChild(td);
+      }
+      body.appendChild(tr);
+    }
+  }
+
+  // ── Decision Tree Canvas ──
+  function drawDecisionTree() {
+    if (!_decCtx) return;
+    var W = _decCanvas.offsetWidth, H = parseInt(_decCanvas.dataset.baseHeight);
+    var ctx = _decCtx;
+    ctx.clearRect(0, 0, W, H);
+
+    var rootX = W / 2, rootY = 30;
+    var subY = 80, nucY = 140, solY = 195, outY = 250;
+    var subPositions = [
+      { label: '1\u00B0 Primary', val: 'primary', x: W * 0.17 },
+      { label: '2\u00B0 Secondary', val: 'secondary', x: W * 0.5 },
+      { label: '3\u00B0 Tertiary', val: 'tertiary', x: W * 0.83 }
+    ];
+
+    drawNode(ctx, rootX, rootY, 'Substrate Type?', !_decSub, '#1B2A4A');
+
+    for (var s = 0; s < subPositions.length; s++) {
+      var sp = subPositions[s];
+      var subActive = _decSub === sp.val;
+      drawLine(ctx, rootX, rootY + 14, sp.x, subY - 14, subActive ? '#0D9488' : '#CBD5E1');
+      drawNode(ctx, sp.x, subY, sp.label, subActive, subActive ? '#0D9488' : '#94A3B8');
+
+      if (subActive) {
+        var nucPositions = [
+          { label: 'Strong nuc/base', val: 'strong', x: sp.x - W * 0.08 },
+          { label: 'Weak nuc/base', val: 'weak', x: sp.x + W * 0.08 }
+        ];
+        drawLine(ctx, sp.x, subY + 14, sp.x, nucY - 20, '#0D9488');
+        ctx.fillStyle = '#64748B'; ctx.font = '600 10px Inter, sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Nucleophile / Base?', sp.x, nucY - 22);
+
+        for (var n = 0; n < nucPositions.length; n++) {
+          var np = nucPositions[n];
+          var nucActive = _decNuc === np.val;
+          drawLine(ctx, sp.x, nucY - 14, np.x, nucY, nucActive ? '#2563EB' : '#CBD5E1');
+          drawNode(ctx, np.x, nucY, np.label, nucActive, nucActive ? '#2563EB' : '#94A3B8');
+
+          if (nucActive) {
+            var solPositions = [
+              { label: 'Aprotic', val: 'polar_aprotic', x: np.x - W * 0.04 },
+              { label: 'Protic', val: 'polar_protic', x: np.x + W * 0.04 }
+            ];
+            drawLine(ctx, np.x, nucY + 14, np.x, solY - 20, '#2563EB');
+            ctx.fillStyle = '#64748B'; ctx.font = '600 10px Inter, sans-serif'; ctx.textAlign = 'center';
+            ctx.fillText('Solvent?', np.x, solY - 22);
+
+            for (var sv = 0; sv < solPositions.length; sv++) {
+              var svp = solPositions[sv];
+              var solActive = _decSol === svp.val;
+              drawLine(ctx, np.x, solY - 14, svp.x, solY, solActive ? '#7C3AED' : '#CBD5E1');
+              drawNode(ctx, svp.x, solY, svp.label, solActive, solActive ? '#7C3AED' : '#94A3B8');
+
+              if (solActive) {
+                var outcome = getDecisionOutcome(_decSub, _decNuc, _decSol);
+                if (outcome) {
+                  drawLine(ctx, svp.x, solY + 14, svp.x, outY - 14, '#7C3AED');
+                  drawOutcomeNode(ctx, svp.x, outY, outcome.mech);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  function drawNode(ctx, x, y, text, active, color) {
+    ctx.font = (active ? '700' : '500') + ' 11px Inter, sans-serif';
+    var w = ctx.measureText(text).width + 20;
+    if (w < 60) w = 60;
+    ctx.fillStyle = active ? color : '#F1F5F9';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x - w / 2, y - 12, w, 24, 6);
+    else ctx.rect(x - w / 2, y - 12, w, 24);
+    ctx.fill();
+    ctx.strokeStyle = active ? color : '#CBD5E1';
+    ctx.lineWidth = active ? 2 : 1;
+    ctx.stroke();
+    ctx.fillStyle = active ? 'white' : '#475569';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, x, y);
+  }
+
+  function drawOutcomeNode(ctx, x, y, text) {
+    ctx.font = '700 13px Inter, sans-serif';
+    var w = ctx.measureText(text).width + 24;
+    if (w < 70) w = 70;
+    ctx.fillStyle = '#0D9488';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x - w / 2, y - 14, w, 28, 8);
+    else ctx.rect(x - w / 2, y - 14, w, 28);
+    ctx.fill();
+    ctx.fillStyle = 'white'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(text, x, y);
+  }
+
+  function drawLine(ctx, x1, y1, x2, y2, color) {
+    ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+    ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+  }
+
+  // ── Quiz Mode ──
+  function generateQuiz() {
+    _quizAnswered = false;
+    var subs = ['primary', 'secondary', 'tertiary'];
+    var nucs = ['strong', 'weak'];
+    var sols = ['polar_aprotic', 'polar_protic'];
+    var sub = subs[Math.floor(Math.random() * subs.length)];
+    var nuc = nucs[Math.floor(Math.random() * nucs.length)];
+    var sol = sols[Math.floor(Math.random() * sols.length)];
+    var outcome = getDecisionOutcome(sub, nuc, sol);
+    _quizCurrent = { sub: sub, nuc: nuc, sol: sol, answer: outcome.mech, note: outcome.note };
+
+    var labels = {
+      primary: 'primary (1\u00B0)', secondary: 'secondary (2\u00B0)', tertiary: 'tertiary (3\u00B0)',
+      strong: 'a strong nucleophile/base', weak: 'a weak nucleophile/base',
+      polar_aprotic: 'a polar aprotic solvent', polar_protic: 'a polar protic solvent'
+    };
+
+    var area = document.getElementById('quizArea');
+    area.style.display = 'block';
+    while (area.firstChild) area.removeChild(area.firstChild);
+
+    var scenario = document.createElement('div');
+    scenario.className = 'quiz-scenario';
+    var scenarioText = document.createElement('span');
+    scenarioText.textContent = 'A ';
+    scenario.appendChild(scenarioText);
+    var b1 = document.createElement('strong'); b1.textContent = labels[sub]; scenario.appendChild(b1);
+    scenario.appendChild(document.createTextNode(' halogenoalkane reacts with '));
+    var b2 = document.createElement('strong'); b2.textContent = labels[nuc]; scenario.appendChild(b2);
+    scenario.appendChild(document.createTextNode(' in '));
+    var b3 = document.createElement('strong'); b3.textContent = labels[sol]; scenario.appendChild(b3);
+    scenario.appendChild(document.createTextNode('. Which mechanism predominates?'));
+    area.appendChild(scenario);
+
+    var choices = document.createElement('div');
+    choices.className = 'quiz-choices';
+    var options = ['SN1', 'SN2', 'E1', 'E2'];
+    for (var i = 0; i < options.length; i++) {
+      var btn = document.createElement('button');
+      btn.textContent = options[i];
+      btn.setAttribute('data-choice', options[i]);
+      btn.addEventListener('click', function() { checkQuizAnswer(this); });
+      choices.appendChild(btn);
+    }
+    area.appendChild(choices);
+  }
+
+  function checkQuizAnswer(btn) {
+    if (_quizAnswered) return;
+    _quizAnswered = true;
+    _quizTotal++;
+    var choice = btn.getAttribute('data-choice');
+    var correct = _quizCurrent.answer.indexOf(choice) >= 0;
+    if (correct) _quizCorrect++;
+
+    var btns = btn.parentNode.querySelectorAll('button');
+    for (var i = 0; i < btns.length; i++) {
+      var b = btns[i];
+      var bc = b.getAttribute('data-choice');
+      if (_quizCurrent.answer.indexOf(bc) >= 0) b.classList.add('correct');
+      if (bc === choice && !correct) b.classList.add('incorrect');
+    }
+
+    var fb = document.createElement('div');
+    fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'incorrect');
+    fb.textContent = correct ? '\u2714 Correct! ' + _quizCurrent.note.split('.')[0] + '.' :
+      '\u2718 The predominant mechanism is ' + _quizCurrent.answer + '. ' + _quizCurrent.note.split('.')[0] + '.';
+    btn.parentNode.parentNode.appendChild(fb);
+
+    var next = document.createElement('button');
+    next.textContent = 'Next Question \u2192';
+    next.style.cssText = 'margin-top:0.5rem;padding:0.35rem 0.75rem;border-radius:6px;border:1px solid var(--purple);background:var(--purple);color:white;font-weight:600;font-size:0.78rem;cursor:pointer;font-family:inherit;';
+    next.addEventListener('click', function() { generateQuiz(); });
+    btn.parentNode.parentNode.appendChild(next);
+
+    updateQuizScore();
+  }
+
+  function updateQuizScore() {
+    var scoreEl = document.getElementById('quizScore');
+    if (_quizActive && _quizTotal > 0) scoreEl.textContent = _quizCorrect + ' / ' + _quizTotal;
+    else scoreEl.textContent = '';
   }
 
   // ═══════════════════════════════════════
@@ -1389,6 +1939,16 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     buildHeaderToggles();
     document.getElementById('presetSection').style.display = 'none';
     document.getElementById('mechSearch').addEventListener('input', function() { filterPalette(this.value); });
+    // Tab bar
+    var tabBtns = document.querySelectorAll('.tab-btn');
+    for (var t = 0; t < tabBtns.length; t++) {
+      tabBtns[t].addEventListener('click', function() { switchMainTab(this.getAttribute('data-tab')); });
+    }
+    window.addEventListener('resize', function() {
+      setupCanvas();
+      if (_selMech) redraw();
+      if (_activeTabId === 'pathway' && _decCanvas) initDecisionTab();
+    });
     selectMech('sn2');
   }
 
@@ -1397,5 +1957,6 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
 
 })();
 </script>
+<footer>SimEngine &mdash; Organic Mechanisms &bull; H=HL T=Teacher</footer>
 </body>
 </html>

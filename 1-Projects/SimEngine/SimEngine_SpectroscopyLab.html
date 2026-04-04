@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spectroscopy Lab — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--blue-bg:#EFF6FF;--teal-bg:#F0FDFA;--amber-bg:#FFFBEB;--red-bg:#FEF2F2;--purple-bg:#F5F3FF;--toggle-on:#0D9488;--green:#10B981;--orange:#F59E0B;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+  .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-right{display:flex;align-items:center;gap:.75rem;}
+  .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
+  .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.35rem;}
+  .sim-toggle{position:relative;width:40px;height:22px;display:inline-block;}
+  .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:11px;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.5rem;background:none;border:none;border-bottom:3px solid transparent;font-size:.85rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+  .tab-btn .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);font-size:.65rem;font-weight:700;color:var(--text-muted);}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .tab-btn.hl-tab{display:none;} body.hl-active .tab-btn.hl-tab{display:inline-flex;}
+  .sim-container{max-width:1200px;margin:0 auto;padding:1.5rem;}
+  .sim-top-row{display:grid;grid-template-columns:240px 1fr;gap:1.5rem;}
+  .sim-card{background:var(--card-bg);border-radius:12px;border:1px solid var(--border);overflow:hidden;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-size:.85rem;font-weight:600;display:flex;align-items:center;gap:.5rem;}
+  .sim-card-body{padding:1rem;}
+  .palette-panel{max-height:600px;display:flex;flex-direction:column;position:sticky;top:1rem;align-self:start;grid-column:1;grid-row:1;}
+  .tab-content{grid-column:2;grid-row:1;display:none;} .tab-content.active{display:block;}
+  .palette-panel .sim-card-body{padding:.5rem;overflow-y:auto;flex:1;}
+  .palette-search{width:100%;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.8rem;font-family:inherit;margin-bottom:.5rem;outline:none;}
+  .palette-search:focus{border-color:var(--teal);box-shadow:0 0 0 2px rgba(13,148,136,.15);}
+  .palette-category{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);padding:.4rem .3rem .2rem;margin-top:.3rem;}
+  .palette-item{display:block;width:100%;text-align:left;padding:.45rem .5rem;border:1px solid transparent;border-radius:6px;background:none;font-size:.75rem;font-family:inherit;color:var(--text);cursor:pointer;transition:.15s;}
+  .palette-item:hover{background:var(--teal-bg);} .palette-item.active{background:var(--teal-bg);border-color:var(--teal);font-weight:600;color:var(--teal);}
+  .palette-item.hl-grp{display:none;} body.hl-active .palette-item.hl-grp{display:block;}
+  .palette-category.hl-cat{display:none;} body.hl-active .palette-category.hl-cat{display:block;}
+  .preset-section{margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);display:none;}
+  .preset-section select{width:100%;padding:.35rem;border:1px solid var(--border);border-radius:6px;font-size:.75rem;font-family:inherit;cursor:pointer;}
+  body.teacher-active .preset-section{display:block;}
+  .sim-canvas{display:block;width:100%;background:var(--sim-canvas-bg);border-radius:4px;}
+  .teacher-panel{display:none;margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;}
+  body.teacher-active .teacher-panel{display:block;}
+  .answer-reveal{display:none;margin-top:.5rem;padding:.5rem .75rem;background:var(--amber-bg);border:1px solid #FCD34D;border-radius:6px;font-size:.78rem;font-family:'Fira Code',monospace;}
+  body.teacher-active .answer-reveal{display:block;}
+  .check-btn{padding:.4rem 1rem;background:var(--teal);color:white;border:none;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit;margin-top:.5rem;}
+  .check-btn:hover{opacity:.9;} .check-btn:disabled{opacity:.5;cursor:not-allowed;}
+  .info-box{margin-top:.75rem;padding:.6rem .8rem;background:var(--blue-bg);border-left:3px solid var(--blue);border-radius:0 6px 6px 0;font-size:.8rem;line-height:1.7;}
+  .score-box{display:inline-flex;align-items:center;gap:.5rem;padding:.3rem .75rem;background:var(--teal-bg);border:1px solid var(--teal);border-radius:8px;font-size:.8rem;font-weight:600;color:var(--teal);}
+  .difficulty-btn{padding:.25rem .6rem;border:1px solid var(--border);border-radius:4px;background:white;font-size:.72rem;cursor:pointer;font-family:inherit;}
+  .difficulty-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);font-weight:600;}
+  .fg-checkbox{display:flex;align-items:center;gap:.4rem;padding:.25rem .4rem;font-size:.78rem;cursor:pointer;border-radius:4px;transition:.15s;}
+  .fg-checkbox:hover{background:var(--teal-bg);}
+  .fg-checkbox input{accent-color:var(--teal);}
+  .feedback{padding:.5rem .75rem;border-radius:6px;font-size:.82rem;font-weight:600;margin-top:.5rem;}
+  .feedback.correct{background:#DCFCE7;color:#166534;border:1px solid #BBF7D0;}
+  .feedback.incorrect{background:var(--red-bg);color:var(--red);border:1px solid #FECACA;}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  @media(max-width:900px){.sim-top-row{grid-template-columns:1fr;}.palette-panel{max-height:200px;position:static;}.tab-btn{padding:.6rem .8rem;font-size:.78rem;}}
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div>
+    <h1>Spectroscopy Lab</h1>
+    <span class="subtitle">IB Chemistry &mdash; S3.2 Analytical Techniques</span>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">S3.2</span>
+    <span class="header-badge hl">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="ir" role="tab"><span class="tab-num">1</span>IR Viewer</button>
+  <button class="tab-btn" data-tab="ms" role="tab"><span class="tab-num">2</span>MS Viewer</button>
+  <button class="tab-btn hl-tab" data-tab="nmr" role="tab"><span class="tab-num">3</span>NMR Viewer</button>
+  <button class="tab-btn" data-tab="challenge" role="tab"><span class="tab-num">4</span>ID Challenge</button>
+</div>
+
+<div class="sim-container" id="main-content"><div class="sim-top-row">
+
+  <div class="sim-card palette-panel">
+    <div class="sim-card-header" id="paletteHeader">Functional Groups</div>
+    <div class="sim-card-body">
+      <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search">
+      <div id="paletteList"></div>
+      <div class="preset-section" id="presetSection">
+        <select id="presetSelect" aria-label="Teacher presets">
+          <option value="">Teacher Presets...</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content active" id="tab-ir" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Infrared (IR) Spectroscopy</div>
+      <div class="sim-card-body">
+        <canvas id="irCanvas" class="sim-canvas" height="340" role="img" aria-label="IR spectrum viewer"></canvas>
+        <div id="irPeakInfo" class="info-box" style="display:none;"></div>
+        <div id="irInfo" style="margin-top:.75rem;font-size:.8rem;line-height:1.7;"></div>
+        <div class="teacher-panel" id="irTeacher"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-ms" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Mass Spectrometry (MS)</div>
+      <div class="sim-card-body">
+        <canvas id="msCanvas" class="sim-canvas" height="340" role="img" aria-label="Mass spectrum viewer"></canvas>
+        <div id="msPeakInfo" class="info-box" style="display:none;"></div>
+        <div id="msInfo" style="margin-top:.75rem;font-size:.8rem;line-height:1.7;"></div>
+        <div class="teacher-panel" id="msTeacher"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-nmr" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header"><sup>1</sup>H NMR Spectroscopy</div>
+      <div class="sim-card-body">
+        <canvas id="nmrCanvas" class="sim-canvas" height="340" role="img" aria-label="NMR spectrum viewer"></canvas>
+        <div id="nmrInfo" style="margin-top:.75rem;font-size:.8rem;line-height:1.7;"></div>
+        <div class="teacher-panel" id="nmrTeacher"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tab-content" id="tab-challenge" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Spectroscopy Identification Challenge</div>
+      <div class="sim-card-body">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:.75rem;flex-wrap:wrap;">
+          <button class="check-btn" id="btnNewUnknown">New Unknown</button>
+          <div>
+            <button class="difficulty-btn active" data-diff="Easy">Easy</button>
+            <button class="difficulty-btn" data-diff="Medium">Medium</button>
+            <button class="difficulty-btn" data-diff="Hard">Hard</button>
+          </div>
+          <div class="score-box" aria-live="polite"><span id="scoreText">0 / 0</span></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;" id="challengeGrid">
+          <div>
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:.3rem;">IR Spectrum</div>
+            <canvas id="challengeIR" class="sim-canvas" height="180" role="img" aria-label="Unknown IR spectrum"></canvas>
+          </div>
+          <div>
+            <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:.3rem;">Mass Spectrum</div>
+            <canvas id="challengeMS" class="sim-canvas" height="180" role="img" aria-label="Unknown mass spectrum"></canvas>
+          </div>
+        </div>
+        <div id="challengeNMRWrap" style="margin-top:.75rem;display:none;">
+          <div style="font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--text-muted);margin-bottom:.3rem;"><sup>1</sup>H NMR Spectrum (HL)</div>
+          <canvas id="challengeNMR" class="sim-canvas" height="160" role="img" aria-label="Unknown NMR spectrum"></canvas>
+        </div>
+        <div style="margin-top:.75rem;">
+          <div style="font-size:.78rem;font-weight:600;margin-bottom:.4rem;">Identify the functional group(s):</div>
+          <div id="fgCheckboxes" style="display:flex;flex-wrap:wrap;gap:.25rem;"></div>
+        </div>
+        <div style="margin-top:.75rem;display:flex;gap:.5rem;align-items:center;">
+          <button class="check-btn" id="btnSubmitGuess" disabled>Submit Answer</button>
+          <div id="challengeFeedback"></div>
+        </div>
+        <div class="answer-reveal" id="challengeAnswer"></div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp;
+  <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd> Tabs &nbsp;
+  <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search &nbsp; <kbd>E</kbd> Export CSV
+</div>
+
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){if(typeof r==='number')r=[r,r,r,r];this.beginPath();this.moveTo(x+(r[0]||0),y);this.lineTo(x+w-(r[1]||0),y);this.quadraticCurveTo(x+w,y,x+w,y+(r[1]||0));this.lineTo(x+w,y+h-(r[2]||0));this.quadraticCurveTo(x+w,y+h,x+w-(r[2]||0),y+h);this.lineTo(x+(r[3]||0),y+h);this.quadraticCurveTo(x,y+h,x,y+h-(r[3]||0));this.lineTo(x,y+(r[0]||0));this.quadraticCurveTo(x,y,x+(r[0]||0),y);this.closePath();return this;};}
+
+(function(){
+'use strict';
+function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined&&text!==null)e.textContent=text;return e;}
+function setupCanvas(c){var d=window.devicePixelRatio||1,w=c.offsetWidth;if(!c.dataset.baseHeight)c.dataset.baseHeight=c.getAttribute('height')||'300';var h=parseInt(c.dataset.baseHeight);c.width=w*d;c.height=h*d;c.style.height=h+'px';var ctx=c.getContext('2d');ctx.setTransform(d,0,0,d,0,0);return ctx;}
+function clearEl(node){while(node.firstChild)node.removeChild(node.firstChild);}
+function addLine(parent,boldText,normalText){
+  var d=document.createElement('div');
+  if(boldText){var b=document.createElement('strong');b.textContent=boldText;d.appendChild(b);}
+  if(normalText){d.appendChild(document.createTextNode(normalText));}
+  parent.appendChild(d);return d;
+}
+
+// ═══════════════════════════════════════════════════
+// IR PEAK DATA
+// ═══════════════════════════════════════════════════
+var IR_PEAKS = [
+  { range:[3200,3600], center:3400, label:'O\u2013H (alcohol)', group:'alcohol', shape:'broad', cat:'sl' },
+  { range:[2500,3300], center:2900, label:'O\u2013H (carboxylic acid)', group:'carboxylic_acid', shape:'very_broad', cat:'sl' },
+  { range:[3300,3500], center:3400, label:'N\u2013H (amine)', group:'amine', shape:'two_peaks', cat:'sl' },
+  { range:[2850,2960], center:2920, label:'C\u2013H (alkane)', group:'alkane', shape:'medium', cat:'sl' },
+  { range:[2720,2720], center:2720, label:'C\u2013H (aldehyde)', group:'aldehyde', shape:'sharp', cat:'sl' },
+  { range:[3300,3300], center:3300, label:'\u2261C\u2013H (alkyne)', group:'alkyne', shape:'sharp', cat:'sl' },
+  { range:[2210,2260], center:2235, label:'C\u2261N (nitrile)', group:'nitrile', shape:'sharp', cat:'hl' },
+  { range:[2100,2260], center:2180, label:'C\u2261C (alkyne)', group:'alkyne', shape:'sharp', cat:'sl' },
+  { range:[1770,1815], center:1790, label:'C=O (acyl chloride)', group:'acyl_chloride', shape:'sharp', cat:'hl' },
+  { range:[1735,1750], center:1742, label:'C=O (ester)', group:'ester', shape:'sharp', cat:'hl' },
+  { range:[1720,1740], center:1730, label:'C=O (aldehyde)', group:'aldehyde', shape:'sharp', cat:'sl' },
+  { range:[1705,1725], center:1715, label:'C=O (ketone)', group:'ketone', shape:'sharp', cat:'sl' },
+  { range:[1700,1725], center:1712, label:'C=O (carboxylic acid)', group:'carboxylic_acid', shape:'sharp', cat:'sl' },
+  { range:[1680,1680], center:1680, label:'C=O (amide)', group:'amide', shape:'sharp', cat:'hl' },
+  { range:[1620,1680], center:1650, label:'C=C (alkene)', group:'alkene', shape:'medium', cat:'sl' },
+  { range:[1450,1600], center:1520, label:'C=C (aromatic)', group:'arene', shape:'medium', cat:'sl' },
+  { range:[1000,1300], center:1150, label:'C\u2013O (ether/ester)', group:'ether', shape:'broad', cat:'sl' },
+  { range:[500,1000], center:750, label:'C\u2013X (halogenoalkane)', group:'halogenoalkane', shape:'medium', cat:'sl' }
+];
+
+// ═══════════════════════════════════════════════════
+// MS DATA
+// ═══════════════════════════════════════════════════
+var MS_COMPOUNDS = [
+  { id:'ms-ne', cat:'elements', name:'Ne', formula:'Ne', Mr:20.180, difficulty:'Easy',
+    peaks:[{mz:20,int:100,label:'M\u207A (\u00B2\u2070Ne\u207A)',type:'molecular'},{mz:21,int:0.3,label:'\u00B2\u00B9Ne\u207A',type:'isotope'},{mz:22,int:10.2,label:'\u00B2\u00B2Ne\u207A',type:'isotope'}],
+    info:'Neon shows three isotope peaks. Base peak at m/z=20 corresponds to \u00B2\u2070Ne.' },
+  { id:'ms-cl2', cat:'elements', name:'Cl\u2082', formula:'Cl\u2082', Mr:70.906, difficulty:'Medium',
+    peaks:[{mz:35,int:100,label:'\u00B3\u2075Cl\u207A (base)',type:'fragment'},{mz:37,int:32,label:'\u00B3\u2077Cl\u207A',type:'fragment'},{mz:70,int:60,label:'M\u207A (\u00B3\u2075Cl\u2082\u207A)',type:'molecular'},{mz:72,int:39,label:'M+2',type:'isotope'},{mz:74,int:6,label:'M+4',type:'isotope'}],
+    info:'Cl\u2082 shows characteristic 3:2:1 isotope pattern from two Cl atoms.' },
+  { id:'ms-br2', cat:'elements', name:'Br\u2082', formula:'Br\u2082', Mr:159.808, difficulty:'Medium',
+    peaks:[{mz:79,int:98,label:'\u2077\u2079Br\u207A',type:'fragment'},{mz:81,int:100,label:'\u2078\u00B9Br\u207A (base)',type:'fragment'},{mz:158,int:51,label:'M\u207A',type:'molecular'},{mz:160,int:100,label:'M+2',type:'isotope'},{mz:162,int:49,label:'M+4',type:'isotope'}],
+    info:'Br\u2082 shows 1:2:1 isotope pattern.' },
+  { id:'ms-zr', cat:'elements', name:'Zr', formula:'Zr', Mr:91.224, difficulty:'Medium',
+    peaks:[{mz:90,int:100,label:'\u2079\u2070Zr\u207A (base)',type:'molecular'},{mz:91,int:21.8,label:'\u2079\u00B9Zr\u207A',type:'isotope'},{mz:92,int:33.4,label:'\u2079\u00B2Zr\u207A',type:'isotope'},{mz:94,int:33.8,label:'\u2079\u2074Zr\u207A',type:'isotope'},{mz:96,int:5.4,label:'\u2079\u2076Zr\u207A',type:'isotope'}],
+    info:'Zirconium has five stable isotopes.' },
+  { id:'ms-ch4', cat:'organic', name:'CH\u2084', formula:'CH\u2084', Mr:16.043, difficulty:'Easy',
+    peaks:[{mz:12,int:3,label:'C\u207A',type:'fragment'},{mz:13,int:7,label:'CH\u207A',type:'fragment'},{mz:14,int:16,label:'CH\u2082\u207A',type:'fragment'},{mz:15,int:85,label:'CH\u2083\u207A',type:'fragment'},{mz:16,int:100,label:'M\u207A (CH\u2084\u207A)',type:'molecular'}],
+    info:'Methane fragments by successive H loss. M\u207A at m/z=16 is the base peak.' },
+  { id:'ms-etoh', cat:'organic', name:'C\u2082H\u2085OH', formula:'C\u2082H\u2085OH', Mr:46.068, difficulty:'Medium',
+    peaks:[{mz:15,int:7,label:'CH\u2083\u207A',type:'fragment'},{mz:27,int:14,label:'CHO\u207A',type:'fragment'},{mz:29,int:24,label:'C\u2082H\u2085\u207A',type:'fragment'},{mz:31,int:100,label:'CH\u2082OH\u207A (base)',type:'fragment'},{mz:45,int:52,label:'M-1',type:'fragment'},{mz:46,int:33,label:'M\u207A',type:'molecular'}],
+    info:'Ethanol base peak at m/z=31 (CH\u2082OH\u207A) from C\u2013O bond cleavage.' },
+  { id:'ms-acoh', cat:'organic', name:'CH\u2083COOH', formula:'CH\u2083COOH', Mr:60.052, difficulty:'Medium',
+    peaks:[{mz:15,int:26,label:'CH\u2083\u207A',type:'fragment'},{mz:28,int:6,label:'CO\u207A',type:'fragment'},{mz:43,int:100,label:'CH\u2083CO\u207A (base)',type:'fragment'},{mz:45,int:62,label:'COOH\u207A',type:'fragment'},{mz:60,int:57,label:'M\u207A',type:'molecular'}],
+    info:'Acetic acid base peak at m/z=43 from C\u2013C cleavage.' },
+  { id:'ms-c3h8', cat:'hl-frag', name:'C\u2083H\u2088', formula:'C\u2083H\u2088', Mr:44.096, difficulty:'Hard',
+    peaks:[{mz:15,int:14,label:'CH\u2083\u207A',type:'fragment'},{mz:26,int:5,label:'C\u2082H\u2082\u207A',type:'fragment'},{mz:27,int:32,label:'C\u2082H\u2083\u207A',type:'fragment'},{mz:28,int:22,label:'C\u2082H\u2084\u207A',type:'fragment'},{mz:29,int:100,label:'C\u2082H\u2085\u207A (base)',type:'fragment'},{mz:39,int:8,label:'C\u2083H\u2083\u207A',type:'fragment'},{mz:43,int:14,label:'C\u2083H\u2087\u207A',type:'fragment'},{mz:44,int:34,label:'M\u207A',type:'molecular'}],
+    info:'Propane base peak at m/z=29 from loss of CH\u2083.' },
+  { id:'ms-c4h10', cat:'hl-frag', name:'C\u2084H\u2081\u2080', formula:'C\u2084H\u2081\u2080', Mr:58.122, difficulty:'Hard',
+    peaks:[{mz:15,int:8,label:'CH\u2083\u207A',type:'fragment'},{mz:27,int:28,label:'C\u2082H\u2083\u207A',type:'fragment'},{mz:28,int:14,label:'C\u2082H\u2084\u207A',type:'fragment'},{mz:29,int:56,label:'C\u2082H\u2085\u207A',type:'fragment'},{mz:39,int:9,label:'C\u2083H\u2083\u207A',type:'fragment'},{mz:41,int:18,label:'C\u2083H\u2085\u207A',type:'fragment'},{mz:43,int:100,label:'C\u2083H\u2087\u207A (base)',type:'fragment'},{mz:58,int:22,label:'M\u207A',type:'molecular'}],
+    info:'Butane base peak at m/z=43 from loss of CH\u2083.' }
+];
+
+// ═══════════════════════════════════════════════════
+// NMR DATA
+// ═══════════════════════════════════════════════════
+var NMR_REGIONS = [
+  { range:[0.8,1.0], label:'R\u2013CH\u2083 (alkane)', group:'alkane', color:'#0D9488' },
+  { range:[1.2,1.4], label:'R\u2013CH\u2082\u2013R (alkane)', group:'alkane', color:'#0D9488' },
+  { range:[1.8,2.5], label:'\u2261C\u2013H (alkyne)', group:'alkyne', color:'#3B82F6' },
+  { range:[2.0,2.5], label:'CH next to C\u2261N', group:'nitrile', color:'#7C3AED' },
+  { range:[2.1,2.6], label:'CH next to C=O (ketone)', group:'ketone', color:'#D97706' },
+  { range:[2.5,3.0], label:'CH next to COCl', group:'acyl_chloride', color:'#DC2626' },
+  { range:[3.0,4.0], label:'CH next to halogen', group:'halogenoalkane', color:'#059669' },
+  { range:[3.3,3.9], label:'CH next to O (ether)', group:'ether', color:'#6366F1' },
+  { range:[3.5,4.5], label:'O\u2013CH (ester)', group:'ester', color:'#7C3AED' },
+  { range:[4.5,6.5], label:'vinyl H (alkene)', group:'alkene', color:'#0EA5E9' },
+  { range:[6.0,8.0], label:'NH\u2082 (amide)', group:'amide', color:'#7C3AED' },
+  { range:[6.5,8.0], label:'aromatic H', group:'arene', color:'#EC4899' },
+  { range:[9.4,10.0], label:'CHO (aldehyde)', group:'aldehyde', color:'#F59E0B' },
+  { range:[10.0,12.0], label:'COOH (carboxylic acid)', group:'carboxylic_acid', color:'#DC2626' },
+  { range:[0.5,3.0], label:'N\u2013H (amine)', group:'amine', color:'#8B5CF6' },
+  { range:[1.0,5.0], label:'O\u2013H (alcohol)', group:'alcohol', color:'#14B8A6' }
+];
+
+// ═══════════════════════════════════════════════════
+// NMR MOLECULE DATA
+// ═══════════════════════════════════════════════════
+var NMR_MOLECULES = [
+  { id:'nmr-methanol', name:'Methanol', formula:'CH\u2083OH', cat:'sl',
+    peaks:[{s:3.4,h:3,mult:'s',j:0,label:'CH\u2083',env:'bonded to O'},{s:1.1,h:1,mult:'br_s',j:0,label:'OH',env:'exchangeable'}]},
+  { id:'nmr-ethanol', name:'Ethanol', formula:'CH\u2083CH\u2082OH', cat:'sl',
+    peaks:[{s:1.2,h:3,mult:'t',j:7,label:'CH\u2083',env:'2 adj. H on CH\u2082 \u2192 triplet'},{s:3.7,h:2,mult:'q',j:7,label:'CH\u2082',env:'3 adj. H on CH\u2083 \u2192 quartet'},{s:2.6,h:1,mult:'br_s',j:0,label:'OH',env:'exchangeable'}]},
+  { id:'nmr-propanone', name:'Propanone', formula:'CH\u2083COCH\u2083', cat:'sl',
+    peaks:[{s:2.1,h:6,mult:'s',j:0,label:'2\u00d7CH\u2083',env:'equivalent, no adj. H on C=O'}]},
+  { id:'nmr-ethanoic', name:'Ethanoic acid', formula:'CH\u2083COOH', cat:'sl',
+    peaks:[{s:2.1,h:3,mult:'s',j:0,label:'CH\u2083',env:'no adj. H on COOH'},{s:11.4,h:1,mult:'br_s',j:0,label:'COOH',env:'exchangeable, very deshielded'}]},
+  { id:'nmr-ethanal', name:'Ethanal', formula:'CH\u2083CHO', cat:'sl',
+    peaks:[{s:2.2,h:3,mult:'d',j:3,label:'CH\u2083',env:'1 adj. H on CHO \u2192 doublet'},{s:9.8,h:1,mult:'q',j:3,label:'CHO',env:'3 adj. H on CH\u2083 \u2192 quartet'}]},
+  { id:'nmr-propan1ol', name:'Propan-1-ol', formula:'CH\u2083CH\u2082CH\u2082OH', cat:'sl',
+    peaks:[{s:0.9,h:3,mult:'t',j:7,label:'CH\u2083',env:'2 adj. H \u2192 triplet'},{s:1.6,h:2,mult:'sxt',j:7,label:'CH\u2082',env:'5 adj. H \u2192 sextet'},{s:3.6,h:2,mult:'t',j:7,label:'CH\u2082OH',env:'2 adj. H \u2192 triplet'},{s:2.4,h:1,mult:'br_s',j:0,label:'OH',env:'exchangeable'}]},
+  { id:'nmr-propan2ol', name:'Propan-2-ol', formula:'(CH\u2083)\u2082CHOH', cat:'sl',
+    peaks:[{s:1.2,h:6,mult:'d',j:6,label:'2\u00d7CH\u2083',env:'1 adj. H on CH \u2192 doublet'},{s:4.0,h:1,mult:'sept',j:6,label:'CH',env:'6 adj. H on 2\u00d7CH\u2083 \u2192 septet'},{s:2.3,h:1,mult:'br_s',j:0,label:'OH',env:'exchangeable'}]},
+  { id:'nmr-chloroethane', name:'Chloroethane', formula:'CH\u2083CH\u2082Cl', cat:'sl',
+    peaks:[{s:1.5,h:3,mult:'t',j:7,label:'CH\u2083',env:'2 adj. H \u2192 triplet'},{s:3.5,h:2,mult:'q',j:7,label:'CH\u2082Cl',env:'3 adj. H \u2192 quartet'}]},
+  { id:'nmr-propanal', name:'Propanal', formula:'CH\u2083CH\u2082CHO', cat:'sl',
+    peaks:[{s:1.0,h:3,mult:'t',j:7,label:'CH\u2083',env:'2 adj. H \u2192 triplet'},{s:2.5,h:2,mult:'m',j:0,label:'CH\u2082',env:'complex multiplet'},{s:9.8,h:1,mult:'t',j:2,label:'CHO',env:'2 adj. H \u2192 triplet'}]},
+  { id:'nmr-propanoic', name:'Propanoic acid', formula:'CH\u2083CH\u2082COOH', cat:'sl',
+    peaks:[{s:1.1,h:3,mult:'t',j:7,label:'CH\u2083',env:'2 adj. H \u2192 triplet'},{s:2.4,h:2,mult:'q',j:7,label:'CH\u2082',env:'3 adj. H \u2192 quartet'},{s:11.8,h:1,mult:'br_s',j:0,label:'COOH',env:'exchangeable'}]},
+  { id:'nmr-ethylamine', name:'Ethylamine', formula:'CH\u2083CH\u2082NH\u2082', cat:'sl',
+    peaks:[{s:1.1,h:3,mult:'t',j:7,label:'CH\u2083',env:'2 adj. H \u2192 triplet'},{s:2.6,h:2,mult:'q',j:7,label:'CH\u2082',env:'3 adj. H \u2192 quartet'},{s:1.0,h:2,mult:'br_s',j:0,label:'NH\u2082',env:'exchangeable'}]},
+  { id:'nmr-ethylethanoate', name:'Ethyl ethanoate', formula:'CH\u2083COOC\u2082H\u2085', cat:'hl',
+    peaks:[{s:2.0,h:3,mult:'s',j:0,label:'CH\u2083CO',env:'no adj. H'},{s:4.1,h:2,mult:'q',j:7,label:'OCH\u2082',env:'3 adj. H \u2192 quartet'},{s:1.3,h:3,mult:'t',j:7,label:'CH\u2083',env:'2 adj. H \u2192 triplet'}]},
+  { id:'nmr-methoxyethane', name:'Methoxyethane', formula:'CH\u2083OCH\u2082CH\u2083', cat:'hl',
+    peaks:[{s:3.25,h:3,mult:'s',j:0,label:'OCH\u2083',env:'no adj. H'},{s:3.45,h:2,mult:'q',j:7,label:'OCH\u2082',env:'3 adj. H \u2192 quartet'},{s:1.2,h:3,mult:'t',j:7,label:'CH\u2083',env:'2 adj. H \u2192 triplet'}]},
+  { id:'nmr-1bromopropane', name:'1-Bromopropane', formula:'CH\u2083CH\u2082CH\u2082Br', cat:'hl',
+    peaks:[{s:1.0,h:3,mult:'t',j:7,label:'CH\u2083',env:'2 adj. H \u2192 triplet'},{s:1.9,h:2,mult:'sxt',j:7,label:'CH\u2082',env:'5 adj. H \u2192 sextet'},{s:3.4,h:2,mult:'t',j:7,label:'CH\u2082Br',env:'2 adj. H \u2192 triplet'}]}
+];
+
+var MULT_RATIOS = {s:[1],d:[1,1],t:[1,2,1],q:[1,3,3,1],qn:[1,4,6,4,1],sxt:[1,5,10,10,5,1],sept:[1,6,15,20,15,6,1],m:[1,2,3,3,2,1],br_s:[1]};
+var MULT_NAMES = {s:'singlet',d:'doublet',t:'triplet',q:'quartet',qn:'quintet',sxt:'sextet',sept:'septet',m:'multiplet',br_s:'broad singlet'};
+
+// ═══════════════════════════════════════════════════
+// UNKNOWNS
+// ═══════════════════════════════════════════════════
+var UNKNOWNS = [
+  { id:'u1',name:'Ethanol',formula:'C\u2082H\u2085OH',Mr:46,groups:['alcohol'],difficulty:'Easy',
+    ir:[{c:3400,w:400},{c:2920,w:110},{c:1050,w:200}],ms:[{mz:46,int:33},{mz:45,int:52},{mz:31,int:100},{mz:29,int:24},{mz:15,int:7}],nmr:[{s:1.2,h:3,l:'CH\u2083',mult:'t',j:7},{s:3.7,h:2,l:'CH\u2082',mult:'q',j:7},{s:2.6,h:1,l:'OH',mult:'br_s',j:0}] },
+  { id:'u2',name:'Propanone',formula:'CH\u2083COCH\u2083',Mr:58,groups:['ketone'],difficulty:'Easy',
+    ir:[{c:1715,w:30},{c:2920,w:110}],ms:[{mz:58,int:33},{mz:43,int:100},{mz:15,int:26}],nmr:[{s:2.1,h:6,l:'CH\u2083',mult:'s',j:0}] },
+  { id:'u3',name:'Ethanoic acid',formula:'CH\u2083COOH',Mr:60,groups:['carboxylic_acid'],difficulty:'Easy',
+    ir:[{c:2900,w:800},{c:1712,w:30},{c:2920,w:110}],ms:[{mz:60,int:57},{mz:45,int:62},{mz:43,int:100},{mz:15,int:26}],nmr:[{s:2.1,h:3,l:'CH\u2083',mult:'s',j:0},{s:11.4,h:1,l:'COOH',mult:'br_s',j:0}] },
+  { id:'u4',name:'Ethanal',formula:'CH\u2083CHO',Mr:44,groups:['aldehyde'],difficulty:'Medium',
+    ir:[{c:2720,w:20},{c:1730,w:30},{c:2920,w:110}],ms:[{mz:44,int:60},{mz:43,int:100},{mz:29,int:75},{mz:15,int:18}],nmr:[{s:2.2,h:3,l:'CH\u2083',mult:'d',j:3},{s:9.8,h:1,l:'CHO',mult:'q',j:3}] },
+  { id:'u5',name:'Chloroethane',formula:'CH\u2083CH\u2082Cl',Mr:64.5,groups:['halogenoalkane'],difficulty:'Medium',
+    ir:[{c:2920,w:110},{c:750,w:200}],ms:[{mz:64,int:60},{mz:66,int:20},{mz:49,int:10},{mz:29,int:100},{mz:27,int:40}],nmr:[{s:1.5,h:3,l:'CH\u2083',mult:'t',j:7},{s:3.5,h:2,l:'CH\u2082Cl',mult:'q',j:7}] },
+  { id:'u6',name:'Ethylamine',formula:'CH\u2083CH\u2082NH\u2082',Mr:45,groups:['amine'],difficulty:'Medium',
+    ir:[{c:3400,w:200},{c:2920,w:110}],ms:[{mz:45,int:30},{mz:30,int:100},{mz:28,int:40}],nmr:[{s:1.1,h:3,l:'CH\u2083',mult:'t',j:7},{s:2.6,h:2,l:'CH\u2082',mult:'q',j:7},{s:1.0,h:2,l:'NH\u2082',mult:'br_s',j:0}] },
+  { id:'u7',name:'Propan-1-ol',formula:'CH\u2083CH\u2082CH\u2082OH',Mr:60,groups:['alcohol'],difficulty:'Medium',
+    ir:[{c:3400,w:400},{c:2920,w:110},{c:1050,w:200}],ms:[{mz:60,int:15},{mz:42,int:35},{mz:31,int:100},{mz:29,int:30},{mz:27,int:25}],nmr:[{s:0.9,h:3,l:'CH\u2083',mult:'t',j:7},{s:1.6,h:2,l:'CH\u2082',mult:'sxt',j:7},{s:3.6,h:2,l:'CH\u2082OH',mult:'t',j:7},{s:2.5,h:1,l:'OH',mult:'br_s',j:0}] },
+  { id:'u8',name:'Ethyl ethanoate',formula:'CH\u2083COOC\u2082H\u2085',Mr:88,groups:['ester'],difficulty:'Hard',
+    ir:[{c:1742,w:30},{c:1150,w:250},{c:2920,w:110}],ms:[{mz:88,int:12},{mz:73,int:15},{mz:61,int:10},{mz:43,int:100},{mz:29,int:20}],nmr:[{s:1.3,h:3,l:'CH\u2083 (ethyl)',mult:'t',j:7},{s:2.0,h:3,l:'CH\u2083 (acetyl)',mult:'s',j:0},{s:4.1,h:2,l:'OCH\u2082',mult:'q',j:7}] },
+  { id:'u9',name:'Ethanenitrile',formula:'CH\u2083CN',Mr:41,groups:['nitrile'],difficulty:'Hard',
+    ir:[{c:2235,w:20},{c:2920,w:110}],ms:[{mz:41,int:100},{mz:40,int:65},{mz:14,int:10}],nmr:[{s:2.0,h:3,l:'CH\u2083',mult:'s',j:0}] },
+  { id:'u10',name:'Ethanamide',formula:'CH\u2083CONH\u2082',Mr:59,groups:['amide'],difficulty:'Hard',
+    ir:[{c:3350,w:100},{c:3180,w:100},{c:1680,w:30},{c:2920,w:110}],ms:[{mz:59,int:50},{mz:44,int:100},{mz:43,int:80},{mz:15,int:20}],nmr:[{s:2.0,h:3,l:'CH\u2083',mult:'s',j:0},{s:7.0,h:2,l:'NH\u2082',mult:'br_s',j:0}] },
+  { id:'u11',name:'Propanoic acid',formula:'CH\u2083CH\u2082COOH',Mr:74,groups:['carboxylic_acid'],difficulty:'Medium',
+    ir:[{c:2900,w:800},{c:1712,w:30},{c:2920,w:110}],ms:[{mz:74,int:40},{mz:57,int:30},{mz:45,int:50},{mz:29,int:100},{mz:27,int:30}],nmr:[{s:1.1,h:3,l:'CH\u2083',mult:'t',j:7},{s:2.4,h:2,l:'CH\u2082',mult:'q',j:7},{s:11.8,h:1,l:'COOH',mult:'br_s',j:0}] },
+  { id:'u12',name:'Methoxyethane',formula:'CH\u2083OCH\u2082CH\u2083',Mr:60,groups:['ether'],difficulty:'Hard',
+    ir:[{c:2920,w:110},{c:1150,w:250}],ms:[{mz:60,int:55},{mz:45,int:100},{mz:29,int:60},{mz:15,int:40}],nmr:[{s:1.2,h:3,l:'CH\u2083 (ethyl)',mult:'t',j:7},{s:3.25,h:3,l:'OCH\u2083',mult:'s',j:0},{s:3.45,h:2,l:'OCH\u2082',mult:'q',j:7}] }
+];
+
+var FG_LIST = [
+  {id:'alkane',name:'Alkane',hl:false},{id:'alkene',name:'Alkene',hl:false},{id:'alkyne',name:'Alkyne',hl:false},
+  {id:'arene',name:'Arene',hl:false},{id:'alcohol',name:'Alcohol',hl:false},{id:'aldehyde',name:'Aldehyde',hl:false},
+  {id:'ketone',name:'Ketone',hl:false},{id:'carboxylic_acid',name:'Carboxylic Acid',hl:false},
+  {id:'ether',name:'Ether',hl:false},{id:'amine',name:'Amine',hl:false},{id:'halogenoalkane',name:'Halogenoalkane',hl:false},
+  {id:'ester',name:'Ester',hl:true},{id:'amide',name:'Amide',hl:true},{id:'nitrile',name:'Nitrile',hl:true},
+  {id:'acyl_chloride',name:'Acyl Chloride',hl:true}
+];
+
+var IR_GROUPS = [
+  {id:'alcohol',name:'Alcohol',hl:false},{id:'carboxylic_acid',name:'Carboxylic Acid',hl:false},
+  {id:'aldehyde',name:'Aldehyde',hl:false},{id:'ketone',name:'Ketone',hl:false},
+  {id:'alkane',name:'Alkane',hl:false},{id:'alkene',name:'Alkene',hl:false},
+  {id:'alkyne',name:'Alkyne',hl:false},{id:'arene',name:'Arene',hl:false},
+  {id:'amine',name:'Amine',hl:false},{id:'ether',name:'Ether',hl:false},
+  {id:'halogenoalkane',name:'Halogenoalkane',hl:false},
+  {id:'ester',name:'Ester',hl:true},{id:'amide',name:'Amide',hl:true},
+  {id:'nitrile',name:'Nitrile',hl:true},{id:'acyl_chloride',name:'Acyl Chloride',hl:true}
+];
+
+// ═══════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════
+var _activeTab='ir',_isHL=false,_isTeacher=false;
+var _selectedIRGroup=null,_selectedMSCompound=null,_selectedNMRGroup=null,_selectedNMRMolecule=null;
+var _hoveredIRPeak=-1;
+var _challengeUnknown=null,_challengeScore=0,_challengeTotal=0,_challengeDifficulty='Easy',_challengeSubmitted=false;
+
+// ═══════════════════════════════════════════════════
+// HEADER TOGGLES
+// ═══════════════════════════════════════════════════
+var headerToggles=document.getElementById('headerToggles');
+function buildToggles(){
+  clearEl(headerToggles);
+  [{label:'HL',checked:_isHL},{label:'Teacher',checked:_isTeacher}].forEach(function(grp,idx){
+    var g=el('div','sim-toggle-group'),lbl=el('label','sim-toggle');
+    var inp=document.createElement('input');inp.type='checkbox';inp.checked=grp.checked;
+    lbl.appendChild(inp);lbl.appendChild(el('span','sim-toggle-slider'));
+    g.appendChild(lbl);g.appendChild(el('span','sim-toggle-label',grp.label));
+    headerToggles.appendChild(g);
+    inp.addEventListener('change',function(){if(idx===0)toggleHL();else toggleTeacher();});
+  });
+}
+function toggleHL(){
+  _isHL=!_isHL;document.body.classList.toggle('hl-active',_isHL);
+  var cbs=headerToggles.querySelectorAll('input');if(cbs[0])cbs[0].checked=_isHL;
+  if(!_isHL&&_activeTab==='nmr')switchTab('ir');
+  buildPalette();refreshTab();updateChallengeNMR();
+}
+function toggleTeacher(){
+  _isTeacher=!_isTeacher;document.body.classList.toggle('teacher-active',_isTeacher);
+  var cbs=headerToggles.querySelectorAll('input');if(cbs[1])cbs[1].checked=_isTeacher;
+  refreshTab();
+}
+function updateChallengeNMR(){var w=document.getElementById('challengeNMRWrap');if(w)w.style.display=_isHL?'block':'none';}
+buildToggles();
+
+// ═══════════════════════════════════════════════════
+// TAB SWITCHING
+// ═══════════════════════════════════════════════════
+var tabBtns=document.querySelectorAll('.tab-btn'),tabContents=document.querySelectorAll('.tab-content');
+function switchTab(tabId){
+  if(tabId==='nmr'&&!_isHL)return;
+  _activeTab=tabId;
+  for(var i=0;i<tabBtns.length;i++)tabBtns[i].classList.toggle('active',tabBtns[i].getAttribute('data-tab')===tabId);
+  for(var j=0;j<tabContents.length;j++)tabContents[j].classList.toggle('active',tabContents[j].id==='tab-'+tabId);
+  buildPalette();refreshTab();
+}
+for(var i=0;i<tabBtns.length;i++)tabBtns[i].addEventListener('click',function(){switchTab(this.getAttribute('data-tab'));});
+function refreshTab(){setTimeout(function(){
+  if(_activeTab==='ir')renderIR();else if(_activeTab==='ms')renderMS();
+  else if(_activeTab==='nmr')renderNMR();else if(_activeTab==='challenge')renderChallenge();
+},20);}
+
+// ═══════════════════════════════════════════════════
+// PALETTE
+// ═══════════════════════════════════════════════════
+var paletteSearch=document.getElementById('paletteSearch'),paletteList=document.getElementById('paletteList'),presetSelect=document.getElementById('presetSelect');
+paletteSearch.addEventListener('input',function(){var q=this.value.toLowerCase();var items=paletteList.querySelectorAll('.palette-item');for(var i=0;i<items.length;i++){items[i].style.display=(!q||items[i].textContent.toLowerCase().indexOf(q)!==-1)?'':'none';}});
+
+function buildPalette(){
+  clearEl(paletteList);paletteSearch.value='';
+  if(_activeTab==='ir'){
+    document.getElementById('paletteHeader').textContent='Functional Groups';
+    paletteList.appendChild(el('div','palette-category','SL Groups'));
+    var hlStarted=false;
+    for(var i=0;i<IR_GROUPS.length;i++){
+      var g=IR_GROUPS[i];if(g.hl&&!_isHL)continue;
+      if(g.hl&&!hlStarted){paletteList.appendChild(el('div','palette-category hl-cat','HL Groups'));hlStarted=true;}
+      var btn=el('button','palette-item'+(g.hl?' hl-grp':'')+(g.id===_selectedIRGroup?' active':''),g.name);
+      btn.setAttribute('data-grp',g.id);
+      btn.addEventListener('click',function(){_selectedIRGroup=this.getAttribute('data-grp');buildPalette();renderIR();});
+      paletteList.appendChild(btn);
+    }
+  } else if(_activeTab==='ms'){
+    document.getElementById('paletteHeader').textContent='Compounds';
+    [{id:'elements',name:'Elements',hl:false},{id:'organic',name:'Simple Organic',hl:false},{id:'hl-frag',name:'HL: Fragmentation',hl:true}].forEach(function(cat){
+      paletteList.appendChild(el('div','palette-category'+(cat.hl?' hl-cat':''),cat.name));
+      for(var j=0;j<MS_COMPOUNDS.length;j++){
+        var c=MS_COMPOUNDS[j];if(c.cat!==cat.id)continue;
+        var btn=el('button','palette-item'+(cat.hl?' hl-grp':'')+(_selectedMSCompound&&_selectedMSCompound.id===c.id?' active':''),c.name+' (M\u1D63='+c.Mr+')');
+        btn.setAttribute('data-ms',c.id);
+        btn.addEventListener('click',function(){var mid=this.getAttribute('data-ms');for(var k=0;k<MS_COMPOUNDS.length;k++){if(MS_COMPOUNDS[k].id===mid){_selectedMSCompound=MS_COMPOUNDS[k];break;}}buildPalette();renderMS();});
+        paletteList.appendChild(btn);
+      }
+    });
+  } else if(_activeTab==='nmr'){
+    document.getElementById('paletteHeader').textContent='Molecules';
+    var regBtn=el('button','palette-item'+(!_selectedNMRMolecule?' active':''),'\u25cb Shift Regions (reference)');
+    regBtn.addEventListener('click',function(){_selectedNMRMolecule=null;buildPalette();renderNMR();});
+    paletteList.appendChild(regBtn);
+    paletteList.appendChild(el('div','palette-category','SL Molecules'));
+    var hlStarted=false;
+    for(var i=0;i<NMR_MOLECULES.length;i++){
+      var m=NMR_MOLECULES[i];if(m.cat==='hl'&&!_isHL)continue;
+      if(m.cat==='hl'&&!hlStarted){paletteList.appendChild(el('div','palette-category hl-cat','HL Molecules'));hlStarted=true;}
+      var btn=el('button','palette-item'+(m.cat==='hl'?' hl-grp':'')+(_selectedNMRMolecule&&_selectedNMRMolecule.id===m.id?' active':''),m.name);
+      btn.setAttribute('data-nmr',m.id);
+      btn.addEventListener('click',function(){var mid=this.getAttribute('data-nmr');for(var k=0;k<NMR_MOLECULES.length;k++){if(NMR_MOLECULES[k].id===mid){_selectedNMRMolecule=NMR_MOLECULES[k];break;}}buildPalette();renderNMR();});
+      paletteList.appendChild(btn);
+    }
+  } else if(_activeTab==='challenge'){
+    document.getElementById('paletteHeader').textContent='Unknowns';
+    paletteList.appendChild(el('div','palette-category','Compounds'));
+    for(var i=0;i<UNKNOWNS.length;i++){
+      var u=UNKNOWNS[i];if(u.difficulty==='Hard'&&!_isHL)continue;
+      var btn=el('button','palette-item'+(_challengeUnknown&&_challengeUnknown.id===u.id?' active':''),'Unknown '+(i+1)+' ('+u.difficulty+')');
+      btn.setAttribute('data-uid',u.id);
+      btn.addEventListener('click',function(){var uid=this.getAttribute('data-uid');for(var k=0;k<UNKNOWNS.length;k++){if(UNKNOWNS[k].id===uid){loadUnknown(UNKNOWNS[k]);break;}}});
+      paletteList.appendChild(btn);
+    }
+  }
+  buildPresets();
+}
+
+function buildPresets(){
+  clearEl(presetSelect);
+  var def=document.createElement('option');def.value='';def.textContent='Teacher Presets...';presetSelect.appendChild(def);
+  var presets=[];
+  if(_activeTab==='ir')presets=[{n:'Carbonyl Family (C=O)',v:'aldehyde'},{n:'O\u2013H Compounds',v:'alcohol'},{n:'Amine N\u2013H',v:'amine'}];
+  else if(_activeTab==='ms')presets=[{n:'Isotope Patterns (Cl\u2082)',v:'ms-cl2'},{n:'Simple: CH\u2084',v:'ms-ch4'},{n:'Fragmentation: Ethanol',v:'ms-etoh'}];
+  else if(_activeTab==='nmr')presets=[{n:'Ethanol \u2014 Classic Splitting',v:'nmr-ethanol'},{n:'Propanone \u2014 Single Peak',v:'nmr-propanone'},{n:'Ethanal \u2014 Aldehyde',v:'nmr-ethanal'},{n:'Propan-2-ol \u2014 Septet (HL)',v:'nmr-propan2ol'}];
+  else if(_activeTab==='challenge')presets=[{n:'Easy Unknown',v:'easy'},{n:'Medium Unknown',v:'medium'},{n:'Hard Unknown (HL)',v:'hard'}];
+  for(var i=0;i<presets.length;i++){var o=document.createElement('option');o.value=presets[i].v;o.textContent=presets[i].n;presetSelect.appendChild(o);}
+}
+presetSelect.addEventListener('change',function(){
+  var val=this.value;if(!val)return;
+  if(_activeTab==='ir'){_selectedIRGroup=val;buildPalette();renderIR();}
+  else if(_activeTab==='ms'){for(var i=0;i<MS_COMPOUNDS.length;i++){if(MS_COMPOUNDS[i].id===val){_selectedMSCompound=MS_COMPOUNDS[i];break;}}buildPalette();renderMS();}
+  else if(_activeTab==='nmr'){for(var i=0;i<NMR_MOLECULES.length;i++){if(NMR_MOLECULES[i].id===val){_selectedNMRMolecule=NMR_MOLECULES[i];break;}}buildPalette();renderNMR();}
+  else if(_activeTab==='challenge'){
+    var diff=val.charAt(0).toUpperCase()+val.slice(1);
+    var filtered=UNKNOWNS.filter(function(u){return u.difficulty===diff&&(diff!=='Hard'||_isHL);});
+    if(filtered.length>0)loadUnknown(filtered[Math.floor(Math.random()*filtered.length)]);
+  }
+  this.value='';
+});
+
+// ═══════════════════════════════════════════════════
+// IR RENDERING
+// ═══════════════════════════════════════════════════
+function renderIR(){
+  var canvas=document.getElementById('irCanvas');if(!canvas)return;
+  var ctx=setupCanvas(canvas);
+  var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight);
+  var pad={top:30,right:30,bottom:45,left:55},cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#1E293B';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(pad.left,pad.top);ctx.lineTo(pad.left,H-pad.bottom);ctx.lineTo(W-pad.right,H-pad.bottom);ctx.stroke();
+  ctx.fillStyle='#64748B';ctx.font='11px "Fira Code",monospace';ctx.textAlign='center';
+  [4000,3500,3000,2500,2000,1500,1000,500].forEach(function(v){
+    var x=pad.left+(4000-v)/3500*cW;
+    ctx.fillText(v,x,H-pad.bottom+18);
+    ctx.strokeStyle='#E2E8F0';ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(x,pad.top);ctx.lineTo(x,H-pad.bottom);ctx.stroke();
+  });
+  ctx.fillStyle='#334155';ctx.font='12px Inter,sans-serif';ctx.fillText('Wavenumber / cm\u207B\u00B9',(pad.left+W-pad.right)/2,H-5);
+  ctx.save();ctx.translate(14,(pad.top+H-pad.bottom)/2);ctx.rotate(-Math.PI/2);ctx.fillStyle='#334155';ctx.font='12px Inter,sans-serif';ctx.textAlign='center';ctx.fillText('Transmittance / %',0,0);ctx.restore();
+  ctx.fillStyle='#64748B';ctx.font='11px "Fira Code",monospace';ctx.textAlign='right';
+  for(var t=0;t<=100;t+=20){var y=H-pad.bottom-(t/100)*cH;ctx.fillText(t+'%',pad.left-8,y+4);}
+  ctx.strokeStyle='#94A3B8';ctx.lineWidth=1;ctx.setLineDash([4,4]);ctx.beginPath();ctx.moveTo(pad.left,pad.top);ctx.lineTo(W-pad.right,pad.top);ctx.stroke();ctx.setLineDash([]);
+
+  if(_selectedIRGroup){
+    var relevantPeaks=IR_PEAKS.filter(function(p){return p.group===_selectedIRGroup;});
+    ctx.strokeStyle='#1E293B';ctx.lineWidth=1.5;ctx.beginPath();
+    for(var wn=4000;wn>=500;wn-=1){
+      var x=pad.left+(4000-wn)/3500*cW,T=100;
+      for(var p=0;p<relevantPeaks.length;p++){
+        var pk=relevantPeaks[p],width=(pk.range[1]-pk.range[0])/2||20;
+        if(pk.shape==='very_broad')width=Math.max(width,400);else if(pk.shape==='broad')width=Math.max(width,150);
+        else if(pk.shape==='medium')width=Math.max(width,60);else width=Math.max(width,15);
+        T-=(pk.shape==='very_broad'?60:pk.shape==='broad'?55:pk.shape==='medium'?70:80)*Math.exp(-(wn-pk.center)*(wn-pk.center)/(2*width*width));
+      }
+      var y=H-pad.bottom-(Math.max(T,2)/100)*cH;
+      if(wn===4000)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.font='11px Inter,sans-serif';ctx.textAlign='center';
+    for(var p=0;p<relevantPeaks.length;p++){
+      var pk=relevantPeaks[p],x=pad.left+(4000-pk.center)/3500*cW,y=pad.top+20;
+      ctx.fillStyle=_hoveredIRPeak===p?'#0D9488':'#1E293B';
+      ctx.font=_hoveredIRPeak===p?'bold 12px Inter,sans-serif':'11px Inter,sans-serif';
+      ctx.fillText(pk.label,x,y);ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(x,y+3);ctx.lineTo(x,y+15);ctx.stroke();
+    }
+  } else {
+    ctx.fillStyle='#94A3B8';ctx.font='14px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText('Select a functional group to view its IR absorption pattern',W/2,H/2);
+  }
+  var infoDiv=document.getElementById('irInfo');clearEl(infoDiv);
+  if(_selectedIRGroup){
+    var peaks=IR_PEAKS.filter(function(p){return p.group===_selectedIRGroup;});
+    var title=el('strong','',_selectedIRGroup.replace(/_/g,' ')+' \u2014 Key IR absorptions:');title.style.color='var(--teal)';infoDiv.appendChild(title);
+    peaks.forEach(function(p){addLine(infoDiv,p.label+': ',p.range[0]+'\u2013'+p.range[1]+' cm\u207B\u00B9');});
+  }
+  var td=document.getElementById('irTeacher');clearEl(td);
+  if(_selectedIRGroup&&_isTeacher){td.textContent='Teaching note: Ask students to identify the diagnostic peak(s) that distinguish this functional group from others with similar features.';}
+}
+
+document.getElementById('irCanvas').addEventListener('mousemove',function(evt){
+  if(!_selectedIRGroup)return;
+  var rect=this.getBoundingClientRect(),mx=evt.clientX-rect.left;
+  var W=this.offsetWidth,pad={left:55,right:30},cW=W-pad.left-pad.right;
+  var peaks=IR_PEAKS.filter(function(p){return p.group===_selectedIRGroup;}),old=_hoveredIRPeak;_hoveredIRPeak=-1;
+  for(var i=0;i<peaks.length;i++){if(Math.abs(mx-(pad.left+(4000-peaks[i].center)/3500*cW))<30){_hoveredIRPeak=i;break;}}
+  if(_hoveredIRPeak!==old)renderIR();
+});
+
+// ═══════════════════════════════════════════════════
+// MS RENDERING
+// ═══════════════════════════════════════════════════
+function renderMS(){
+  var canvas=document.getElementById('msCanvas');if(!canvas)return;
+  var ctx=setupCanvas(canvas);var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight);
+  var pad={top:30,right:30,bottom:45,left:55},cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#1E293B';ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(pad.left,pad.top);ctx.lineTo(pad.left,H-pad.bottom);ctx.lineTo(W-pad.right,H-pad.bottom);ctx.stroke();
+
+  if(!_selectedMSCompound){
+    ctx.fillStyle='#94A3B8';ctx.font='14px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText('Select a compound to view its mass spectrum',W/2,H/2);
+    clearEl(document.getElementById('msInfo'));return;
+  }
+  var comp=_selectedMSCompound,maxMZ=0;
+  for(var i=0;i<comp.peaks.length;i++)if(comp.peaks[i].mz>maxMZ)maxMZ=comp.peaks[i].mz;
+  maxMZ=Math.max(maxMZ+10,comp.Mr+10);
+  ctx.fillStyle='#64748B';ctx.font='11px "Fira Code",monospace';ctx.textAlign='center';
+  var xStep=maxMZ<50?5:maxMZ<100?10:20;
+  for(var t=0;t<=maxMZ;t+=xStep){
+    var x=pad.left+(t/maxMZ)*cW;ctx.fillText(t,x,H-pad.bottom+18);
+    ctx.strokeStyle='#E2E8F0';ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(x,pad.top);ctx.lineTo(x,H-pad.bottom);ctx.stroke();
+  }
+  ctx.fillStyle='#334155';ctx.font='12px Inter,sans-serif';ctx.fillText('m/z',(pad.left+W-pad.right)/2,H-5);
+  ctx.save();ctx.translate(14,(pad.top+H-pad.bottom)/2);ctx.rotate(-Math.PI/2);ctx.fillStyle='#334155';ctx.font='12px Inter,sans-serif';ctx.textAlign='center';ctx.fillText('Relative Intensity / %',0,0);ctx.restore();
+  ctx.fillStyle='#64748B';ctx.font='11px "Fira Code",monospace';ctx.textAlign='right';
+  for(var t=0;t<=100;t+=20){var y=H-pad.bottom-(t/100)*cH;ctx.fillText(t,pad.left-8,y+4);}
+
+  var barW=Math.max(3,Math.min(12,cW/maxMZ*0.6));
+  for(var i=0;i<comp.peaks.length;i++){
+    var pk=comp.peaks[i],x=pad.left+(pk.mz/maxMZ)*cW,barH=(pk.int/100)*cH,y=H-pad.bottom-barH;
+    ctx.fillStyle=pk.type==='molecular'?'#0D9488':pk.type==='fragment'?'#1E293B':'#3B82F6';
+    ctx.fillRect(x-barW/2,y,barW,barH);
+    if(pk.int>=15||pk.type==='molecular'){
+      ctx.fillStyle=pk.type==='molecular'?'#0D9488':'#334155';ctx.font='10px "Fira Code",monospace';ctx.textAlign='center';ctx.fillText(pk.mz,x,y-5);
+    }
+  }
+  // Legend
+  ctx.font='10px Inter,sans-serif';ctx.textAlign='left';var lx=W-pad.right-150,ly=pad.top+15;
+  [{c:'#0D9488',l:'Molecular ion'},{c:'#1E293B',l:'Fragment'},{c:'#3B82F6',l:'Isotope'}].forEach(function(item,idx){
+    ctx.fillStyle=item.c;ctx.fillRect(lx,ly+idx*16,10,10);ctx.fillStyle='#334155';ctx.fillText(item.l,lx+14,ly+idx*16+9);
+  });
+
+  var infoDiv=document.getElementById('msInfo');clearEl(infoDiv);
+  var title=el('strong','',comp.name+' (M\u1D63 = '+comp.Mr+')');title.style.color='var(--teal)';infoDiv.appendChild(title);
+  infoDiv.appendChild(document.createTextNode(' \u2014 '+comp.info));
+
+  var td=document.getElementById('msTeacher');clearEl(td);
+  if(_isTeacher){
+    td.appendChild(el('strong','','All peaks:'));td.appendChild(document.createElement('br'));
+    comp.peaks.forEach(function(p){addLine(td,'m/z '+p.mz+' ('+p.int+'%)',' \u2014 '+p.label);});
+  }
+}
+
+document.getElementById('msCanvas').addEventListener('mousemove',function(evt){
+  if(!_selectedMSCompound)return;
+  var rect=this.getBoundingClientRect(),mx=evt.clientX-rect.left;
+  var W=this.offsetWidth,pad={left:55,right:30},cW=W-pad.left-pad.right;
+  var maxMZ=0;for(var i=0;i<_selectedMSCompound.peaks.length;i++)if(_selectedMSCompound.peaks[i].mz>maxMZ)maxMZ=_selectedMSCompound.peaks[i].mz;
+  maxMZ=Math.max(maxMZ+10,_selectedMSCompound.Mr+10);
+  var info=document.getElementById('msPeakInfo'),found=false;
+  for(var i=0;i<_selectedMSCompound.peaks.length;i++){
+    var pk=_selectedMSCompound.peaks[i],x=pad.left+(pk.mz/maxMZ)*cW;
+    if(Math.abs(mx-x)<8){
+      info.style.display='block';clearEl(info);
+      var b=el('strong','','m/z = '+pk.mz);info.appendChild(b);
+      info.appendChild(document.createTextNode(' ('+pk.int+'%) \u2014 '+pk.label));
+      found=true;break;
+    }
+  }
+  if(!found)info.style.display='none';
+});
+
+// ═══════════════════════════════════════════════════
+// NMR RENDERING
+// ═══════════════════════════════════════════════════
+function drawGaussianPeak(ctx,cx,baseline,height,sigmaX){
+  var span=Math.max(sigmaX*4,2);
+  ctx.beginPath();ctx.moveTo(cx-span,baseline);
+  for(var dx=-span;dx<=span;dx+=0.5)ctx.lineTo(cx+dx,baseline-height*Math.exp(-(dx*dx)/(2*sigmaX*sigmaX)));
+  ctx.lineTo(cx+span,baseline);ctx.closePath();ctx.fill();ctx.stroke();
+}
+
+function renderNMR(){
+  var canvas=document.getElementById('nmrCanvas');if(!canvas)return;
+  var ctx=setupCanvas(canvas);var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight);
+  var pad={top:30,right:30,bottom:45,left:55},cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#1E293B';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(pad.left,pad.top);ctx.lineTo(pad.left,H-pad.bottom);ctx.lineTo(W-pad.right,H-pad.bottom);ctx.stroke();
+  ctx.fillStyle='#64748B';ctx.font='11px "Fira Code",monospace';ctx.textAlign='center';
+  for(var t=0;t<=12;t++){
+    var x=pad.left+(12-t)/12*cW;ctx.fillText(t,x,H-pad.bottom+18);
+    ctx.strokeStyle='#E2E8F0';ctx.lineWidth=0.5;ctx.beginPath();ctx.moveTo(x,pad.top);ctx.lineTo(x,H-pad.bottom);ctx.stroke();
+  }
+  ctx.fillStyle='#334155';ctx.font='12px Inter,sans-serif';ctx.fillText('\u03B4 / ppm',(pad.left+W-pad.right)/2,H-5);
+  // TMS reference
+  var tmsx=pad.left+cW;
+  ctx.fillStyle='#94A3B8';ctx.font='9px "Fira Code",monospace';ctx.textAlign='center';ctx.fillText('TMS',tmsx,pad.top+12);
+  ctx.strokeStyle='#94A3B8';ctx.lineWidth=1;ctx.setLineDash([3,3]);ctx.beginPath();ctx.moveTo(tmsx,pad.top+16);ctx.lineTo(tmsx,H-pad.bottom);ctx.stroke();ctx.setLineDash([]);
+
+  var HL_GRP=['nitrile','acyl_chloride','ester','amide'];
+
+  if(!_selectedNMRMolecule){
+    // Show region reference chart
+    for(var i=0;i<NMR_REGIONS.length;i++){
+      var r=NMR_REGIONS[i];if(!_isHL&&HL_GRP.indexOf(r.group)!==-1)continue;
+      var x1=pad.left+(12-r.range[1])/12*cW,x2=pad.left+(12-r.range[0])/12*cW;
+      ctx.globalAlpha=0.2;ctx.fillStyle=r.color;ctx.fillRect(x1,pad.top,x2-x1,cH);ctx.globalAlpha=1;
+      if((x2-x1)>30){ctx.fillStyle=r.color;ctx.font='9px Inter,sans-serif';ctx.textAlign='center';ctx.fillText(r.label,(x1+x2)/2,pad.top+15+(i%3)*14);}
+    }
+    ctx.fillStyle='#94A3B8';ctx.font='13px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText('Select a molecule to view its \u00B9H NMR spectrum',W/2,H-pad.bottom-15);
+    var infoDiv=document.getElementById('nmrInfo');clearEl(infoDiv);
+    addLine(infoDiv,'\u00B9H NMR Chemical Shift Reference \u2014 ','Select a molecule from the palette to see its spectrum.');
+    clearEl(document.getElementById('nmrTeacher'));
+    return;
+  }
+
+  // Faint region bands in background
+  for(var i=0;i<NMR_REGIONS.length;i++){
+    var r=NMR_REGIONS[i];if(!_isHL&&HL_GRP.indexOf(r.group)!==-1)continue;
+    var x1=pad.left+(12-r.range[1])/12*cW,x2=pad.left+(12-r.range[0])/12*cW;
+    ctx.globalAlpha=0.06;ctx.fillStyle=r.color;ctx.fillRect(x1,pad.top,x2-x1,cH);ctx.globalAlpha=1;
+  }
+
+  var mol=_selectedNMRMolecule;
+  var ppmToX=function(ppm){return pad.left+(12-ppm)/12*cW;};
+  var ppmPerPx=12/cW;
+  var baseline=H-pad.bottom;
+  var maxH=0;for(var i=0;i<mol.peaks.length;i++)if(mol.peaks[i].h>maxH)maxH=mol.peaks[i].h;
+
+  // Integration curve (red stepped line at top)
+  var intTop=pad.top+5,intH=cH*0.15;
+  var intSteps=500,intData=[];var intSum=0;
+  for(var step=0;step<=intSteps;step++){
+    var ppm=12*step/intSteps;var val=0;
+    for(var i=0;i<mol.peaks.length;i++){
+      var pk=mol.peaks[i];var sig=pk.mult==='br_s'?0.2:0.05;
+      val+=pk.h*Math.exp(-(ppm-pk.s)*(ppm-pk.s)/(2*sig*sig));
+    }
+    intData.push(val);intSum+=val;
+  }
+  if(intSum>0){
+    ctx.strokeStyle='#DC2626';ctx.lineWidth=1.5;ctx.beginPath();var cum=0;
+    for(var step=0;step<=intSteps;step++){
+      cum+=intData[step];var ppm=12*step/intSteps;var x=ppmToX(ppm);
+      var y=intTop+intH-(cum/intSum)*intH;
+      if(step===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+    }
+    ctx.stroke();
+    ctx.fillStyle='#DC2626';ctx.font='8px Inter,sans-serif';ctx.textAlign='left';ctx.fillText('Integration',pad.left+4,intTop+9);
+  }
+
+  // Draw peaks
+  var peakAreaTop=intTop+intH+15;
+  var peakH=baseline-peakAreaTop-25;
+  for(var i=0;i<mol.peaks.length;i++){
+    var pk=mol.peaks[i];var cx=ppmToX(pk.s);
+    var h=(pk.h/maxH)*peakH*0.85;
+
+    if(pk.mult==='br_s'){
+      var sigma=0.2/ppmPerPx;
+      ctx.fillStyle='rgba(13,148,136,0.12)';ctx.strokeStyle='rgba(13,148,136,0.5)';ctx.lineWidth=1.5;
+      drawGaussianPeak(ctx,cx,baseline,h*0.5,sigma);
+    } else if(!_isHL||pk.mult==='s'){
+      var sigma=0.045/ppmPerPx;
+      ctx.fillStyle='rgba(13,148,136,0.2)';ctx.strokeStyle='#0D9488';ctx.lineWidth=1.5;
+      drawGaussianPeak(ctx,cx,baseline,h,sigma);
+    } else {
+      var ratios=MULT_RATIOS[pk.mult]||[1];
+      var n=ratios.length;var jPPM=pk.j*0.025;
+      var maxR=Math.max.apply(null,ratios);
+      var sigma=0.018/ppmPerPx;
+      for(var k=0;k<n;k++){
+        var offPPM=(k-(n-1)/2)*jPPM;var subX=ppmToX(pk.s+offPPM);
+        var subH=h*ratios[k]/maxR;
+        ctx.fillStyle='rgba(13,148,136,0.15)';ctx.strokeStyle='#0D9488';ctx.lineWidth=1;
+        drawGaussianPeak(ctx,subX,baseline,subH,sigma);
+      }
+    }
+    // Labels
+    var labelY=baseline-h-8;if(pk.mult==='br_s')labelY=baseline-h*0.5-8;
+    ctx.fillStyle='#1E293B';ctx.font='600 10px Inter,sans-serif';ctx.textAlign='center';
+    ctx.fillText(pk.label,cx,labelY);
+    ctx.fillStyle='#64748B';ctx.font='10px "Fira Code",monospace';
+    ctx.fillText(pk.h+'H',cx,labelY-12);
+    if(_isHL&&pk.mult!=='br_s'&&pk.mult!=='s'){
+      ctx.fillStyle='#7C3AED';ctx.font='bold 9px "Fira Code",monospace';
+      ctx.fillText(MULT_NAMES[pk.mult]||pk.mult,cx,labelY+12);
+      if(pk.j>0){ctx.fillStyle='#94A3B8';ctx.font='8px "Fira Code",monospace';ctx.fillText('J='+pk.j+' Hz',cx,labelY+22);}
+    }
+  }
+
+  // Info table
+  var infoDiv=document.getElementById('nmrInfo');clearEl(infoDiv);
+  var title=el('strong','','\u00B9H NMR: '+mol.name+' ('+mol.formula+')');title.style.color='var(--teal)';infoDiv.appendChild(title);
+  var tbl=document.createElement('table');tbl.style.cssText='width:100%;margin-top:.5rem;font-size:.78rem;border-collapse:collapse;';
+  var thead=document.createElement('thead');var tr=document.createElement('tr');
+  var cols=['\u03B4 / ppm','H'];if(_isHL)cols.push('Splitting');cols.push('Assignment');if(_isHL)cols.push('Environment');
+  cols.forEach(function(h){var th=document.createElement('th');th.textContent=h;th.style.cssText='text-align:left;padding:.25rem .5rem;border-bottom:2px solid var(--border);font-weight:600;';tr.appendChild(th);});
+  thead.appendChild(tr);tbl.appendChild(thead);
+  var tbody=document.createElement('tbody');
+  mol.peaks.forEach(function(pk){
+    var row=document.createElement('tr');
+    var cells=[pk.s.toFixed(1),''+pk.h];
+    if(_isHL)cells.push((MULT_NAMES[pk.mult]||pk.mult)+(pk.j?' (J='+pk.j+' Hz)':''));
+    cells.push(pk.label);if(_isHL)cells.push(pk.env||'');
+    cells.forEach(function(c,ci){var td=document.createElement('td');td.textContent=c;
+      td.style.cssText='padding:.25rem .5rem;border-bottom:1px solid var(--border);'+(ci>=3?'font-size:.72rem;color:var(--text-muted);':'');
+      row.appendChild(td);});
+    tbody.appendChild(row);
+  });
+  tbl.appendChild(tbody);infoDiv.appendChild(tbl);
+
+  // Teacher panel
+  var td=document.getElementById('nmrTeacher');clearEl(td);
+  if(_isTeacher){
+    addLine(td,'Teaching Notes: ','');
+    addLine(td,'','\u2022 '+mol.peaks.length+' distinct H environment'+(mol.peaks.length>1?'s':'')+' in '+mol.name);
+    addLine(td,'','\u2022 Integration ratio: '+mol.peaks.map(function(p){return p.h;}).join(' : '));
+    if(_isHL){
+      addLine(td,'','\u2022 n+1 rule: n equivalent neighboring H atoms \u2192 n+1 lines');
+      mol.peaks.forEach(function(pk){
+        if(pk.mult!=='s'&&pk.mult!=='br_s')addLine(td,'','  \u2013 '+pk.label+': '+(MULT_NAMES[pk.mult]||pk.mult)+' \u2014 '+pk.env);
+      });
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════
+// CHALLENGE MODE
+// ═══════════════════════════════════════════════════
+function buildCheckboxes(){
+  var container=document.getElementById('fgCheckboxes');clearEl(container);
+  FG_LIST.forEach(function(fg){
+    if(fg.hl&&!_isHL)return;
+    var lbl=document.createElement('label');lbl.className='fg-checkbox';
+    var cb=document.createElement('input');cb.type='checkbox';cb.value=fg.id;
+    cb.addEventListener('change',function(){document.getElementById('btnSubmitGuess').disabled=!document.querySelector('#fgCheckboxes input:checked');});
+    lbl.appendChild(cb);lbl.appendChild(document.createTextNode(fg.name));container.appendChild(lbl);
+  });
+}
+
+function loadUnknown(u){
+  _challengeUnknown=u;_challengeSubmitted=false;
+  document.getElementById('challengeFeedback').textContent='';document.getElementById('challengeAnswer').textContent='';
+  document.getElementById('btnSubmitGuess').disabled=true;
+  var cbs=document.querySelectorAll('#fgCheckboxes input');for(var i=0;i<cbs.length;i++)cbs[i].checked=false;
+  buildPalette();renderChallenge();
+}
+
+function renderChallenge(){
+  buildCheckboxes();
+  if(!_challengeUnknown){
+    ['challengeIR','challengeMS','challengeNMR'].forEach(function(id){
+      var c=document.getElementById(id);if(!c)return;
+      var ctx=setupCanvas(c),W=c.offsetWidth,H=parseInt(c.dataset.baseHeight);
+      ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);ctx.fillStyle='#94A3B8';ctx.font='13px Inter,sans-serif';ctx.textAlign='center';
+      ctx.fillText('Click "New Unknown" to start',W/2,H/2);
+    });return;
+  }
+  drawChallengeIR();drawChallengeMS();if(_isHL)drawChallengeNMR();
+  var ansDiv=document.getElementById('challengeAnswer');
+  if(_isTeacher&&_challengeUnknown)ansDiv.textContent='Answer: '+_challengeUnknown.name+' ('+_challengeUnknown.formula+') \u2014 '+_challengeUnknown.groups.join(', ');
+  else ansDiv.textContent='';
+}
+
+function drawMiniAxes(ctx,W,H,pad){
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+  ctx.strokeStyle='#1E293B';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.left,pad.top);ctx.lineTo(pad.left,H-pad.bottom);ctx.lineTo(W-pad.right,H-pad.bottom);ctx.stroke();
+}
+
+function drawChallengeIR(){
+  var canvas=document.getElementById('challengeIR');if(!canvas)return;
+  var ctx=setupCanvas(canvas),W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight);
+  var pad={top:15,right:15,bottom:30,left:40},cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
+  drawMiniAxes(ctx,W,H,pad);
+  ctx.fillStyle='#64748B';ctx.font='9px "Fira Code",monospace';ctx.textAlign='center';
+  [4000,3000,2000,1000].forEach(function(v){ctx.fillText(v,pad.left+(4000-v)/3500*cW,H-pad.bottom+12);});
+  ctx.fillText('cm\u207B\u00B9',(pad.left+W-pad.right)/2,H-2);
+  if(!_challengeUnknown)return;var u=_challengeUnknown;
+  ctx.strokeStyle='#1E293B';ctx.lineWidth=1.2;ctx.beginPath();
+  for(var wn=4000;wn>=500;wn-=2){
+    var x=pad.left+(4000-wn)/3500*cW,T=100;
+    for(var p=0;p<u.ir.length;p++){var pk=u.ir[p],w=pk.w||60;T-=75*Math.exp(-(wn-pk.c)*(wn-pk.c)/(2*w*w));}
+    var y=H-pad.bottom-(Math.max(T,2)/100)*cH;if(wn===4000)ctx.moveTo(x,y);else ctx.lineTo(x,y);
+  }
+  ctx.stroke();
+}
+
+function drawChallengeMS(){
+  var canvas=document.getElementById('challengeMS');if(!canvas)return;
+  var ctx=setupCanvas(canvas),W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight);
+  var pad={top:15,right:15,bottom:30,left:40},cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
+  drawMiniAxes(ctx,W,H,pad);
+  if(!_challengeUnknown)return;var u=_challengeUnknown,maxMZ=u.Mr+10;
+  ctx.fillStyle='#64748B';ctx.font='9px "Fira Code",monospace';ctx.textAlign='center';ctx.fillText('m/z',(pad.left+W-pad.right)/2,H-2);
+  var barW=Math.max(2,Math.min(8,cW/maxMZ*0.5));
+  for(var i=0;i<u.ms.length;i++){
+    var pk=u.ms[i],x=pad.left+(pk.mz/maxMZ)*cW,barH=(pk.int/100)*cH;
+    ctx.fillStyle=(pk.mz===Math.round(u.Mr)||pk.mz===Math.ceil(u.Mr))?'#0D9488':'#1E293B';
+    ctx.fillRect(x-barW/2,H-pad.bottom-barH,barW,barH);
+    if(pk.int>=30){ctx.fillStyle='#334155';ctx.font='9px "Fira Code",monospace';ctx.fillText(pk.mz,x,H-pad.bottom-barH-3);}
+  }
+}
+
+function drawChallengeNMR(){
+  var canvas=document.getElementById('challengeNMR');if(!canvas)return;
+  var ctx=setupCanvas(canvas),W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight);
+  var pad={top:15,right:15,bottom:30,left:40},cW=W-pad.left-pad.right,cH=H-pad.top-pad.bottom;
+  drawMiniAxes(ctx,W,H,pad);
+  ctx.fillStyle='#64748B';ctx.font='9px "Fira Code",monospace';ctx.textAlign='center';
+  for(var t=0;t<=12;t+=2){ctx.fillText(t,pad.left+(12-t)/12*cW,H-pad.bottom+12);}
+  ctx.fillText('\u03B4 / ppm',(pad.left+W-pad.right)/2,H-2);
+  if(!_challengeUnknown||!_challengeUnknown.nmr)return;
+  var nmr=_challengeUnknown.nmr,maxH=0;for(var i=0;i<nmr.length;i++)if(nmr[i].h>maxH)maxH=nmr[i].h;
+  var ppmPerPx=12/cW;var baseline=H-pad.bottom;
+  for(var i=0;i<nmr.length;i++){
+    var pk=nmr[i],cx=pad.left+(12-pk.s)/12*cW,pkH=(pk.h/maxH)*cH*0.8;
+    var mult=pk.mult||'s';
+    if(!_isHL||mult==='s'||mult==='br_s'){
+      var sigma=mult==='br_s'?0.15/ppmPerPx:0.04/ppmPerPx;
+      if(mult==='br_s')pkH*=0.5;
+      ctx.fillStyle='rgba(13,148,136,0.25)';ctx.strokeStyle='#0D9488';ctx.lineWidth=1.2;
+      drawGaussianPeak(ctx,cx,baseline,pkH,sigma);
+    } else {
+      var ratios=MULT_RATIOS[mult]||[1];
+      var n=ratios.length,jPPM=(pk.j||7)*0.025,maxR=Math.max.apply(null,ratios);
+      var sigma=0.015/ppmPerPx;
+      for(var k=0;k<n;k++){
+        var offPPM=(k-(n-1)/2)*jPPM;
+        var subX=pad.left+(12-(pk.s+offPPM))/12*cW;
+        ctx.fillStyle='rgba(13,148,136,0.15)';ctx.strokeStyle='#0D9488';ctx.lineWidth=1;
+        drawGaussianPeak(ctx,subX,baseline,pkH*ratios[k]/maxR,sigma);
+      }
+    }
+  }
+}
+
+document.getElementById('btnSubmitGuess').addEventListener('click',function(){
+  if(!_challengeUnknown||_challengeSubmitted)return;
+  _challengeSubmitted=true;_challengeTotal++;
+  var checked=[];var cbs=document.querySelectorAll('#fgCheckboxes input:checked');
+  for(var i=0;i<cbs.length;i++)checked.push(cbs[i].value);
+  var correct=_challengeUnknown.groups;
+  var isCorrect=checked.length===correct.length&&correct.every(function(g){return checked.indexOf(g)!==-1;});
+  if(isCorrect)_challengeScore++;
+  document.getElementById('scoreText').textContent=_challengeScore+' / '+_challengeTotal;
+  var fb=document.getElementById('challengeFeedback');
+  fb.className='feedback '+(isCorrect?'correct':'incorrect');
+  fb.textContent=isCorrect?('\u2713 Correct! '+_challengeUnknown.name+' ('+_challengeUnknown.formula+')'):('\u2717 Not quite. Answer: '+_challengeUnknown.name+' \u2014 '+correct.join(', '));
+  this.disabled=true;
+});
+
+document.getElementById('btnNewUnknown').addEventListener('click',function(){
+  var filtered=UNKNOWNS.filter(function(u){
+    if(u.difficulty==='Hard'&&!_isHL)return false;
+    if(_challengeDifficulty!=='All'&&u.difficulty!==_challengeDifficulty)return false;return true;
+  });
+  if(filtered.length===0)filtered=UNKNOWNS.filter(function(u){return u.difficulty!=='Hard'||_isHL;});
+  loadUnknown(filtered[Math.floor(Math.random()*filtered.length)]);
+});
+
+var diffBtns=document.querySelectorAll('.difficulty-btn');
+for(var i=0;i<diffBtns.length;i++)diffBtns[i].addEventListener('click',function(){
+  _challengeDifficulty=this.getAttribute('data-diff');
+  for(var j=0;j<diffBtns.length;j++)diffBtns[j].classList.toggle('active',diffBtns[j]===this);
+});
+
+// ═══════════════════════════════════════════════════
+// CSV EXPORT
+// ═══════════════════════════════════════════════════
+function exportCSV(){
+  var rows=[['Tab','Item','Detail','Value','Timestamp']],ts=new Date().toISOString();
+  if(_activeTab==='ir'&&_selectedIRGroup)IR_PEAKS.filter(function(p){return p.group===_selectedIRGroup;}).forEach(function(p){rows.push(['IR',_selectedIRGroup,p.label,p.range[0]+'-'+p.range[1]+' cm-1',ts]);});
+  else if(_activeTab==='ms'&&_selectedMSCompound)_selectedMSCompound.peaks.forEach(function(p){rows.push(['MS',_selectedMSCompound.name,'m/z '+p.mz,p.int+'%',ts]);});
+  else if(_activeTab==='nmr'&&_selectedNMRMolecule)_selectedNMRMolecule.peaks.forEach(function(p){rows.push(['NMR',_selectedNMRMolecule.name,p.label+' ('+p.h+'H)','\u03B4 '+p.s.toFixed(1)+' ppm, '+(MULT_NAMES[p.mult]||p.mult),ts]);});
+  else if(_activeTab==='challenge')rows.push(['Challenge','Score',_challengeScore+'/'+_challengeTotal,'',ts]);
+  var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='SpectroscopyLab_export.csv';a.click();
+}
+
+// ═══════════════════════════════════════════════════
+// KEYBOARD SHORTCUTS
+// ═══════════════════════════════════════════════════
+document.addEventListener('keydown',function(evt){
+  var tag=evt.target.tagName;if(tag==='INPUT'||tag==='SELECT'||tag==='TEXTAREA')return;
+  switch(evt.key.toLowerCase()){
+    case 'h':toggleHL();break;case 't':toggleTeacher();break;
+    case '1':switchTab('ir');break;case '2':switchTab('ms');break;case '3':switchTab('nmr');break;case '4':switchTab('challenge');break;
+    case 'r':_selectedIRGroup=null;_selectedMSCompound=null;_selectedNMRGroup=null;_selectedNMRMolecule=null;_challengeUnknown=null;_challengeSubmitted=false;buildPalette();refreshTab();break;
+    case '/':paletteSearch.focus();evt.preventDefault();break;case 'e':exportCSV();break;
+  }
+});
+
+window.addEventListener('resize',function(){refreshTab();});
+buildPalette();refreshTab();updateChallengeNMR();
+})();
+</script>
+<footer>SimEngine &mdash; Spectroscopy Lab &bull; H=HL T=Teacher</footer>
+</body>
+</html>

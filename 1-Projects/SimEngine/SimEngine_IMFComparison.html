@@ -30,7 +30,8 @@
     --sim-data-5: #DC2626;
     --hl-badge-bg: #7C3AED;
     --hl-border: rgba(124, 58, 237, 0.2);
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -44,9 +45,9 @@
 
   /* ── Header ── */
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    background: var(--navy);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: .75rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -193,9 +194,13 @@
     .palette-panel { max-height: 200px; }
     .hl-graphs { grid-template-columns: 1fr; }
   }
+
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <!-- Header -->
 <div class="header">
@@ -211,17 +216,17 @@
 </div>
 
 <!-- Main Content -->
-<div class="sim-container">
+<div class="sim-container" id="main-content">
   <div class="sim-top-row">
 
     <!-- Left: Molecule Palette -->
     <div class="palette-panel sim-card">
       <div class="sim-card-header">Molecules</div>
       <div class="sim-card-body">
-        <input type="text" class="palette-search" id="molSearch" placeholder="Search molecules...">
+        <input type="text" class="palette-search" id="molSearch" placeholder="Search molecules..." aria-label="Search molecules">
         <div id="paletteList"></div>
         <div class="preset-section" id="presetSection">
-          <select id="presetSelect">
+          <select id="presetSelect" aria-label="Quick presets">
             <option value="">Quick Presets...</option>
           </select>
         </div>
@@ -237,7 +242,7 @@
       <div class="sim-card">
         <div class="sim-card-header">Property Comparison</div>
         <div class="sim-card-body">
-          <canvas id="propCanvas" class="prop-bars-canvas"></canvas>
+          <canvas id="propCanvas" class="prop-bars-canvas" role="img" aria-label="Bar chart comparing physical properties of selected molecules"></canvas>
         </div>
       </div>
 
@@ -247,13 +252,13 @@
           <div class="sim-card">
             <div class="sim-card-header">M&#x1D63; vs Boiling Point</div>
             <div class="sim-card-body">
-              <canvas id="scatterCanvas" class="hl-canvas"></canvas>
+              <canvas id="scatterCanvas" class="hl-canvas" role="img" aria-label="Scatter plot of molar mass versus boiling point"></canvas>
             </div>
           </div>
           <div class="sim-card">
             <div class="sim-card-header">IMF Strength Breakdown</div>
             <div class="sim-card-body">
-              <canvas id="imfCanvas" class="hl-canvas"></canvas>
+              <canvas id="imfCanvas" class="hl-canvas" role="img" aria-label="Stacked bar chart showing intermolecular force strength breakdown"></canvas>
             </div>
           </div>
         </div>
@@ -1720,7 +1725,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
 
     SimEngine.State.on('mode', function(data) {
       _isTeacher = (data.value === true || data.value === 'teacher');
-      document.body.classList.toggle('teacher-mode', _isTeacher);
+      document.body.classList.toggle('teacher-active', _isTeacher);
     });
 
     // Build UI
@@ -1793,5 +1798,6 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
 })();
 </script>
 
+<footer>SimEngine &mdash; IMF Comparison &bull; H=HL T=Teacher</footer>
 </body>
 </html>

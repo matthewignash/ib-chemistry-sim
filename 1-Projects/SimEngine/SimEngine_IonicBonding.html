@@ -28,7 +28,8 @@
     --sim-canvas-bg: #FAFBFC;
     --hl-badge-bg: #7C3AED;
     --hl-border: rgba(124, 58, 237, 0.2);
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -41,9 +42,9 @@
   }
 
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    background: var(--navy);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: .75rem 1.5rem;
     display: flex; align-items: center; justify-content: space-between;
     flex-wrap: wrap; gap: 0.75rem;
   }
@@ -241,9 +242,12 @@
     .palette-panel { max-height: 200px; position: static; }
     .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
   }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <div class="header">
   <div class="header-left">
@@ -255,25 +259,25 @@
     <span class="header-badge hl">HL</span>
     <div class="sim-toggle-group">
       <span class="sim-toggle-label">SL</span>
-      <label class="sim-toggle"><input type="checkbox" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle HL content" id="hlToggle"><span class="sim-toggle-slider"></span></label>
       <span class="sim-toggle-label">HL</span>
     </div>
     <div class="sim-toggle-group">
       <span class="sim-toggle-label">Student</span>
-      <label class="sim-toggle"><input type="checkbox" id="teacherToggle"><span class="sim-toggle-slider" style="--toggle-on: var(--amber);"></span></label>
+      <label class="sim-toggle"><input type="checkbox" aria-label="Toggle teacher mode" id="teacherToggle"><span class="sim-toggle-slider" style="--toggle-on: var(--amber);"></span></label>
       <span class="sim-toggle-label">Teacher</span>
     </div>
   </div>
 </div>
 
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="transfer"><span class="tab-num">1</span>Electron Transfer</button>
-  <button class="tab-btn" data-tab="lattice"><span class="tab-num">2</span>Crystal Lattice</button>
-  <button class="tab-btn" data-tab="properties"><span class="tab-num">3</span>Properties Lab</button>
-  <button class="tab-btn hl-tab" data-tab="latticeEnergy"><span class="tab-num">4</span>Lattice Energy</button>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="transfer" role="tab"><span class="tab-num">1</span>Electron Transfer</button>
+  <button class="tab-btn" data-tab="lattice" role="tab"><span class="tab-num">2</span>Crystal Lattice</button>
+  <button class="tab-btn" data-tab="properties" role="tab"><span class="tab-num">3</span>Properties Lab</button>
+  <button class="tab-btn hl-tab" data-tab="latticeEnergy" role="tab"><span class="tab-num">4</span>Lattice Energy</button>
 </div>
 
-<div class="sim-container">
+<div class="sim-container" id="main-content">
   <div class="sim-top-row">
 
     <div class="sim-card palette-panel">
@@ -289,19 +293,19 @@
       </div>
     </div>
 
-    <div class="tab-content active" id="tab-transfer">
+    <div class="tab-content active" id="tab-transfer" role="tabpanel">
       <div id="transferBody"></div>
     </div>
 
-    <div class="tab-content" id="tab-lattice">
+    <div class="tab-content" id="tab-lattice" role="tabpanel">
       <div id="latticeBody"></div>
     </div>
 
-    <div class="tab-content" id="tab-properties">
+    <div class="tab-content" id="tab-properties" role="tabpanel">
       <div id="propertiesBody"></div>
     </div>
 
-    <div class="tab-content" id="tab-latticeEnergy">
+    <div class="tab-content" id="tab-latticeEnergy" role="tabpanel">
       <div id="latticeEnergyBody"></div>
     </div>
 
@@ -2144,5 +2148,6 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   renderTransferTab();
 })();
 </script>
+<footer>SimEngine &mdash; Ionic Bonding &bull; H=HL T=Teacher</footer>
 </body>
 </html>

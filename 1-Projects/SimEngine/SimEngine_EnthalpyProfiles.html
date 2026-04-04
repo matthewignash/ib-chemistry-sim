@@ -25,7 +25,8 @@
     --sim-canvas-bg: #FAFBFC;
     --hl-badge-bg: #7C3AED;
     --hl-border: rgba(124, 58, 237, 0.2);
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -39,9 +40,9 @@
 
   /* ── Header ── */
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    background: var(--navy);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: .75rem 1.5rem;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -199,9 +200,12 @@
     .sim-top-row { grid-template-columns: 1fr; }
     .palette-panel { max-height: 200px; position: static; }
   }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <!-- Header -->
 <div class="header">
@@ -217,17 +221,17 @@
 </div>
 
 <!-- Main Content -->
-<div class="sim-container">
+<div class="sim-container" id="main-content">
   <div class="sim-top-row">
 
     <!-- Left: Reaction Palette -->
     <div class="palette-panel sim-card">
       <div class="sim-card-header">Reactions</div>
       <div class="sim-card-body">
-        <input type="text" class="palette-search" id="rxnSearch" placeholder="Search reactions...">
+        <input type="text" class="palette-search" aria-label="Search reactions" id="rxnSearch" placeholder="Search reactions...">
         <div id="paletteList"></div>
         <div class="preset-section" id="presetSection">
-          <select id="presetSelect">
+          <select aria-label="Select preset reaction" id="presetSelect">
             <option value="">Teacher Presets...</option>
           </select>
         </div>
@@ -240,7 +244,7 @@
       <div class="sim-card">
         <div class="sim-card-header">Energy Profile Diagram</div>
         <div class="sim-card-body" style="padding: 0.5rem;">
-          <canvas id="profileCanvas"></canvas>
+          <canvas id="profileCanvas" role="img" aria-label="Enthalpy profile energy diagram"></canvas>
         </div>
       </div>
 
@@ -303,7 +307,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   var BOND_ENERGIES = {
     'C-H': 414, 'O-H': 463, 'C-C': 346, 'O=O': 498,
     'C=C': 614, 'H-H': 436, 'C-O': 358, 'N-H': 391,
-    'C=O': 805, 'N\u2261N': 945, 'C-Cl': 324, 'Cl-Cl': 242,
+    'C=O': 804, 'N\u2261N': 945, 'C-Cl': 324, 'Cl-Cl': 242,
     'C-Br': 285, 'H-Cl': 432, 'N=O': 587, 'H-Br': 366,
     'O-O': 142, 'Br-Br': 193
   };
@@ -332,7 +336,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       catalystNote: null,
       bonds: {
         broken: [{ bond: 'C-H', count: 4, energy: 414 }, { bond: 'O=O', count: 2, energy: 498 }],
-        formed: [{ bond: 'C=O', count: 2, energy: 805 }, { bond: 'O-H', count: 4, energy: 463 }]
+        formed: [{ bond: 'C=O', count: 2, energy: 804 }, { bond: 'O-H', count: 4, energy: 463 }]
       }
     },
     {
@@ -346,7 +350,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
           { bond: 'C-O', count: 1, energy: 358 }, { bond: 'O-H', count: 1, energy: 463 },
           { bond: 'O=O', count: 3, energy: 498 }
         ],
-        formed: [{ bond: 'C=O', count: 4, energy: 805 }, { bond: 'O-H', count: 6, energy: 463 }]
+        formed: [{ bond: 'C=O', count: 4, energy: 804 }, { bond: 'O-H', count: 6, energy: 463 }]
       }
     },
     {
@@ -359,7 +363,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
           { bond: 'C-H', count: 8, energy: 414 }, { bond: 'C-C', count: 2, energy: 346 },
           { bond: 'O=O', count: 5, energy: 498 }
         ],
-        formed: [{ bond: 'C=O', count: 6, energy: 805 }, { bond: 'O-H', count: 8, energy: 463 }]
+        formed: [{ bond: 'C=O', count: 6, energy: 804 }, { bond: 'O-H', count: 8, energy: 463 }]
       }
     },
     {
@@ -1381,6 +1385,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   function toggleTeacher() {
     _teacherMode = !_teacherMode;
     if (_tInput) _tInput.checked = _teacherMode;
+    document.body.classList.toggle('teacher-active', _teacherMode);
     var presetSection = document.getElementById('presetSection');
     presetSection.style.display = _teacherMode ? 'block' : 'none';
   }
@@ -1552,5 +1557,6 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
 
 })();
 </script>
+<footer>SimEngine &mdash; Enthalpy Profiles &bull; H=HL T=Teacher</footer>
 </body>
 </html>

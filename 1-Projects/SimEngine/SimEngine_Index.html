@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IB Chemistry SimEngine — Simulation Launcher</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--teal-bg:#F0FDFA;--purple-bg:#F5F3FF;--green:#10B981;--orange:#F59E0B;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+
+  /* Header */
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;text-align:center;}
+  .header h1{font-size:1.8rem;font-weight:700;margin-bottom:.25rem;}
+  .header .subtitle{font-size:.9rem;opacity:.7;}
+  .header .sim-count{display:inline-block;margin-top:.5rem;padding:.25rem .75rem;background:rgba(13,148,136,.3);border-radius:20px;font-size:.78rem;font-weight:600;color:#5EEAD4;}
+
+  /* Search/Filter Bar */
+  .search-bar{position:sticky;top:0;z-index:100;background:white;border-bottom:2px solid var(--border);padding:.75rem 1.5rem;display:flex;align-items:center;gap:1rem;flex-wrap:wrap;}
+  .search-wrap{flex:1;min-width:220px;position:relative;}
+  .search-wrap input{width:100%;padding:.55rem .75rem .55rem 2.25rem;border:1px solid var(--border);border-radius:8px;font-size:.88rem;font-family:inherit;transition:.2s;}
+  .search-wrap input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
+  .search-icon{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--text-muted);font-size:.9rem;pointer-events:none;}
+  .filter-group{display:flex;gap:.35rem;align-items:center;}
+  .filter-label{font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;white-space:nowrap;}
+  .filter-btn{padding:.35rem .75rem;border:1px solid var(--border);border-radius:6px;background:white;font-size:.78rem;font-weight:500;cursor:pointer;font-family:inherit;transition:.2s;}
+  .filter-btn:hover{background:#F8FAFC;}
+  .filter-btn.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);font-weight:600;}
+
+  /* Section Quick-Jump */
+  .jump-bar{display:flex;gap:.35rem;flex-wrap:wrap;}
+  .jump-btn{padding:.3rem .6rem;border:1px solid var(--border);border-radius:6px;background:white;font-size:.72rem;font-weight:600;cursor:pointer;font-family:'Fira Code',monospace;transition:.2s;color:var(--text-muted);}
+  .jump-btn:hover{background:var(--teal-bg);color:var(--teal);border-color:var(--teal);}
+
+  /* Container */
+  .container{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;}
+
+  /* Section Groups */
+  .section-group{margin-bottom:2rem;}
+  .section-group.hidden{display:none;}
+  .section-heading{background:var(--navy);color:white;padding:.6rem 1rem;font-weight:600;font-size:.88rem;border-radius:12px 12px 0 0;display:flex;align-items:center;justify-content:space-between;}
+  .section-heading .count-badge{font-size:.7rem;font-weight:500;opacity:.7;font-family:'Fira Code',monospace;}
+
+  /* Card Grid */
+  .card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem;padding:1rem;background:#F1F5F9;border-radius:0 0 12px 12px;border:1px solid var(--border);border-top:none;}
+
+  /* Sim Cards */
+  .sim-card{display:flex;flex-direction:column;background:white;border:2px solid var(--border);border-radius:10px;padding:1rem;text-decoration:none;color:var(--text);transition:.2s;cursor:pointer;}
+  .sim-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateY(-2px);border-color:var(--teal);}
+  .sim-card:focus-visible{outline:2px solid var(--teal);outline-offset:2px;}
+  .sim-card.hidden{display:none;}
+
+  .card-badges{display:flex;gap:.4rem;margin-bottom:.5rem;align-items:center;}
+  .topic-badge{display:inline-flex;align-items:center;padding:.15rem .5rem;border-radius:4px;font-size:.68rem;font-weight:700;background:var(--teal);color:white;font-family:'Fira Code',monospace;}
+  .level-badge{display:inline-flex;align-items:center;padding:.15rem .45rem;border-radius:4px;font-size:.64rem;font-weight:600;}
+  .level-badge.sl{background:#E0F2FE;color:#0369A1;}
+  .level-badge.both{background:var(--teal-bg);color:var(--teal);}
+  .level-badge.hl{background:var(--purple-bg);color:var(--purple);}
+
+  .card-title{font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:.3rem;line-height:1.3;}
+  .card-desc{font-size:.78rem;color:var(--text-muted);line-height:1.5;flex:1;}
+
+  /* No Results */
+  .no-results{display:none;text-align:center;padding:3rem 1rem;color:var(--text-muted);font-size:.95rem;}
+  .no-results.visible{display:block;}
+  .no-results .no-results-icon{font-size:2rem;margin-bottom:.5rem;}
+
+  /* Footer */
+  .footer{text-align:center;padding:2rem 1rem;font-size:.75rem;color:var(--text-muted);}
+
+  /* Keyboard Hint */
+  .keyboard-hint{text-align:center;padding:.5rem;font-size:.7rem;color:var(--text-muted);}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+
+  /* Responsive */
+  @media(max-width:700px){
+    .header h1{font-size:1.3rem;}
+    .search-bar{flex-direction:column;align-items:stretch;gap:.5rem;}
+    .filter-group{justify-content:center;}
+    .jump-bar{justify-content:center;}
+    .card-grid{grid-template-columns:1fr;padding:.75rem;}
+  }
+  @media print{
+    .search-bar,.jump-bar{display:none!important;}
+    .sim-card{box-shadow:none;border:1px solid #ccc;break-inside:avoid;}
+    .card-grid{display:block;}
+    .sim-card{margin-bottom:.5rem;}
+  }
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>IB Chemistry SimEngine</h1>
+  <div class="subtitle">Interactive Simulations for the 2025 Syllabus</div>
+  <div class="sim-count" id="simCount">36 Simulations</div>
+</div>
+
+<div class="search-bar">
+  <div class="search-wrap">
+    <span class="search-icon">&#128269;</span>
+    <input type="text" id="searchInput" placeholder="Search sims by name or topic...  ( / )">
+  </div>
+  <div class="filter-group">
+    <span class="filter-label">Level:</span>
+    <button class="filter-btn active" data-level="all">All</button>
+    <button class="filter-btn" data-level="sl">SL</button>
+    <button class="filter-btn" data-level="hl">HL Only</button>
+  </div>
+  <div class="jump-bar" id="jumpBar"></div>
+</div>
+
+<div class="container" id="simContainer"></div>
+
+<div class="no-results" id="noResults">
+  <div class="no-results-icon">&#128270;</div>
+  <div>No simulations match your search.</div>
+</div>
+
+<div class="keyboard-hint">
+  <kbd>/</kbd> Search &nbsp; <kbd>Esc</kbd> Clear
+</div>
+
+<div class="footer">
+  36 Simulations &mdash; IB Chemistry 2025 Syllabus &mdash; SimEngine
+</div>
+
+<script>
+(function(){
+  'use strict';
+
+  var SECTIONS = [
+    { id:'S1', title:'Structure 1: Models of the Particulate Nature of Matter' },
+    { id:'S2', title:'Structure 2: Models of Bonding and Structure' },
+    { id:'S3', title:'Structure 3: Classification of Matter' },
+    { id:'R1', title:'Reactivity 1: What Drives Chemical Reactions?' },
+    { id:'R2', title:'Reactivity 2: How Much, How Fast, and How Far?' },
+    { id:'R3', title:'Reactivity 3: What Are the Mechanisms of Chemical Change?' },
+    { id:'Math', title:'Math Skills Trainers' }
+  ];
+
+  var SIMS = [
+    // S1
+    { file:'SimEngine_StatesOfMatter.html', name:'States of Matter', section:'S1', topic:'S1.1', level:'both',
+      desc:'Particle visualization, phase transitions, and heating curves',
+      keywords:'kinetic solid liquid gas boiling melting' },
+    { file:'SimEngine_NuclearAtom.html', name:'Nuclear Atom', section:'S1', topic:'S1.2', level:'both',
+      desc:'Mass spectra, emission spectra, and isotope explorer',
+      keywords:'isotope proton neutron electron mass spectrum emission' },
+    { file:'SimEngine_ElectronConfig.html', name:'Electron Configurations', section:'S1', topic:'S1.3', level:'both',
+      desc:'Orbital builder, notation, periodic map, and IE trends',
+      keywords:'orbital aufbau hund subshell ionization energy 1s 2s 2p' },
+    { file:'SimEngine_Stoichiometry.html', name:'Mole Concept & Stoichiometry', section:'S1', topic:'S1.4', level:'both',
+      desc:'Particle diagrams, ICE tables, and limiting reagent',
+      keywords:'mole avogadro molar mass limiting excess yield' },
+    { file:'SimEngine_GasLaws.html', name:'Ideal Gas Laws', section:'S1', topic:'S1.5', level:'both',
+      desc:'P-V-T relationships, particle animation, and PV=nRT solver',
+      keywords:'pressure volume temperature ideal gas equation' },
+    { file:'SimEngine_GasLawsLab.html', name:'Gas Laws Lab', section:'S1', topic:'S1.5', level:'both',
+      desc:"Boyle's, Charles's, and Gay-Lussac's law experiments",
+      keywords:'boyle charles gay-lussac pressure volume temperature lab' },
+
+    // S2
+    { file:'SimEngine_IonicBonding.html', name:'Ionic Bonding', section:'S2', topic:'S2.1', level:'both',
+      desc:'3D lattice models and drag-drop atom builder',
+      keywords:'ionic lattice NaCl electron transfer cation anion' },
+    { file:'SimEngine_MetallicBonding.html', name:'Metallic Bonding', section:'S2', topic:'S2.2', level:'both',
+      desc:'Sea of electrons, alloys, and band theory (HL)',
+      keywords:'metallic delocalized alloy conductivity malleability band theory' },
+    { file:'SimEngine_CovalentBonding.html', name:'Covalent Bonding', section:'S2', topic:'S2.3', level:'both',
+      desc:'Lewis structures, bonding modes, and electronegativity',
+      keywords:'covalent sigma pi bond polar nonpolar lewis dot' },
+    { file:'SimEngine_VSEPR.html', name:'Molecular Geometry (VSEPR)', section:'S2', topic:'S2.4', level:'both',
+      desc:'3D molecule builder, electron pair geometry, and bond angles',
+      keywords:'VSEPR shape tetrahedral trigonal linear bent lone pair' },
+    { file:'SimEngine_IMFComparison.html', name:'IMF & Materials', section:'S2', topic:'S2.4', level:'both',
+      desc:'IMF type selector, boiling point predictor, and polarity',
+      keywords:'intermolecular forces hydrogen bond van der waals dipole london dispersion' },
+
+    // S3
+    { file:'SimEngine_PeriodicTrends.html', name:'Periodic Table Trends', section:'S3', topic:'S3.1', level:'both',
+      desc:'Interactive graphs for IE, atomic radius, and EN',
+      keywords:'periodic trend ionization energy electronegativity radius group period' },
+    { file:'SimEngine_FunctionalGroups.html', name:'Functional Groups', section:'S3', topic:'S3.2', level:'both',
+      desc:'Functional group explorer and structure builder',
+      keywords:'organic alcohol aldehyde ketone carboxylic acid ester amine amide' },
+    { file:'SimEngine_OrganicMechanisms.html', name:'Organic Mechanisms', section:'S3', topic:'S3.2', level:'both',
+      desc:'SN1, SN2, elimination, addition, and free radical substitution',
+      keywords:'SN1 SN2 E1 E2 electrophilic nucleophilic free radical mechanism curly arrow' },
+    { file:'SimEngine_SpectroscopyLab.html', name:'Spectroscopy Lab', section:'S3', topic:'S3.2', level:'both',
+      desc:'IR, MS, and NMR (HL) viewers with 12-unknown ID challenge',
+      keywords:'IR infrared mass spectrometry NMR spectroscopy analytical identification' },
+
+    // R1
+    { file:'SimEngine_EnthalpyProfiles.html', name:'Enthalpy Profiles', section:'R1', topic:'R1.1', level:'both',
+      desc:'Exo/endothermic energy diagrams with activation energy',
+      keywords:'enthalpy exothermic endothermic activation energy Ea profile diagram' },
+    { file:'SimEngine_HessLaw.html', name:"Hess's Law", section:'R1', topic:'R1.2', level:'both',
+      desc:"Enthalpy cycle builder with step-by-step construction",
+      keywords:'hess law enthalpy cycle formation combustion calculation' },
+    { file:'SimEngine_BornHaber.html', name:'Born-Haber Cycles', section:'R1', topic:'R1.2', level:'hl',
+      desc:'Lattice enthalpy cycles, theoretical vs. experimental',
+      keywords:'born haber lattice enthalpy ionization electron affinity atomization' },
+    { file:'SimEngine_EnergyFromFuels.html', name:'Energy from Fuels', section:'R1', topic:'R1.3', level:'both',
+      desc:'Combustion calorimetry, fuel comparison, and energy density',
+      keywords:'combustion calorimetry fuel ethanol methane hydrogen energy density' },
+    { file:'SimEngine_EntropyGibbs.html', name:'Entropy & Gibbs Energy', section:'R1', topic:'R1.4', level:'hl',
+      desc:'Delta-G calculation, spontaneity, and temperature effects',
+      keywords:'entropy gibbs free energy spontaneous delta G delta S delta H' },
+
+    // R2
+    { file:'SimEngine_StoichiometryLab.html', name:'Amounts in Reactions', section:'R2', topic:'R2.1', level:'both',
+      desc:'Percentage yield, atom economy (HL), and back-titration',
+      keywords:'yield atom economy back titration stoichiometry amounts' },
+    { file:'SimEngine_CollisionTheory.html', name:'Collision Theory', section:'R2', topic:'R2.2', level:'both',
+      desc:'Particle collision animation and KE distribution curves',
+      keywords:'collision theory kinetic energy maxwell boltzmann activation concentration temperature catalyst' },
+    { file:'SimEngine_RateLaw.html', name:'Rate Laws', section:'R2', topic:'R2.2', level:'both',
+      desc:'Rate law determination and order-finding experiments',
+      keywords:'rate law order zero first second rate constant k reaction' },
+    { file:'SimEngine_Equilibrium.html', name:'Equilibrium', section:'R2', topic:'R2.3', level:'both',
+      desc:'Concentration vs. time, forward/reverse rates, and K builder',
+      keywords:'equilibrium le chatelier Kc forward reverse concentration pressure' },
+
+    // R3
+    { file:'SimEngine_AcidBase.html', name:'Acid-Base Chemistry', section:'R3', topic:'R3.1', level:'both',
+      desc:'Titration simulation, pH graphs, and Henderson-Hasselbalch',
+      keywords:'acid base pH titration buffer Ka Kb pKa Henderson indicator' },
+    { file:'SimEngine_Electrochem.html', name:'Electrochemistry', section:'R3', topic:'R3.2', level:'both',
+      desc:'Galvanic and electrolytic cells, electrode potentials',
+      keywords:'galvanic voltaic electrolysis anode cathode electrode potential cell EMF' },
+    { file:'SimEngine_NucleophilicAddition.html', name:'Nucleophilic Addition', section:'R3', topic:'R3.4', level:'hl',
+      desc:'HCN addition to carbonyls, condensation, and synthesis paths',
+      keywords:'nucleophilic addition carbonyl aldehyde ketone HCN condensation hydrolysis' },
+
+    // Math Skills
+    { file:'SimEngine_UncertaintyTrainer.html', name:'Uncertainty & Error Trainer', section:'Math', topic:'Tool 1', level:'both',
+      desc:'Instrument readings, error propagation, and percentage error',
+      keywords:'uncertainty error propagation percentage absolute random systematic IA' },
+    { file:'SimEngine_GraphTrainer.html', name:'Graph Interpretation Trainer', section:'Math', topic:'Tool 1', level:'both',
+      desc:'Reading graphs, gradients, rates, and Arrhenius analysis (HL)',
+      keywords:'graph gradient tangent rate arrhenius intercept linearization calibration' },
+    { file:'SimEngine_EquipmentTrainer.html', name:'Equipment Recognition Trainer', section:'Math', topic:'Tool 1', level:'both',
+      desc:'Identify lab equipment, select for tasks, and understand measurement precision',
+      keywords:'equipment apparatus burette pipette beaker flask funnel balance thermometer uncertainty precision' },
+    { file:'SimEngine_CalorimetryLab.html', name:'Calorimetry Lab', section:'R1', topic:'R1.1', level:'both',
+      desc:'Coffee-cup and combustion calorimetry with equipment choices affecting heat loss and accuracy',
+      keywords:'calorimetry enthalpy heat loss coffee cup combustion spirit lamp hess law q=mcdt temperature extrapolation' },
+    { file:'SimEngine_QualitativeAnalysis.html', name:'Qualitative Analysis Lab', section:'S3', topic:'S3.1', level:'both',
+      desc:'Flame tests, precipitation reactions, and ion identification using solubility rules',
+      keywords:'qualitative analysis flame test precipitation ions cation anion solubility rules identification unknown compound' },
+    { file:'SimEngine_TitrationLab.html', name:'Titration Lab', section:'R2', topic:'R2.1', level:'both',
+      desc:'Acid-base, redox (KMnO₄), and back titrations with interactive burette and step-by-step calculations',
+      keywords:'titration burette endpoint indicator phenolphthalein methyl orange permanganate redox back titration concordant' },
+    { file:'SimEngine_GravimetricLab.html', name:'Gravimetric Analysis Lab', section:'S1', topic:'S1.4', level:'both',
+      desc:'Water of crystallisation, thermal decomposition, and precipitation gravimetry with step-by-step calculations',
+      keywords:'gravimetric analysis water crystallisation hydrate thermal decomposition carbonate mass loss precipitation baso4 constant mass' },
+    { file:'SimEngine_IAScaffold.html', name:'IA Scaffold', section:'Math', topic:'Tool 1', level:'both',
+      desc:'Guided Internal Assessment workflow: research design, data analysis, conclusion, and evaluation',
+      keywords:'IA internal assessment scaffold research question variables method data analysis conclusion evaluation rubric criteria' },
+    { file:'SimEngine_LabBuilder.html', name:'Virtual Lab Builder', section:'Math', topic:'Tool 1', level:'both',
+      desc:'Build lab apparatus step-by-step (distillation, titration) or explore freely in sandbox mode',
+      keywords:'lab builder apparatus equipment assembly distillation titration setup practical' }
+  ];
+
+  var _levelFilter = 'all';
+  var _searchTerm = '';
+
+  function init() {
+    buildJumpBar();
+    renderSections();
+    renderCards();
+    bindEvents();
+  }
+
+  function buildJumpBar() {
+    var bar = document.getElementById('jumpBar');
+    SECTIONS.forEach(function(sec) {
+      var btn = document.createElement('button');
+      btn.className = 'jump-btn';
+      btn.textContent = sec.id;
+      btn.addEventListener('click', function() {
+        var el = document.getElementById('section-' + sec.id);
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+      bar.appendChild(btn);
+    });
+  }
+
+  function renderSections() {
+    var container = document.getElementById('simContainer');
+    SECTIONS.forEach(function(sec) {
+      var group = document.createElement('div');
+      group.className = 'section-group';
+      group.id = 'section-' + sec.id;
+      group.setAttribute('data-section', sec.id);
+
+      var heading = document.createElement('div');
+      heading.className = 'section-heading';
+
+      var titleSpan = document.createElement('span');
+      titleSpan.textContent = sec.title;
+
+      var countBadge = document.createElement('span');
+      countBadge.className = 'count-badge';
+      countBadge.id = 'count-' + sec.id;
+
+      heading.appendChild(titleSpan);
+      heading.appendChild(countBadge);
+
+      var grid = document.createElement('div');
+      grid.className = 'card-grid';
+      grid.id = 'grid-' + sec.id;
+
+      group.appendChild(heading);
+      group.appendChild(grid);
+      container.appendChild(group);
+    });
+  }
+
+  function renderCards() {
+    SIMS.forEach(function(sim) {
+      var grid = document.getElementById('grid-' + sim.section);
+      if (!grid) return;
+
+      var card = document.createElement('a');
+      card.className = 'sim-card';
+      card.href = sim.file;
+      card.setAttribute('data-level', sim.level);
+      card.setAttribute('data-section', sim.section);
+      card.setAttribute('data-search', (sim.name + ' ' + sim.topic + ' ' + sim.desc + ' ' + sim.keywords).toLowerCase());
+
+      var badges = document.createElement('div');
+      badges.className = 'card-badges';
+
+      var topicBadge = document.createElement('span');
+      topicBadge.className = 'topic-badge';
+      topicBadge.textContent = sim.topic;
+      badges.appendChild(topicBadge);
+
+      var levelBadge = document.createElement('span');
+      if (sim.level === 'hl') {
+        levelBadge.className = 'level-badge hl';
+        levelBadge.textContent = 'HL Only';
+      } else {
+        levelBadge.className = 'level-badge both';
+        levelBadge.textContent = 'SL + HL';
+      }
+      badges.appendChild(levelBadge);
+
+      var title = document.createElement('div');
+      title.className = 'card-title';
+      title.textContent = sim.name;
+
+      var desc = document.createElement('div');
+      desc.className = 'card-desc';
+      desc.textContent = sim.desc;
+
+      card.appendChild(badges);
+      card.appendChild(title);
+      card.appendChild(desc);
+      grid.appendChild(card);
+    });
+
+    updateCounts();
+  }
+
+  function filterCards() {
+    var cards = document.querySelectorAll('.sim-card');
+    var term = _searchTerm.toLowerCase().trim();
+    var visibleCount = 0;
+
+    cards.forEach(function(card) {
+      var matchLevel = true;
+      var matchSearch = true;
+      var cardLevel = card.getAttribute('data-level');
+
+      if (_levelFilter === 'sl') {
+        matchLevel = (cardLevel === 'both' || cardLevel === 'sl');
+      } else if (_levelFilter === 'hl') {
+        matchLevel = (cardLevel === 'hl');
+      }
+
+      if (term) {
+        var searchData = card.getAttribute('data-search');
+        matchSearch = searchData.indexOf(term) !== -1;
+      }
+
+      if (matchLevel && matchSearch) {
+        card.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    // Show/hide sections based on visible cards
+    SECTIONS.forEach(function(sec) {
+      var group = document.getElementById('section-' + sec.id);
+      var grid = document.getElementById('grid-' + sec.id);
+      var visibleInSection = grid.querySelectorAll('.sim-card:not(.hidden)').length;
+      if (visibleInSection === 0) {
+        group.classList.add('hidden');
+      } else {
+        group.classList.remove('hidden');
+      }
+    });
+
+    updateCounts();
+
+    var noResults = document.getElementById('noResults');
+    if (visibleCount === 0) {
+      noResults.classList.add('visible');
+    } else {
+      noResults.classList.remove('visible');
+    }
+
+    // Update header count
+    var simCountEl = document.getElementById('simCount');
+    if (visibleCount === SIMS.length) {
+      simCountEl.textContent = SIMS.length + ' Simulations';
+    } else {
+      simCountEl.textContent = visibleCount + ' of ' + SIMS.length + ' Simulations';
+    }
+  }
+
+  function updateCounts() {
+    SECTIONS.forEach(function(sec) {
+      var grid = document.getElementById('grid-' + sec.id);
+      var badge = document.getElementById('count-' + sec.id);
+      var total = grid.querySelectorAll('.sim-card').length;
+      var visible = grid.querySelectorAll('.sim-card:not(.hidden)').length;
+      if (visible === total) {
+        badge.textContent = total + (total === 1 ? ' sim' : ' sims');
+      } else {
+        badge.textContent = visible + ' of ' + total;
+      }
+    });
+  }
+
+  function bindEvents() {
+    // Search
+    var searchInput = document.getElementById('searchInput');
+    var debounceTimer;
+    searchInput.addEventListener('input', function() {
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(function() {
+        _searchTerm = searchInput.value;
+        filterCards();
+      }, 120);
+    });
+
+    // Level filter
+    document.querySelectorAll('.filter-btn[data-level]').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn[data-level]').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        _levelFilter = btn.getAttribute('data-level');
+        filterCards();
+      });
+    });
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', function(e) {
+      if (e.key === '/' && document.activeElement !== searchInput) {
+        e.preventDefault();
+        searchInput.focus();
+        searchInput.select();
+      }
+      if (e.key === 'Escape' && document.activeElement === searchInput) {
+        searchInput.value = '';
+        _searchTerm = '';
+        filterCards();
+        searchInput.blur();
+      }
+    });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+})();
+</script>
+<footer>SimEngine &mdash; 36 Interactive Chemistry Simulations</footer>
+</body>
+</html>

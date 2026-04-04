@@ -1,0 +1,2784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Electrochemistry Explorer — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Caveat:wght@400;600;700&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+
+    --sim-canvas-bg: #FAFBFC;
+    --sim-particle-hot: #EF4444;
+    --sim-particle-cold: #3B82F6;
+    --sim-particle-neutral: #64748B;
+    --sim-grid: #E2E8F0;
+    --sim-axis: #1E293B;
+    --sim-data-1: #0D9488;
+    --sim-data-2: #2563EB;
+    --sim-data-3: #D97706;
+    --sim-data-4: #7C3AED;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+    --orange: #F59E0B;
+}
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: .75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .header .subtitle {
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.15);
+    color: white;
+  }
+  .header-badge.hl {
+    background: var(--hl-badge-bg);
+    display: none;
+  }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* ── Main layout ── */
+  .sim-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .sim-top-row {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sim-graph-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .sim-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy);
+    color: white;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    user-select: none;
+  }
+  .sim-card-body {
+    padding: 1rem;
+  }
+
+  /* ── Cell canvas ── */
+  .cell-canvas-wrap {
+    position: relative;
+    background: var(--sim-canvas-bg);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #cellCanvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ── Parts tray ── */
+  .parts-tray {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border-top: 1px solid var(--border);
+    justify-content: center;
+  }
+  .parts-tray-item {
+    padding: 0.4rem 0.8rem;
+    border: 2px dashed var(--border);
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: grab;
+    user-select: none;
+    transition: all 0.15s;
+  }
+  .parts-tray-item:hover {
+    border-color: var(--teal);
+    background: var(--teal-bg);
+  }
+  .parts-tray-item.placed {
+    opacity: 0.3;
+    cursor: default;
+    pointer-events: none;
+  }
+
+  /* ── Control panel ── */
+  .control-panel { display: flex; flex-direction: column; gap: 0.5rem; }
+  .sim-slider-group { margin-bottom: 0.75rem; }
+  .sim-slider-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+  }
+  .sim-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .sim-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+    color: var(--teal);
+    font-weight: 600;
+  }
+  .sim-slider {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border);
+    border-radius: 3px;
+    outline: none;
+  }
+  .sim-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .sim-slider::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+  }
+
+  .sim-dropdown-group { margin-bottom: 0.75rem; }
+  .sim-dropdown {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    background: white;
+    margin-top: 0.3rem;
+  }
+
+  /* ── Buttons ── */
+  .sim-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sim-btn:hover { background: var(--light-bg); }
+  .sim-btn.primary {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+  .sim-btn.primary:hover { background: #0B8377; }
+  .sim-btn.active {
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+  .btn-row { display: flex; gap: 0.5rem; margin: 0.5rem 0; }
+
+  /* ── Info readout ── */
+  .sim-info {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .sim-info-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .sim-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.2rem 0;
+    font-size: 0.8rem;
+  }
+  .sim-info-label { color: var(--text-muted); }
+  .sim-info-value {
+    font-family: 'Fira Code', monospace;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* ── Toggle ── */
+  .sim-toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sim-toggle {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+  }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1;
+    border-radius: 22px;
+    transition: 0.2s;
+    --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider {
+    background: var(--toggle-on);
+  }
+  .sim-toggle input:checked + .sim-toggle-slider::before {
+    transform: translateX(18px);
+  }
+  .sim-toggle-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  /* ── Mode toggle bar ── */
+  .mode-toggle-bar {
+    display: flex;
+    flex-direction: row;
+    gap: 0;
+    margin-bottom: 1.5rem;
+  }
+  .mode-btn {
+    padding: 0.6rem 1.5rem;
+    border: 1px solid var(--border);
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mode-btn:first-child { border-radius: 8px 0 0 8px; }
+  .mode-btn:last-child { border-radius: 0 8px 8px 0; }
+  .mode-btn.active {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+
+  /* ── Activity series ── */
+  .activity-series {
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 0.75rem;
+  }
+  .activity-series-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.15rem 0.4rem;
+    border-radius: 4px;
+    transition: all 0.15s;
+  }
+  .activity-series-item.highlight-anode {
+    background: #FEE2E2;
+    border-left: 3px solid #EF4444;
+  }
+  .activity-series-item.highlight-cathode {
+    background: #DBEAFE;
+    border-left: 3px solid #3B82F6;
+  }
+  .activity-series-item .as-metal { font-weight: 600; }
+  .activity-series-item .as-e { font-family: 'Fira Code', monospace; color: var(--text-muted); }
+
+  /* ── E calc ── */
+  .ecalc-panel { margin-bottom: 1.5rem; }
+  .ecalc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.8rem;
+    max-height: 300px;
+    overflow-y: auto;
+    display: block;
+  }
+  .ecalc-table th, .ecalc-table td {
+    padding: 0.3rem 0.5rem;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  .ecalc-table th {
+    font-weight: 600;
+    color: var(--text-muted);
+    position: sticky;
+    top: 0;
+    background: white;
+  }
+  .ecalc-table tr.selected-a { background: #CCFBF1; }
+  .ecalc-table tr.selected-b { background: #DBEAFE; }
+  .ecalc-table tr:hover { background: var(--light-bg); cursor: pointer; }
+
+  /* ── Cell notation ── */
+  .cell-notation {
+    font-family: 'Fira Code', monospace;
+    text-align: center;
+    font-size: 1rem;
+    padding: 0.5rem;
+    background: var(--light-bg);
+    border-radius: 8px;
+    margin: 0.5rem 0;
+  }
+
+  /* ── Quiz ── */
+  .quiz-input {
+    width: 5rem;
+    font-family: 'Fira Code', monospace;
+    text-align: center;
+    padding: 0.3rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+  }
+  .quiz-correct { color: var(--green); font-weight: 600; }
+  .quiz-incorrect { color: var(--red); font-weight: 600; }
+
+  /* ── Faraday grid ── */
+  .faraday-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  /* ── Mode visibility ── */
+  .electrolysis-controls { display: none; }
+  .galvanic-controls { display: block; }
+  body.electrolysis-mode .galvanic-controls { display: none; }
+  body.electrolysis-mode .electrolysis-controls { display: block; }
+  body.electrolysis-mode .parts-tray { display: none; }
+
+  /* ── Teacher mode ── */
+  .teacher-only { display: none; }
+  body.teacher-active .teacher-only { display: block; }
+  body.teacher-active .student-only { display: none; }
+
+  /* ── HL panel ── */
+  .hl-panel {
+    display: none;
+    border: 2px solid var(--hl-border);
+    margin-bottom: 1.5rem;
+  }
+  body.hl-active .hl-panel { display: block; }
+  .hl-panel .sim-card-header {
+    background: var(--purple);
+  }
+  .hl-readout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+  .hl-readout-item {
+    text-align: center;
+  }
+  .hl-readout-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+  .hl-readout-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+  }
+  .hl-note {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .hl-input-group {
+    margin-bottom: 0.5rem;
+  }
+  .hl-input-group label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+  }
+  .hl-input-group input, .hl-input-group select {
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8rem;
+    width: 100%;
+  }
+  .hl-input-row {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-end;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+
+  /* ── Data Collection Panel ── */
+  .data-panel {
+    margin-top: 1rem;
+  }
+  .data-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
+    user-select: none;
+  }
+  .data-panel-header:hover { color: var(--text); }
+  .data-panel-arrow {
+    font-size: 0.65rem;
+    line-height: 1;
+  }
+  .data-panel-body {
+    display: none;
+    padding-top: 0.5rem;
+  }
+  .data-panel-body.open {
+    display: block;
+  }
+  .data-config {
+    margin-bottom: 0.75rem;
+  }
+  .data-config label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+  }
+  .data-config select,
+  .data-config input[type="number"] {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    background: white;
+    color: var(--text);
+  }
+  .data-config-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .var-checkboxes {
+    margin-bottom: 0.75rem;
+  }
+  .var-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text);
+    padding: 0.15rem 0;
+    cursor: pointer;
+  }
+  .var-checkboxes label input[type="checkbox"] {
+    margin: 0;
+  }
+  .progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+    margin: 0.5rem 0;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .progress-text {
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .data-btn {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .data-btn:hover { background: var(--light-bg); }
+  .data-btn-primary {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+  .data-btn-primary:hover { background: #0B8377; }
+  .data-btn-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .snapshot-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .snapshot-table th,
+  .snapshot-table td {
+    padding: 0.2rem 0.4rem;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Fira Code', monospace;
+  }
+  .snapshot-table th {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: right;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .data-section-hidden { display: none; }
+  .data-complete-msg {
+    font-size: 0.8rem;
+    color: var(--green);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .sweep-config {
+    border-top: 1px solid var(--border);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .sweep-config .data-config-row {
+    margin-bottom: 0.5rem;
+  }
+  .snapshot-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  /* ── Collapsible card header arrow ── */
+  .collapse-arrow {
+    margin-left: auto;
+    font-size: 0.65rem;
+    transition: transform 0.2s;
+  }
+  .collapse-arrow.open {
+    transform: rotate(90deg);
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .sim-graph-row { grid-template-columns: 1fr; }
+    .hl-readout-grid { grid-template-columns: 1fr 1fr; }
+    .faraday-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .sim-container { padding: 0.75rem; }
+    .header { padding: 1rem; }
+    .header h1 { font-size: 1.2rem; }
+    .hl-readout-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Palette Search ── */
+  .palette-search {
+    width: 100%; padding: 0.4rem 0.6rem; border: 1px solid var(--border);
+    border-radius: 6px; font-size: 0.8rem; font-family: inherit;
+    margin-bottom: 0.5rem; outline: none;
+  }
+  .palette-search:focus { border-color: var(--teal); box-shadow: 0 0 0 2px rgba(13,148,136,0.15); }
+
+  /* ── Teacher Presets ── */
+  .preset-section{display:none;margin-top:.75rem;}
+  .preset-section select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--border);font-size:.8rem;font-family:inherit;}
+  body.teacher-active .preset-section{display:block;}
+
+  /* ── Keyboard Hint Bar ── */
+  .keyboard-hint {
+    text-align: center; padding: 0.75rem; font-size: 0.7rem; color: var(--text-muted); margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block; padding: 0.1rem 0.4rem; border-radius: 4px; background: white;
+    border: 1px solid var(--border); font-family: 'Fira Code', monospace; font-size: 0.65rem; margin: 0 0.1rem;
+  }
+
+  /* ── Print ── */
+  @media print {
+    .btn-row, .sim-toggle-group,
+    .sim-slider-group, .sim-dropdown-group, .sim-btn,
+    .data-panel, .teacher-only, .parts-tray,
+    .mode-toggle-bar, .keyboard-hint, .preset-section,
+    .palette-search { display: none !important; }
+    .sim-card { break-inside: avoid; page-break-inside: avoid; box-shadow: none; }
+    .hl-panel { page-break-before: always; }
+    body { font-size: 13px; }
+  }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>Electrochemistry Explorer</h1>
+    <div class="subtitle">IB Chemistry SimEngine — Reactivity 3.2</div>
+  </div>
+  <div class="header-right">
+    <span class="header-badge hl" id="hl-badge">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="sim-container" id="main-content">
+
+  <!-- Mode toggle bar -->
+  <div class="mode-toggle-bar">
+    <button class="mode-btn active" id="btnModeGalvanic">Galvanic Cell</button>
+    <button class="mode-btn" id="btnModeElectrolysis">Electrolysis</button>
+  </div>
+
+  <!-- Top row: cell canvas + controls -->
+  <div class="sim-top-row">
+
+    <!-- Cell canvas card -->
+    <div class="sim-card">
+      <div class="sim-card-header">Cell View</div>
+      <div class="sim-card-body" style="padding: 0;">
+        <div class="cell-canvas-wrap">
+          <canvas id="cellCanvas" aria-label="Electrochemical cell diagram" role="img"></canvas>
+        </div>
+        <div class="parts-tray" id="partsTray">
+          <div class="parts-tray-item" data-part="electrodeA">Electrode A</div>
+          <div class="parts-tray-item" data-part="electrodeB">Electrode B</div>
+          <div class="parts-tray-item" data-part="saltBridge">Salt Bridge</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Control panel card -->
+    <div class="sim-card control-panel-card">
+      <div class="sim-card-header">Controls</div>
+      <div class="sim-card-body control-panel">
+
+        <!-- Palette search -->
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search half-cells..." aria-label="Search half-cells">
+
+        <!-- Teacher presets -->
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect" aria-label="Teacher presets">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+
+        <!-- Galvanic controls -->
+        <div class="galvanic-controls">
+          <div class="sim-dropdown-group">
+            <span class="sim-label">Half-Cell A</span>
+            <select id="halfCellA" class="sim-dropdown" aria-label="Half-cell A selection"></select>
+          </div>
+          <div class="sim-dropdown-group">
+            <span class="sim-label">Half-Cell B</span>
+            <select id="halfCellB" class="sim-dropdown" aria-label="Half-cell B selection"></select>
+          </div>
+          <div class="btn-row">
+            <button id="btnAssemble" class="sim-btn primary">Assemble</button>
+            <button id="btnReset" class="sim-btn">Reset</button>
+          </div>
+        </div>
+
+        <!-- Electrolysis controls -->
+        <div class="electrolysis-controls">
+          <div class="sim-dropdown-group student-only">
+            <span class="sim-label">Electrolyte</span>
+            <select id="electrolyteSelect" class="sim-dropdown" aria-label="Electrolyte selection"></select>
+          </div>
+          <div class="teacher-only">
+            <div class="sim-dropdown-group">
+              <span class="sim-label">Cation</span>
+              <select id="eCation" class="sim-dropdown" aria-label="Cation selection"></select>
+            </div>
+            <div class="sim-dropdown-group">
+              <span class="sim-label">Anion</span>
+              <select id="eAnion" class="sim-dropdown" aria-label="Anion selection"></select>
+            </div>
+            <div class="sim-dropdown-group">
+              <span class="sim-label">State</span>
+              <label style="font-size:0.8rem;margin-right:0.75rem;cursor:pointer;">
+                <input type="radio" name="eState" value="molten"> Molten
+              </label>
+              <label style="font-size:0.8rem;cursor:pointer;">
+                <input type="radio" name="eState" value="aqueous" checked> Aqueous
+              </label>
+            </div>
+            <div class="sim-dropdown-group">
+              <span class="sim-label">Concentration</span>
+              <select id="eConc" class="sim-dropdown" aria-label="Concentration selection">
+                <option value="dilute">Dilute</option>
+                <option value="moderate" selected>Moderate</option>
+                <option value="concentrated">Concentrated</option>
+              </select>
+            </div>
+            <div class="sim-dropdown-group">
+              <span class="sim-label">Electrode</span>
+              <select id="eElectrode" class="sim-dropdown" aria-label="Electrode material selection">
+                <option value="inert">Inert (C/Pt)</option>
+                <option value="Cu">Copper</option>
+                <option value="Ag">Silver</option>
+                <option value="Ni">Nickel</option>
+                <option value="Zn">Zinc</option>
+              </select>
+            </div>
+          </div>
+          <div class="btn-row">
+            <button id="btnStartElec" class="sim-btn primary">Start Electrolysis</button>
+            <button id="btnResetElec" class="sim-btn">Reset</button>
+          </div>
+        </div>
+
+        <!-- Activity Series -->
+        <div class="sim-info">
+          <div class="sim-info-title">Activity Series</div>
+          <div class="activity-series" id="activitySeries"></div>
+        </div>
+
+        <!-- Live Readout -->
+        <div class="sim-info" aria-live="polite">
+          <div class="sim-info-title">Cell Info</div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">E&deg;cell</span>
+            <span class="sim-info-value" id="infoECell">&mdash;</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Anode</span>
+            <span class="sim-info-value" id="infoAnode">&mdash;</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Cathode</span>
+            <span class="sim-info-value" id="infoCathode">&mdash;</span>
+          </div>
+          <div class="sim-info-row galvanic-controls">
+            <span class="sim-info-label">Spontaneous</span>
+            <span class="sim-info-value" id="infoSpontaneous">&mdash;</span>
+          </div>
+          <div class="sim-info-row electrolysis-controls">
+            <span class="sim-info-label">Cathode Product</span>
+            <span class="sim-info-value" id="infoCathodeProduct">&mdash;</span>
+          </div>
+          <div class="sim-info-row electrolysis-controls">
+            <span class="sim-info-label">Anode Product</span>
+            <span class="sim-info-value" id="infoAnodeProduct">&mdash;</span>
+          </div>
+          <div class="electrolysis-controls" style="margin-top:0.5rem;">
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:600;margin-bottom:0.2rem;">Cathode Explanation</div>
+            <div style="font-size:0.75rem;color:var(--text);" id="infoCathodeExpl">&mdash;</div>
+          </div>
+          <div class="electrolysis-controls" style="margin-top:0.4rem;">
+            <div style="font-size:0.75rem;color:var(--text-muted);font-weight:600;margin-bottom:0.2rem;">Anode Explanation</div>
+            <div style="font-size:0.75rem;color:var(--text);" id="infoAnodeExpl">&mdash;</div>
+          </div>
+          <div class="cell-notation galvanic-controls" id="infoCellNotation">&mdash;</div>
+          <div id="electrodeConventionNote" style="margin-top:0.6rem;padding:0.5rem 0.6rem;background:var(--blue-bg,#EFF6FF);border-left:3px solid var(--blue,#3B82F6);border-radius:0 6px 6px 0;font-size:0.72rem;line-height:1.5;color:var(--text);">
+            <strong style="color:var(--blue,#3B82F6);">&#9432; Sign Convention</strong><br>
+            <span id="conventionText">In galvanic cells, the anode is negative (&minus;) because oxidation spontaneously releases electrons. In electrolysis cells, these signs are reversed.</span>
+          </div>
+        </div>
+
+        <!-- Data Collection Panel -->
+        <div class="data-panel">
+          <div class="data-panel-header" id="dataPanelHeader">
+            <span class="data-panel-arrow" id="dataPanelArrow">&#9654;</span>
+            <span>Data Collection</span>
+          </div>
+          <div class="data-panel-body" id="dataPanelBody">
+
+            <div class="data-config">
+              <label>Variables</label>
+              <div class="var-checkboxes" id="varCheckboxes"></div>
+            </div>
+
+            <div class="data-btn-row" id="dataControlBtns">
+              <button class="data-btn data-btn-primary" id="btnSnapshot">Snapshot</button>
+            </div>
+
+            <!-- Snapshots section -->
+            <div style="margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">
+              <div class="snapshot-count" id="snapshotCount">Snapshots: 0</div>
+              <div id="snapshotTableWrap" class="data-section-hidden">
+                <table class="snapshot-table" id="snapshotTable">
+                  <thead id="snapshotTableHead"></thead>
+                  <tbody id="snapshotTableBody"></tbody>
+                </table>
+              </div>
+              <div id="snapshotBtns" class="data-btn-row data-section-hidden">
+                <button class="data-btn" id="btnDownloadSnapshots">Download Snapshots</button>
+                <button class="data-btn" id="btnClearSnapshots">Clear</button>
+              </div>
+            </div>
+
+            <!-- Sweep section (teacher only) -->
+            <div class="sweep-config data-section-hidden" id="sweepSection">
+              <div class="data-config">
+                <label for="sweepParam">Sweep: Metal Pairs</label>
+              </div>
+              <div class="data-btn-row">
+                <button class="data-btn data-btn-primary" id="btnStartSweep">Run Sweep</button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- E calc panel -->
+  <div class="sim-card ecalc-panel" id="ecalcPanel">
+    <div class="sim-card-header" id="ecalcHeader">
+      E&deg; Calculator
+      <span class="collapse-arrow" id="ecalcArrow">&#9654;</span>
+    </div>
+    <div class="sim-card-body" id="ecalcBody" style="display:none;">
+      <table class="ecalc-table" id="ecalcTable">
+        <thead>
+          <tr>
+            <th>Half-Cell</th>
+            <th>Half-Reaction</th>
+            <th>E&deg; / V</th>
+          </tr>
+        </thead>
+        <tbody id="ecalcTableBody"></tbody>
+      </table>
+      <div id="ecalcResult" style="margin-top:1rem;" aria-live="polite"></div>
+
+      <!-- Quiz mode -->
+      <div style="margin-top:1rem; padding-top:0.75rem; border-top:1px solid var(--border);">
+        <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.5rem;">
+          <label style="font-size:0.8rem;font-weight:600;color:var(--text-muted);cursor:pointer;">
+            <input type="checkbox" id="quizToggle"> Quiz Mode
+          </label>
+          <span id="quizScore" style="font-size:0.75rem;color:var(--text-muted);"></span>
+        </div>
+        <div id="quizArea" style="display:none;">
+          <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+            <span style="font-size:0.85rem;">E&deg;cell =</span>
+            <input type="text" class="quiz-input" id="quizInput" placeholder="?.??" aria-label="Quiz answer input">
+            <span style="font-size:0.85rem;">V</span>
+            <button class="sim-btn" id="btnQuizCheck" style="padding:0.3rem 0.75rem;">Check</button>
+            <span id="quizFeedback" aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HL panel -->
+  <div class="sim-card hl-panel" id="hl-panel">
+    <div class="sim-card-header">Electrochemistry Calculations (HL)</div>
+    <div class="sim-card-body">
+      <div class="hl-readout-grid">
+        <div class="hl-readout-item">
+          <div class="hl-readout-label">&Delta;G&deg; / kJ</div>
+          <div class="hl-readout-value" id="hlDeltaG">&mdash;</div>
+        </div>
+        <div class="hl-readout-item">
+          <div class="hl-readout-label">n (electrons)</div>
+          <div class="hl-readout-value" id="hlElectronTransfer">&mdash;</div>
+        </div>
+        <div class="hl-readout-item">
+          <div class="hl-readout-label">Min Voltage (elec.)</div>
+          <div class="hl-readout-value" id="hlMinVoltage">&mdash;</div>
+        </div>
+        <div class="hl-readout-item">
+          <div class="hl-readout-label">F / C mol&minus;&sup1;</div>
+          <div class="hl-readout-value">96 485</div>
+        </div>
+      </div>
+
+      <!-- Faraday's Law Calculator -->
+      <div style="margin-top:1rem;padding-top:0.75rem;border-top:1px solid var(--border);">
+        <div style="font-size:0.75rem;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:0.5rem;">Faraday's Law Calculator</div>
+        <div class="faraday-grid">
+          <div class="hl-input-group">
+            <label>Current / A</label>
+            <input type="number" id="faradayCurrent" value="2.00" min="0" step="0.01">
+          </div>
+          <div class="hl-input-group">
+            <label>Time</label>
+            <div class="hl-input-row">
+              <input type="number" id="faradayTime" value="30" min="0" step="1" style="flex:1;">
+              <select id="faradayTimeUnit" style="width:auto;padding:0.35rem 0.5rem;border:1px solid var(--border);border-radius:6px;font-size:0.8rem;">
+                <option value="min" selected>min</option>
+                <option value="sec">sec</option>
+                <option value="hr">hr</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="faraday-grid" style="margin-top:0.75rem;">
+          <div class="hl-readout-item">
+            <div class="hl-readout-label">Charge / C</div>
+            <div class="hl-readout-value" id="hlFaradayCharge">&mdash;</div>
+          </div>
+          <div class="hl-readout-item">
+            <div class="hl-readout-label">mol e&minus;</div>
+            <div class="hl-readout-value" id="hlFaradayMolE">&mdash;</div>
+          </div>
+          <div class="hl-readout-item">
+            <div class="hl-readout-label">mol product</div>
+            <div class="hl-readout-value" id="hlFaradayMolP">&mdash;</div>
+          </div>
+          <div class="hl-readout-item">
+            <div class="hl-readout-label">mass / g</div>
+            <div class="hl-readout-value" id="hlFaradayMass">&mdash;</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="hl-note">All values assume standard conditions: 298 K, 1 mol dm&minus;&sup3;, 1 atm. &Delta;G&deg; = &minus;nFE&deg;cell</div>
+    </div>
+  </div>
+
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd> <kbd>2</kbd> Modes &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search
+</div>
+
+<div class="footer">IB Chemistry SimEngine — Electrochemistry Explorer &bull; Reactivity 3.2 — Electrochemical Cells</div>
+
+<!-- ENGINE -->
+<script src="../../3-Resources/SimEngine/SimEngine_Core.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Canvas setup (HiDPI) ──
+  function setupCanvas(id, w, h) {
+    var c = document.getElementById(id);
+    var dpr = window.devicePixelRatio || 1;
+    c.width = w * dpr;
+    c.height = h * dpr;
+    c.style.width = '100%';
+    c.style.height = 'auto';
+    var ctx = c.getContext('2d');
+    ctx.scale(dpr, dpr);
+    return { ctx: ctx, w: w, h: h, canvas: c };
+  }
+
+  var CELL_W = 800, CELL_H = 500;
+  var cell = setupCanvas('cellCanvas', CELL_W, CELL_H);
+  var ctx = cell.ctx;
+
+  // ── Module reference ──
+  var EC = SimEngine.Electrochem;
+
+  // ── State ──
+  var _mode = 'galvanic';
+  var _isTeacher = false;
+  var _isHL = false;
+  var _selectedA = null;
+  var _selectedB = null;
+  var _cellAssembled = false;
+  var _animating = false;
+  var _currentResult = null;
+  var _currentElecResult = null;
+  var _currentVol = 0;
+  var _faradayResult = null;
+  var _frameCount = 0;
+
+  // Drag state
+  var _dragItem = null;
+  var _dragX = 0;
+  var _dragY = 0;
+  var _dragOffsetX = 0;
+  var _dragOffsetY = 0;
+
+  // Animation particles
+  var _electrons = [];
+  var _ions = [];
+  var _events = [];
+  var _bubbles = [];
+
+  // Electrode visual shrink/grow
+  var _anodeShrink = 0;
+  var _cathodeShrink = 0;
+
+  // E calc selection
+  var _ecalcSelA = null;
+  var _ecalcSelB = null;
+  var _quizMode = false;
+  var _quizCorrect = 0;
+  var _quizTotal = 0;
+
+  // ── Snap zones (canvas coordinates) ──
+  var _snapZones = {
+    electrodeLeft:  { x: 140, y: 180, w: 30, h: 160, occupied: false },
+    electrodeRight: { x: 580, y: 180, w: 30, h: 160, occupied: false },
+    saltBridge:     { x: 350, y: 100, w: 60, h: 200, occupied: false }
+  };
+
+  var _parts = [
+    { id: 'electrodeA', label: 'Electrode A', type: 'electrode', zone: 'electrodeLeft',  placed: false, x: 150, y: 460, homeX: 150, homeY: 460, w: 60, h: 30 },
+    { id: 'electrodeB', label: 'Electrode B', type: 'electrode', zone: 'electrodeRight', placed: false, x: 350, y: 460, homeX: 350, homeY: 460, w: 60, h: 30 },
+    { id: 'saltBridge', label: 'Salt Bridge', type: 'bridge',    zone: 'saltBridge',     placed: false, x: 550, y: 460, homeX: 550, homeY: 460, w: 70, h: 30 }
+  ];
+
+  // ── Wire path for galvanic mode (quadratic bezier) ──
+  var WIRE_P0 = { x: 155, y: 175 };
+  var WIRE_CP = { x: 400, y: 40 };
+  var WIRE_P1 = { x: 595, y: 175 };
+
+  function bezierPoint(t) {
+    var u = 1 - t;
+    return {
+      x: u * u * WIRE_P0.x + 2 * u * t * WIRE_CP.x + t * t * WIRE_P1.x,
+      y: u * u * WIRE_P0.y + 2 * u * t * WIRE_CP.y + t * t * WIRE_P1.y
+    };
+  }
+
+  // ── Populate Dropdowns ──
+
+  function populateHalfCells() {
+    var selA = document.getElementById('halfCellA');
+    var selB = document.getElementById('halfCellB');
+    selA.textContent = '';
+    selB.textContent = '';
+    var hcs = EC.HALF_CELLS;
+    for (var i = 0; i < hcs.length; i++) {
+      var hc = hcs[i];
+      if (hc.state !== 'solid') continue;
+      var optA = document.createElement('option');
+      optA.value = hc.key;
+      optA.textContent = hc.metal + ' / ' + hc.ion + '  (E\u00B0 = ' + hc.E.toFixed(2) + ' V)';
+      selA.appendChild(optA);
+      var optB = document.createElement('option');
+      optB.value = hc.key;
+      optB.textContent = hc.metal + ' / ' + hc.ion + '  (E\u00B0 = ' + hc.E.toFixed(2) + ' V)';
+      selB.appendChild(optB);
+    }
+    selA.value = 'Zn';
+    selB.value = 'Cu';
+  }
+
+  function populateElectrolytes() {
+    var sel = document.getElementById('electrolyteSelect');
+    sel.textContent = '';
+    var elecs = EC.ELECTROLYTES;
+    for (var i = 0; i < elecs.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = elecs[i].key;
+      opt.textContent = elecs[i].label;
+      sel.appendChild(opt);
+    }
+  }
+
+  function populateCations() {
+    var sel = document.getElementById('eCation');
+    sel.textContent = '';
+    var hcs = EC.HALF_CELLS;
+    var added = {};
+    for (var i = 0; i < hcs.length; i++) {
+      if (added[hcs[i].key]) continue;
+      var opt = document.createElement('option');
+      opt.value = hcs[i].key;
+      opt.textContent = hcs[i].ion + ' (' + hcs[i].metal + ')';
+      sel.appendChild(opt);
+      added[hcs[i].key] = true;
+    }
+    sel.value = 'Cu';
+  }
+
+  function populateAnions() {
+    var sel = document.getElementById('eAnion');
+    sel.textContent = '';
+    var anions = [
+      { key: 'Cl', label: 'Cl\u207B (Chloride)' },
+      { key: 'Br', label: 'Br\u207B (Bromide)' },
+      { key: 'I',  label: 'I\u207B (Iodide)' },
+      { key: 'SO4', label: 'SO\u2084\u00B2\u207B (Sulfate)' },
+      { key: 'NO3', label: 'NO\u2083\u207B (Nitrate)' },
+      { key: 'OH', label: 'OH\u207B (Hydroxide)' }
+    ];
+    for (var i = 0; i < anions.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = anions[i].key;
+      opt.textContent = anions[i].label;
+      sel.appendChild(opt);
+    }
+    sel.value = 'SO4';
+  }
+
+  function buildActivitySeries() {
+    var container = document.getElementById('activitySeries');
+    while (container.firstChild) container.removeChild(container.firstChild);
+    var series = EC.getActivitySeries();
+    for (var i = 0; i < series.length; i++) {
+      var row = document.createElement('div');
+      row.className = 'activity-series-item';
+      row.setAttribute('data-key', series[i].key);
+      var metalSpan = document.createElement('span');
+      metalSpan.className = 'as-metal';
+      metalSpan.textContent = series[i].metal + ' / ' + series[i].ion;
+      metalSpan.style.color = series[i].color;
+      var eSpan = document.createElement('span');
+      eSpan.className = 'as-e';
+      eSpan.textContent = series[i].E.toFixed(2) + ' V';
+      row.appendChild(metalSpan);
+      row.appendChild(eSpan);
+      container.appendChild(row);
+    }
+  }
+
+  function highlightActivitySeries(anodeKey, cathodeKey) {
+    var items = document.querySelectorAll('.activity-series-item');
+    for (var i = 0; i < items.length; i++) {
+      var key = items[i].getAttribute('data-key');
+      items[i].classList.remove('highlight-anode', 'highlight-cathode');
+      if (key === anodeKey) items[i].classList.add('highlight-anode');
+      if (key === cathodeKey) items[i].classList.add('highlight-cathode');
+    }
+  }
+
+  // ── E calc Table ──
+
+  function buildECalcTable() {
+    var tbody = document.getElementById('ecalcTableBody');
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    var hcs = EC.HALF_CELLS.slice().sort(function (a, b) { return a.E - b.E; });
+    for (var i = 0; i < hcs.length; i++) {
+      var tr = document.createElement('tr');
+      tr.setAttribute('data-key', hcs[i].key);
+      var td1 = document.createElement('td');
+      td1.textContent = hcs[i].formula;
+      td1.style.fontWeight = '600';
+      var td2 = document.createElement('td');
+      td2.textContent = hcs[i].halfReaction;
+      var td3 = document.createElement('td');
+      td3.textContent = hcs[i].E.toFixed(2);
+      td3.style.fontFamily = "'Fira Code', monospace";
+      tr.appendChild(td1);
+      tr.appendChild(td2);
+      tr.appendChild(td3);
+      tr.addEventListener('click', (function (key) {
+        return function () { ecalcSelect(key); };
+      })(hcs[i].key));
+      tbody.appendChild(tr);
+    }
+  }
+
+  function ecalcSelect(key) {
+    if (_ecalcSelA === null) {
+      _ecalcSelA = key;
+    } else if (_ecalcSelB === null) {
+      if (key === _ecalcSelA) return;
+      _ecalcSelB = key;
+    } else {
+      _ecalcSelA = key;
+      _ecalcSelB = null;
+    }
+    updateECalcHighlights();
+    updateECalcResult();
+  }
+
+  function updateECalcHighlights() {
+    var rows = document.querySelectorAll('#ecalcTableBody tr');
+    for (var i = 0; i < rows.length; i++) {
+      var key = rows[i].getAttribute('data-key');
+      rows[i].classList.remove('selected-a', 'selected-b');
+      if (key === _ecalcSelA) rows[i].classList.add('selected-a');
+      if (key === _ecalcSelB) rows[i].classList.add('selected-b');
+    }
+  }
+
+  function updateECalcResult() {
+    var resultDiv = document.getElementById('ecalcResult');
+    while (resultDiv.firstChild) resultDiv.removeChild(resultDiv.firstChild);
+    var quizArea = document.getElementById('quizArea');
+
+    if (!_ecalcSelA || !_ecalcSelB) {
+      if (_ecalcSelA) {
+        var p = document.createElement('p');
+        p.style.fontSize = '0.85rem';
+        p.style.color = 'var(--text-muted)';
+        p.textContent = 'Selected: ' + _ecalcSelA + '. Click another half-cell.';
+        resultDiv.appendChild(p);
+      }
+      return;
+    }
+
+    var result = EC.calculateCell(_ecalcSelA, _ecalcSelB);
+    if (!result) return;
+
+    if (_quizMode) {
+      var info = document.createElement('div');
+      info.style.fontSize = '0.85rem';
+      info.style.marginBottom = '0.5rem';
+      info.textContent = 'Calculate E\u00B0cell for: ' + result.anode.formula + ' and ' + result.cathode.formula;
+      resultDiv.appendChild(info);
+      quizArea.style.display = 'block';
+      document.getElementById('quizInput').value = '';
+      document.getElementById('quizFeedback').textContent = '';
+      return;
+    }
+
+    quizArea.style.display = 'none';
+
+    // Show full calculation using safe DOM methods
+    var cathLine = document.createElement('div');
+    cathLine.style.fontSize = '0.85rem';
+    cathLine.style.marginBottom = '0.3rem';
+    var cathLabel = document.createElement('span');
+    cathLabel.style.fontWeight = '600';
+    cathLabel.style.color = '#3B82F6';
+    cathLabel.textContent = 'Cathode (reduction): ';
+    cathLine.appendChild(cathLabel);
+    cathLine.appendChild(document.createTextNode(result.cathodeReaction + '  E\u00B0 = ' + result.cathode.E.toFixed(2) + ' V'));
+    resultDiv.appendChild(cathLine);
+
+    var anodeLine = document.createElement('div');
+    anodeLine.style.fontSize = '0.85rem';
+    anodeLine.style.marginBottom = '0.3rem';
+    var anodeLabel = document.createElement('span');
+    anodeLabel.style.fontWeight = '600';
+    anodeLabel.style.color = '#EF4444';
+    anodeLabel.textContent = 'Anode (oxidation): ';
+    anodeLine.appendChild(anodeLabel);
+    anodeLine.appendChild(document.createTextNode(result.anodeReaction + '  E\u00B0 = ' + result.anode.E.toFixed(2) + ' V'));
+    resultDiv.appendChild(anodeLine);
+
+    var calcLine = document.createElement('div');
+    calcLine.style.fontSize = '0.9rem';
+    calcLine.style.fontFamily = "'Fira Code', monospace";
+    calcLine.style.fontWeight = '600';
+    calcLine.style.margin = '0.5rem 0';
+    calcLine.style.color = 'var(--teal)';
+    calcLine.textContent = 'E\u00B0cell = ' + result.cathode.E.toFixed(2) + ' \u2212 (' + result.anode.E.toFixed(2) + ') = ' + result.eCell.toFixed(2) + ' V';
+    resultDiv.appendChild(calcLine);
+
+    var notation = document.createElement('div');
+    notation.className = 'cell-notation';
+    notation.textContent = result.cellNotation;
+    resultDiv.appendChild(notation);
+
+    var spontLine = document.createElement('div');
+    spontLine.style.fontSize = '0.85rem';
+    spontLine.style.fontWeight = '600';
+    spontLine.style.color = result.spontaneous ? 'var(--green)' : 'var(--red)';
+    spontLine.textContent = result.spontaneous ? '\u2713 Spontaneous (E\u00B0cell > 0)' : '\u2717 Non-spontaneous (E\u00B0cell \u2264 0)';
+    resultDiv.appendChild(spontLine);
+  }
+
+  // ── Quiz ──
+
+  document.getElementById('quizToggle').addEventListener('change', function () {
+    _quizMode = this.checked;
+    if (_quizMode) {
+      _quizCorrect = 0;
+      _quizTotal = 0;
+      document.getElementById('quizScore').textContent = '0/0';
+    }
+    document.getElementById('quizArea').style.display = _quizMode && _ecalcSelA && _ecalcSelB ? 'block' : 'none';
+    updateECalcResult();
+  });
+
+  document.getElementById('btnQuizCheck').addEventListener('click', function () {
+    if (!_ecalcSelA || !_ecalcSelB) return;
+    var result = EC.calculateCell(_ecalcSelA, _ecalcSelB);
+    if (!result) return;
+    var answer = parseFloat(document.getElementById('quizInput').value);
+    var fb = document.getElementById('quizFeedback');
+    _quizTotal++;
+    if (!isNaN(answer) && Math.abs(answer - result.eCell) < 0.02) {
+      fb.className = 'quiz-correct';
+      fb.textContent = '\u2713 Correct!';
+      _quizCorrect++;
+    } else {
+      fb.className = 'quiz-incorrect';
+      fb.textContent = '\u2717 ' + result.eCell.toFixed(2) + ' V';
+    }
+    document.getElementById('quizScore').textContent = _quizCorrect + '/' + _quizTotal;
+  });
+
+  // ── E calc panel collapse ──
+  document.getElementById('ecalcHeader').addEventListener('click', function () {
+    var body = document.getElementById('ecalcBody');
+    var arrow = document.getElementById('ecalcArrow');
+    var isOpen = body.style.display !== 'none';
+    body.style.display = isOpen ? 'none' : 'block';
+    arrow.classList.toggle('open', !isOpen);
+  });
+
+  // ── Mode Toggle ──
+
+  document.getElementById('btnModeGalvanic').addEventListener('click', function () {
+    switchMode('galvanic');
+  });
+  document.getElementById('btnModeElectrolysis').addEventListener('click', function () {
+    switchMode('electrolysis');
+  });
+
+  function switchMode(mode) {
+    _mode = mode;
+    document.body.classList.toggle('electrolysis-mode', mode === 'electrolysis');
+    document.getElementById('btnModeGalvanic').classList.toggle('active', mode === 'galvanic');
+    document.getElementById('btnModeElectrolysis').classList.toggle('active', mode === 'electrolysis');
+    resetCell();
+    drawCell();
+  }
+
+  // ── Reset ──
+
+  function resetCell() {
+    _cellAssembled = false;
+    _animating = false;
+    _currentResult = null;
+    _currentElecResult = null;
+    _electrons = [];
+    _ions = [];
+    _events = [];
+    _bubbles = [];
+    _anodeShrink = 0;
+    _cathodeShrink = 0;
+    _frameCount = 0;
+
+    for (var i = 0; i < _parts.length; i++) {
+      _parts[i].placed = false;
+      _parts[i].x = _parts[i].homeX;
+      _parts[i].y = _parts[i].homeY;
+    }
+    for (var key in _snapZones) {
+      _snapZones[key].occupied = false;
+    }
+
+    var trayItems = document.querySelectorAll('.parts-tray-item');
+    for (var j = 0; j < trayItems.length; j++) {
+      trayItems[j].classList.remove('placed');
+    }
+
+    clearReadouts();
+    highlightActivitySeries(null, null);
+    drawCell();
+  }
+
+  function clearReadouts() {
+    document.getElementById('infoECell').textContent = '\u2014';
+    document.getElementById('infoECell').style.color = 'var(--text)';
+    document.getElementById('infoAnode').textContent = '\u2014';
+    document.getElementById('infoCathode').textContent = '\u2014';
+    document.getElementById('infoSpontaneous').textContent = '\u2014';
+    document.getElementById('infoSpontaneous').style.color = 'var(--text)';
+    document.getElementById('infoCellNotation').textContent = '\u2014';
+    document.getElementById('infoCathodeProduct').textContent = '\u2014';
+    document.getElementById('infoAnodeProduct').textContent = '\u2014';
+    document.getElementById('infoCathodeExpl').textContent = '\u2014';
+    document.getElementById('infoAnodeExpl').textContent = '\u2014';
+    document.getElementById('hlDeltaG').textContent = '\u2014';
+    document.getElementById('hlElectronTransfer').textContent = '\u2014';
+    document.getElementById('hlMinVoltage').textContent = '\u2014';
+  }
+
+  // ── Assemble Galvanic Cell ──
+
+  function assembleGalvanic() {
+    var keyA = document.getElementById('halfCellA').value;
+    var keyB = document.getElementById('halfCellB').value;
+    if (keyA === keyB) return;
+
+    _selectedA = EC.getHalfCell(keyA);
+    _selectedB = EC.getHalfCell(keyB);
+    if (!_selectedA || !_selectedB) return;
+
+    _currentResult = EC.calculateCell(keyA, keyB);
+    if (!_currentResult) return;
+
+    for (var i = 0; i < _parts.length; i++) {
+      _parts[i].placed = true;
+    }
+    for (var key in _snapZones) {
+      _snapZones[key].occupied = true;
+    }
+    var trayItems = document.querySelectorAll('.parts-tray-item');
+    for (var j = 0; j < trayItems.length; j++) {
+      trayItems[j].classList.add('placed');
+    }
+
+    _cellAssembled = true;
+    _animating = true;
+    _electrons = [];
+    _ions = [];
+    _events = [];
+    _anodeShrink = 0;
+    _cathodeShrink = 0;
+
+    updateDisplay();
+  }
+
+  // ── Start Electrolysis ──
+
+  function startElectrolysis() {
+    if (_isTeacher) {
+      var cation = document.getElementById('eCation').value;
+      var anion = document.getElementById('eAnion').value;
+      var stateRadios = document.querySelectorAll('input[name="eState"]');
+      var state = 'aqueous';
+      for (var r = 0; r < stateRadios.length; r++) {
+        if (stateRadios[r].checked) { state = stateRadios[r].value; break; }
+      }
+      var concentration = document.getElementById('eConc').value;
+      var electrode = document.getElementById('eElectrode').value;
+
+      _currentElecResult = EC.predictElectrolysis({
+        cation: cation, anion: anion, state: state,
+        electrode: electrode, concentration: concentration
+      });
+      _selectedA = EC.getHalfCell(cation);
+      _selectedB = null;
+    } else {
+      var presetKey = document.getElementById('electrolyteSelect').value;
+      var elecs = EC.ELECTROLYTES;
+      var preset = null;
+      for (var i = 0; i < elecs.length; i++) {
+        if (elecs[i].key === presetKey) { preset = elecs[i]; break; }
+      }
+      if (!preset) return;
+      _currentElecResult = {
+        cathodeProduct: preset.cathodeProduct,
+        anodeProduct: preset.anodeProduct,
+        cathodeReaction: preset.cathodeReaction,
+        anodeReaction: preset.anodeReaction,
+        cathodeExplanation: 'Preset: ' + preset.label,
+        anodeExplanation: 'Preset: ' + preset.label
+      };
+      _selectedA = EC.getHalfCell(preset.cation);
+      _selectedB = null;
+    }
+
+    if (!_currentElecResult) return;
+
+    _cellAssembled = true;
+    _animating = true;
+    _electrons = [];
+    _ions = [];
+    _events = [];
+    _bubbles = [];
+    _anodeShrink = 0;
+    _cathodeShrink = 0;
+
+    updateDisplay();
+  }
+
+  // ── Update Display ──
+
+  function updateDisplay() {
+    if (_mode === 'galvanic' && _currentResult) {
+      var r = _currentResult;
+      document.getElementById('infoECell').textContent = r.eCell.toFixed(2) + ' V';
+      document.getElementById('infoECell').style.color = r.spontaneous ? 'var(--green)' : 'var(--red)';
+      document.getElementById('infoAnode').textContent = r.anode.metal + ' (' + r.anode.ion + ')';
+      document.getElementById('infoCathode').textContent = r.cathode.metal + ' (' + r.cathode.ion + ')';
+      document.getElementById('infoSpontaneous').textContent = r.spontaneous ? 'Yes' : 'No';
+      document.getElementById('infoSpontaneous').style.color = r.spontaneous ? 'var(--green)' : 'var(--red)';
+      document.getElementById('infoCellNotation').textContent = r.cellNotation;
+      document.getElementById('conventionText').textContent = 'In galvanic cells, the anode is negative (\u2212) because oxidation spontaneously releases electrons. In electrolysis cells, these signs are reversed.';
+      highlightActivitySeries(r.anode.key, r.cathode.key);
+
+      if (_isHL) {
+        var dg = EC.deltaG(r.eCell, r.electronTransfer);
+        document.getElementById('hlDeltaG').textContent = dg.deltaG.toFixed(2) + ' kJ';
+        document.getElementById('hlElectronTransfer').textContent = String(r.electronTransfer);
+        document.getElementById('hlMinVoltage').textContent = '\u2014 (galvanic)';
+        updateFaraday();
+      }
+    } else if (_mode === 'electrolysis' && _currentElecResult) {
+      var er = _currentElecResult;
+      document.getElementById('infoECell').textContent = '\u2014 (external)';
+      document.getElementById('infoECell').style.color = 'var(--text)';
+      document.getElementById('infoAnode').textContent = 'Anode (+)';
+      document.getElementById('infoCathode').textContent = 'Cathode (\u2212)';
+      document.getElementById('conventionText').textContent = 'In electrolysis, the anode is positive (+) because it connects to the battery\u2019s positive terminal. This is the opposite of galvanic cells, where the anode is negative.';
+      document.getElementById('infoCathodeProduct').textContent = er.cathodeProduct;
+      document.getElementById('infoAnodeProduct').textContent = er.anodeProduct;
+      document.getElementById('infoCathodeExpl').textContent = er.cathodeExplanation;
+      document.getElementById('infoAnodeExpl').textContent = er.anodeExplanation;
+
+      if (_isHL) {
+        document.getElementById('hlDeltaG').textContent = '\u2014 (non-spont.)';
+        document.getElementById('hlElectronTransfer').textContent = _selectedA ? String(_selectedA.electrons) : '\u2014';
+        if (_selectedA) {
+          document.getElementById('hlMinVoltage').textContent = '\u2265 decomposition V';
+        }
+        updateFaraday();
+      }
+    }
+  }
+
+  function updateFaraday() {
+    var current = parseFloat(document.getElementById('faradayCurrent').value) || 0;
+    var timeVal = parseFloat(document.getElementById('faradayTime').value) || 0;
+    var unit = document.getElementById('faradayTimeUnit').value;
+    var timeSec = timeVal;
+    if (unit === 'min') timeSec = timeVal * 60;
+    else if (unit === 'hr') timeSec = timeVal * 3600;
+
+    var electrons = 2;
+    var molarMass = 63.55;
+    if (_mode === 'galvanic' && _currentResult) {
+      electrons = _currentResult.cathode.electrons;
+      molarMass = _currentResult.cathode.molarMass;
+    } else if (_mode === 'electrolysis' && _selectedA) {
+      electrons = _selectedA.electrons;
+      molarMass = _selectedA.molarMass;
+    }
+
+    var fr = EC.faraday(current, timeSec, electrons, molarMass);
+    _faradayResult = fr;
+    document.getElementById('hlFaradayCharge').textContent = fr.charge.toFixed(1);
+    document.getElementById('hlFaradayMolE').textContent = fr.molesElectrons.toExponential(3);
+    document.getElementById('hlFaradayMolP').textContent = fr.molesProduct.toExponential(3);
+    document.getElementById('hlFaradayMass').textContent = fr.massProduct.toFixed(3) + ' g';
+  }
+
+  // ── Draw Cell ──
+
+  function drawCell() {
+    ctx.clearRect(0, 0, CELL_W, CELL_H);
+    ctx.fillStyle = '#FAFBFC';
+    ctx.fillRect(0, 0, CELL_W, CELL_H);
+
+    if (_mode === 'galvanic') {
+      drawGalvanicCell();
+    } else {
+      drawElectrolysisCell();
+    }
+  }
+
+  function drawGalvanicCell() {
+    var assembled = _cellAssembled;
+    var anode = _currentResult ? _currentResult.anode : null;
+    var cathode = _currentResult ? _currentResult.cathode : null;
+
+    // Beaker outlines
+    drawBeaker(100, 200, 200, 180, assembled ? anodeElectrolyteColor() : '#E0F2FE');
+    drawBeaker(500, 200, 200, 180, assembled ? cathodeElectrolyteColor() : '#E0F2FE');
+
+    // Electrodes (drawn before ion labels so labels appear on top)
+    if (_parts[0].placed && assembled) {
+      var anodeShrinkPx = Math.min(_anodeShrink, 40);
+      var anodeColor = anode ? anode.color : '#94A3B8';
+      ctx.fillStyle = anodeColor;
+      ctx.fillRect(145, 190 + anodeShrinkPx, 22, 150 - anodeShrinkPx);
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(145, 190 + anodeShrinkPx, 22, 150 - anodeShrinkPx);
+      ctx.fillStyle = '#1E293B';
+      ctx.font = '600 13px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(anode ? anode.metal : 'A', 156, 365);
+      ctx.fillStyle = '#EF4444';
+      ctx.font = '600 11px Inter, sans-serif';
+      ctx.fillText('Anode (\u2212)', 156, 395);
+    }
+
+    if (_parts[1].placed && assembled) {
+      var cathodeShrinkPx = Math.min(_cathodeShrink, 40);
+      var cathodeColor = cathode ? cathode.color : '#94A3B8';
+      ctx.fillStyle = cathodeColor;
+      ctx.fillRect(583, 190 + cathodeShrinkPx, 22, 150 - cathodeShrinkPx + Math.min(_cathodeShrink * 0.5, 20));
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(583, 190 + cathodeShrinkPx, 22, 150 - cathodeShrinkPx + Math.min(_cathodeShrink * 0.5, 20));
+      ctx.fillStyle = '#1E293B';
+      ctx.font = '600 13px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(cathode ? cathode.metal : 'B', 594, 365);
+      ctx.fillStyle = '#3B82F6';
+      ctx.font = '600 11px Inter, sans-serif';
+      ctx.fillText('Cathode (+)', 594, 395);
+    }
+
+    // Salt bridge — inverted U-tube arching over between beakers
+    if (_parts[2].placed && assembled) {
+      var sbTube = 12; // tube wall thickness
+      // Left leg dips into left beaker, right leg into right beaker
+      var sbLx = 285, sbRx = 515;       // x center of left/right legs
+      var sbTop = 175;                   // top of the arch
+      var sbBot = 280;                   // bottom of legs (dip into solutions)
+      ctx.fillStyle = '#D1D5DB';
+      ctx.beginPath();
+      // Outer path (clockwise)
+      ctx.moveTo(sbLx - sbTube/2, sbBot);
+      ctx.lineTo(sbLx - sbTube/2, sbTop + 15);
+      ctx.quadraticCurveTo(sbLx - sbTube/2, sbTop, 400, sbTop);
+      ctx.quadraticCurveTo(sbRx + sbTube/2, sbTop, sbRx + sbTube/2, sbTop + 15);
+      ctx.lineTo(sbRx + sbTube/2, sbBot);
+      // Inner path (counter-clockwise)
+      ctx.lineTo(sbRx - sbTube/2, sbBot);
+      ctx.lineTo(sbRx - sbTube/2, sbTop + 15 + sbTube);
+      ctx.quadraticCurveTo(sbRx - sbTube/2, sbTop + sbTube, 400, sbTop + sbTube);
+      ctx.quadraticCurveTo(sbLx + sbTube/2, sbTop + sbTube, sbLx + sbTube/2, sbTop + 15 + sbTube);
+      ctx.lineTo(sbLx + sbTube/2, sbBot);
+      ctx.closePath();
+      ctx.fill();
+      ctx.strokeStyle = '#9CA3AF';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+      ctx.fillStyle = '#64748B';
+      ctx.font = '600 10px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Salt Bridge', 400, sbBot + 14);
+    }
+
+    // Wire
+    if (assembled) {
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(WIRE_P0.x, WIRE_P0.y);
+      ctx.quadraticCurveTo(WIRE_CP.x, WIRE_CP.y, WIRE_P1.x, WIRE_P1.y);
+      ctx.stroke();
+
+      // Voltmeter
+      var vm = bezierPoint(0.5);
+      ctx.fillStyle = '#FFFFFF';
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(vm.x, vm.y, 24, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = '#1E293B';
+      ctx.font = '700 14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('V', vm.x, vm.y - 5);
+      if (_currentResult) {
+        ctx.font = '600 10px "Fira Code", monospace';
+        ctx.fillStyle = _currentResult.spontaneous ? '#059669' : '#DC2626';
+        ctx.fillText(_currentResult.eCell.toFixed(2) + ' V', vm.x, vm.y + 10);
+      }
+      ctx.textBaseline = 'alphabetic';
+
+      // Polarity
+      ctx.fillStyle = '#EF4444';
+      ctx.font = '700 16px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('\u2212', 175, 165);
+      ctx.fillStyle = '#3B82F6';
+      ctx.fillText('+', 575, 165);
+    }
+
+    // Ion labels (drawn after electrodes so they are not hidden)
+    if (assembled && anode) {
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.font = '600 12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(anode.ion + '(aq)', 225, 330);
+    }
+    if (assembled && cathode) {
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.font = '600 12px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(cathode.ion + '(aq)', 645, 330);
+    }
+
+    // Parts tray items on canvas
+    if (!assembled) {
+      for (var i = 0; i < _parts.length; i++) {
+        if (!_parts[i].placed) {
+          drawPartButton(_parts[i]);
+        }
+      }
+    }
+  }
+
+  function drawElectrolysisCell() {
+    var assembled = _cellAssembled;
+
+    drawBeaker(225, 200, 350, 200, assembled ? '#DBEAFE' : '#E0F2FE');
+
+    if (assembled) {
+      // Electrolyte label
+      ctx.fillStyle = 'rgba(0,0,0,0.4)';
+      ctx.font = '600 13px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      if (!_isTeacher) {
+        var presetKey = document.getElementById('electrolyteSelect').value;
+        var elecs = EC.ELECTROLYTES;
+        for (var e = 0; e < elecs.length; e++) {
+          if (elecs[e].key === presetKey) {
+            ctx.fillText(elecs[e].label, 400, 350);
+            break;
+          }
+        }
+      } else {
+        var cationEl = document.getElementById('eCation');
+        var anionEl = document.getElementById('eAnion');
+        ctx.fillText(cationEl.options[cationEl.selectedIndex].textContent + ' + ' + anionEl.options[anionEl.selectedIndex].textContent, 400, 350);
+      }
+
+      // Cathode (left)
+      ctx.fillStyle = '#6B7280';
+      ctx.fillRect(310, 195, 18, 160);
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(310, 195, 18, 160);
+      ctx.fillStyle = '#3B82F6';
+      ctx.font = '600 11px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Cathode (\u2212)', 319, 375);
+
+      // Anode (right)
+      ctx.fillStyle = '#6B7280';
+      ctx.fillRect(472, 195, 18, 160);
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(472, 195, 18, 160);
+      ctx.fillStyle = '#EF4444';
+      ctx.font = '600 11px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Anode (+)', 481, 375);
+
+      // Wire
+      ctx.strokeStyle = '#475569';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      ctx.moveTo(319, 195);
+      ctx.lineTo(319, 120);
+      ctx.lineTo(481, 120);
+      ctx.lineTo(481, 195);
+      ctx.stroke();
+
+      // Battery
+      ctx.fillStyle = '#FEF3C7';
+      ctx.strokeStyle = '#D97706';
+      ctx.lineWidth = 2;
+      var bx = 370, by = 100, bw = 60, bh = 40;
+      ctx.fillRect(bx, by, bw, bh);
+      ctx.strokeRect(bx, by, bw, bh);
+      ctx.fillStyle = '#1E293B';
+      ctx.font = '700 14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText('DC', 400, 120);
+      ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = '#EF4444';
+      ctx.font = '700 14px Inter, sans-serif';
+      ctx.fillText('\u2212', 378, 98);
+      ctx.fillStyle = '#3B82F6';
+      ctx.fillText('+', 422, 98);
+
+      // Product labels
+      if (_currentElecResult) {
+        ctx.fillStyle = '#059669';
+        ctx.font = '600 11px Inter, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(_currentElecResult.cathodeProduct, 319, 395);
+        ctx.fillText(_currentElecResult.anodeProduct, 481, 395);
+      }
+    } else {
+      ctx.fillStyle = '#94A3B8';
+      ctx.font = '500 14px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Select an electrolyte and click Start', 400, 300);
+    }
+  }
+
+  function drawBeaker(x, y, w, h, fillColor) {
+    var taper = 15;
+    ctx.fillStyle = fillColor;
+    ctx.beginPath();
+    ctx.moveTo(x + taper, y);
+    ctx.lineTo(x + w - taper, y);
+    ctx.lineTo(x + w, y + h);
+    ctx.lineTo(x, y + h);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(x + taper, y);
+    ctx.lineTo(x, y + h);
+    ctx.lineTo(x + w, y + h);
+    ctx.lineTo(x + w - taper, y);
+    ctx.stroke();
+
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x + taper - 5, y);
+    ctx.lineTo(x + taper + 5, y);
+    ctx.moveTo(x + w - taper - 5, y);
+    ctx.lineTo(x + w - taper + 5, y);
+    ctx.stroke();
+  }
+
+  function drawPartButton(part) {
+    var px = part.x - part.w / 2;
+    var py = part.y - part.h / 2;
+    ctx.fillStyle = '#FFFFFF';
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+    roundRect(ctx, px, py, part.w, part.h, 6, true, true);
+    ctx.setLineDash([]);
+    ctx.fillStyle = '#475569';
+    ctx.font = '600 10px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(part.label, part.x, part.y);
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  function roundRect(c, x, y, w, h, r, fill, stroke) {
+    c.beginPath();
+    c.moveTo(x + r, y);
+    c.lineTo(x + w - r, y);
+    c.quadraticCurveTo(x + w, y, x + w, y + r);
+    c.lineTo(x + w, y + h - r);
+    c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+    c.lineTo(x + r, y + h);
+    c.quadraticCurveTo(x, y + h, x, y + h - r);
+    c.lineTo(x, y + r);
+    c.quadraticCurveTo(x, y, x + r, y);
+    c.closePath();
+    if (fill) c.fill();
+    if (stroke) c.stroke();
+  }
+
+  function anodeElectrolyteColor() {
+    if (!_currentResult) return '#E0F2FE';
+    return hexToRGBA(_currentResult.anode.color, 0.15);
+  }
+
+  function cathodeElectrolyteColor() {
+    if (!_currentResult) return '#E0F2FE';
+    return hexToRGBA(_currentResult.cathode.color, 0.15);
+  }
+
+  function hexToRGBA(hex, alpha) {
+    hex = hex.replace('#', '');
+    var r = parseInt(hex.substring(0, 2), 16);
+    var g = parseInt(hex.substring(2, 4), 16);
+    var b = parseInt(hex.substring(4, 6), 16);
+    return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+  }
+
+  // ── Animation System ──
+
+  function animate() {
+    _frameCount++;
+    drawCell();
+
+    if (_animating && _mode === 'galvanic' && _currentResult) {
+      animateGalvanic();
+    } else if (_animating && _mode === 'electrolysis' && _currentElecResult) {
+      animateElectrolysis();
+    }
+
+    requestAnimationFrame(animate);
+  }
+
+  function animateGalvanic() {
+    var r = _currentResult;
+    var speed = Math.max(0.003, Math.min(0.02, Math.abs(r.eCell) * 0.01));
+
+    // Spawn electrons
+    if (_frameCount % 8 === 0 && _electrons.length < 15) {
+      _electrons.push({ t: 0, speed: speed + Math.random() * 0.005 });
+    }
+
+    // Move and draw electrons (anode to cathode along wire)
+    for (var i = _electrons.length - 1; i >= 0; i--) {
+      _electrons[i].t += _electrons[i].speed;
+      if (_electrons[i].t > 1) {
+        _electrons.splice(i, 1);
+        continue;
+      }
+      var p = bezierPoint(_electrons[i].t);
+      ctx.fillStyle = '#FBBF24';
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#D97706';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+
+    // Anode dissolution
+    if (_frameCount % 90 === 0 && _events.length < 20) {
+      _events.push({
+        type: 'dissolve',
+        x: 166 + Math.random() * 5,
+        y: 220 + Math.random() * 100,
+        vx: 0.3 + Math.random() * 0.5,
+        vy: -0.2 + Math.random() * 0.4,
+        life: 0, maxLife: 120,
+        color: r.anode.color
+      });
+      _anodeShrink += 0.15;
+    }
+
+    // Cathode deposition
+    if (_frameCount % 90 === 30 && _events.length < 20) {
+      _events.push({
+        type: 'deposit',
+        x: 520 + Math.random() * 60,
+        y: 220 + Math.random() * 100,
+        vx: 0, vy: 0,
+        life: 0, maxLife: 100,
+        color: r.cathode.color,
+        targetX: 583,
+        targetY: 220 + Math.random() * 100
+      });
+      _cathodeShrink += 0.1;
+    }
+
+    // Draw events
+    for (var e = _events.length - 1; e >= 0; e--) {
+      var ev = _events[e];
+      ev.life++;
+      if (ev.life > ev.maxLife) {
+        _events.splice(e, 1);
+        continue;
+      }
+      var alpha = 1 - ev.life / ev.maxLife;
+      if (ev.type === 'dissolve') {
+        ev.x += ev.vx;
+        ev.y += ev.vy + Math.sin(_frameCount * 0.05 + e) * 0.3;
+        ctx.fillStyle = hexToRGBA(ev.color, alpha);
+        ctx.beginPath();
+        ctx.arc(ev.x, ev.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (ev.type === 'deposit') {
+        var t = ev.life / ev.maxLife;
+        var cx = ev.x + (ev.targetX - ev.x) * t;
+        var cy = ev.y + (ev.targetY - ev.y) * t;
+        ctx.fillStyle = hexToRGBA(ev.color, 0.5 + t * 0.5);
+        ctx.beginPath();
+        ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    // Salt bridge ion drift
+    if (_frameCount % 60 === 0 && _ions.length < 10) {
+      _ions.push({
+        x: 400, y: 295 + Math.random() * 10,
+        vx: -0.4 - Math.random() * 0.3,
+        vy: Math.random() * 0.2 - 0.1,
+        life: 0, maxLife: 200,
+        color: '#EF4444', label: '\u2212'
+      });
+      _ions.push({
+        x: 400, y: 295 + Math.random() * 10,
+        vx: 0.4 + Math.random() * 0.3,
+        vy: Math.random() * 0.2 - 0.1,
+        life: 0, maxLife: 200,
+        color: '#3B82F6', label: '+'
+      });
+    }
+
+    for (var io = _ions.length - 1; io >= 0; io--) {
+      var ion = _ions[io];
+      ion.life++;
+      ion.x += ion.vx;
+      ion.y += ion.vy + Math.sin(_frameCount * 0.03 + io) * 0.15;
+      if (ion.life > ion.maxLife || ion.x < 100 || ion.x > 700) {
+        _ions.splice(io, 1);
+        continue;
+      }
+      var ialpha = 1 - ion.life / ion.maxLife;
+      ctx.fillStyle = hexToRGBA(ion.color, ialpha);
+      ctx.beginPath();
+      ctx.arc(ion.x, ion.y, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,' + ialpha + ')';
+      ctx.font = '700 6px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(ion.label, ion.x, ion.y);
+      ctx.textBaseline = 'alphabetic';
+    }
+  }
+
+  function animateElectrolysis() {
+    var er = _currentElecResult;
+    var speed = 0.012;
+
+    // Electron flow along wire
+    if (_frameCount % 8 === 0 && _electrons.length < 12) {
+      _electrons.push({ t: 0, speed: speed + Math.random() * 0.003 });
+    }
+
+    for (var i = _electrons.length - 1; i >= 0; i--) {
+      var el = _electrons[i];
+      el.t += el.speed;
+      if (el.t > 1) {
+        _electrons.splice(i, 1);
+        continue;
+      }
+      // Wire path: 481,195 -> 481,120 -> 319,120 -> 319,195
+      var ex, ey;
+      if (el.t < 0.25) {
+        var st = el.t / 0.25;
+        ex = 481;
+        ey = 195 + (120 - 195) * st;
+      } else if (el.t < 0.75) {
+        var st2 = (el.t - 0.25) / 0.5;
+        ex = 481 + (319 - 481) * st2;
+        ey = 120;
+      } else {
+        var st3 = (el.t - 0.75) / 0.25;
+        ex = 319;
+        ey = 120 + (195 - 120) * st3;
+      }
+      ctx.fillStyle = '#FBBF24';
+      ctx.beginPath();
+      ctx.arc(ex, ey, 3, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#D97706';
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+    }
+
+    // Gas bubbles
+    var cathodeGas = er.cathodeProduct && (er.cathodeProduct.indexOf('(g)') !== -1 || er.cathodeProduct.indexOf('H\u2082') !== -1);
+    var anodeGas = er.anodeProduct && (er.anodeProduct.indexOf('(g)') !== -1 || er.anodeProduct.indexOf('O\u2082') !== -1 || er.anodeProduct.indexOf('Cl\u2082') !== -1);
+
+    if (cathodeGas && _frameCount % 20 === 0) {
+      _bubbles.push({
+        x: 315 + Math.random() * 10,
+        y: 330,
+        vy: -0.8 - Math.random() * 0.5,
+        r: 2 + Math.random() * 3,
+        life: 0, maxLife: 80,
+        tint: 'rgba(200,220,255,0.6)'
+      });
+    }
+    if (anodeGas && _frameCount % 20 === 10) {
+      var isChlorine = er.anodeProduct && er.anodeProduct.indexOf('Cl\u2082') !== -1;
+      _bubbles.push({
+        x: 476 + Math.random() * 10,
+        y: 330,
+        vy: -0.8 - Math.random() * 0.5,
+        r: 2 + Math.random() * 3,
+        life: 0, maxLife: 80,
+        tint: isChlorine ? 'rgba(200,255,200,0.6)' : 'rgba(200,220,255,0.6)'
+      });
+    }
+
+    for (var b = _bubbles.length - 1; b >= 0; b--) {
+      var bub = _bubbles[b];
+      bub.life++;
+      bub.y += bub.vy;
+      bub.x += Math.sin(_frameCount * 0.08 + b) * 0.3;
+      if (bub.life > bub.maxLife || bub.y < 200) {
+        _bubbles.splice(b, 1);
+        continue;
+      }
+      var balpha = 1 - bub.life / bub.maxLife;
+      ctx.fillStyle = bub.tint.replace('0.6', String(balpha * 0.6));
+      ctx.strokeStyle = 'rgba(150,150,200,' + balpha * 0.5 + ')';
+      ctx.lineWidth = 0.5;
+      ctx.beginPath();
+      ctx.arc(bub.x, bub.y, bub.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+    }
+
+    // Deposition for solid cathode product
+    if (er.cathodeProduct && er.cathodeProduct.indexOf('(s)') !== -1) {
+      if (_frameCount % 60 === 0 && _events.length < 15) {
+        _events.push({
+          type: 'deposit',
+          x: 290 + Math.random() * 30,
+          y: 250 + Math.random() * 80,
+          vx: 0, vy: 0,
+          life: 0, maxLife: 120,
+          color: _selectedA ? _selectedA.color : '#D97706',
+          targetX: 310 + Math.random() * 5,
+          targetY: 220 + Math.random() * 110
+        });
+      }
+    }
+
+    // Anode dissolution (active electrodes)
+    if (er.anodeProduct && er.anodeProduct.indexOf('dissolves') !== -1) {
+      if (_frameCount % 60 === 30 && _events.length < 15) {
+        _events.push({
+          type: 'dissolve',
+          x: 490,
+          y: 230 + Math.random() * 90,
+          vx: -0.3 - Math.random() * 0.3,
+          vy: Math.random() * 0.4 - 0.2,
+          life: 0, maxLife: 100,
+          color: _selectedA ? _selectedA.color : '#D97706'
+        });
+      }
+    }
+
+    // Draw events
+    for (var ev = _events.length - 1; ev >= 0; ev--) {
+      var evt = _events[ev];
+      evt.life++;
+      if (evt.life > evt.maxLife) {
+        _events.splice(ev, 1);
+        continue;
+      }
+      var ea = 1 - evt.life / evt.maxLife;
+      if (evt.type === 'dissolve') {
+        evt.x += evt.vx;
+        evt.y += evt.vy + Math.sin(_frameCount * 0.05 + ev) * 0.3;
+        ctx.fillStyle = hexToRGBA(evt.color, ea);
+        ctx.beginPath();
+        ctx.arc(evt.x, evt.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      } else if (evt.type === 'deposit') {
+        var dt = evt.life / evt.maxLife;
+        var dx = evt.x + (evt.targetX - evt.x) * dt;
+        var dy = evt.y + (evt.targetY - evt.y) * dt;
+        ctx.fillStyle = hexToRGBA(evt.color, 0.5 + dt * 0.5);
+        ctx.beginPath();
+        ctx.arc(dx, dy, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+  }
+
+  // ── Drag and Drop (Galvanic mode) ──
+
+  function getCanvasCoords(e) {
+    var rect = cell.canvas.getBoundingClientRect();
+    var scaleX = CELL_W / rect.width;
+    var scaleY = CELL_H / rect.height;
+    var clientX, clientY;
+    if (e.touches && e.touches.length > 0) {
+      clientX = e.touches[0].clientX;
+      clientY = e.touches[0].clientY;
+    } else {
+      clientX = e.clientX;
+      clientY = e.clientY;
+    }
+    return {
+      x: (clientX - rect.left) * scaleX,
+      y: (clientY - rect.top) * scaleY
+    };
+  }
+
+  function hitTestPart(mx, my) {
+    for (var i = _parts.length - 1; i >= 0; i--) {
+      var p = _parts[i];
+      if (p.placed) continue;
+      if (mx >= p.x - p.w / 2 && mx <= p.x + p.w / 2 &&
+          my >= p.y - p.h / 2 && my <= p.y + p.h / 2) {
+        return p;
+      }
+    }
+    return null;
+  }
+
+  function startDrag(e) {
+    if (_mode !== 'galvanic' || _cellAssembled) return;
+    e.preventDefault();
+    var coords = getCanvasCoords(e);
+    var part = hitTestPart(coords.x, coords.y);
+    if (part) {
+      _dragItem = part;
+      _dragOffsetX = coords.x - part.x;
+      _dragOffsetY = coords.y - part.y;
+    }
+  }
+
+  function moveDrag(e) {
+    if (!_dragItem) return;
+    e.preventDefault();
+    var coords = getCanvasCoords(e);
+    _dragItem.x = coords.x - _dragOffsetX;
+    _dragItem.y = coords.y - _dragOffsetY;
+    drawCell();
+    drawPartButton(_dragItem);
+  }
+
+  function endDrag(e) {
+    if (!_dragItem) return;
+    e.preventDefault();
+
+    var zone = _snapZones[_dragItem.zone];
+    var dist = Math.sqrt(
+      Math.pow(_dragItem.x - (zone.x + zone.w / 2), 2) +
+      Math.pow(_dragItem.y - (zone.y + zone.h / 2), 2)
+    );
+
+    if (dist < 120 && !zone.occupied) {
+      _dragItem.placed = true;
+      zone.occupied = true;
+      var trayItems = document.querySelectorAll('.parts-tray-item');
+      for (var j = 0; j < trayItems.length; j++) {
+        if (trayItems[j].getAttribute('data-part') === _dragItem.id) {
+          trayItems[j].classList.add('placed');
+        }
+      }
+    } else {
+      _dragItem.x = _dragItem.homeX;
+      _dragItem.y = _dragItem.homeY;
+    }
+
+    _dragItem = null;
+
+    var allPlaced = true;
+    for (var i = 0; i < _parts.length; i++) {
+      if (!_parts[i].placed) { allPlaced = false; break; }
+    }
+    if (allPlaced && !_cellAssembled) {
+      assembleGalvanic();
+    }
+
+    drawCell();
+  }
+
+  cell.canvas.addEventListener('mousedown', startDrag);
+  cell.canvas.addEventListener('mousemove', moveDrag);
+  cell.canvas.addEventListener('mouseup', endDrag);
+  cell.canvas.addEventListener('touchstart', startDrag, { passive: false });
+  cell.canvas.addEventListener('touchmove', moveDrag, { passive: false });
+  cell.canvas.addEventListener('touchend', endDrag, { passive: false });
+
+  // ── Button Events ──
+
+  document.getElementById('btnAssemble').addEventListener('click', function () {
+    if (!_cellAssembled) assembleGalvanic();
+  });
+
+  document.getElementById('btnReset').addEventListener('click', function () {
+    resetCell();
+  });
+
+  document.getElementById('btnStartElec').addEventListener('click', function () {
+    if (!_cellAssembled) startElectrolysis();
+  });
+
+  document.getElementById('btnResetElec').addEventListener('click', function () {
+    resetCell();
+  });
+
+  // ── Faraday inputs live update ──
+  document.getElementById('faradayCurrent').addEventListener('input', function () { if (_isHL) updateFaraday(); });
+  document.getElementById('faradayTime').addEventListener('input', function () { if (_isHL) updateFaraday(); });
+  document.getElementById('faradayTimeUnit').addEventListener('change', function () { if (_isHL) updateFaraday(); });
+
+  // ── Header Toggles ──
+
+  SimEngine.State.reset({
+    hlEnabled: false,
+    mode: false
+  });
+
+  SimEngine.Controls.createToggle({
+    id: 'hlToggle', label: 'HL', labelOn: 'HL', labelOff: 'SL',
+    checked: false, stateKey: 'hlEnabled',
+    container: 'headerToggles', colorOn: '#7C3AED'
+  });
+  SimEngine.Controls.createToggle({
+    id: 'modeToggle', label: 'Mode', labelOn: 'Teacher', labelOff: 'Student',
+    checked: false, stateKey: 'mode',
+    container: 'headerToggles'
+  });
+
+  SimEngine.State.on('hlEnabled', function (data) {
+    _isHL = !!data.value;
+    document.body.classList.toggle('hl-active', _isHL);
+    buildVarCheckboxes();
+    updateDisplay();
+  });
+
+  SimEngine.State.on('mode', function (data) {
+    var isTeacher = (data.value === true || data.value === 'teacher');
+    _isTeacher = isTeacher;
+    document.body.classList.toggle('teacher-active', isTeacher);
+    document.getElementById('sweepSection').classList.toggle('data-section-hidden', !isTeacher);
+    updateDisplay();
+  });
+
+  // ── Keyboard Shortcuts ──
+
+  SimEngine.Controls.initKeyboard();
+
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.key.toLowerCase()) {
+      case ' ':
+        e.preventDefault();
+        if (_mode === 'galvanic') assembleGalvanic();
+        else startElectrolysis();
+        break;
+      case 'r':
+        resetCell();
+        break;
+      case 'g':
+        switchMode('galvanic');
+        break;
+      case 'e':
+        switchMode('electrolysis');
+        break;
+      case 'h':
+        var hlToggle = document.querySelector('#hlToggle input');
+        if (hlToggle) { hlToggle.checked = !hlToggle.checked; hlToggle.dispatchEvent(new Event('change')); }
+        break;
+      case 't':
+        var modeToggle = document.querySelector('#modeToggle input');
+        if (modeToggle) { modeToggle.checked = !modeToggle.checked; modeToggle.dispatchEvent(new Event('change')); }
+        break;
+      case '1':
+        switchMode('galvanic');
+        break;
+      case '2':
+        switchMode('electrolysis');
+        break;
+      case '/':
+        e.preventDefault();
+        document.getElementById('paletteSearch').focus();
+        break;
+    }
+  });
+
+  SimEngine.State.on('reset', function () {
+    resetCell();
+  });
+
+  // ── Data Collection Setup ──
+
+  SimEngine.DataCollector.registerVariables([
+    { key: 'halfCellA', label: 'Half-Cell A', getter: function () { return _currentResult ? _currentResult.anode.metal + '/' + _currentResult.anode.ion : '\u2014'; }, default: true },
+    { key: 'halfCellB', label: 'Half-Cell B', getter: function () { return _currentResult ? _currentResult.cathode.metal + '/' + _currentResult.cathode.ion : '\u2014'; }, default: true },
+    { key: 'eCell', label: 'E\u00B0cell / V', getter: function () { return _currentResult ? _currentResult.eCell : 0; }, default: true },
+    { key: 'anode', label: 'Anode', getter: function () { return _currentResult ? _currentResult.anode.metal : '\u2014'; }, default: false },
+    { key: 'cathode', label: 'Cathode', getter: function () { return _currentResult ? _currentResult.cathode.metal : '\u2014'; }, default: false },
+    { key: 'spontaneous', label: 'Spontaneous', getter: function () { return _currentResult ? (_currentResult.spontaneous ? 'Yes' : 'No') : '\u2014'; }, default: false },
+    { key: 'charge', label: 'Charge / C', getter: function () { return _faradayResult ? _faradayResult.charge : 0; }, default: false, hl: true },
+    { key: 'molesElectrons', label: 'mol e\u207B', getter: function () { return _faradayResult ? _faradayResult.molesElectrons : 0; }, default: false, hl: true },
+    { key: 'massProduct', label: 'Mass / g', getter: function () { return _faradayResult ? _faradayResult.massProduct : 0; }, default: false, hl: true }
+  ]);
+
+  function buildVarCheckboxes() {
+    var container = document.getElementById('varCheckboxes');
+    while (container.firstChild) container.removeChild(container.firstChild);
+    var vars = SimEngine.DataCollector.getVariables();
+    for (var i = 0; i < vars.length; i++) {
+      var v = vars[i];
+      if (v.hl && !_isHL) continue;
+      var label = document.createElement('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = v.key;
+      cb.checked = !!v.default;
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(' ' + v.label));
+      container.appendChild(label);
+    }
+  }
+
+  function getSelectedVarKeys() {
+    var checkboxes = document.querySelectorAll('#varCheckboxes input[type="checkbox"]');
+    var keys = [];
+    for (var i = 0; i < checkboxes.length; i++) {
+      if (checkboxes[i].checked) keys.push(checkboxes[i].value);
+    }
+    return keys;
+  }
+
+  // Data panel toggle
+  document.getElementById('dataPanelHeader').addEventListener('click', function () {
+    var body = document.getElementById('dataPanelBody');
+    var arrow = document.getElementById('dataPanelArrow');
+    var isOpen = body.classList.toggle('open');
+    arrow.textContent = isOpen ? '\u25BC' : '\u25B6';
+  });
+
+  // Snapshot
+  document.getElementById('btnSnapshot').addEventListener('click', function () {
+    SimEngine.DataCollector.recordSnapshot();
+  });
+
+  // Download Snapshots
+  document.getElementById('btnDownloadSnapshots').addEventListener('click', function () {
+    SimEngine.DataCollector.download('simengine_electrochem_snapshots.csv', 'snapshots');
+  });
+
+  // Clear
+  document.getElementById('btnClearSnapshots').addEventListener('click', function () {
+    SimEngine.DataCollector.clearData();
+    document.getElementById('snapshotTableWrap').classList.add('data-section-hidden');
+    document.getElementById('snapshotBtns').classList.add('data-section-hidden');
+    document.getElementById('snapshotCount').textContent = 'Snapshots: 0';
+    var tbody = document.getElementById('snapshotTableBody');
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+  });
+
+  // Sweep: iterate through metal pairs
+  document.getElementById('btnStartSweep').addEventListener('click', function () {
+    var vars = getSelectedVarKeys();
+    if (vars.length === 0) return;
+
+    var series = EC.getActivitySeries();
+    var sweepData = [];
+
+    for (var i = 0; i < series.length; i++) {
+      for (var j = i + 1; j < series.length; j++) {
+        var result = EC.calculateCell(series[i].key, series[j].key);
+        if (!result) continue;
+        _currentResult = result;
+        var row = {};
+        for (var v = 0; v < vars.length; v++) {
+          var allVars = SimEngine.DataCollector.getVariables();
+          for (var av = 0; av < allVars.length; av++) {
+            if (allVars[av].key === vars[v]) {
+              row[vars[v]] = allVars[av].getter();
+              break;
+            }
+          }
+        }
+        sweepData.push(row);
+      }
+    }
+
+    if (sweepData.length === 0) return;
+
+    var headers = vars;
+    var varMap = SimEngine.DataCollector.getVariables();
+    var labelMap = {};
+    for (var m = 0; m < varMap.length; m++) labelMap[varMap[m].key] = varMap[m].label;
+    var csvLines = [headers.map(function (k) { return labelMap[k] || k; }).join(',')];
+    for (var r = 0; r < sweepData.length; r++) {
+      var cells = [];
+      for (var c = 0; c < headers.length; c++) {
+        var val = sweepData[r][headers[c]];
+        if (val === undefined || val === null) {
+          cells.push('');
+        } else if (typeof val === 'number') {
+          var abs = Math.abs(val);
+          if (abs !== 0 && (abs >= 1e5 || abs < 1e-3)) cells.push(val.toExponential(4));
+          else cells.push(Number(val.toPrecision(4)).toString());
+        } else {
+          cells.push(String(val));
+        }
+      }
+      csvLines.push(cells.join(','));
+    }
+    var csv = csvLines.join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'simengine_electrochem_sweep.csv';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // ── DataCollector event wiring ──
+
+  SimEngine.State.on('snapshotRecorded', function (data) {
+    document.getElementById('snapshotCount').textContent = 'Snapshots: ' + data.count;
+    document.getElementById('snapshotTableWrap').classList.remove('data-section-hidden');
+    document.getElementById('snapshotBtns').classList.remove('data-section-hidden');
+
+    var displayKeys = getSelectedVarKeys();
+    if (displayKeys.length === 0) {
+      displayKeys = ['halfCellA', 'halfCellB', 'eCell'];
+    }
+
+    var thead = document.getElementById('snapshotTableHead');
+    while (thead.firstChild) thead.removeChild(thead.firstChild);
+    var varMap = SimEngine.DataCollector.getVariables();
+    var labelMap = {};
+    for (var v = 0; v < varMap.length; v++) labelMap[varMap[v].key] = varMap[v].label;
+    var headTr = document.createElement('tr');
+    for (var c = 0; c < displayKeys.length; c++) {
+      var th = document.createElement('th');
+      th.textContent = labelMap[displayKeys[c]] || displayKeys[c];
+      headTr.appendChild(th);
+    }
+    thead.appendChild(headTr);
+
+    var tbody = document.getElementById('snapshotTableBody');
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    var snapshots = SimEngine.DataCollector.getSnapshots();
+    for (var s = 0; s < snapshots.length; s++) {
+      var tr = document.createElement('tr');
+      for (var cc = 0; cc < displayKeys.length; cc++) {
+        var td = document.createElement('td');
+        var val = snapshots[s][displayKeys[cc]];
+        if (val === undefined || val === null) {
+          td.textContent = '\u2014';
+        } else if (typeof val === 'number') {
+          var abs = Math.abs(val);
+          if (val === 0) td.textContent = '0';
+          else if (abs >= 1e5 || abs < 1e-3) td.textContent = val.toExponential(3);
+          else td.textContent = Number(val.toPrecision(4)).toString();
+        } else {
+          td.textContent = String(val);
+        }
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+  });
+
+  SimEngine.State.on('dataCleared', function () {
+    document.getElementById('snapshotCount').textContent = 'Snapshots: 0';
+    var tbody = document.getElementById('snapshotTableBody');
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    document.getElementById('snapshotTableWrap').classList.add('data-section-hidden');
+    document.getElementById('snapshotBtns').classList.add('data-section-hidden');
+  });
+
+  // ── DataCollector tick ──
+  setInterval(function () {
+    SimEngine.DataCollector.tick();
+  }, 1000 / 60);
+
+  // ── Palette Search (filters half-cell dropdowns and activity series) ──
+
+  var _paletteSearch = document.getElementById('paletteSearch');
+  _paletteSearch.addEventListener('input', function () {
+    var query = _paletteSearch.value.toLowerCase().trim();
+
+    // Filter half-cell dropdown options
+    var selects = [document.getElementById('halfCellA'), document.getElementById('halfCellB')];
+    for (var s = 0; s < selects.length; s++) {
+      var opts = selects[s].options;
+      for (var i = 0; i < opts.length; i++) {
+        var text = opts[i].textContent.toLowerCase();
+        var val = opts[i].value.toLowerCase();
+        var match = !query || text.indexOf(query) !== -1 || val.indexOf(query) !== -1;
+        opts[i].style.display = match ? '' : 'none';
+        opts[i].disabled = !match;
+      }
+    }
+
+    // Filter electrolyte dropdown options
+    var elecSel = document.getElementById('electrolyteSelect');
+    if (elecSel) {
+      var elecOpts = elecSel.options;
+      for (var j = 0; j < elecOpts.length; j++) {
+        var elecText = elecOpts[j].textContent.toLowerCase();
+        var elecMatch = !query || elecText.indexOf(query) !== -1;
+        elecOpts[j].style.display = elecMatch ? '' : 'none';
+        elecOpts[j].disabled = !elecMatch;
+      }
+    }
+
+    // Filter activity series items
+    var asItems = document.querySelectorAll('.activity-series-item');
+    for (var k = 0; k < asItems.length; k++) {
+      var asText = asItems[k].textContent.toLowerCase();
+      asItems[k].style.display = (!query || asText.indexOf(query) !== -1) ? '' : 'none';
+    }
+  });
+
+  // ── Teacher Presets ──
+
+  var TEACHER_PRESETS = [
+    { label: 'Zinc-Copper Cell', mode: 'galvanic', action: function () {
+      switchMode('galvanic');
+      document.getElementById('halfCellA').value = 'Zn';
+      document.getElementById('halfCellB').value = 'Cu';
+      assembleGalvanic();
+    }},
+    { label: 'Electroplating Demo', mode: 'electrolysis', action: function () {
+      switchMode('electrolysis');
+      document.getElementById('eCation').value = 'Cu';
+      document.getElementById('eAnion').value = 'SO4';
+      var stateRadios = document.querySelectorAll('input[name="eState"]');
+      for (var r = 0; r < stateRadios.length; r++) {
+        stateRadios[r].checked = (stateRadios[r].value === 'aqueous');
+      }
+      document.getElementById('eElectrode').value = 'Cu';
+      document.getElementById('eConc').value = 'moderate';
+      startElectrolysis();
+    }},
+    { label: 'Standard Electrode Potentials', mode: 'galvanic', action: function () {
+      switchMode('galvanic');
+      // Open E calc panel and select Li and Au for max range
+      var ecalcBody = document.getElementById('ecalcBody');
+      var ecalcArrow = document.getElementById('ecalcArrow');
+      if (ecalcBody.style.display === 'none') {
+        ecalcBody.style.display = 'block';
+        ecalcArrow.classList.add('open');
+      }
+      _ecalcSelA = 'Li';
+      _ecalcSelB = 'Au';
+      updateECalcHighlights();
+      updateECalcResult();
+    }}
+  ];
+
+  function buildPresets() {
+    var presetSel = document.getElementById('presetSelect');
+    presetSel.textContent = '';
+    var defOpt = document.createElement('option');
+    defOpt.value = '';
+    defOpt.textContent = 'Teacher Presets...';
+    presetSel.appendChild(defOpt);
+    for (var i = 0; i < TEACHER_PRESETS.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = TEACHER_PRESETS[i].label;
+      presetSel.appendChild(opt);
+    }
+    presetSel.addEventListener('change', function () {
+      if (presetSel.value === '') return;
+      var preset = TEACHER_PRESETS[parseInt(presetSel.value)];
+      if (preset && preset.action) {
+        preset.action();
+      }
+      presetSel.value = '';
+    });
+  }
+
+  // ── Initialize ──
+
+  populateHalfCells();
+  populateElectrolytes();
+  populateCations();
+  populateAnions();
+  buildActivitySeries();
+  buildECalcTable();
+  buildVarCheckboxes();
+  buildPresets();
+  resetCell();
+
+  // Start animation loop
+  animate();
+
+})();
+</script>
+<footer>SimEngine &mdash; Electrochemistry &bull; H=HL T=Teacher</footer>
+</body>
+</html>

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Nucleophilic Addition &amp; Synthesis — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Caveat:wght@400;600&display=swap');
+  :root{--navy:#1B2A4A;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--light-bg:#F8FAFC;--card-bg:#FFFFFF;--text:#1E293B;--text-muted:#64748B;--border:#E2E8F0;--green:#059669;--red:#DC2626;--amber:#D97706;--teal-bg:#F0FDFA;--blue-bg:#EFF6FF;--red-bg:#FEF2F2;--green-bg:#F0FDF4;--amber-bg:#FFFBEB;--sim-canvas-bg:#FAFBFC;--hl-badge-bg:#7C3AED;--hl-border:rgba(124,58,237,0.2);--orange:#F59E0B;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',-apple-system,sans-serif;background:var(--light-bg);color:var(--text);line-height:1.6;font-size:16px;}
+  body.hl-active {}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;}
+  .header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;}.header .subtitle{font-size:.9rem;opacity:.85;}
+  .header-left{display:flex;flex-direction:column;gap:.25rem;}.header-right{display:flex;align-items:center;gap:1rem;}
+  .header-badge{display:inline-block;padding:.25rem .75rem;border-radius:999px;font-size:.75rem;font-weight:600;background:rgba(255,255,255,.15);color:white;}
+  .header-badge.hl{background:var(--hl-badge-bg);}
+  .sim-toggle-group{display:flex;align-items:center;gap:.5rem;}.sim-toggle{position:relative;display:inline-block;width:40px;height:22px;}.sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:22px;transition:.2s;--toggle-on:var(--amber);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}.sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.8rem;font-weight:500;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.5rem;font-size:.85rem;font-weight:600;color:var(--text-muted);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;font-family:inherit;margin-bottom:-2px;}
+  .tab-btn:hover{color:var(--text);background:var(--teal-bg);}.tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);}
+  .tab-btn .tab-num{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:4px;font-size:.65rem;font-weight:700;background:var(--border);color:var(--text-muted);margin-right:.4rem;}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .sim-container{max-width:1200px;margin:0 auto;padding:1.5rem;}
+  .sim-top-row{display:grid;grid-template-columns:240px 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+  .sim-card{background:var(--card-bg);border-radius:12px;border:1px solid var(--border);overflow:hidden;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-size:.85rem;font-weight:600;}
+  .sim-card-body{padding:1rem;}
+  .palette-panel{max-height:600px;display:flex;flex-direction:column;position:sticky;top:1rem;align-self:start;grid-column:1;grid-row:1;}
+  .tab-content{grid-column:2;grid-row:1;display:none;}.tab-content.active{display:block;}
+  .palette-panel .sim-card-body{padding:.5rem;overflow-y:auto;flex:1;}
+  .palette-category{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);padding:.4rem .3rem .2rem;margin-top:.3rem;}
+  .palette-item{display:block;width:100%;text-align:left;padding:.3rem .5rem;margin:.15rem 0;border-radius:6px;font-size:.75rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:white;color:var(--text);transition:all .15s;}
+  .palette-item:hover{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);}
+  .palette-item.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);font-weight:600;}
+  .sim-canvas{display:block;width:100%;background:var(--sim-canvas-bg);border-radius:4px;}
+  .check-btn{display:inline-block;padding:.5rem 1.2rem;margin-top:.75rem;background:var(--teal);color:white;border:none;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;}
+  .check-btn:hover{background:#0B7C73;}
+  .mode-btn{padding:.3rem .6rem;font-size:.72rem;font-weight:600;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;font-family:inherit;transition:all .15s;}
+  .mode-btn.active{background:var(--teal);color:white;border-color:var(--teal);}.mode-btn:hover:not(.active){background:var(--teal-bg);}
+  .teacher-panel{display:none;}body.teacher-active .teacher-panel{display:block;}
+  .calc-step{padding:.4rem .6rem;margin:.3rem 0;border-radius:6px;font-size:.8rem;font-family:'Fira Code',monospace;background:var(--blue-bg);border-left:3px solid var(--blue);}
+  .calc-step.green{background:var(--green-bg);border-left-color:var(--green);}
+  .calc-step.purple{background:#F5F3FF;border-left-color:var(--purple);}
+  .pathway-node{display:inline-block;padding:.4rem .8rem;border-radius:8px;font-size:.78rem;font-weight:600;cursor:pointer;border:2px solid var(--border);background:white;transition:all .15s;margin:.3rem;}
+  .pathway-node:hover{border-color:var(--teal);background:var(--teal-bg);}
+  .pathway-node.active{border-color:var(--teal);background:var(--teal-bg);color:var(--teal);}
+  .pathway-node.highlight{border-color:var(--purple);background:#F5F3FF;color:var(--purple);}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  .preset-section{margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);display:none;}
+  .preset-section select{width:100%;padding:.35rem;border:1px solid var(--border);border-radius:6px;font-size:.75rem;font-family:inherit;cursor:pointer;}
+  body.teacher-active .preset-section{display:block;}
+  @media(max-width:900px){.sim-top-row{grid-template-columns:1fr;}.palette-panel{max-height:200px;position:static;}.tab-btn{padding:.6rem .8rem;font-size:.78rem;}}
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body class="hl-active">
+<a href="#main-content" class="skip-link">Skip to content</a>
+<div class="header">
+  <div class="header-left"><h1>Nucleophilic Addition &amp; Synthesis</h1><span class="subtitle">IB Chemistry — R3.4 Electron-Pair Sharing Reactions (HL)</span></div>
+  <div class="header-right">
+    <span class="header-badge">R3.4</span><span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group"><span class="sim-toggle-label">Student</span><label class="sim-toggle"><input type="checkbox" aria-label="Toggle teacher mode" id="teacherToggle"><span class="sim-toggle-slider"></span></label><span class="sim-toggle-label">Teacher</span></div>
+  </div>
+</div>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="nucAdd" role="tab"><span class="tab-num">1</span>Nucleophilic Addition</button>
+  <button class="tab-btn" data-tab="condHyd" role="tab"><span class="tab-num">2</span>Condensation &amp; Hydrolysis</button>
+  <button class="tab-btn" data-tab="pathways" role="tab"><span class="tab-num">3</span>Synthesis Pathways</button>
+</div>
+<div class="sim-container" id="main-content"><div class="sim-top-row">
+  <div class="sim-card palette-panel">
+    <div class="sim-card-header">Reactions</div>
+    <div class="sim-card-body">
+      <input type="text" class="palette-search" id="paletteSearch" placeholder="Search reactions..." aria-label="Search reactions">
+      <div id="paletteList"></div>
+      <div class="preset-section" id="presetSection">
+        <select id="presetSelect" aria-label="Teacher presets">
+          <option value="">Teacher Presets...</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 1 -->
+  <div class="tab-content active" id="tab-nucAdd" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Nucleophilic Addition to Carbonyls</div>
+      <div class="sim-card-body">
+        <canvas id="nucCanvas" class="sim-canvas" height="380" role="img" aria-label="Nucleophilic addition mechanism"></canvas>
+        <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
+          <button class="check-btn" id="nucPrevBtn" style="margin-top:0;background:var(--text-muted);">&#9664; Back</button>
+          <button class="check-btn" id="nucNextBtn" style="margin-top:0;">Next &#9654;</button>
+          <button class="check-btn" id="nucResetBtn" style="margin-top:0;background:var(--text-muted);">Reset</button>
+          <span id="nucStepLabel" style="align-self:center;font-size:.8rem;font-family:'Fira Code',monospace;color:var(--text-muted);"></span>
+        </div>
+        <div id="nucDesc" style="margin-top:.75rem;font-size:.8rem;line-height:1.7;"></div>
+        <div class="teacher-panel" id="nucTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2 -->
+  <div class="tab-content" id="tab-condHyd" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Condensation &amp; Hydrolysis Reactions</div>
+      <div class="sim-card-body">
+        <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;">
+          <button class="mode-btn active" data-cond="ester">Esterification</button>
+          <button class="mode-btn" data-cond="hydrolysis">Ester Hydrolysis</button>
+          <button class="mode-btn" data-cond="peptide">Peptide Bond</button>
+        </div>
+        <canvas id="condCanvas" class="sim-canvas" height="340" role="img" aria-label="Condensation and hydrolysis reactions"></canvas>
+        <div id="condEquation" style="margin-top:.75rem;font-family:'Fira Code',monospace;font-size:.85rem;padding:.5rem .75rem;background:var(--blue-bg);border-radius:8px;border-left:3px solid var(--blue);"></div>
+        <div id="condInfo" style="margin-top:.75rem;font-size:.8rem;line-height:1.7;"></div>
+        <div class="teacher-panel" id="condTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3 -->
+  <div class="tab-content" id="tab-pathways" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Synthesis Pathways</div>
+      <div class="sim-card-body">
+        <p style="font-size:.8rem;color:var(--text-muted);margin-bottom:.75rem;">Click a functional group to see all reactions to/from it. Click an arrow for reagents and conditions.</p>
+        <canvas id="pathCanvas" class="sim-canvas" height="420" role="img" aria-label="Organic synthesis pathway map"></canvas>
+        <div id="pathInfo" style="margin-top:.75rem;font-size:.8rem;line-height:1.7;"></div>
+        <div class="teacher-panel" id="pathTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+</div></div>
+<div class="keyboard-hint">
+  <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd>–<kbd>3</kbd> Tabs &nbsp;
+  <kbd>&#8592;</kbd><kbd>&#8594;</kbd> Step &nbsp; <kbd>R</kbd> Reset &nbsp;
+  <kbd>/</kbd> Search &nbsp; <kbd>E</kbd> Export CSV
+</div>
+
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){if(typeof r==='number')r=[r,r,r,r];this.beginPath();this.moveTo(x+(r[0]||0),y);this.lineTo(x+w-(r[1]||0),y);this.quadraticCurveTo(x+w,y,x+w,y+(r[1]||0));this.lineTo(x+w,y+h-(r[2]||0));this.quadraticCurveTo(x+w,y+h,x+w-(r[2]||0),y+h);this.lineTo(x+(r[3]||0),y+h);this.quadraticCurveTo(x,y+h,x,y+h-(r[3]||0));this.lineTo(x,y+(r[0]||0));this.quadraticCurveTo(x,y,x+(r[0]||0),y);this.closePath();return this;};}
+
+(function(){
+'use strict';
+function el(tag,cls,text){var e=document.createElement(tag);if(cls)e.className=cls;if(text!==undefined&&text!==null)e.textContent=text;return e;}
+function setupCanvas(c){var d=window.devicePixelRatio||1,w=c.offsetWidth;if(!c.dataset.baseHeight)c.dataset.baseHeight=c.getAttribute('height')||'300';var h=parseInt(c.dataset.baseHeight);c.width=w*d;c.height=h*d;c.style.height=h+'px';var ctx=c.getContext('2d');ctx.setTransform(d,0,0,d,0,0);return ctx;}
+
+// ── DATA ──
+var NUC_ADD_RXNS=[
+  {id:'hcn_ethanal',name:'HCN + Ethanal',substrate:'CH\u2083CHO',nucleophile:'CN\u207B',product:'CH\u2083CH(OH)CN',productName:'2-hydroxypropanenitrile (cyanohydrin)',
+   steps:[
+     {title:'Carbonyl polarization',desc:'The C=O bond is polarized. Oxygen is more electronegative (\u03B4\u207B), leaving carbon electrophilic (\u03B4\u207A). The CN\u207B nucleophile is attracted to the \u03B4\u207A carbon.'},
+     {title:'Nucleophilic attack',desc:'The lone pair on CN\u207B attacks the \u03B4\u207A carbon of the C=O. The \u03C0 electrons in C=O shift onto the oxygen, forming an alkoxide intermediate (C\u2013O\u207B).'},
+     {title:'Protonation',desc:'The alkoxide intermediate (O\u207B) is protonated by HCN (acting as a weak acid), forming the \u2013OH group. This regenerates CN\u207B, which can act as a catalyst. Product: cyanohydrin.'}
+   ]},
+  {id:'hcn_propanone',name:'HCN + Propanone',substrate:'CH\u2083COCH\u2083',nucleophile:'CN\u207B',product:'(CH\u2083)\u2082C(OH)CN',productName:'2-hydroxy-2-methylpropanenitrile',
+   steps:[
+     {title:'Carbonyl polarization',desc:'The C=O in propanone is polarized (\u03B4\u207A on C, \u03B4\u207B on O). The ketone carbon is less electrophilic than an aldehyde carbon due to two electron-donating methyl groups.'},
+     {title:'Nucleophilic attack',desc:'CN\u207B attacks the \u03B4\u207A carbon. The C=O \u03C0 bond breaks, electrons shift to oxygen forming the tetrahedral alkoxide intermediate.'},
+     {title:'Protonation',desc:'HCN donates a proton to the alkoxide oxygen, forming the hydroxyl group. Product: 2-hydroxy-2-methylpropanenitrile. Reaction is slower than with aldehydes due to steric hindrance.'}
+   ]},
+  {id:'hcn_butanal',name:'HCN + Butanal',substrate:'CH\u2083CH\u2082CH\u2082CHO',nucleophile:'CN\u207B',product:'CH\u2083CH\u2082CH\u2082CH(OH)CN',productName:'2-hydroxypentanenitrile',
+   steps:[
+     {title:'Carbonyl polarization',desc:'The aldehyde C=O in butanal is strongly polarized. The terminal carbon is highly electrophilic and accessible to nucleophilic attack.'},
+     {title:'Nucleophilic attack',desc:'CN\u207B lone pair attacks the electrophilic carbonyl carbon. The \u03C0 bond electrons transfer to oxygen, creating the alkoxide intermediate.'},
+     {title:'Protonation',desc:'The alkoxide is protonated by HCN to give the cyanohydrin product. The CN group can be hydrolyzed to COOH or reduced to CH\u2082NH\u2082 in further reactions.'}
+   ]}
+];
+
+var COND_RXNS={
+  ester:{name:'Esterification',equation:'RCOOH + R\'OH \u21cc RCOOR\' + H\u2082O',
+    example:'CH\u2083COOH + C\u2082H\u2085OH \u21cc CH\u2083COOC\u2082H\u2085 + H\u2082O',
+    desc:'A carboxylic acid reacts with an alcohol in the presence of an acid catalyst (conc. H\u2082SO\u2084) to form an ester and water. This is a condensation reaction (small molecule lost). The reaction is reversible and reaches equilibrium.',
+    catalyst:'Conc. H\u2082SO\u2084, reflux',waterRole:'produced'},
+  hydrolysis:{name:'Ester Hydrolysis',equation:'RCOOR\' + H\u2082O \u2192 RCOOH + R\'OH',
+    example:'CH\u2083COOC\u2082H\u2085 + NaOH \u2192 CH\u2083COO\u207BNa\u207A + C\u2082H\u2085OH',
+    desc:'An ester is broken down by water (hydrolysis). Acid hydrolysis is the reverse of esterification. Base hydrolysis (saponification) with NaOH is irreversible and produces a carboxylate salt and alcohol.',
+    catalyst:'Dilute acid or NaOH(aq), reflux',waterRole:'consumed'},
+  peptide:{name:'Peptide Bond Formation',equation:'H\u2082N-CHR-COOH + H\u2082N-CHR\'-COOH \u2192 Dipeptide + H\u2082O',
+    example:'Glycine + Alanine \u2192 Gly-Ala + H\u2082O',
+    desc:'Two amino acids undergo a condensation reaction. The \u2013NH\u2082 of one reacts with the \u2013COOH of the other, forming a C(=O)\u2013NH peptide bond and releasing water. This is the basis of protein synthesis.',
+    catalyst:'Ribosome (biological) or heat (lab)',waterRole:'produced'}
+};
+
+var PATHWAYS=[
+  {from:'Alkane',to:'Halogenoalkane',reagent:'X\u2082 / UV light',type:'Free radical substitution',color:'#DC2626'},
+  {from:'Alkene',to:'Halogenoalkane',reagent:'HX or X\u2082',type:'Electrophilic addition',color:'#D97706'},
+  {from:'Alkene',to:'Alcohol',reagent:'H\u2082O / H\u2083PO\u2084 or H\u2082SO\u2084',type:'Electrophilic addition (hydration)',color:'#D97706'},
+  {from:'Halogenoalkane',to:'Alcohol',reagent:'NaOH(aq), reflux',type:'Nucleophilic substitution',color:'#2563EB'},
+  {from:'Halogenoalkane',to:'Amine',reagent:'NH\u2083 (excess), ethanol, heat',type:'Nucleophilic substitution',color:'#2563EB'},
+  {from:'Halogenoalkane',to:'Nitrile',reagent:'KCN, ethanol, reflux',type:'Nucleophilic substitution',color:'#2563EB'},
+  {from:'Halogenoalkane',to:'Alkene',reagent:'NaOH(ethanol), reflux',type:'Elimination',color:'#7C3AED'},
+  {from:'Alcohol',to:'Halogenoalkane',reagent:'NaBr + H\u2082SO\u2084 or SOCl\u2082',type:'Substitution',color:'#2563EB'},
+  {from:'Alcohol',to:'Aldehyde',reagent:'K\u2082Cr\u2082O\u2087/H\u2082SO\u2084, distil',type:'Oxidation (primary)',color:'#059669'},
+  {from:'Alcohol',to:'Ketone',reagent:'K\u2082Cr\u2082O\u2087/H\u2082SO\u2084, reflux',type:'Oxidation (secondary)',color:'#059669'},
+  {from:'Alcohol',to:'Alkene',reagent:'Conc. H\u2082SO\u2084 or Al\u2082O\u2083, heat',type:'Elimination (dehydration)',color:'#7C3AED'},
+  {from:'Aldehyde',to:'Carboxylic acid',reagent:'K\u2082Cr\u2082O\u2087/H\u2082SO\u2084, reflux',type:'Oxidation',color:'#059669'},
+  {from:'Aldehyde',to:'Cyanohydrin',reagent:'HCN / KCN',type:'Nucleophilic addition',color:'#0D9488'},
+  {from:'Ketone',to:'Cyanohydrin',reagent:'HCN / KCN',type:'Nucleophilic addition',color:'#0D9488'},
+  {from:'Carboxylic acid',to:'Ester',reagent:'ROH + conc. H\u2082SO\u2084, reflux',type:'Condensation',color:'#D97706'},
+  {from:'Nitrile',to:'Carboxylic acid',reagent:'H\u2082O / H\u207A, reflux',type:'Hydrolysis',color:'#0D9488'},
+  {from:'Nitrile',to:'Amine',reagent:'LiAlH\u2084 or H\u2082/Ni',type:'Reduction',color:'#DC2626'}
+];
+
+var PATH_NODES=['Alkane','Alkene','Halogenoalkane','Alcohol','Aldehyde','Ketone','Carboxylic acid','Ester','Nitrile','Amine','Cyanohydrin'];
+var NODE_POS={
+  'Alkane':{x:0.08,y:0.15},'Alkene':{x:0.25,y:0.15},'Halogenoalkane':{x:0.50,y:0.15},
+  'Alcohol':{x:0.50,y:0.50},'Aldehyde':{x:0.25,y:0.50},'Ketone':{x:0.25,y:0.85},
+  'Carboxylic acid':{x:0.08,y:0.70},'Ester':{x:0.08,y:0.92},
+  'Nitrile':{x:0.78,y:0.15},'Amine':{x:0.92,y:0.40},'Cyanohydrin':{x:0.15,y:0.40}
+};
+
+// ── STATE ──
+var _activeTab='nucAdd',_selectedNuc='hcn_ethanal',_nucStep=0,_condMode='ester',_pathSelected=null;
+
+// ── PALETTE ──
+var paletteList=document.getElementById('paletteList');
+var paletteSearch=document.getElementById('paletteSearch');
+var presetSelect=document.getElementById('presetSelect');
+if(paletteSearch)paletteSearch.addEventListener('input',function(){filterPalette(this.value);});
+function filterPalette(q){q=q.toLowerCase();var items=paletteList.querySelectorAll('.palette-item');for(var i=0;i<items.length;i++){var t=items[i].textContent.toLowerCase();items[i].style.display=(!q||t.indexOf(q)!==-1)?'':'none';}}
+function buildPalette(){
+  while(paletteList.firstChild)paletteList.removeChild(paletteList.firstChild);
+  if(_activeTab==='nucAdd'){
+    paletteList.appendChild(el('div','palette-category','HCN Addition'));
+    for(var i=0;i<NUC_ADD_RXNS.length;i++){
+      var r=NUC_ADD_RXNS[i];
+      var btn=el('button','palette-item'+(r.id===_selectedNuc?' active':''),r.name);
+      btn.setAttribute('data-nuc',r.id);
+      btn.addEventListener('click',function(){_selectedNuc=this.getAttribute('data-nuc');_nucStep=0;buildPalette();renderNucAdd();});
+      paletteList.appendChild(btn);
+    }
+  } else if(_activeTab==='condHyd'){
+    paletteList.appendChild(el('div','palette-category','Reaction Types'));
+    var modes=[{id:'ester',name:'Esterification'},{id:'hydrolysis',name:'Ester Hydrolysis'},{id:'peptide',name:'Peptide Bond'}];
+    for(var i=0;i<modes.length;i++){
+      var btn=el('button','palette-item'+(modes[i].id===_condMode?' active':''),modes[i].name);
+      btn.setAttribute('data-cm',modes[i].id);
+      btn.addEventListener('click',function(){_condMode=this.getAttribute('data-cm');
+        var bs=document.querySelectorAll('[data-cond]');for(var j=0;j<bs.length;j++)bs[j].classList.toggle('active',bs[j].getAttribute('data-cond')===_condMode);
+        buildPalette();renderCondHyd();});
+      paletteList.appendChild(btn);
+    }
+  } else if(_activeTab==='pathways'){
+    paletteList.appendChild(el('div','palette-category','Functional Groups'));
+    for(var i=0;i<PATH_NODES.length;i++){
+      var btn=el('button','palette-item'+(PATH_NODES[i]===_pathSelected?' active':''),PATH_NODES[i]);
+      btn.setAttribute('data-node',PATH_NODES[i]);
+      btn.addEventListener('click',function(){_pathSelected=_pathSelected===this.getAttribute('data-node')?null:this.getAttribute('data-node');buildPalette();renderPathways();});
+      paletteList.appendChild(btn);
+    }
+  }
+  buildPresets();
+}
+
+// ── TABS ──
+var tabBtns=document.querySelectorAll('.tab-btn');
+function switchTab(id){_activeTab=id;
+  for(var i=0;i<tabBtns.length;i++)tabBtns[i].classList.toggle('active',tabBtns[i].getAttribute('data-tab')===id);
+  document.querySelectorAll('.tab-content').forEach(function(tc){tc.classList.toggle('active',tc.id==='tab-'+id);});
+  buildPalette();refreshTab();}
+for(var i=0;i<tabBtns.length;i++)tabBtns[i].addEventListener('click',function(){switchTab(this.getAttribute('data-tab'));});
+function refreshTab(){setTimeout(function(){
+  if(_activeTab==='nucAdd')renderNucAdd();
+  else if(_activeTab==='condHyd')renderCondHyd();
+  else if(_activeTab==='pathways')renderPathways();
+},20);}
+
+// ══════════════════════════════════
+// TAB 1 — NUCLEOPHILIC ADDITION
+// ══════════════════════════════════
+document.getElementById('nucNextBtn').addEventListener('click',function(){var rxn=getNucRxn();if(_nucStep<rxn.steps.length-1){_nucStep++;renderNucAdd();}});
+document.getElementById('nucPrevBtn').addEventListener('click',function(){if(_nucStep>0){_nucStep--;renderNucAdd();}});
+document.getElementById('nucResetBtn').addEventListener('click',function(){_nucStep=0;renderNucAdd();});
+
+function getNucRxn(){for(var i=0;i<NUC_ADD_RXNS.length;i++)if(NUC_ADD_RXNS[i].id===_selectedNuc)return NUC_ADD_RXNS[i];return NUC_ADD_RXNS[0];}
+
+function renderNucAdd(){
+  var rxn=getNucRxn();
+  var canvas=document.getElementById('nucCanvas');
+  if(!canvas||!canvas.offsetWidth)return;
+  var ctx=setupCanvas(canvas);
+  var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight||380);
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+  var cx=W/2,cy=H/2-20;
+  var step=_nucStep;
+
+  // Title
+  ctx.font='600 14px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';
+  ctx.fillText(rxn.steps[step].title,cx,25);
+
+  // Draw mechanism based on step
+  if(step===0) drawNucStep0(ctx,W,H,rxn,cx,cy);
+  else if(step===1) drawNucStep1(ctx,W,H,rxn,cx,cy);
+  else if(step===2) drawNucStep2(ctx,W,H,rxn,cx,cy);
+
+  // Step label
+  document.getElementById('nucStepLabel').textContent='Step '+(step+1)+' / '+rxn.steps.length;
+
+  // Description
+  var desc=document.getElementById('nucDesc');
+  desc.textContent='';
+  desc.appendChild(el('strong','',rxn.steps[step].title+': '));
+  desc.appendChild(document.createTextNode(rxn.steps[step].desc));
+
+  // Teacher
+  var td=document.getElementById('nucTeacher');
+  td.textContent='';td.appendChild(el('strong','','IB Key Points: '));
+  td.appendChild(document.createTextNode('Students must draw the mechanism with curly arrows showing: (1) lone pair on CN\u207B attacking \u03B4+ carbon, (2) \u03C0 electrons shifting to O, (3) protonation of alkoxide by HCN. The nucleophile must be CN\u207B (not HCN) because HCN is a weak acid and only partially dissociates. NaCN or KCN provides CN\u207B. Product is a cyanohydrin.'));
+}
+
+function drawAtom(ctx,x,y,label,color,size){
+  if(!size)size=22;
+  ctx.beginPath();ctx.arc(x,y,size,0,Math.PI*2);
+  ctx.fillStyle=color;ctx.globalAlpha=0.2;ctx.fill();ctx.globalAlpha=1;
+  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.stroke();
+  ctx.font='bold 12px "Fira Code"';ctx.fillStyle=color;ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(label,x,y);
+}
+function drawBond(ctx,x1,y1,x2,y2,double){
+  ctx.strokeStyle='#475569';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2);ctx.stroke();
+  if(double){
+    var dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+    var nx=-dy/len*4,ny=dx/len*4;
+    ctx.beginPath();ctx.moveTo(x1+nx,y1+ny);ctx.lineTo(x2+nx,y2+ny);ctx.stroke();
+  }
+}
+function drawCurlyArrow(ctx,x1,y1,x2,y2,color){
+  ctx.strokeStyle=color||'#DC2626';ctx.lineWidth=2;ctx.setLineDash([]);
+  var mx=(x1+x2)/2,my=(y1+y2)/2-20;
+  ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(mx,my,x2,y2);ctx.stroke();
+  // Arrowhead
+  var angle=Math.atan2(y2-my,x2-mx);
+  ctx.fillStyle=color||'#DC2626';ctx.beginPath();
+  ctx.moveTo(x2,y2);ctx.lineTo(x2-8*Math.cos(angle-0.4),y2-8*Math.sin(angle-0.4));ctx.lineTo(x2-8*Math.cos(angle+0.4),y2-8*Math.sin(angle+0.4));ctx.fill();
+}
+
+function drawNucStep0(ctx,W,H,rxn,cx,cy){
+  // Substrate: C=O with R groups
+  drawAtom(ctx,cx-40,cy,'C','#475569',20);
+  drawAtom(ctx,cx+40,cy-30,'O','#DC2626',20);
+  drawBond(ctx,cx-20,cy-10,cx+20,cy-25,true);
+  // R groups
+  drawAtom(ctx,cx-100,cy-20,'R','#94A3B8',16);
+  drawBond(ctx,cx-60,cy-5,cx-85,cy-15);
+  drawAtom(ctx,cx-100,cy+30,'H','#64748B',14);
+  drawBond(ctx,cx-55,cy+8,cx-87,cy+25);
+  // Delta charges
+  ctx.font='bold 14px "Fira Code"';
+  ctx.fillStyle='#DC2626';ctx.textAlign='center';ctx.fillText('\u03B4\u207B',cx+40,cy-55);
+  ctx.fillStyle='#2563EB';ctx.fillText('\u03B4\u207A',cx-40,cy-25);
+  // Nucleophile approaching
+  drawAtom(ctx,cx-180,cy+20,'CN\u207B','#0D9488',24);
+  // Arrow showing attraction
+  ctx.setLineDash([4,4]);ctx.strokeStyle='#0D9488';ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(cx-155,cy+15);ctx.lineTo(cx-65,cy+5);ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle='#0D9488';ctx.beginPath();ctx.moveTo(cx-65,cy+5);ctx.lineTo(cx-75,cy);ctx.lineTo(cx-75,cy+10);ctx.fill();
+  // Label
+  ctx.font='600 12px Caveat';ctx.fillStyle='#0D9488';ctx.textAlign='center';
+  ctx.fillText('Nucleophile approaches \u03B4+ carbon',cx,H-30);
+}
+
+function drawNucStep1(ctx,W,H,rxn,cx,cy){
+  // CN attached, C-O bond becoming single
+  drawAtom(ctx,cx,cy,'C','#475569',20);
+  drawAtom(ctx,cx+50,cy-40,'O\u207B','#DC2626',22);
+  drawBond(ctx,cx+15,cy-10,cx+35,cy-30);// Single bond now
+  drawAtom(ctx,cx-70,cy,'CN','#0D9488',22);
+  drawBond(ctx,cx-20,cy,cx-48,cy);
+  // R groups
+  drawAtom(ctx,cx-20,cy-50,'R','#94A3B8',16);
+  drawBond(ctx,cx-10,cy-20,cx-18,cy-35);
+  drawAtom(ctx,cx+20,cy+50,'H','#64748B',14);
+  drawBond(ctx,cx+8,cy+20,cx+16,cy+37);
+  // Curly arrows
+  drawCurlyArrow(ctx,cx-90,cy-5,cx-25,cy-5,'#0D9488');
+  drawCurlyArrow(ctx,cx+10,cy-15,cx+40,cy-35,'#DC2626');
+  // Labels
+  ctx.font='600 11px Inter';ctx.fillStyle='#0D9488';ctx.textAlign='left';
+  ctx.fillText('CN\u207B lone pair attacks C',cx-180,cy+80);
+  ctx.fillStyle='#DC2626';ctx.fillText('\u03C0 electrons shift to O',cx+70,cy-50);
+  ctx.font='600 12px Caveat';ctx.fillStyle='#7C3AED';ctx.textAlign='center';
+  ctx.fillText('Alkoxide intermediate formed',cx,H-30);
+}
+
+function drawNucStep2(ctx,W,H,rxn,cx,cy){
+  // Final product: cyanohydrin
+  drawAtom(ctx,cx,cy,'C','#475569',20);
+  drawAtom(ctx,cx+55,cy-35,'OH','#059669',22);
+  drawBond(ctx,cx+15,cy-10,cx+38,cy-25);
+  drawAtom(ctx,cx-70,cy,'CN','#0D9488',22);
+  drawBond(ctx,cx-20,cy,cx-48,cy);
+  drawAtom(ctx,cx-20,cy-50,'R','#94A3B8',16);
+  drawBond(ctx,cx-10,cy-20,cx-18,cy-35);
+  drawAtom(ctx,cx+20,cy+50,'H','#64748B',14);
+  drawBond(ctx,cx+8,cy+20,cx+16,cy+37);
+  // HCN donating proton
+  drawAtom(ctx,cx+150,cy-20,'HCN','#D97706',22);
+  drawCurlyArrow(ctx,cx+130,cy-25,cx+75,cy-35,'#D97706');
+  // Product label
+  ctx.font='bold 13px "Fira Code"';ctx.fillStyle='#059669';ctx.textAlign='center';
+  ctx.fillText('Product: '+rxn.productName,cx,H-25);
+  ctx.font='600 11px Inter';ctx.fillStyle='#D97706';ctx.textAlign='right';
+  ctx.fillText('HCN donates H\u207A',cx+180,cy+15);
+}
+
+// ══════════════════════════════════
+// TAB 2 — CONDENSATION & HYDROLYSIS
+// ══════════════════════════════════
+var condBtns=document.querySelectorAll('[data-cond]');
+for(var c=0;c<condBtns.length;c++){
+  condBtns[c].addEventListener('click',function(){
+    _condMode=this.getAttribute('data-cond');
+    for(var j=0;j<condBtns.length;j++)condBtns[j].classList.toggle('active',condBtns[j]===this);
+    buildPalette();renderCondHyd();
+  });
+}
+
+function renderCondHyd(){
+  var rxn=COND_RXNS[_condMode];
+  var canvas=document.getElementById('condCanvas');
+  if(!canvas||!canvas.offsetWidth)return;
+  var ctx=setupCanvas(canvas);
+  var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight||340);
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+  var cx=W/2,cy=H/2;
+  ctx.font='600 14px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';
+  ctx.fillText(rxn.name,cx,25);
+
+  if(_condMode==='ester'){
+    // Acid + Alcohol -> Ester + Water
+    drawMoleculeBox(ctx,cx-200,cy-30,'Carboxylic Acid','RCOOH','#DC2626');
+    ctx.font='bold 20px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';ctx.fillText('+',cx-110,cy);
+    drawMoleculeBox(ctx,cx-60,cy-30,'Alcohol','R\'OH','#2563EB');
+    // Arrow
+    drawReactionArrow(ctx,cx+30,cy,true);
+    drawMoleculeBox(ctx,cx+100,cy-30,'Ester','RCOOR\'','#059669');
+    ctx.font='bold 20px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';ctx.fillText('+',cx+190,cy);
+    drawMoleculeBox(ctx,cx+220,cy-30,'Water','H\u2082O','#60A5FA');
+    // Highlight bond formed
+    ctx.font='600 11px Caveat';ctx.fillStyle='#D97706';ctx.textAlign='center';
+    ctx.fillText('Conc. H\u2082SO\u2084 catalyst, reflux',cx+65,cy+55);
+    ctx.fillText('Condensation: H\u2082O released',cx,H-15);
+  } else if(_condMode==='hydrolysis'){
+    drawMoleculeBox(ctx,cx-180,cy-30,'Ester','RCOOR\'','#059669');
+    ctx.font='bold 20px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';ctx.fillText('+',cx-90,cy);
+    drawMoleculeBox(ctx,cx-40,cy-30,'Water/NaOH','H\u2082O','#60A5FA');
+    drawReactionArrow(ctx,cx+50,cy,false);
+    drawMoleculeBox(ctx,cx+120,cy-30,'Acid/Salt','RCOOH','#DC2626');
+    ctx.font='bold 20px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';ctx.fillText('+',cx+210,cy);
+    drawMoleculeBox(ctx,cx+240,cy-30,'Alcohol','R\'OH','#2563EB');
+    ctx.font='600 11px Caveat';ctx.fillStyle='#D97706';ctx.textAlign='center';
+    ctx.fillText('Hydrolysis: H\u2082O consumed to break bond',cx,H-15);
+  } else if(_condMode==='peptide'){
+    drawMoleculeBox(ctx,cx-180,cy-30,'Amino Acid 1','H\u2082N-CHR-COOH','#7C3AED');
+    ctx.font='bold 20px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';ctx.fillText('+',cx-75,cy);
+    drawMoleculeBox(ctx,cx-20,cy-30,'Amino Acid 2','H\u2082N-CHR\'-COOH','#0D9488');
+    drawReactionArrow(ctx,cx+80,cy,false);
+    drawMoleculeBox(ctx,cx+150,cy-30,'Dipeptide','R-CO-NH-R\'','#D97706');
+    ctx.font='bold 20px Inter';ctx.fillStyle='#1E293B';ctx.textAlign='center';ctx.fillText('+',cx+240,cy);
+    drawMoleculeBox(ctx,cx+270,cy-30,'Water','H\u2082O','#60A5FA');
+    ctx.font='600 11px Caveat';ctx.fillStyle='#7C3AED';ctx.textAlign='center';
+    ctx.fillText('Peptide bond: C(=O)\u2013NH linkage',cx,H-15);
+  }
+
+  document.getElementById('condEquation').textContent=rxn.example;
+
+  var info=document.getElementById('condInfo');
+  info.textContent='';
+  info.appendChild(el('strong','',rxn.name+': '));
+  info.appendChild(document.createTextNode(rxn.desc+' Conditions: '+rxn.catalyst+'.'));
+
+  var td=document.getElementById('condTeacher');
+  td.textContent='';td.appendChild(el('strong','','Teaching Notes: '));
+  td.appendChild(document.createTextNode('Condensation = two molecules join, releasing a small molecule (usually H\u2082O). Hydrolysis = reverse, breaking a bond by adding H\u2082O. Students should recognize: ester bond (C-O-C=O), peptide bond (C(=O)-NH), and glycosidic bond (in carbohydrates). All are formed by condensation and broken by hydrolysis.'));
+}
+
+function drawMoleculeBox(ctx,x,y,label,formula,color){
+  var w=80,h=60;
+  ctx.beginPath();ctx.roundRect(x,y,w,h,8);
+  ctx.fillStyle=color;ctx.globalAlpha=0.1;ctx.fill();ctx.globalAlpha=1;
+  ctx.strokeStyle=color;ctx.lineWidth=1.5;ctx.stroke();
+  ctx.font='500 9px Inter';ctx.fillStyle=color;ctx.textAlign='center';ctx.fillText(label,x+w/2,y+18);
+  ctx.font='bold 11px "Fira Code"';ctx.fillStyle='#1E293B';ctx.fillText(formula,x+w/2,y+38);
+}
+
+function drawReactionArrow(ctx,x,y,reversible){
+  ctx.strokeStyle='#475569';ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+40,y);ctx.stroke();
+  ctx.fillStyle='#475569';ctx.beginPath();ctx.moveTo(x+40,y-5);ctx.lineTo(x+48,y);ctx.lineTo(x+40,y+5);ctx.fill();
+  if(reversible){ctx.beginPath();ctx.moveTo(x+8,y+6);ctx.lineTo(x,y+6);ctx.stroke();ctx.beginPath();ctx.moveTo(x+8,y+1);ctx.lineTo(x,y+6);ctx.lineTo(x+8,y+11);ctx.fill();}
+}
+
+// ══════════════════════════════════
+// TAB 3 — SYNTHESIS PATHWAYS
+// ══════════════════════════════════
+function renderPathways(){
+  var canvas=document.getElementById('pathCanvas');
+  if(!canvas||!canvas.offsetWidth)return;
+  var ctx=setupCanvas(canvas);
+  var W=canvas.offsetWidth,H=parseInt(canvas.dataset.baseHeight||420);
+  ctx.fillStyle='#F8FAFC';ctx.fillRect(0,0,W,H);
+
+  var pad=40;
+
+  // Draw arrows first (behind nodes)
+  for(var i=0;i<PATHWAYS.length;i++){
+    var p=PATHWAYS[i];
+    var fromPos=NODE_POS[p.from],toPos=NODE_POS[p.to];
+    if(!fromPos||!toPos)continue;
+    var x1=pad+fromPos.x*(W-2*pad),y1=pad+fromPos.y*(H-2*pad);
+    var x2=pad+toPos.x*(W-2*pad),y2=pad+toPos.y*(H-2*pad);
+
+    var highlight=_pathSelected&&(p.from===_pathSelected||p.to===_pathSelected);
+    ctx.strokeStyle=highlight?p.color:'#E2E8F0';
+    ctx.lineWidth=highlight?2.5:1;
+    ctx.globalAlpha=highlight?1:0.4;
+
+    // Draw curved arrow
+    var mx=(x1+x2)/2,my=(y1+y2)/2;
+    var dx=x2-x1,dy=y2-y1,len=Math.sqrt(dx*dx+dy*dy);
+    var nx=-dy/len*15,ny=dx/len*15;
+    ctx.beginPath();ctx.moveTo(x1,y1);ctx.quadraticCurveTo(mx+nx,my+ny,x2,y2);ctx.stroke();
+
+    // Arrowhead
+    var t=0.95;var qx=(1-t)*(1-t)*x1+2*(1-t)*t*(mx+nx)+t*t*x2;var qy=(1-t)*(1-t)*y1+2*(1-t)*t*(my+ny)+t*t*y2;
+    var angle=Math.atan2(y2-qy,x2-qx);
+    ctx.fillStyle=highlight?p.color:'#CBD5E1';
+    ctx.beginPath();ctx.moveTo(x2,y2);ctx.lineTo(x2-8*Math.cos(angle-0.3),y2-8*Math.sin(angle-0.3));ctx.lineTo(x2-8*Math.cos(angle+0.3),y2-8*Math.sin(angle+0.3));ctx.fill();
+
+    // Reagent label on highlighted arrows
+    if(highlight){
+      ctx.globalAlpha=1;
+      ctx.font='500 8px "Fira Code"';ctx.fillStyle=p.color;ctx.textAlign='center';
+      ctx.fillText(p.reagent,mx+nx*1.5,my+ny*1.5);
+    }
+    ctx.globalAlpha=1;
+  }
+
+  // Draw nodes
+  for(var n=0;n<PATH_NODES.length;n++){
+    var name=PATH_NODES[n];
+    var pos=NODE_POS[name];
+    if(!pos)continue;
+    var nx=pad+pos.x*(W-2*pad),ny=pad+pos.y*(H-2*pad);
+    var isSelected=name===_pathSelected;
+    var isConnected=false;
+    if(_pathSelected){
+      for(var j=0;j<PATHWAYS.length;j++){
+        if(PATHWAYS[j].from===_pathSelected&&PATHWAYS[j].to===name){isConnected=true;break;}
+        if(PATHWAYS[j].to===_pathSelected&&PATHWAYS[j].from===name){isConnected=true;break;}
+      }
+    }
+    var w=Math.max(70,ctx.measureText?name.length*7+20:90),h=30;
+    ctx.beginPath();ctx.roundRect(nx-w/2,ny-h/2,w,h,8);
+    if(isSelected){ctx.fillStyle='rgba(13,148,136,0.2)';ctx.fill();ctx.strokeStyle='#0D9488';ctx.lineWidth=2.5;}
+    else if(isConnected){ctx.fillStyle='rgba(124,58,237,0.1)';ctx.fill();ctx.strokeStyle='#7C3AED';ctx.lineWidth=2;}
+    else{ctx.fillStyle='white';ctx.fill();ctx.strokeStyle='#94A3B8';ctx.lineWidth=1.5;}
+    ctx.stroke();
+    ctx.font=(isSelected?'bold ':'600 ')+'11px Inter';
+    ctx.fillStyle=isSelected?'#0D9488':(isConnected?'#7C3AED':'#1E293B');
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(name,nx,ny);
+  }
+
+  // Info panel
+  var info=document.getElementById('pathInfo');
+  info.textContent='';
+  if(_pathSelected){
+    var from=[],to=[];
+    for(var i=0;i<PATHWAYS.length;i++){
+      if(PATHWAYS[i].from===_pathSelected)to.push(PATHWAYS[i]);
+      if(PATHWAYS[i].to===_pathSelected)from.push(PATHWAYS[i]);
+    }
+    info.appendChild(el('strong','','Reactions from '+_pathSelected+': '));
+    if(to.length){
+      for(var i=0;i<to.length;i++){
+        var step=el('div','calc-step purple',_pathSelected+' \u2192 '+to[i].to+': '+to[i].reagent+' ('+to[i].type+')');
+        info.appendChild(step);
+      }
+    } else info.appendChild(document.createTextNode('None shown. '));
+    if(from.length){
+      info.appendChild(el('strong','','\nReactions to '+_pathSelected+': '));
+      for(var i=0;i<from.length;i++){
+        var step=el('div','calc-step',from[i].from+' \u2192 '+_pathSelected+': '+from[i].reagent+' ('+from[i].type+')');
+        info.appendChild(step);
+      }
+    }
+  } else {
+    info.appendChild(document.createTextNode('Click a functional group node in the diagram or palette to explore its reactions.'));
+  }
+
+  var td=document.getElementById('pathTeacher');
+  td.textContent='';td.appendChild(el('strong','','HL Teaching Notes: '));
+  td.appendChild(document.createTextNode('Students should be able to deduce a two-step synthesis route given a starting material and target product. Key conversions to memorize: alcohol \u2194 halogenoalkane (SN), alcohol \u2192 aldehyde/ketone (oxidation), halogenoalkane \u2192 nitrile (KCN), nitrile \u2192 carboxylic acid (hydrolysis). The nitrile route adds one carbon to the chain.'));
+}
+
+// Handle canvas clicks for pathway nodes
+document.getElementById('pathCanvas').addEventListener('click',function(e){
+  if(_activeTab!=='pathways')return;
+  var rect=this.getBoundingClientRect();
+  var mx=e.clientX-rect.left,my=e.clientY-rect.top;
+  var W=this.offsetWidth,H=parseInt(this.dataset.baseHeight||420),pad=40;
+  for(var n=0;n<PATH_NODES.length;n++){
+    var name=PATH_NODES[n],pos=NODE_POS[name];
+    var nx=pad+pos.x*(W-2*pad),ny=pad+pos.y*(H-2*pad);
+    if(Math.abs(mx-nx)<45&&Math.abs(my-ny)<20){
+      _pathSelected=_pathSelected===name?null:name;
+      buildPalette();renderPathways();return;
+    }
+  }
+});
+
+// ── DATA EXPORT ──
+function exportCSV(){
+  var rows=[['Tab','Item','Detail','Value','Timestamp']];
+  var ts=new Date().toISOString();
+  if(_activeTab==='nucAdd'){
+    var rxn=getNucRxn();
+    rows.push(['Nucleophilic Addition',rxn.name,'Step '+((_nucStep||0)+1)+' of '+rxn.steps.length,rxn.steps[_nucStep||0].title,ts]);
+  }else if(_activeTab==='condHyd'){
+    var mode=_condMode||'ester';
+    var cr=COND_RXNS[mode];
+    rows.push(['Condensation & Hydrolysis',cr.name,cr.equation,cr.catalyst,ts]);
+  }else if(_activeTab==='pathways'){
+    rows.push(['Synthesis Pathways',_pathSelected||'(none selected)','','',ts]);
+    if(_pathSelected){
+      PATHWAYS.forEach(function(p){
+        if(p.from===_pathSelected||p.to===_pathSelected){
+          rows.push(['',p.from+' \u2192 '+p.to,p.reagent,p.type,ts]);
+        }
+      });
+    }
+  }
+  var csv=rows.map(function(r){return r.map(function(c){return'"'+String(c).replace(/"/g,'""')+'"';}).join(',');}).join('\n');
+  var blob=new Blob([csv],{type:'text/csv'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='NucleophilicAddition_export.csv';
+  a.click();
+}
+
+// ── KEYBOARD ──
+document.addEventListener('keydown',function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA')return;
+  switch(e.key.toLowerCase()){
+    case't':var tc=document.getElementById('teacherToggle');tc.checked=!tc.checked;document.body.classList.toggle('teacher-active',tc.checked);break;
+    case'1':switchTab('nucAdd');break;case'2':switchTab('condHyd');break;case'3':switchTab('pathways');break;
+    case'e':exportCSV();break;
+    case'r':_nucStep=0;_pathSelected=null;buildPalette();refreshTab();break;
+    case'arrowright':if(_activeTab==='nucAdd'){var rxn=getNucRxn();if(_nucStep<rxn.steps.length-1){_nucStep++;renderNucAdd();}}break;
+    case'arrowleft':if(_activeTab==='nucAdd'&&_nucStep>0){_nucStep--;renderNucAdd();}break;
+    case '/': if(paletteSearch){paletteSearch.focus();e.preventDefault();} break;
+  }
+});
+document.getElementById('teacherToggle').addEventListener('change',function(){document.body.classList.toggle('teacher-active',this.checked);});
+window.addEventListener('resize',refreshTab);
+
+function buildPresets(){
+  presetSelect.textContent='';
+  var def=document.createElement('option');def.value='';def.textContent='Teacher Presets...';presetSelect.appendChild(def);
+  var presets=[];
+  if(_activeTab==='nucAdd') presets=[{name:'HCN + Ethanal',value:'hcn_ethanal'},{name:'HCN + Propanone',value:'hcn_propanone'},{name:'HCN + Butanal',value:'hcn_butanal'}];
+  else if(_activeTab==='condHyd') presets=[{name:'Esterification',value:'ester'},{name:'Ester Hydrolysis',value:'hydrolysis'},{name:'Peptide Bond',value:'peptide'}];
+  else if(_activeTab==='pathways') presets=[{name:'Alcohol Hub',value:'Alcohol'},{name:'Halogenoalkane Hub',value:'Halogenoalkane'},{name:'Full Map',value:'_all'}];
+  for(var i=0;i<presets.length;i++){var o=document.createElement('option');o.value=presets[i].value;o.textContent=presets[i].name;presetSelect.appendChild(o);}
+}
+presetSelect.addEventListener('change',function(){
+  var val=this.value;if(!val)return;
+  if(_activeTab==='nucAdd'){_selectedNuc=val;_nucStep=0;buildPalette();renderNucAdd();}
+  else if(_activeTab==='condHyd'){_condMode=val;var bs=document.querySelectorAll('[data-cond]');for(var j=0;j<bs.length;j++)bs[j].classList.toggle('active',bs[j].getAttribute('data-cond')===_condMode);buildPalette();renderCondHyd();}
+  else if(_activeTab==='pathways'){if(val==='_all'){_pathSelected=null;}else{_pathSelected=val;}buildPalette();renderPathways();}
+  this.value='';
+});
+
+// ── INIT ──
+buildPalette();
+renderNucAdd();
+})();
+</script>
+<footer>SimEngine &mdash; Nucleophilic Addition &bull; H=HL T=Teacher</footer>
+</body>
+</html>

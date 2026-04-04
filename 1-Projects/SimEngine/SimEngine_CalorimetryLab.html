@@ -1,0 +1,1660 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calorimetry Lab — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--blue-bg:#EFF6FF;--teal-bg:#F0FDFA;--amber-bg:#FFFBEB;--red-bg:#FEF2F2;--purple-bg:#F5F3FF;--toggle-on:#0D9488;--orange:#EA580C;--green:#16A34A;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+  .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-right{display:flex;align-items:center;gap:.75rem;}
+  .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
+  .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.35rem;}
+  .sim-toggle{position:relative;width:40px;height:22px;display:inline-block;}
+  .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:11px;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.25rem;background:none;border:none;border-bottom:3px solid transparent;font-size:.82rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+  .tab-btn .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);font-size:.65rem;font-weight:700;color:var(--text-muted);}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .sim-container{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+  .sim-card{background:var(--card-bg);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;margin-bottom:1.5rem;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-weight:600;font-size:.85rem;}
+  .sim-card-body{padding:1.25rem;}
+  .scenario-box{background:var(--blue-bg);border:1px solid #BFDBFE;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.88rem;line-height:1.7;}
+  .lab-layout{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  .lab-controls{flex:0 0 280px;min-width:240px;}
+  .lab-canvas-area{flex:1;min-width:320px;}
+  .lab-canvas-area canvas{border:1px solid var(--border);border-radius:8px;background:var(--sim-canvas-bg);width:100%;cursor:crosshair;}
+  .control-group{margin-bottom:1rem;}
+  .control-group label{display:block;font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.03em;}
+  .control-group select,.control-group input[type="number"]{width:100%;padding:.45rem .65rem;border:1px solid var(--border);border-radius:6px;font-size:.85rem;font-family:inherit;}
+  .control-group select:focus,.control-group input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
+  .checkbox-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;}
+  .checkbox-row input[type="checkbox"]{width:16px;height:16px;accent-color:var(--teal);}
+  .checkbox-row label{font-size:.82rem;font-weight:500;cursor:pointer;}
+  .btn{padding:.5rem 1.25rem;border:none;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+  .btn-teal{background:var(--teal);color:white;} .btn-teal:hover{background:#0F766E;}
+  .btn-teal:disabled{background:#CBD5E1;cursor:not-allowed;}
+  .btn-outline{background:white;color:var(--text);border:1px solid var(--border);} .btn-outline:hover{background:#F8FAFC;}
+  .btn-amber{background:var(--amber);color:white;} .btn-amber:hover{background:#B45309;}
+  .btn-red{background:var(--red);color:white;}
+  .btn-row{display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;}
+  .feedback{padding:.75rem 1rem;border-radius:8px;margin-top:1rem;font-size:.88rem;font-weight:500;}
+  .feedback.correct{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;}
+  .feedback.incorrect{background:var(--red-bg);color:var(--red);border:1px solid #FECACA;}
+  .feedback.info{background:var(--blue-bg);color:#1E40AF;border:1px solid #BFDBFE;}
+  .result-table{width:100%;border-collapse:collapse;margin-top:1rem;font-size:.82rem;}
+  .result-table th,.result-table td{padding:.5rem .75rem;border:1px solid var(--border);text-align:left;}
+  .result-table th{background:var(--navy);color:white;font-weight:600;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em;}
+  .result-table td{font-family:'Fira Code',monospace;font-size:.8rem;}
+  .result-table tr:nth-child(even){background:#F8FAFC;}
+  .step-list{list-style:none;counter-reset:step;}
+  .step-item{border:1px solid var(--border);border-radius:8px;padding:.75rem 1rem;margin-bottom:.75rem;background:white;transition:.3s;}
+  .step-item.locked{opacity:.4;pointer-events:none;}
+  .step-item.current{border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.1);}
+  .step-item.done{border-color:#86EFAC;background:#F0FDF4;}
+  .step-item.wrong{border-color:#FECACA;background:var(--red-bg);}
+  .step-label{font-size:.8rem;font-weight:600;color:var(--teal);margin-bottom:.35rem;display:flex;align-items:center;gap:.5rem;}
+  .step-label::before{counter-increment:step;content:'Step ' counter(step);background:var(--teal-bg);color:var(--teal);padding:.1rem .5rem;border-radius:4px;font-size:.7rem;}
+  .step-input-row{display:flex;gap:.5rem;align-items:center;}
+  .step-input-row input{flex:1;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;font-family:'Fira Code',monospace;font-size:.85rem;}
+  .step-input-row .btn{padding:.4rem .8rem;font-size:.8rem;}
+  .step-hint{font-size:.75rem;color:var(--text-muted);margin-top:.35rem;font-style:italic;}
+  .step-result{font-size:.82rem;margin-top:.35rem;font-family:'Fira Code',monospace;}
+  .teacher-panel{display:none;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.82rem;}
+  body.teacher-active .teacher-panel{display:block;}
+  .preset-section{display:none;margin-bottom:1rem;}
+  .preset-section select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--border);font-size:.8rem;font-family:inherit;}
+  body.teacher-active .preset-section{display:block;}
+  .hess-cycle{display:flex;flex-direction:column;align-items:center;gap:.5rem;margin:1.25rem 0;}
+  .hess-row{display:flex;align-items:center;gap:.5rem;font-size:.85rem;font-family:'Fira Code',monospace;}
+  .hess-arrow{font-size:1.2rem;color:var(--teal);}
+  .hess-box{background:var(--teal-bg);border:1px solid var(--teal);border-radius:6px;padding:.4rem .8rem;font-size:.82rem;font-weight:600;}
+  .hess-input{width:80px;padding:.3rem .5rem;border:1px solid var(--border);border-radius:6px;font-family:'Fira Code',monospace;font-size:.82rem;text-align:center;}
+  .extrapolation-instruction{background:var(--amber-bg);border:1px solid #FDE68A;border-radius:8px;padding:.75rem 1rem;margin:.75rem 0;font-size:.82rem;}
+  .equip-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:.75rem;margin-bottom:1rem;}
+  .equip-card{background:white;border:1px solid var(--border);border-radius:8px;padding:.75rem;text-align:center;}
+  .equip-card .equip-label{font-size:.7rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.03em;}
+  .equip-card .equip-value{font-size:1.1rem;font-weight:700;font-family:'Fira Code',monospace;}
+  .equip-card .equip-value.good{color:var(--green);}
+  .equip-card .equip-value.ok{color:var(--amber);}
+  .equip-card .equip-value.poor{color:var(--red);}
+  .progress-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-top:.5rem;}
+  .progress-fill{height:100%;background:var(--teal);border-radius:3px;transition:width .5s ease;}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  .input-group{margin-bottom:.75rem;}
+  .input-group label{display:block;font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.25rem;text-transform:uppercase;letter-spacing:.03em;}
+  .input-group input[type="text"],.input-group input[type="number"]{width:100%;padding:.5rem .75rem;border:1px solid var(--border);border-radius:6px;font-size:.9rem;font-family:'Fira Code',monospace;}
+  .input-row{display:flex;gap:.75rem;align-items:flex-end;}
+  .input-row .input-group{flex:1;}
+  .running-indicator{display:inline-flex;align-items:center;gap:.5rem;font-size:.82rem;font-weight:600;color:var(--teal);margin-top:.5rem;}
+  .running-dot{width:8px;height:8px;border-radius:50%;background:var(--teal);animation:pulse 1s infinite;}
+  @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+  @media(max-width:700px){.lab-layout{flex-direction:column;}.lab-controls{flex:none;width:100%;}.tab-btn{padding:.6rem .7rem;font-size:.75rem;}}
+  .ia-guide-toggle{position:fixed;right:0;top:50%;transform:translateY(-50%);background:var(--teal);color:white;border:none;border-radius:8px 0 0 8px;padding:.75rem .4rem;cursor:pointer;font-size:.75rem;font-weight:700;writing-mode:vertical-rl;z-index:201;font-family:inherit;}
+  .ia-guide-toggle:hover{background:#0F766E;}
+  .ia-guide-panel{position:fixed;right:0;top:0;width:320px;height:100%;background:white;border-left:2px solid var(--teal);box-shadow:-4px 0 12px rgba(0,0,0,.1);transform:translateX(100%);transition:transform .3s ease;z-index:200;overflow-y:auto;padding:1.25rem 1rem;}
+  .ia-guide-panel.open{transform:translateX(0);}
+  .ia-guide-panel h3{font-size:.92rem;font-weight:700;color:var(--navy);margin-bottom:.75rem;}
+  .ia-guide-panel .ia-section{margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border);}
+  .ia-guide-panel .ia-section:last-of-type{border-bottom:none;}
+  .ia-guide-panel .ia-label{font-size:.72rem;font-weight:600;color:var(--teal);text-transform:uppercase;letter-spacing:.03em;margin-bottom:.35rem;}
+  .ia-guide-panel .ia-hint{font-size:.82rem;line-height:1.6;color:var(--text);}
+  .ia-guide-panel .ia-vars dt{font-weight:600;color:var(--text);margin-top:.4rem;font-size:.8rem;}
+  .ia-guide-panel .ia-vars dd{color:var(--text-muted);margin-left:1rem;font-size:.8rem;line-height:1.5;}
+  .ia-guide-panel .btn-open-scaffold{display:block;width:100%;margin-top:1rem;text-align:center;text-decoration:none;}
+
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div>
+    <h1>Calorimetry Lab<span class="subtitle">IB Chemistry — R1.1, R1.2, R2.1</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">R1.1</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="teacherToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" role="tab" data-tab="coffeecup"><span class="tab-num">1</span>Coffee-Cup</button>
+  <button class="tab-btn" role="tab" data-tab="combustion"><span class="tab-num">2</span>Combustion</button>
+  <button class="tab-btn" role="tab" data-tab="hess"><span class="tab-num">3</span>Hess's Law</button>
+  <button class="tab-btn" role="tab" data-tab="analysis"><span class="tab-num">4</span>Analysis</button>
+</div>
+
+<div class="sim-container" id="main-content">
+
+  <div class="preset-section" id="presetSection">
+    <select id="presetSelect">
+      <option value="">Teacher Presets...</option>
+    </select>
+  </div>
+
+  <!-- TAB 1: COFFEE-CUP CALORIMETRY -->
+  <div class="tab-content active" role="tabpanel" id="tab-coffeecup">
+    <div class="sim-card">
+      <div class="sim-card-header">Coffee-Cup Calorimetry — Aqueous Reactions</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          A calorimeter measures enthalpy changes by monitoring the temperature of the surroundings (water).
+          Choose your equipment and reaction, then run the experiment. Use graphical extrapolation to correct for heat loss.
+        </div>
+        <div class="lab-layout">
+          <div class="lab-controls">
+            <div class="control-group">
+              <label>Reaction</label>
+              <select id="ccReaction">
+                <option value="0">NaOH(s) dissolving in water</option>
+                <option value="1">NaOH(s) + HCl(aq)</option>
+                <option value="2">NaOH(aq) + HCl(aq)</option>
+                <option value="3">NH₄NO₃(s) dissolving in water</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label>Calorimeter Material</label>
+              <select id="ccMaterial">
+                <option value="polystyrene">Polystyrene cup (best insulation)</option>
+                <option value="glass">Glass beaker (moderate)</option>
+                <option value="metal">Metal can (poor insulation)</option>
+              </select>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="ccLid" checked>
+              <label for="ccLid">Lid on calorimeter</label>
+            </div>
+            <div class="checkbox-row">
+              <input type="checkbox" id="ccStir" checked>
+              <label for="ccStir">Stirring</label>
+            </div>
+            <div class="control-group">
+              <label>Water Volume (cm³)</label>
+              <input type="number" id="ccWaterVol" value="100" min="25" max="250" step="25" aria-label="Water volume in cubic centimeters">
+            </div>
+            <div class="control-group">
+              <label>Mass of solute (g)</label>
+              <input type="number" id="ccSoluteMass" value="2.00" min="0.5" max="10" step="0.5" aria-label="Mass of solute in grams">
+            </div>
+            <div class="btn-row" style="margin-top:.75rem">
+              <button class="btn btn-teal" id="btnRunCC">Run Experiment</button>
+              <button class="btn btn-outline" id="btnResetCC">Reset</button>
+            </div>
+            <div id="ccStatus" aria-live="polite"></div>
+          </div>
+          <div class="lab-canvas-area">
+            <canvas id="ccCanvas" width="700" height="380" role="img" aria-label="Coffee-cup calorimetry temperature versus time graph"></canvas>
+          </div>
+        </div>
+        <div id="ccExtrapolation" style="display:none;">
+          <div class="extrapolation-instruction">
+            <strong>Graphical Extrapolation:</strong> Click two points on the cooling portion of the graph to draw a best-fit line.
+            The extrapolated temperature at the time of mixing gives the corrected ΔT.
+          </div>
+          <div id="ccCalcArea"></div>
+        </div>
+        <div class="teacher-panel" id="ccTeacher"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: COMBUSTION CALORIMETRY -->
+  <div class="tab-content" role="tabpanel" id="tab-combustion">
+    <div class="sim-card">
+      <div class="sim-card-header">Combustion Calorimetry — Spirit Lamp</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          Measure the enthalpy of combustion by burning a fuel under a container of water.
+          Heat loss to surroundings is the major systematic error — equipment choices directly affect accuracy.
+        </div>
+        <div class="lab-layout">
+          <div class="lab-controls">
+            <div class="control-group">
+              <label>Fuel</label>
+              <select id="combFuel">
+                <option value="methanol">Methanol (CH₃OH)</option>
+                <option value="ethanol" selected>Ethanol (C₂H₅OH)</option>
+                <option value="propanol">Propan-1-ol (C₃H₇OH)</option>
+                <option value="butanol">Butan-1-ol (C₄H₉OH)</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label>Draught Shield</label>
+              <select id="combShield">
+                <option value="none">No shield</option>
+                <option value="partial">Partial shield</option>
+                <option value="full">Full draught shield</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label>Flame-to-can distance</label>
+              <select id="combDistance">
+                <option value="close">Close (2 cm)</option>
+                <option value="medium" selected>Medium (5 cm)</option>
+                <option value="far">Far (10 cm)</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label>Water Volume (cm³)</label>
+              <input type="number" id="combWaterVol" value="150" min="50" max="300" step="25">
+            </div>
+            <div class="btn-row" style="margin-top:.75rem">
+              <button class="btn btn-teal" id="btnRunComb">Run Experiment</button>
+              <button class="btn btn-outline" id="btnResetComb">Reset</button>
+            </div>
+            <div id="combStatus" aria-live="polite"></div>
+          </div>
+          <div class="lab-canvas-area">
+            <canvas id="combCanvas" width="700" height="380" role="img" aria-label="Combustion calorimetry temperature versus time graph"></canvas>
+          </div>
+        </div>
+        <div id="combExtrapolation" style="display:none;">
+          <div class="extrapolation-instruction">
+            <strong>Graphical Extrapolation:</strong> Click two points on the cooling portion to extrapolate back to the time the flame was extinguished.
+          </div>
+          <div id="combCalcArea"></div>
+        </div>
+        <div class="teacher-panel" id="combTeacher"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: HESS'S LAW -->
+  <div class="tab-content" role="tabpanel" id="tab-hess">
+    <div class="sim-card">
+      <div class="sim-card-header">Hess's Law Verification</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          Run three related reactions and verify that ΔH₁ = ΔH₂ + ΔH₃ using Hess's law.<br>
+          <strong>Rxn 1:</strong> NaOH(s) → Na⁺(aq) + OH⁻(aq) &nbsp; [dissolution]<br>
+          <strong>Rxn 2:</strong> NaOH(s) + HCl(aq) → NaCl(aq) + H₂O(l) &nbsp; [solid + acid]<br>
+          <strong>Rxn 3:</strong> NaOH(aq) + HCl(aq) → NaCl(aq) + H₂O(l) &nbsp; [solution + acid]
+        </div>
+        <div id="hessExperiments"></div>
+        <div id="hessCycleArea" style="display:none;"></div>
+        <div class="teacher-panel" id="hessTeacher"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 4: ANALYSIS -->
+  <div class="tab-content" role="tabpanel" id="tab-analysis">
+    <div class="sim-card">
+      <div class="sim-card-header">Analysis &amp; Equipment Comparison</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">
+          Compare your experimental results across different equipment setups.
+          Calculate percentage error and evaluate sources of systematic error.
+        </div>
+        <div id="analysisContent">
+          <p style="color:var(--text-muted);font-size:.88rem;text-align:center;padding:2rem 0;">
+            Run experiments in Tabs 1–3 first. Results will appear here automatically.
+          </p>
+        </div>
+        <div class="teacher-panel" id="analysisTeacher"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp;
+  <kbd>1</kbd>&ndash;<kbd>4</kbd> Tabs &nbsp;
+  <kbd>R</kbd> Reset &nbsp; <kbd>N</kbd> New Experiment &nbsp; <kbd>I</kbd> IA Guide
+</div>
+
+<button class="ia-guide-toggle" id="iaToggle">IA Guide</button>
+<div class="ia-guide-panel" id="iaPanel">
+  <h3>IA Guide — Calorimetry</h3>
+  <div class="ia-section">
+    <div class="ia-label">Example Research Question</div>
+    <div class="ia-hint">How does the choice of calorimeter material affect the accuracy of the enthalpy change measurement?</div>
+  </div>
+  <div class="ia-section">
+    <div class="ia-label">Variables</div>
+    <dl class="ia-vars">
+      <dt>IV:</dt><dd>Calorimeter material (polystyrene, glass, metal)</dd>
+      <dt>DV:</dt><dd>Temperature change / calculated enthalpy</dd>
+      <dt>CVs:</dt><dd>Volume of solution, concentration of acid/base, mass of solid</dd>
+    </dl>
+  </div>
+  <div class="ia-section">
+    <div class="ia-label">Data Recording Prompt</div>
+    <div class="ia-hint">Record all raw data with units and uncertainties. Include at least 3 trials per IV value. Note thermometer precision.</div>
+  </div>
+  <a href="SimEngine_IAScaffold.html?lab=calorimetry" class="btn btn-teal btn-open-scaffold">Open Full IA Scaffold &#8594;</a>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+/* ═══════════════════════════════════════════════════
+   UTILITIES
+   ═══════════════════════════════════════════════════ */
+function round(v,dp){var m=Math.pow(10,dp);return Math.round(v*m)/m;}
+function rnd(lo,hi,dp){var v=lo+Math.random()*(hi-lo);return dp!=null?round(v,dp):v;}
+function clamp(v,lo,hi){return Math.max(lo,Math.min(hi,v));}
+function el(id){return document.getElementById(id);}
+function ce(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e;}
+function setupCanvas(canvas){
+  var dpr=window.devicePixelRatio||1;
+  var rect=canvas.getBoundingClientRect();
+  var w=canvas.width, h=canvas.height;
+  canvas.width=w*dpr; canvas.height=h*dpr;
+  canvas.style.width=w+'px'; canvas.style.height=h+'px';
+  var ctx=canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx._cssW=w; ctx._cssH=h;
+  return ctx;
+}
+
+/* ═══════════════════════════════════════════════════
+   CHEMISTRY DATA
+   ═══════════════════════════════════════════════════ */
+
+// Coffee-cup reactions: {name, equation, dH (kJ/mol), molarMass of solute, isExo}
+var CC_REACTIONS = [
+  { name:'NaOH dissolution', eq:'NaOH(s) \u2192 Na\u207A(aq) + OH\u207B(aq)',
+    dH:-44.5, molarMass:40.00, isExo:true,
+    litDH:-44.5, notes:'Dissolution is exothermic — ionic lattice breaks (endo) but hydration of ions releases more energy (exo).' },
+  { name:'NaOH(s) + HCl(aq)', eq:'NaOH(s) + HCl(aq) \u2192 NaCl(aq) + H\u2082O(l)',
+    dH:-101.7, molarMass:40.00, isExo:true,
+    litDH:-101.7, notes:'Combines dissolution + neutralisation in one step.' },
+  { name:'NaOH(aq) + HCl(aq)', eq:'NaOH(aq) + HCl(aq) \u2192 NaCl(aq) + H\u2082O(l)',
+    dH:-57.1, molarMass:null, isExo:true,
+    litDH:-57.1, notes:'Strong acid + strong base neutralisation. ΔH should be approximately −57.1 kJ/mol for all strong acid-strong base pairs.' },
+  { name:'NH\u2084NO\u2083 dissolution', eq:'NH\u2084NO\u2083(s) \u2192 NH\u2084\u207A(aq) + NO\u2083\u207B(aq)',
+    dH:25.7, molarMass:80.04, isExo:false,
+    litDH:25.7, notes:'Endothermic dissolution — lattice enthalpy exceeds hydration enthalpy. Used in instant cold packs.' }
+];
+
+// Combustion fuels
+var FUELS = {
+  methanol:  { name:'Methanol',    formula:'CH\u2083OH',     molarMass:32.04, dH:-726,  balancedO2:1.5 },
+  ethanol:   { name:'Ethanol',     formula:'C\u2082H\u2085OH',    molarMass:46.07, dH:-1367, balancedO2:3 },
+  propanol:  { name:'Propan-1-ol', formula:'C\u2083H\u2087OH',    molarMass:60.10, dH:-2021, balancedO2:4.5 },
+  butanol:   { name:'Butan-1-ol',  formula:'C\u2084H\u2089OH',    molarMass:74.12, dH:-2676, balancedO2:6 }
+};
+
+// Heat loss coefficients (k for Newton cooling, per second)
+var MATERIAL_K = { polystyrene:0.0025, glass:0.007, metal:0.012 };
+var LID_FACTOR = { true:0.6, false:1.0 };
+var SHIELD_FACTOR = { none:1.0, partial:0.7, full:0.45 };
+var DISTANCE_FACTOR = { close:0.85, medium:1.0, far:1.25 }; // multiplier on heat loss for combustion
+var STIR_NOISE = { true:0.15, false:0.5 }; // noise amplitude in °C
+
+// Specific heat of water
+var C_WATER = 4.18; // J g⁻¹ K⁻¹
+var ROOM_TEMP = 22.0; // °C
+
+/* ═══════════════════════════════════════════════════
+   STATE
+   ═══════════════════════════════════════════════════ */
+var _activeTab = 'coffeecup';
+var _hlMode = false;
+var _teacherMode = false;
+
+// Coffee-cup state
+var _ccData = null;      // {points:[], tMix, tPeak, peakIdx, dT_actual, dT_theoretical, dH_exp, dH_lit, pctError, kUsed, reaction}
+var _ccRunning = false;
+var _ccTimer = null;
+var _ccExtrapPoints = []; // [{x,y}] click points for extrapolation
+var _ccExtrapDone = false;
+
+// Combustion state
+var _combData = null;
+var _combRunning = false;
+var _combTimer = null;
+var _combExtrapPoints = [];
+var _combExtrapDone = false;
+
+// Hess state
+var _hessResults = [null, null, null]; // each: {dH_exp, dT, reaction}
+var _hessRunIdx = -1;
+
+// Analysis log
+var _experiments = []; // {type, setup, dH_exp, dH_lit, pctError, kUsed}
+
+/* ═══════════════════════════════════════════════════
+   GRAPH DRAWING
+   ═══════════════════════════════════════════════════ */
+var MARGIN = {left:60, right:20, top:25, bottom:40};
+
+function drawAxes(ctx, w, h, xLabel, yLabel, xRange, yRange){
+  var pl=MARGIN.left, pr=MARGIN.right, pt=MARGIN.top, pb=MARGIN.bottom;
+  var gw=w-pl-pr, gh=h-pt-pb;
+
+  ctx.clearRect(0,0,w,h);
+  ctx.fillStyle='#F8FAFC'; ctx.fillRect(0,0,w,h);
+
+  // grid
+  ctx.strokeStyle='#E2E8F0'; ctx.lineWidth=0.5;
+  var xTicks=6, yTicks=5;
+  for(var i=0;i<=xTicks;i++){
+    var x=pl+gw*i/xTicks;
+    ctx.beginPath();ctx.moveTo(x,pt);ctx.lineTo(x,h-pb);ctx.stroke();
+  }
+  for(var i=0;i<=yTicks;i++){
+    var y=pt+gh*i/yTicks;
+    ctx.beginPath();ctx.moveTo(pl,y);ctx.lineTo(w-pr,y);ctx.stroke();
+  }
+
+  // axes
+  ctx.strokeStyle='#334155'; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(pl,pt); ctx.lineTo(pl,h-pb); ctx.lineTo(w-pr,h-pb); ctx.stroke();
+
+  // labels
+  ctx.fillStyle='#334155'; ctx.font='500 12px Inter,sans-serif'; ctx.textAlign='center';
+  // x-axis ticks
+  for(var i=0;i<=xTicks;i++){
+    var x=pl+gw*i/xTicks;
+    var val=xRange[0]+(xRange[1]-xRange[0])*i/xTicks;
+    ctx.fillText(round(val,0), x, h-pb+18);
+  }
+  ctx.fillText(xLabel, pl+gw/2, h-3);
+  // y-axis ticks
+  ctx.textAlign='right';
+  for(var i=0;i<=yTicks;i++){
+    var y=pt+gh*(1-i/yTicks);
+    var val=yRange[0]+(yRange[1]-yRange[0])*i/yTicks;
+    ctx.fillText(round(val,1), pl-8, y+4);
+  }
+  ctx.save(); ctx.translate(14, pt+gh/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center'; ctx.fillText(yLabel,0,0);
+  ctx.restore();
+
+  return {
+    pl:pl, pt:pt, gw:gw, gh:gh,
+    mapX:function(v){return pl+gw*(v-xRange[0])/(xRange[1]-xRange[0]);},
+    mapY:function(v){return pt+gh*(1-(v-yRange[0])/(yRange[1]-yRange[0]));},
+    unmapX:function(px){return xRange[0]+(px-pl)/gw*(xRange[1]-xRange[0]);},
+    unmapY:function(py){return yRange[0]+(1-(py-pt)/gh)*(yRange[1]-yRange[0]);}
+  };
+}
+
+function drawDataPoints(ctx, axes, points, color){
+  if(points.length<2) return;
+  ctx.strokeStyle=color; ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(axes.mapX(points[0].t), axes.mapY(points[0].T));
+  for(var i=1;i<points.length;i++){
+    ctx.lineTo(axes.mapX(points[i].t), axes.mapY(points[i].T));
+  }
+  ctx.stroke();
+}
+
+function drawDashedLine(ctx, axes, x1, y1, x2, y2, color){
+  ctx.save();
+  ctx.strokeStyle=color; ctx.lineWidth=1.5; ctx.setLineDash([6,4]);
+  ctx.beginPath();
+  ctx.moveTo(axes.mapX(x1), axes.mapY(y1));
+  ctx.lineTo(axes.mapX(x2), axes.mapY(y2));
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawVerticalLine(ctx, axes, tVal, color){
+  ctx.save();
+  ctx.strokeStyle=color; ctx.lineWidth=1; ctx.setLineDash([4,3]);
+  var px=axes.mapX(tVal);
+  ctx.beginPath(); ctx.moveTo(px, axes.pt); ctx.lineTo(px, axes.pt+axes.gh); ctx.stroke();
+  ctx.restore();
+}
+
+function drawClickPoints(ctx, axes, pts, color){
+  ctx.fillStyle=color;
+  for(var i=0;i<pts.length;i++){
+    ctx.beginPath();
+    ctx.arc(axes.mapX(pts[i].t), axes.mapY(pts[i].T), 5, 0, Math.PI*2);
+    ctx.fill();
+  }
+}
+
+function drawExtrapolationLine(ctx, axes, pts, tMix, color){
+  if(pts.length<2) return;
+  // line through two points, extrapolate back to tMix
+  var t1=pts[0].t, T1=pts[0].T, t2=pts[1].t, T2=pts[1].T;
+  var slope=(T2-T1)/(t2-t1);
+  var T_extrap=T1+slope*(tMix-t1);
+  // draw from tMix to beyond last point
+  var tEnd=t2+30;
+  var T_end=T1+slope*(tEnd-t1);
+  drawDashedLine(ctx, axes, tMix, T_extrap, tEnd, T_end, color);
+  // mark extrapolated T
+  ctx.fillStyle=color;
+  ctx.beginPath();
+  ctx.arc(axes.mapX(tMix), axes.mapY(T_extrap), 6, 0, Math.PI*2);
+  ctx.fill();
+  ctx.font='600 11px "Fira Code",monospace';
+  ctx.textAlign='left';
+  ctx.fillText('T\u2091 = '+round(T_extrap,1)+' \u00B0C', axes.mapX(tMix)+10, axes.mapY(T_extrap)-8);
+  return T_extrap;
+}
+
+/* ═══════════════════════════════════════════════════
+   TEMPERATURE SIMULATION MODEL
+   ═══════════════════════════════════════════════════ */
+
+function generateCCData(reactionIdx, material, hasLid, hasStir, waterVolMl, soluteMassG){
+  var rxn = CC_REACTIONS[reactionIdx];
+  var waterMass = waterVolMl; // density ≈ 1 g/cm³
+  var moles = rxn.molarMass ? soluteMassG / rxn.molarMass : (waterVolMl/1000) * 0.5; // for neutralisation use 0.5 mol/dm³
+  var qTheoretical = Math.abs(rxn.dH) * moles * 1000; // in Joules
+  var dT_theoretical = qTheoretical / (waterMass * C_WATER);
+  if(!rxn.isExo) dT_theoretical = -dT_theoretical;
+
+  var k = MATERIAL_K[material] * LID_FACTOR[hasLid];
+  var noiseAmp = STIR_NOISE[hasStir];
+
+  // Generate time-temperature data
+  var points = [];
+  var tTotal = 300; // 5 minutes total
+  var tPre = 30;    // 30s pre-mix baseline
+  var tReaction = 20; // reaction completes in ~20s
+  var dt = 1;
+
+  var T0 = ROOM_TEMP + rnd(-0.3, 0.3, 1);
+  var T_peak_theoretical = T0 + dT_theoretical;
+
+  for(var t=0; t<=tTotal; t+=dt){
+    var T;
+    if(t < tPre){
+      // pre-mix: stable at room temp with slight drift
+      T = T0 + rnd(-0.1,0.1,2);
+    } else if(t < tPre + tReaction){
+      // reaction phase: temperature rises (or falls) toward peak, with heat loss happening simultaneously
+      var frac = (t - tPre) / tReaction;
+      var reactionProgress = 1 - Math.exp(-3 * frac); // exponential approach
+      var elapsed = t - tPre;
+      // heat gained from reaction so far minus heat lost
+      var T_no_loss = T0 + dT_theoretical * reactionProgress;
+      var heatLossFactor = Math.exp(-k * elapsed);
+      T = ROOM_TEMP + (T_no_loss - ROOM_TEMP) * heatLossFactor;
+    } else {
+      // post-reaction: Newton's law of cooling from peak
+      var tSincePeak = t - (tPre + tReaction);
+      var T_at_peak = points[points.length-1] ? points[points.length-1].T : T_peak_theoretical;
+      if(tSincePeak === 0){
+        T_at_peak = points.length > 0 ? points[points.length-1].T : T0 + dT_theoretical * 0.8;
+      }
+      T = ROOM_TEMP + (T_at_peak - ROOM_TEMP) * Math.exp(-k * tSincePeak);
+    }
+    // add noise
+    T += rnd(-noiseAmp, noiseAmp, 2);
+    points.push({t:t, T:round(T,2)});
+  }
+
+  // find actual peak
+  var peakIdx=0, peakT=-999;
+  if(rxn.isExo){
+    for(var i=0;i<points.length;i++){ if(points[i].T > peakT){peakT=points[i].T;peakIdx=i;} }
+  } else {
+    peakT=999;
+    for(var i=0;i<points.length;i++){ if(points[i].T < peakT){peakT=points[i].T;peakIdx=i;} }
+  }
+
+  var dT_actual = peakT - T0;
+  var q_actual = Math.abs(dT_actual) * waterMass * C_WATER;
+  var dH_exp = -(q_actual / 1000) / moles;
+  if(!rxn.isExo) dH_exp = Math.abs(dH_exp);
+
+  return {
+    points: points,
+    tMix: tPre,
+    tPeak: points[peakIdx].t,
+    peakIdx: peakIdx,
+    T0: T0,
+    peakT: peakT,
+    dT_actual: dT_actual,
+    dT_theoretical: dT_theoretical,
+    dH_exp: dH_exp,
+    dH_lit: rxn.dH,
+    pctError: round(Math.abs((dH_exp - Math.abs(rxn.dH)) / Math.abs(rxn.dH)) * 100, 1),
+    kUsed: k,
+    reaction: rxn,
+    waterMass: waterMass,
+    moles: moles,
+    material: material,
+    hasLid: hasLid
+  };
+}
+
+function generateCombData(fuelKey, shieldType, distance, waterVolMl){
+  var fuel = FUELS[fuelKey];
+  var waterMass = waterVolMl;
+
+  // Spirit lamp: assume ~1-2g of fuel burned over 3 minutes
+  var burnTime = 180; // seconds
+  var massLoss = rnd(1.0, 2.0, 2); // grams burned
+  var moles = massLoss / fuel.molarMass;
+  var qTheoretical = Math.abs(fuel.dH) * moles * 1000; // Joules
+  var dT_theoretical = qTheoretical / (waterMass * C_WATER);
+
+  // Combustion has much higher heat loss
+  var k_base = 0.015; // base heat loss for open flame setup
+  var k = k_base * SHIELD_FACTOR[shieldType] * DISTANCE_FACTOR[distance];
+
+  // Efficiency: typically only 30-60% of heat reaches water
+  var efficiency = 0.25 + (shieldType === 'full' ? 0.25 : shieldType === 'partial' ? 0.15 : 0) + (distance === 'close' ? 0.10 : distance === 'far' ? -0.05 : 0);
+  efficiency = clamp(efficiency, 0.15, 0.65);
+
+  var dT_effective = dT_theoretical * efficiency;
+
+  var points = [];
+  var tTotal = 360; // 6 minutes
+  var tPre = 30;
+  var tBurn = burnTime;
+
+  var T0 = ROOM_TEMP + rnd(-0.3, 0.3, 1);
+
+  for(var t=0; t<=tTotal; t++){
+    var T;
+    if(t < tPre){
+      T = T0 + rnd(-0.15, 0.15, 2);
+    } else if(t < tPre + tBurn){
+      var elapsed = t - tPre;
+      var frac = elapsed / tBurn;
+      // Gradual heating with simultaneous heat loss
+      var T_target = T0 + dT_effective;
+      T = T0 + (T_target - T0) * (1 - Math.exp(-2.5 * frac));
+      // apply heat loss during heating
+      var lossFactor = 1 - k * elapsed * 0.003;
+      T = T0 + (T - T0) * Math.max(lossFactor, 0.5);
+    } else {
+      // Cooling after flame out
+      var tSinceBurn = t - (tPre + tBurn);
+      var T_end_burn = points.length > 0 ? points[points.length-1].T : T0 + dT_effective * 0.5;
+      if(tSinceBurn === 0 && points.length > 0) T_end_burn = points[points.length-1].T;
+      T = ROOM_TEMP + (T_end_burn - ROOM_TEMP) * Math.exp(-k * tSinceBurn);
+    }
+    T += rnd(-0.2, 0.2, 2);
+    points.push({t:t, T:round(T,2)});
+  }
+
+  // find peak
+  var peakIdx=0, peakT=-999;
+  for(var i=0;i<points.length;i++){ if(points[i].T > peakT){peakT=points[i].T;peakIdx=i;} }
+
+  var dT_actual = peakT - T0;
+  var q_actual = dT_actual * waterMass * C_WATER;
+  var dH_exp = -(q_actual / 1000) / moles;
+
+  return {
+    points: points,
+    tMix: tPre,
+    tFlameOff: tPre + tBurn,
+    peakIdx: peakIdx,
+    T0: T0,
+    peakT: peakT,
+    dT_actual: dT_actual,
+    dT_theoretical: dT_theoretical,
+    dH_exp: dH_exp,
+    dH_lit: fuel.dH,
+    pctError: round(Math.abs((Math.abs(dH_exp) - Math.abs(fuel.dH)) / Math.abs(fuel.dH)) * 100, 1),
+    kUsed: k,
+    efficiency: efficiency,
+    fuel: fuel,
+    fuelKey: fuelKey,
+    massLoss: massLoss,
+    moles: moles,
+    waterMass: waterMass,
+    shieldType: shieldType,
+    distance: distance
+  };
+}
+
+
+/* ═══════════════════════════════════════════════════
+   COFFEE-CUP TAB
+   ═══════════════════════════════════════════════════ */
+
+function renderCCGraph(){
+  var canvas = el('ccCanvas');
+  var ctx = canvas.getContext('2d');
+  var w = ctx._cssW || 700, h = ctx._cssH || 380;
+
+  if(!_ccData){
+    // empty state
+    drawAxes(ctx, w, h, 'Time / s', 'Temperature / \u00B0C', [0,300], [15,55]);
+    ctx.fillStyle='#94A3B8'; ctx.font='14px Inter,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Configure equipment and click "Run Experiment"', w/2, h/2);
+    return;
+  }
+
+  var data = _ccData;
+  var pts = data.points;
+  // determine y range
+  var minT=999, maxT=-999;
+  for(var i=0;i<pts.length;i++){
+    if(pts[i].T<minT) minT=pts[i].T;
+    if(pts[i].T>maxT) maxT=pts[i].T;
+  }
+  var yPad = Math.max(3, (maxT-minT)*0.15);
+  var yRange = [Math.floor(minT-yPad), Math.ceil(maxT+yPad)];
+  var xMax = pts[pts.length-1].t;
+
+  var axes = drawAxes(ctx, w, h, 'Time / s', 'Temperature / \u00B0C', [0, xMax], yRange);
+
+  // draw mixing time line
+  drawVerticalLine(ctx, axes, data.tMix, '#3B82F6');
+  ctx.fillStyle='#3B82F6'; ctx.font='600 10px Inter,sans-serif'; ctx.textAlign='left';
+  ctx.fillText('mix', axes.mapX(data.tMix)+4, axes.pt+12);
+
+  // draw data
+  var plotPts = _ccRunning ? pts.slice(0, _ccAnimIdx||pts.length) : pts;
+  drawDataPoints(ctx, axes, plotPts, _ccData.reaction.isExo?'#DC2626':'#3B82F6');
+
+  // teacher: theoretical curve
+  if(_teacherMode && !_ccRunning){
+    ctx.save();
+    ctx.strokeStyle='#7C3AED'; ctx.lineWidth=1.5; ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    var T0 = data.T0;
+    var dT = data.dT_theoretical;
+    for(var t=0;t<=xMax;t+=2){
+      var T;
+      if(t < data.tMix) T = T0;
+      else if(t < data.tMix+20){
+        var frac=(t-data.tMix)/20;
+        T = T0 + dT*(1-Math.exp(-3*frac));
+      } else T = T0 + dT;
+      var px=axes.mapX(t), py=axes.mapY(T);
+      if(t===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke(); ctx.restore();
+    ctx.fillStyle='#7C3AED'; ctx.font='500 10px Inter,sans-serif'; ctx.textAlign='right';
+    ctx.fillText('Theoretical (no heat loss)', w-MARGIN.right-5, axes.pt+14);
+  }
+
+  // extrapolation points & line
+  if(_ccExtrapPoints.length > 0){
+    drawClickPoints(ctx, axes, _ccExtrapPoints, '#16A34A');
+  }
+  if(_ccExtrapPoints.length === 2){
+    var T_extrap = drawExtrapolationLine(ctx, axes, _ccExtrapPoints, data.tMix, '#16A34A');
+    if(T_extrap != null) _ccData._T_extrap = T_extrap;
+  }
+}
+
+var _ccAnimIdx = 0;
+function animateCC(){
+  if(!_ccRunning || !_ccData) return;
+  _ccAnimIdx += 8;
+  if(_ccAnimIdx >= _ccData.points.length){
+    _ccAnimIdx = _ccData.points.length;
+    _ccRunning = false;
+    el('ccStatus').textContent = '';
+    renderCCGraph();
+    showCCExtrapolation();
+  } else {
+    var elapsed = _ccData.points[_ccAnimIdx].t;
+    var statusEl = el('ccStatus');
+    statusEl.textContent = '';
+    var ind = ce('span','running-indicator');
+    var dot = ce('span','running-dot'); ind.appendChild(dot);
+    ind.appendChild(document.createTextNode(' Recording... '+elapsed+'s'));
+    statusEl.appendChild(ind);
+    renderCCGraph();
+    _ccTimer = setTimeout(animateCC, 30);
+  }
+}
+
+function runCCExperiment(){
+  var rxnIdx = parseInt(el('ccReaction').value);
+  var material = el('ccMaterial').value;
+  var hasLid = el('ccLid').checked;
+  var hasStir = el('ccStir').checked;
+  var waterVol = parseFloat(el('ccWaterVol').value) || 100;
+  var soluteMass = parseFloat(el('ccSoluteMass').value) || 2.0;
+
+  _ccData = generateCCData(rxnIdx, material, hasLid, hasStir, waterVol, soluteMass);
+  _ccExtrapPoints = [];
+  _ccExtrapDone = false;
+  _ccAnimIdx = 0;
+  _ccRunning = true;
+
+  el('ccExtrapolation').style.display = 'none';
+  clearElement(el('ccCalcArea'));
+  clearElement(el('ccTeacher'));
+
+  animateCC();
+}
+
+function showCCExtrapolation(){
+  el('ccExtrapolation').style.display = 'block';
+  renderCCGraph();
+}
+
+function handleCCCanvasClick(e){
+  if(!_ccData || _ccRunning || _ccExtrapDone) return;
+  var canvas = el('ccCanvas');
+  var rect = canvas.getBoundingClientRect();
+  var dpr = window.devicePixelRatio || 1;
+  var px = (e.clientX - rect.left);
+  var py = (e.clientY - rect.top);
+
+  // reconstruct axes (need same ranges as renderCCGraph)
+  var pts = _ccData.points;
+  var minT=999, maxT=-999;
+  for(var i=0;i<pts.length;i++){
+    if(pts[i].T<minT) minT=pts[i].T;
+    if(pts[i].T>maxT) maxT=pts[i].T;
+  }
+  var yPad = Math.max(3, (maxT-minT)*0.15);
+  var yRange = [Math.floor(minT-yPad), Math.ceil(maxT+yPad)];
+  var xMax = pts[pts.length-1].t;
+
+  var axes = {
+    pl:MARGIN.left, pt:MARGIN.top,
+    gw:700-MARGIN.left-MARGIN.right, gh:380-MARGIN.top-MARGIN.bottom,
+    unmapX:function(px2){return 0+(px2-this.pl)/this.gw*(xMax-0);},
+    unmapY:function(py2){return yRange[0]+(1-(py2-this.pt)/this.gh)*(yRange[1]-yRange[0]);}
+  };
+
+  var t = axes.unmapX(px);
+  var T = axes.unmapY(py);
+
+  // Only allow clicks in the cooling region (after peak)
+  if(t < _ccData.tMix){
+    return; // too early
+  }
+
+  if(_ccExtrapPoints.length < 2){
+    _ccExtrapPoints.push({t:round(t,1), T:round(T,2)});
+    renderCCGraph();
+  }
+
+  if(_ccExtrapPoints.length === 2){
+    _ccExtrapDone = true;
+    renderCCGraph();
+    buildCCCalculation();
+  }
+}
+
+function buildCCCalculation(){
+  var area = el('ccCalcArea');
+  clearElement(area);
+
+  var d = _ccData;
+  var T_extrap = d._T_extrap || d.peakT;
+  var corrected_dT = T_extrap - d.T0;
+
+  var q = Math.abs(corrected_dT) * d.waterMass * C_WATER;
+  var dH_corrected = -(q / 1000) / d.moles;
+  if(!d.reaction.isExo) dH_corrected = Math.abs(dH_corrected);
+
+  var pctError = round(Math.abs((Math.abs(dH_corrected) - Math.abs(d.dH_lit)) / Math.abs(d.dH_lit)) * 100, 1);
+
+  // build step-by-step
+  var card = ce('div','sim-card');
+  var hdr = ce('div','sim-card-header','Calculation: q = mc\u0394T');
+  card.appendChild(hdr);
+  var body = ce('div','sim-card-body');
+
+  var steps = [
+    {label:'Initial temperature (T\u2081)', val:round(d.T0,1)+' \u00B0C'},
+    {label:'Extrapolated temperature (T\u2082)', val:round(T_extrap,1)+' \u00B0C'},
+    {label:'\u0394T = T\u2082 \u2212 T\u2081', val:round(corrected_dT,1)+' \u00B0C'},
+    {label:'Mass of water', val:round(d.waterMass,1)+' g'},
+    {label:'q = mc\u0394T', val:round(q,1)+' J = '+round(q/1000,3)+' kJ'},
+    {label:'Moles of '+d.reaction.name.split(' ')[0], val:round(d.moles,4)+' mol'},
+    {label:'\u0394H = \u2212q / n', val:round(dH_corrected,1)+' kJ mol\u207B\u00B9'},
+    {label:'Literature value', val:d.dH_lit+' kJ mol\u207B\u00B9'},
+    {label:'Percentage error', val:pctError+'%'}
+  ];
+
+  var tbl = ce('table','result-table');
+  var thead = ce('thead');
+  var thr = ce('tr');
+  var th1 = ce('th',null,'Quantity'); var th2 = ce('th',null,'Value');
+  thr.appendChild(th1); thr.appendChild(th2); thead.appendChild(thr); tbl.appendChild(thead);
+  var tbody = ce('tbody');
+  for(var i=0;i<steps.length;i++){
+    var tr = ce('tr');
+    var td1 = ce('td',null,steps[i].label);
+    td1.style.fontFamily='Inter,sans-serif';
+    var td2 = ce('td',null,steps[i].val);
+    tr.appendChild(td1); tr.appendChild(td2);
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+  body.appendChild(tbl);
+
+  // feedback
+  var fb = ce('div','feedback');
+  if(pctError < 10){
+    fb.className='feedback correct';
+    fb.textContent='Excellent result! '+pctError+'% error — good equipment choices minimised heat loss.';
+  } else if(pctError < 25){
+    fb.className='feedback info';
+    fb.textContent='Reasonable result ('+pctError+'% error). Consider how equipment choices affected heat loss.';
+  } else {
+    fb.className='feedback incorrect';
+    fb.textContent='Significant error ('+pctError+'%). Major heat loss occurred — review your equipment choices.';
+  }
+  body.appendChild(fb);
+  card.appendChild(body);
+  area.appendChild(card);
+
+  // save to experiments log
+  _experiments.push({
+    type: 'coffee-cup',
+    setup: d.material + (d.hasLid?'+lid':'') + ', ' + d.reaction.name,
+    dH_exp: round(dH_corrected,1),
+    dH_lit: d.dH_lit,
+    pctError: pctError,
+    kUsed: d.kUsed
+  });
+
+  // teacher panel
+  buildCCTeacherPanel(d, T_extrap, corrected_dT, dH_corrected, pctError);
+  updateAnalysis();
+}
+
+function buildCCTeacherPanel(d, T_extrap, corrected_dT, dH_corrected, pctError){
+  var panel = el('ccTeacher');
+  clearElement(panel);
+
+  var title = ce('div',null,'\ud83c\udf93 Teacher Notes'); title.style.fontWeight='700'; title.style.marginBottom='.5rem';
+  panel.appendChild(title);
+
+  var notes = [
+    'Heat loss coefficient (k): '+round(d.kUsed,4)+' s\u207B\u00B9',
+    'Material: '+d.material+' | Lid: '+(d.hasLid?'yes':'no'),
+    'Theoretical \u0394T (no heat loss): '+round(d.dT_theoretical,1)+' \u00B0C',
+    'Actual peak \u0394T: '+round(d.dT_actual,1)+' \u00B0C',
+    'Extrapolated \u0394T: '+round(corrected_dT,1)+' \u00B0C',
+    'Energy lost to surroundings: '+round((1-Math.abs(corrected_dT/d.dT_theoretical))*100,1)+'%',
+    d.reaction.notes
+  ];
+  for(var i=0;i<notes.length;i++){
+    var p = ce('div',null,notes[i]); p.style.marginBottom='.3rem';
+    panel.appendChild(p);
+  }
+}
+
+function resetCC(){
+  _ccData = null; _ccRunning = false; _ccExtrapPoints = []; _ccExtrapDone = false;
+  if(_ccTimer) clearTimeout(_ccTimer);
+  el('ccExtrapolation').style.display = 'none';
+  clearElement(el('ccCalcArea'));
+  clearElement(el('ccTeacher'));
+  el('ccStatus').textContent = '';
+  renderCCGraph();
+}
+
+
+/* ═══════════════════════════════════════════════════
+   COMBUSTION TAB
+   ═══════════════════════════════════════════════════ */
+
+function renderCombGraph(){
+  var canvas = el('combCanvas');
+  var ctx = canvas.getContext('2d');
+  var w = ctx._cssW || 700, h = ctx._cssH || 380;
+
+  if(!_combData){
+    drawAxes(ctx, w, h, 'Time / s', 'Temperature / \u00B0C', [0,360], [15,60]);
+    ctx.fillStyle='#94A3B8'; ctx.font='14px Inter,sans-serif'; ctx.textAlign='center';
+    ctx.fillText('Select fuel and equipment, then click "Run Experiment"', w/2, h/2);
+    return;
+  }
+
+  var data = _combData;
+  var pts = data.points;
+  var minT=999, maxT=-999;
+  for(var i=0;i<pts.length;i++){
+    if(pts[i].T<minT) minT=pts[i].T;
+    if(pts[i].T>maxT) maxT=pts[i].T;
+  }
+  var yPad = Math.max(3, (maxT-minT)*0.15);
+  var yRange = [Math.floor(minT-yPad), Math.ceil(maxT+yPad)];
+  var xMax = pts[pts.length-1].t;
+
+  var axes = drawAxes(ctx, w, h, 'Time / s', 'Temperature / \u00B0C', [0, xMax], yRange);
+
+  // flame on/off lines
+  drawVerticalLine(ctx, axes, data.tMix, '#EA580C');
+  ctx.fillStyle='#EA580C'; ctx.font='600 10px Inter,sans-serif'; ctx.textAlign='left';
+  ctx.fillText('flame on', axes.mapX(data.tMix)+4, axes.pt+12);
+
+  drawVerticalLine(ctx, axes, data.tFlameOff, '#EA580C');
+  ctx.fillText('flame off', axes.mapX(data.tFlameOff)+4, axes.pt+24);
+
+  var plotPts = _combRunning ? pts.slice(0, _combAnimIdx||pts.length) : pts;
+  drawDataPoints(ctx, axes, plotPts, '#EA580C');
+
+  // teacher: theoretical curve
+  if(_teacherMode && !_combRunning){
+    ctx.save();
+    ctx.strokeStyle='#7C3AED'; ctx.lineWidth=1.5; ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    var T0 = data.T0;
+    for(var t=0;t<=xMax;t+=2){
+      var T;
+      if(t < data.tMix) T = T0;
+      else if(t < data.tFlameOff){
+        var frac=(t-data.tMix)/(data.tFlameOff-data.tMix);
+        T = T0 + data.dT_theoretical*(1-Math.exp(-2.5*frac));
+      } else T = T0 + data.dT_theoretical;
+      var px=axes.mapX(t), py=axes.mapY(T);
+      if(t===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke(); ctx.restore();
+    ctx.fillStyle='#7C3AED'; ctx.font='500 10px Inter,sans-serif'; ctx.textAlign='right';
+    ctx.fillText('Theoretical (no heat loss)', w-MARGIN.right-5, axes.pt+14);
+  }
+
+  // extrapolation
+  if(_combExtrapPoints.length > 0){
+    drawClickPoints(ctx, axes, _combExtrapPoints, '#16A34A');
+  }
+  if(_combExtrapPoints.length === 2){
+    var T_extrap = drawExtrapolationLine(ctx, axes, _combExtrapPoints, data.tFlameOff, '#16A34A');
+    if(T_extrap != null) _combData._T_extrap = T_extrap;
+  }
+}
+
+var _combAnimIdx = 0;
+function animateComb(){
+  if(!_combRunning || !_combData) return;
+  _combAnimIdx += 8;
+  if(_combAnimIdx >= _combData.points.length){
+    _combAnimIdx = _combData.points.length;
+    _combRunning = false;
+    el('combStatus').textContent = '';
+    renderCombGraph();
+    showCombExtrapolation();
+  } else {
+    var elapsed = _combData.points[_combAnimIdx].t;
+    var statusEl = el('combStatus');
+    statusEl.textContent = '';
+    var ind = ce('span','running-indicator');
+    var dot = ce('span','running-dot'); ind.appendChild(dot);
+    ind.appendChild(document.createTextNode(' Recording... '+elapsed+'s'));
+    statusEl.appendChild(ind);
+    renderCombGraph();
+    _combTimer = setTimeout(animateComb, 30);
+  }
+}
+
+function runCombExperiment(){
+  var fuelKey = el('combFuel').value;
+  var shield = el('combShield').value;
+  var distance = el('combDistance').value;
+  var waterVol = parseFloat(el('combWaterVol').value) || 150;
+
+  _combData = generateCombData(fuelKey, shield, distance, waterVol);
+  _combExtrapPoints = [];
+  _combExtrapDone = false;
+  _combAnimIdx = 0;
+  _combRunning = true;
+
+  el('combExtrapolation').style.display = 'none';
+  clearElement(el('combCalcArea'));
+  clearElement(el('combTeacher'));
+
+  animateComb();
+}
+
+function showCombExtrapolation(){
+  el('combExtrapolation').style.display = 'block';
+  renderCombGraph();
+}
+
+function handleCombCanvasClick(e){
+  if(!_combData || _combRunning || _combExtrapDone) return;
+  var canvas = el('combCanvas');
+  var rect = canvas.getBoundingClientRect();
+  var px = (e.clientX - rect.left);
+  var py = (e.clientY - rect.top);
+
+  var pts = _combData.points;
+  var minT=999, maxT=-999;
+  for(var i=0;i<pts.length;i++){
+    if(pts[i].T<minT) minT=pts[i].T;
+    if(pts[i].T>maxT) maxT=pts[i].T;
+  }
+  var yPad = Math.max(3, (maxT-minT)*0.15);
+  var yRange = [Math.floor(minT-yPad), Math.ceil(maxT+yPad)];
+  var xMax = pts[pts.length-1].t;
+
+  var gw=700-MARGIN.left-MARGIN.right, gh=380-MARGIN.top-MARGIN.bottom;
+  var t = 0 + (px-MARGIN.left)/gw*(xMax-0);
+  var T = yRange[0]+(1-(py-MARGIN.top)/gh)*(yRange[1]-yRange[0]);
+
+  if(t < _combData.tMix) return;
+
+  if(_combExtrapPoints.length < 2){
+    _combExtrapPoints.push({t:round(t,1), T:round(T,2)});
+    renderCombGraph();
+  }
+
+  if(_combExtrapPoints.length === 2){
+    _combExtrapDone = true;
+    renderCombGraph();
+    buildCombCalculation();
+  }
+}
+
+function buildCombCalculation(){
+  var area = el('combCalcArea');
+  clearElement(area);
+
+  var d = _combData;
+  var T_extrap = d._T_extrap || d.peakT;
+  var corrected_dT = T_extrap - d.T0;
+
+  var q = Math.abs(corrected_dT) * d.waterMass * C_WATER;
+  var dH_corrected = -(q / 1000) / d.moles;
+
+  var pctError = round(Math.abs((Math.abs(dH_corrected) - Math.abs(d.dH_lit)) / Math.abs(d.dH_lit)) * 100, 1);
+
+  var card = ce('div','sim-card');
+  var hdr = ce('div','sim-card-header','Combustion Calculation');
+  card.appendChild(hdr);
+  var body = ce('div','sim-card-body');
+
+  var steps = [
+    {label:'Fuel', val:d.fuel.name+' ('+d.fuel.formula+')'},
+    {label:'Mass of fuel burned', val:round(d.massLoss,2)+' g'},
+    {label:'Moles burned (n = m/M)', val:round(d.moles,4)+' mol'},
+    {label:'\u0394T (extrapolated)', val:round(corrected_dT,1)+' \u00B0C'},
+    {label:'Mass of water', val:round(d.waterMass,1)+' g'},
+    {label:'q = mc\u0394T', val:round(q,1)+' J = '+round(q/1000,2)+' kJ'},
+    {label:'\u0394H\u1d9c = \u2212q / n', val:round(dH_corrected,0)+' kJ mol\u207B\u00B9'},
+    {label:'Literature \u0394H\u1d9c', val:d.dH_lit+' kJ mol\u207B\u00B9'},
+    {label:'Percentage error', val:pctError+'%'}
+  ];
+
+  var tbl = ce('table','result-table');
+  var thead = ce('thead');
+  var thr = ce('tr');
+  thr.appendChild(ce('th',null,'Quantity')); thr.appendChild(ce('th',null,'Value'));
+  thead.appendChild(thr); tbl.appendChild(thead);
+  var tbody = ce('tbody');
+  for(var i=0;i<steps.length;i++){
+    var tr = ce('tr');
+    var td1 = ce('td',null,steps[i].label); td1.style.fontFamily='Inter,sans-serif';
+    var td2 = ce('td',null,steps[i].val);
+    tr.appendChild(td1); tr.appendChild(td2); tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+  body.appendChild(tbl);
+
+  var fb = ce('div','feedback');
+  if(pctError < 30){
+    fb.className='feedback info';
+    fb.textContent='Combustion calorimetry typically has 40-60% error. Your result ('+pctError+'%) suggests good technique.';
+  } else if(pctError < 55){
+    fb.className='feedback info';
+    fb.textContent='Result: '+pctError+'% error. This is typical for this method — significant heat is lost to surroundings.';
+  } else {
+    fb.className='feedback incorrect';
+    fb.textContent='High error ('+pctError+'%). Consider better shielding and closer flame distance to reduce heat loss.';
+  }
+  body.appendChild(fb);
+  card.appendChild(body);
+  area.appendChild(card);
+
+  _experiments.push({
+    type: 'combustion',
+    setup: d.fuel.name + ', ' + d.shieldType + ' shield, ' + d.distance,
+    dH_exp: round(dH_corrected,0),
+    dH_lit: d.dH_lit,
+    pctError: pctError,
+    kUsed: d.kUsed
+  });
+
+  buildCombTeacherPanel(d, T_extrap, corrected_dT, dH_corrected, pctError);
+  updateAnalysis();
+}
+
+function buildCombTeacherPanel(d, T_extrap, corrected_dT, dH_corrected, pctError){
+  var panel = el('combTeacher');
+  clearElement(panel);
+
+  var title = ce('div',null,'\ud83c\udf93 Teacher Notes'); title.style.fontWeight='700'; title.style.marginBottom='.5rem';
+  panel.appendChild(title);
+
+  var notes = [
+    'Heat transfer efficiency: '+round(d.efficiency*100,0)+'%',
+    'Shield: '+d.shieldType+' | Distance: '+d.distance,
+    'Theoretical \u0394T (100% efficiency): '+round(d.dT_theoretical,1)+' \u00B0C',
+    'Actual \u0394T observed: '+round(d.dT_actual,1)+' \u00B0C',
+    'Key systematic errors: heat loss to surroundings, incomplete combustion, heat absorbed by container',
+    'Yellow/sooty flame indicates incomplete combustion \u2192 less heat released',
+    'IB exam tip: Students should explain why experimental \u0394H is always less exothermic than literature values for combustion'
+  ];
+  for(var i=0;i<notes.length;i++){
+    var p = ce('div',null,notes[i]); p.style.marginBottom='.3rem';
+    panel.appendChild(p);
+  }
+}
+
+function resetComb(){
+  _combData = null; _combRunning = false; _combExtrapPoints = []; _combExtrapDone = false;
+  if(_combTimer) clearTimeout(_combTimer);
+  el('combExtrapolation').style.display = 'none';
+  clearElement(el('combCalcArea'));
+  clearElement(el('combTeacher'));
+  el('combStatus').textContent = '';
+  renderCombGraph();
+}
+
+
+/* ═══════════════════════════════════════════════════
+   HESS'S LAW TAB
+   ═══════════════════════════════════════════════════ */
+
+function buildHessTab(){
+  var container = el('hessExperiments');
+  clearElement(container);
+
+  var rxnLabels = [
+    'Rxn 1: NaOH(s) \u2192 Na\u207A(aq) + OH\u207B(aq)',
+    'Rxn 2: NaOH(s) + HCl(aq) \u2192 NaCl(aq) + H\u2082O(l)',
+    'Rxn 3: NaOH(aq) + HCl(aq) \u2192 NaCl(aq) + H\u2082O(l)'
+  ];
+  var rxnIndices = [0, 1, 2]; // indices into CC_REACTIONS
+
+  for(var r=0; r<3; r++){
+    var card = ce('div','sim-card');
+    card.style.marginBottom = '1rem';
+    var hdr = ce('div','sim-card-header', rxnLabels[r]);
+    card.appendChild(hdr);
+    var body = ce('div','sim-card-body');
+
+    if(_hessResults[r]){
+      var res = _hessResults[r];
+      var info = ce('div','feedback correct');
+      info.textContent = '\u0394H = ' + round(res.dH_exp,1) + ' kJ mol\u207B\u00B9 (from \u0394T = '+round(res.dT,1)+' \u00B0C)';
+      body.appendChild(info);
+    } else {
+      var btn = ce('button','btn btn-teal','Run Reaction '+(r+1));
+      btn.setAttribute('data-rxn', r.toString());
+      btn.addEventListener('click', function(evt){
+        var idx = parseInt(evt.target.getAttribute('data-rxn'));
+        runHessReaction(idx);
+      });
+      body.appendChild(btn);
+    }
+
+    card.appendChild(body);
+    container.appendChild(card);
+  }
+
+  // Check if all 3 done
+  if(_hessResults[0] && _hessResults[1] && _hessResults[2]){
+    buildHessCycle();
+  }
+}
+
+function runHessReaction(idx){
+  // Use polystyrene + lid for all Hess reactions (standard conditions)
+  var rxnIndices = [0, 1, 2];
+  var data = generateCCData(rxnIndices[idx], 'polystyrene', true, true, 100, 2.0);
+
+  // Quick run — no animation for Hess tab, just get results
+  var T_extrap = data.peakT; // simplified — use peak directly
+  var corrected_dT = T_extrap - data.T0;
+  var q = Math.abs(corrected_dT) * data.waterMass * C_WATER;
+  var dH = -(q / 1000) / data.moles;
+  if(!data.reaction.isExo) dH = Math.abs(dH);
+
+  _hessResults[idx] = {
+    dH_exp: dH,
+    dT: corrected_dT,
+    reaction: data.reaction
+  };
+
+  buildHessTab();
+}
+
+function buildHessCycle(){
+  var area = el('hessCycleArea');
+  clearElement(area);
+  area.style.display = 'block';
+
+  var card = ce('div','sim-card');
+  var hdr = ce('div','sim-card-header','Hess\'s Law Verification');
+  card.appendChild(hdr);
+  var body = ce('div','sim-card-body');
+
+  var dH1 = _hessResults[0].dH_exp;
+  var dH2 = _hessResults[1].dH_exp;
+  var dH3 = _hessResults[2].dH_exp;
+
+  // Hess's law: dH2 = dH1 + dH3 (solid to solution, then neutralisation = direct reaction)
+  var scenario = ce('div','scenario-box');
+  scenario.textContent = 'Hess\'s Law states: \u0394H\u2082 should equal \u0394H\u2081 + \u0394H\u2083. Verify using your experimental data.';
+  body.appendChild(scenario);
+
+  var tbl = ce('table','result-table');
+  var thead = ce('thead');
+  var thr = ce('tr');
+  ['Reaction','Your \u0394H / kJ mol\u207B\u00B9','Literature'].forEach(function(h){thr.appendChild(ce('th',null,h));});
+  thead.appendChild(thr); tbl.appendChild(thead);
+  var tbody = ce('tbody');
+  var rows = [
+    ['Rxn 1 (dissolution)', round(dH1,1), CC_REACTIONS[0].dH],
+    ['Rxn 2 (solid + acid)', round(dH2,1), CC_REACTIONS[1].dH],
+    ['Rxn 3 (solution + acid)', round(dH3,1), CC_REACTIONS[2].dH]
+  ];
+  for(var i=0;i<rows.length;i++){
+    var tr = ce('tr');
+    tr.appendChild(ce('td',null,rows[i][0]));
+    tr.appendChild(ce('td',null,rows[i][1].toString()));
+    tr.appendChild(ce('td',null,rows[i][2].toString()));
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+  body.appendChild(tbl);
+
+  // Verification
+  var sum = round(dH1 + dH3, 1);
+  var verifyCard = ce('div','feedback info');
+  verifyCard.textContent = '\u0394H\u2081 + \u0394H\u2083 = '+round(dH1,1)+' + ('+round(dH3,1)+') = '+sum+' kJ mol\u207B\u00B9';
+  body.appendChild(verifyCard);
+
+  var diff = Math.abs(sum - dH2);
+  var fb = ce('div','feedback');
+  if(diff < 5){
+    fb.className = 'feedback correct';
+    fb.textContent = 'Good verification! \u0394H\u2082 ('+round(dH2,1)+') \u2248 \u0394H\u2081 + \u0394H\u2083 ('+sum+'). Difference: '+round(diff,1)+' kJ mol\u207B\u00B9.';
+  } else {
+    fb.className = 'feedback info';
+    fb.textContent = 'Difference of '+round(diff,1)+' kJ mol\u207B\u00B9 between \u0394H\u2082 and \u0394H\u2081 + \u0394H\u2083. Heat loss in individual experiments accounts for this discrepancy.';
+  }
+  body.appendChild(fb);
+
+  // teacher
+  var teacherDiv = ce('div','teacher-panel');
+  teacherDiv.id = 'hessTeacherInner';
+  var tTitle = ce('div',null,'\ud83c\udf93 Teacher Notes'); tTitle.style.fontWeight='700'; tTitle.style.marginBottom='.5rem';
+  teacherDiv.appendChild(tTitle);
+  var litSum = CC_REACTIONS[0].dH + CC_REACTIONS[2].dH;
+  var tnotes = [
+    'Literature: \u0394H\u2081 + \u0394H\u2083 = '+CC_REACTIONS[0].dH+' + ('+CC_REACTIONS[2].dH+') = '+litSum+' kJ mol\u207B\u00B9',
+    'Literature \u0394H\u2082 = '+CC_REACTIONS[1].dH+' kJ mol\u207B\u00B9',
+    'The enthalpy cycle: NaOH(s) \u2192[\u0394H\u2081] NaOH(aq) \u2192[+HCl, \u0394H\u2083] NaCl(aq)',
+    'Direct path: NaOH(s) + HCl \u2192[\u0394H\u2082] NaCl(aq)',
+    'Hess: \u0394H\u2082 = \u0394H\u2081 + \u0394H\u2083 because enthalpy is a state function'
+  ];
+  for(var i=0;i<tnotes.length;i++){
+    var p = ce('div',null,tnotes[i]); p.style.marginBottom='.3rem';
+    teacherDiv.appendChild(p);
+  }
+  body.appendChild(teacherDiv);
+
+  card.appendChild(body);
+  area.appendChild(card);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   ANALYSIS TAB
+   ═══════════════════════════════════════════════════ */
+
+function updateAnalysis(){
+  var content = el('analysisContent');
+  clearElement(content);
+
+  if(_experiments.length === 0){
+    var p = ce('p',null,'Run experiments in Tabs 1\u20133 first. Results will appear here automatically.');
+    p.style.cssText='color:var(--text-muted);font-size:.88rem;text-align:center;padding:2rem 0';
+    content.appendChild(p);
+    return;
+  }
+
+  // Summary cards
+  var summary = ce('div','equip-summary');
+  var avgError = 0;
+  for(var i=0;i<_experiments.length;i++) avgError += _experiments[i].pctError;
+  avgError = round(avgError / _experiments.length, 1);
+
+  var bestExp = _experiments[0];
+  for(var i=1;i<_experiments.length;i++){
+    if(_experiments[i].pctError < bestExp.pctError) bestExp = _experiments[i];
+  }
+
+  var cards = [
+    {label:'Experiments Run', value:_experiments.length.toString(), cls:''},
+    {label:'Average % Error', value:avgError+'%', cls:avgError<15?'good':avgError<35?'ok':'poor'},
+    {label:'Best Result', value:bestExp.pctError+'%', cls:bestExp.pctError<15?'good':'ok'}
+  ];
+  for(var i=0;i<cards.length;i++){
+    var c = ce('div','equip-card');
+    var lbl = ce('div','equip-label',cards[i].label);
+    var val = ce('div','equip-value '+cards[i].cls, cards[i].value);
+    c.appendChild(lbl); c.appendChild(val);
+    summary.appendChild(c);
+  }
+  content.appendChild(summary);
+
+  // Results table
+  var tbl = ce('table','result-table');
+  var thead = ce('thead');
+  var thr = ce('tr');
+  ['#','Type','Setup','\u0394H exp','\u0394H lit','% Error'].forEach(function(h){thr.appendChild(ce('th',null,h));});
+  thead.appendChild(thr); tbl.appendChild(thead);
+  var tbody = ce('tbody');
+  for(var i=0;i<_experiments.length;i++){
+    var ex = _experiments[i];
+    var tr = ce('tr');
+    tr.appendChild(ce('td',null,(i+1).toString()));
+    tr.appendChild(ce('td',null,ex.type));
+    var tdSetup = ce('td',null,ex.setup); tdSetup.style.fontFamily='Inter,sans-serif'; tr.appendChild(tdSetup);
+    tr.appendChild(ce('td',null,ex.dH_exp.toString()));
+    tr.appendChild(ce('td',null,ex.dH_lit.toString()));
+    var tdErr = ce('td',null,ex.pctError+'%');
+    if(ex.pctError < 15) tdErr.style.color='var(--green)';
+    else if(ex.pctError > 40) tdErr.style.color='var(--red)';
+    tr.appendChild(tdErr);
+    tbody.appendChild(tr);
+  }
+  tbl.appendChild(tbody);
+  content.appendChild(tbl);
+
+  // Teacher panel for analysis
+  var teacher = el('analysisTeacher');
+  clearElement(teacher);
+  var title = ce('div',null,'\ud83c\udf93 Equipment Comparison Analysis'); title.style.fontWeight='700'; title.style.marginBottom='.5rem';
+  teacher.appendChild(title);
+  var tips = [
+    'Polystyrene cup with lid gives lowest heat loss (k \u2248 0.0015)',
+    'Glass beaker without lid: k \u2248 0.007 \u2192 significant heat loss',
+    'Combustion experiments always show large % error (40\u201360%) due to heat loss to air',
+    'Full draught shield can improve combustion results by 15\u201325%',
+    'Key IB point: Explain why experimental values are always less exothermic than literature',
+    'Sources of systematic error: heat loss, incomplete combustion, heat absorbed by container, evaporation'
+  ];
+  for(var i=0;i<tips.length;i++){
+    var p = ce('div',null,tips[i]); p.style.marginBottom='.3rem';
+    teacher.appendChild(p);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════
+   PRESETS
+   ═══════════════════════════════════════════════════ */
+
+var PRESETS = [
+  { n:'Polystyrene + lid (best setup)', tab:'coffeecup', apply:function(){
+    el('ccMaterial').value='polystyrene'; el('ccLid').checked=true; el('ccStir').checked=true;
+    el('ccReaction').value='0'; }},
+  { n:'Glass beaker, no lid (poor setup)', tab:'coffeecup', apply:function(){
+    el('ccMaterial').value='glass'; el('ccLid').checked=false; el('ccStir').checked=true;
+    el('ccReaction').value='0'; }},
+  { n:'Metal can (worst insulation)', tab:'coffeecup', apply:function(){
+    el('ccMaterial').value='metal'; el('ccLid').checked=false; el('ccStir').checked=false;
+    el('ccReaction').value='0'; }},
+  { n:'Endothermic dissolution (NH\u2084NO\u2083)', tab:'coffeecup', apply:function(){
+    el('ccReaction').value='3'; el('ccMaterial').value='polystyrene'; el('ccLid').checked=true; }},
+  { n:'Ethanol \u2014 full shield (best)', tab:'combustion', apply:function(){
+    el('combFuel').value='ethanol'; el('combShield').value='full'; el('combDistance').value='close'; }},
+  { n:'Ethanol \u2014 no shield (typical)', tab:'combustion', apply:function(){
+    el('combFuel').value='ethanol'; el('combShield').value='none'; el('combDistance').value='medium'; }},
+  { n:'Compare 4 alcohols', tab:'combustion', apply:function(){
+    el('combFuel').value='methanol'; el('combShield').value='partial'; el('combDistance').value='medium'; }},
+  { n:'Hess\u2019s Law verification', tab:'hess', apply:function(){ switchTab('hess'); }}
+];
+
+function buildPresets(){
+  var sel = el('presetSelect');
+  clearElement(sel);
+  var def = ce('option',null,'Teacher Presets...'); def.value=''; sel.appendChild(def);
+  for(var i=0;i<PRESETS.length;i++){
+    var opt = ce('option',null,PRESETS[i].n);
+    opt.value = i.toString();
+    sel.appendChild(opt);
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════
+   TABS, TOGGLES, KEYBOARD
+   ═══════════════════════════════════════════════════ */
+
+function switchTab(tabId){
+  _activeTab = tabId;
+  var btns = document.querySelectorAll('.tab-btn');
+  var tabs = document.querySelectorAll('.tab-content');
+  for(var i=0;i<btns.length;i++){
+    btns[i].classList.toggle('active', btns[i].getAttribute('data-tab')===tabId);
+  }
+  for(var i=0;i<tabs.length;i++){
+    tabs[i].classList.toggle('active', tabs[i].id==='tab-'+tabId);
+  }
+  if(tabId==='coffeecup') renderCCGraph();
+  if(tabId==='combustion') renderCombGraph();
+  if(tabId==='hess') buildHessTab();
+  if(tabId==='analysis') updateAnalysis();
+}
+
+function clearElement(el){
+  while(el && el.firstChild) el.removeChild(el.firstChild);
+}
+
+/* ═══════════════════════════════════════════════════
+   INIT
+   ═══════════════════════════════════════════════════ */
+
+function init(){
+  // Setup canvases
+  setupCanvas(el('ccCanvas'));
+  setupCanvas(el('combCanvas'));
+
+  // Tab buttons
+  var tabBtns = document.querySelectorAll('.tab-btn');
+  for(var i=0;i<tabBtns.length;i++){
+    tabBtns[i].addEventListener('click', function(e){
+      switchTab(this.getAttribute('data-tab'));
+    });
+  }
+
+  // HL toggle
+  el('hlToggle').addEventListener('change', function(){
+    _hlMode = this.checked;
+    document.body.classList.toggle('hl-active', _hlMode);
+  });
+
+  // Teacher toggle
+  el('teacherToggle').addEventListener('change', function(){
+    _teacherMode = this.checked;
+    document.body.classList.toggle('teacher-active', _teacherMode);
+    if(_activeTab==='coffeecup') renderCCGraph();
+    if(_activeTab==='combustion') renderCombGraph();
+  });
+
+  // Coffee-cup buttons
+  el('btnRunCC').addEventListener('click', runCCExperiment);
+  el('btnResetCC').addEventListener('click', resetCC);
+  el('ccCanvas').addEventListener('click', handleCCCanvasClick);
+
+  // Combustion buttons
+  el('btnRunComb').addEventListener('click', runCombExperiment);
+  el('btnResetComb').addEventListener('click', resetComb);
+  el('combCanvas').addEventListener('click', handleCombCanvasClick);
+
+  // Presets
+  buildPresets();
+  el('presetSelect').addEventListener('change', function(){
+    var idx = parseInt(this.value);
+    if(!isNaN(idx) && PRESETS[idx]){
+      if(PRESETS[idx].tab) switchTab(PRESETS[idx].tab);
+      PRESETS[idx].apply();
+    }
+    this.value = '';
+  });
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', function(e){
+    if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT'||e.target.tagName==='TEXTAREA') return;
+    var key = e.key.toUpperCase();
+    if(key==='H'){el('hlToggle').checked=!el('hlToggle').checked; el('hlToggle').dispatchEvent(new Event('change'));}
+    else if(key==='T'){el('teacherToggle').checked=!el('teacherToggle').checked; el('teacherToggle').dispatchEvent(new Event('change'));}
+    else if(key==='1') switchTab('coffeecup');
+    else if(key==='2') switchTab('combustion');
+    else if(key==='3') switchTab('hess');
+    else if(key==='4') switchTab('analysis');
+    else if(key==='R'){
+      if(_activeTab==='coffeecup') resetCC();
+      else if(_activeTab==='combustion') resetComb();
+      else if(_activeTab==='hess'){ _hessResults=[null,null,null]; buildHessTab(); el('hessCycleArea').style.display='none'; }
+    }
+    else if(key==='N'){
+      if(_activeTab==='coffeecup') runCCExperiment();
+      else if(_activeTab==='combustion') runCombExperiment();
+    }
+    else if(key==='I'){
+      var iap = document.getElementById('iaPanel');
+      if(iap) iap.classList.toggle('open');
+    }
+  });
+
+  // IA Guide panel toggle button
+  var iaToggleBtn = document.getElementById('iaToggle');
+  if(iaToggleBtn) iaToggleBtn.addEventListener('click', function(){ document.getElementById('iaPanel').classList.toggle('open'); });
+
+  // Initial render
+  renderCCGraph();
+  renderCombGraph();
+  buildHessTab();
+}
+
+init();
+
+})();
+</script>
+<footer>SimEngine &mdash; Calorimetry Lab &bull; H=HL T=Teacher</footer>
+</body>
+</html>

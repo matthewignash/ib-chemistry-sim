@@ -28,7 +28,8 @@
     --sim-canvas-bg: #FAFBFC;
     --hl-badge-bg: #7C3AED;
     --hl-border: rgba(124, 58, 237, 0.2);
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -42,9 +43,9 @@
 
   /* ── Header ── */
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    background: var(--navy);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: .75rem 1.5rem;
     display: flex; align-items: center; justify-content: space-between;
     flex-wrap: wrap; gap: 0.75rem;
   }
@@ -269,9 +270,12 @@
     .tab-btn { padding: 0.6rem 0.8rem; font-size: 0.78rem; }
     .rule-cards { flex-direction: column; }
   }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <!-- Header -->
 <div class="header">
@@ -287,15 +291,15 @@
 </div>
 
 <!-- Tab Bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="builder"><span class="tab-num">1</span>Orbital Builder</button>
-  <button class="tab-btn" data-tab="notation"><span class="tab-num">2</span>Notation &amp; Ions</button>
-  <button class="tab-btn" data-tab="ptmap"><span class="tab-num">3</span>Periodic Table</button>
-  <button class="tab-btn hl-tab" data-tab="ietrends"><span class="tab-num">4</span>IE Trends</button>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="builder" role="tab"><span class="tab-num">1</span>Orbital Builder</button>
+  <button class="tab-btn" data-tab="notation" role="tab"><span class="tab-num">2</span>Notation &amp; Ions</button>
+  <button class="tab-btn" data-tab="ptmap" role="tab"><span class="tab-num">3</span>Periodic Table</button>
+  <button class="tab-btn hl-tab" data-tab="ietrends" role="tab"><span class="tab-num">4</span>IE Trends</button>
 </div>
 
 <!-- Main Content -->
-<div class="sim-container">
+<div class="sim-container" id="main-content">
   <div class="sim-top-row">
 
     <!-- Sidebar -->
@@ -313,7 +317,7 @@
     </div>
 
     <!-- Tab 1: Orbital Builder -->
-    <div class="tab-content active" id="tab-builder">
+    <div class="tab-content active" id="tab-builder" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Orbital Box Diagram</div>
         <div class="sim-card-body">
@@ -352,7 +356,7 @@
     </div>
 
     <!-- Tab 2: Notation & Ions -->
-    <div class="tab-content" id="tab-notation">
+    <div class="tab-content" id="tab-notation" role="tabpanel">
       <div id="notationPlaceholder" style="text-align:center;color:var(--text-muted);padding:2rem;font-size:0.85rem;">
         Select an element from the palette to begin.
       </div>
@@ -377,7 +381,7 @@
         <div class="answer-reveal" id="notationAnswer"></div>
       </div>
       <div id="notationChallenge" style="display:none;">
-        <div class="score-bar">Score: <span class="score-val" id="notationScore">0 / 0</span></div>
+        <div class="score-bar" aria-live="polite">Score: <span class="score-val" id="notationScore">0 / 0</span></div>
         <div class="config-card">
           <div class="config-card-title" id="challengePrompt">Write the electron configuration for:</div>
           <div id="challengeElement" style="font-size:1.2rem;font-weight:700;margin:0.5rem 0;"></div>
@@ -393,7 +397,7 @@
     </div>
 
     <!-- Tab 3: Periodic Table Map -->
-    <div class="tab-content" id="tab-ptmap">
+    <div class="tab-content" id="tab-ptmap" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Periodic Table — Electron Configuration Blocks</div>
         <div class="sim-card-body">
@@ -417,7 +421,7 @@
     </div>
 
     <!-- Tab 4: IE Trends (HL) -->
-    <div class="tab-content" id="tab-ietrends">
+    <div class="tab-content" id="tab-ietrends" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Ionization Energy Trends</div>
         <div class="sim-card-body">
@@ -431,7 +435,7 @@
         <div class="sim-card-body" id="ieTrendContent"></div>
       </div>
       <div id="ieChallengeSection" style="display:none;margin-top:0.75rem;">
-        <div class="score-bar">Score: <span class="score-val" id="ieScore">0 / 0</span></div>
+        <div class="score-bar" aria-live="polite">Score: <span class="score-val" id="ieScore">0 / 0</span></div>
         <div class="config-card">
           <div class="config-card-title">Challenge: Identify the element from its successive IE pattern</div>
           <div id="ieChallengeOptions" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-top:0.5rem;"></div>
@@ -2596,5 +2600,6 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 
 })();
 </script>
+<footer>SimEngine &mdash; Electron Configuration &bull; H=HL T=Teacher</footer>
 </body>
 </html>

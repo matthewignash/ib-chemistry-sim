@@ -1,0 +1,230 @@
+{
+  "meta": {
+    "source": "IB Chemistry 2025 Data Booklet + SimEngine inline data",
+    "created": "2026-04-03",
+    "notes": "Canonical IB Data Booklet values for SimEngine. Bond enthalpies from CovalentBonding sim, electrode potentials from SimEngine_Core.js, constants from IB syllabus. All values must match the official IB Data Booklet exactly."
+  },
+  "constants": {
+    "R": {
+      "value": 8.314,
+      "unit": "J K⁻¹ mol⁻¹",
+      "name": "Gas constant"
+    },
+    "F": {
+      "value": 96485,
+      "unit": "C mol⁻¹",
+      "name": "Faraday constant"
+    },
+    "NA": {
+      "value": 6.022e+23,
+      "unit": "mol⁻¹",
+      "name": "Avogadro constant"
+    },
+    "Vm_STP": {
+      "value": 22.7,
+      "unit": "dm³ mol⁻¹",
+      "name": "Molar volume at STP (0°C, 100 kPa)"
+    },
+    "c": {
+      "value": 300000000.0,
+      "unit": "m s⁻¹",
+      "name": "Speed of light"
+    },
+    "h": {
+      "value": 6.626e-34,
+      "unit": "J s",
+      "name": "Planck constant"
+    },
+    "specific_heat_water": {
+      "value": 4.18,
+      "unit": "J g⁻¹ K⁻¹",
+      "name": "Specific heat capacity of water"
+    },
+    "Kw": {
+      "value": 1e-14,
+      "unit": "mol² dm⁻⁶",
+      "name": "Ionic product of water (25°C)"
+    }
+  },
+  "bond_enthalpies": {
+    "_unit": "kJ mol⁻¹",
+    "_source": "SimEngine_CovalentBonding.html BONDS array",
+    "H–H": 436,
+    "C–H": 413,
+    "C–C": 347,
+    "C=C": 614,
+    "C≡C": 839,
+    "C–N": 305,
+    "C=N": 615,
+    "C≡N": 891,
+    "C–O": 358,
+    "C=O": 804,
+    "C–F": 484,
+    "C–Cl": 324,
+    "C–Br": 285,
+    "C–I": 238,
+    "O–H": 463,
+    "N–H": 391,
+    "N–N": 163,
+    "N=N": 418,
+    "N≡N": 945,
+    "O–O": 146,
+    "O=O": 498,
+    "F–F": 158,
+    "Cl–Cl": 242,
+    "Br–Br": 193,
+    "I–I": 151,
+    "H–F": 568,
+    "H–Cl": 432,
+    "H–Br": 366,
+    "H–I": 298,
+    "S=O": 523,
+    "S–H": 363
+  },
+  "standard_electrode_potentials": {
+    "_unit": "V",
+    "_note": "Standard reduction potentials at 25°C. Source: SimEngine_Core.js HALF_CELLS array.",
+    "half_cells": [
+      {
+        "half_reaction": "Li⁺ + e⁻ → Li",
+        "E0": -3.04,
+        "electrons": 1
+      },
+      {
+        "half_reaction": "K⁺ + e⁻ → K",
+        "E0": -2.92,
+        "electrons": 1
+      },
+      {
+        "half_reaction": "Ca²⁺ + 2e⁻ → Ca",
+        "E0": -2.87,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Na⁺ + e⁻ → Na",
+        "E0": -2.71,
+        "electrons": 1
+      },
+      {
+        "half_reaction": "Mg²⁺ + 2e⁻ → Mg",
+        "E0": -2.37,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Al³⁺ + 3e⁻ → Al",
+        "E0": -1.66,
+        "electrons": 3
+      },
+      {
+        "half_reaction": "Mn²⁺ + 2e⁻ → Mn",
+        "E0": -1.18,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Zn²⁺ + 2e⁻ → Zn",
+        "E0": -0.76,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Fe²⁺ + 2e⁻ → Fe",
+        "E0": -0.44,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Co²⁺ + 2e⁻ → Co",
+        "E0": -0.28,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Ni²⁺ + 2e⁻ → Ni",
+        "E0": -0.26,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Sn²⁺ + 2e⁻ → Sn",
+        "E0": -0.14,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Pb²⁺ + 2e⁻ → Pb",
+        "E0": -0.13,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "2H⁺ + 2e⁻ → H₂",
+        "E0": 0.0,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Cu²⁺ + 2e⁻ → Cu",
+        "E0": 0.34,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "I₂ + 2e⁻ → 2I⁻",
+        "E0": 0.54,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Fe³⁺ + e⁻ → Fe²⁺",
+        "E0": 0.77,
+        "electrons": 1
+      },
+      {
+        "half_reaction": "Ag⁺ + e⁻ → Ag",
+        "E0": 0.8,
+        "electrons": 1
+      },
+      {
+        "half_reaction": "Br₂ + 2e⁻ → 2Br⁻",
+        "E0": 1.07,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Cr₂O₇²⁻ + 14H⁺ + 6e⁻ → 2Cr³⁺ + 7H₂O",
+        "E0": 1.33,
+        "electrons": 6
+      },
+      {
+        "half_reaction": "Cl₂ + 2e⁻ → 2Cl⁻",
+        "E0": 1.36,
+        "electrons": 2
+      },
+      {
+        "half_reaction": "Au³⁺ + 3e⁻ → Au",
+        "E0": 1.5,
+        "electrons": 3
+      },
+      {
+        "half_reaction": "MnO₄⁻ + 8H⁺ + 5e⁻ → Mn²⁺ + 4H₂O",
+        "E0": 1.51,
+        "electrons": 5
+      },
+      {
+        "half_reaction": "F₂ + 2e⁻ → 2F⁻",
+        "E0": 2.87,
+        "electrons": 2
+      }
+    ]
+  },
+  "specific_heat_capacities": {
+    "_unit": "J g⁻¹ K⁻¹",
+    "water": 4.18,
+    "ethanol": 2.44,
+    "copper": 0.385,
+    "aluminum": 0.897,
+    "iron": 0.449
+  },
+  "acid_dissociation_constants": {
+    "_unit": "Ka at 25°C",
+    "_note": "Selected weak acids relevant to IB Chemistry",
+    "ethanoic_acid": 1.74e-05,
+    "methanoic_acid": 0.000177,
+    "carbonic_acid_Ka1": 4.3e-07,
+    "carbonic_acid_Ka2": 5.6e-11,
+    "phosphoric_acid_Ka1": 0.0075,
+    "hydrofluoric_acid": 0.00035,
+    "benzoic_acid": 6.3e-05,
+    "phenol": 1e-10
+  }
+}

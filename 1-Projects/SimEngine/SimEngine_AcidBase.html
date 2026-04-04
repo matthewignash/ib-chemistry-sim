@@ -1,0 +1,2270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Acid-Base Titration Explorer — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Caveat:wght@400;600;700&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+
+    --sim-canvas-bg: #FAFBFC;
+    --sim-particle-hot: #EF4444;
+    --sim-particle-cold: #3B82F6;
+    --sim-particle-neutral: #64748B;
+    --sim-grid: #E2E8F0;
+    --sim-axis: #1E293B;
+    --sim-data-1: #0D9488;
+    --sim-data-2: #2563EB;
+    --sim-data-3: #D97706;
+    --sim-data-4: #7C3AED;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+    --orange: #F59E0B;
+}
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: .75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .header .subtitle {
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.15);
+    color: white;
+  }
+  .header-badge.hl {
+    background: var(--hl-badge-bg);
+    display: none;
+  }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* ── Main layout ── */
+  .sim-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .sim-top-row {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sim-graph-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .sim-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy);
+    color: white;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sim-card-body {
+    padding: 1rem;
+  }
+
+  /* ── Beaker canvas ── */
+  .beaker-canvas-wrap {
+    position: relative;
+    background: var(--sim-canvas-bg);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #beakerCanvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ── Graph canvases ── */
+  .graph-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ── Control panel ── */
+  .control-panel { display: flex; flex-direction: column; gap: 0.5rem; }
+  .sim-slider-group { margin-bottom: 0.75rem; }
+  .sim-slider-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+  }
+  .sim-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .sim-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+    color: var(--teal);
+    font-weight: 600;
+  }
+  .sim-slider {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border);
+    border-radius: 3px;
+    outline: none;
+  }
+  .sim-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .sim-slider::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+  }
+
+  .sim-dropdown-group { margin-bottom: 0.75rem; }
+  .sim-dropdown {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    background: white;
+    margin-top: 0.3rem;
+  }
+
+  /* ── Buttons ── */
+  .sim-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sim-btn:hover { background: var(--light-bg); }
+  .sim-btn.primary {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+  .sim-btn.primary:hover { background: #0B8377; }
+  .sim-btn.active {
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+
+  /* ── Info readout ── */
+  .sim-info {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .sim-info-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .sim-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.2rem 0;
+    font-size: 0.8rem;
+  }
+  .sim-info-label { color: var(--text-muted); }
+  .sim-info-value {
+    font-family: 'Fira Code', monospace;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* ── Toggle ── */
+  .sim-toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sim-toggle {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+  }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1;
+    border-radius: 22px;
+    transition: 0.2s;
+    --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider {
+    background: var(--toggle-on);
+  }
+  .sim-toggle input:checked + .sim-toggle-slider::before {
+    transform: translateX(18px);
+  }
+  .sim-toggle-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  /* ── HL panel ── */
+  .hl-panel {
+    display: none;
+    border: 2px solid var(--hl-border);
+    margin-bottom: 1.5rem;
+  }
+  body.hl-active .hl-panel { display: block; }
+  .hl-panel .sim-card-header {
+    background: var(--purple);
+  }
+  .hl-readout-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 1rem;
+  }
+  .hl-readout-item {
+    text-align: center;
+  }
+  .hl-readout-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+  .hl-readout-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--purple);
+  }
+  .hl-note {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .hl-hh-row {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    font-family: 'Fira Code', monospace;
+    font-size: 0.9rem;
+    color: var(--purple);
+    text-align: center;
+  }
+  .hl-deriv-toggle {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+
+  /* ── Acid-Base specific ── */
+  .ph-readout {
+    font-family: 'Fira Code', monospace;
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--teal);
+    line-height: 1.2;
+  }
+  .volume-readout {
+    font-family: 'Fira Code', monospace;
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-muted);
+  }
+  .region-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    color: white;
+    background: var(--blue);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .titration-btns {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+  }
+  .conc-input {
+    width: 5rem;
+    padding: 0.3rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8rem;
+    background: white;
+    color: var(--text);
+  }
+  .conc-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.3rem;
+  }
+  .conc-readonly {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.8rem;
+    color: var(--teal);
+    font-weight: 600;
+  }
+  .ph-display {
+    text-align: center;
+    padding: 0.5rem 0;
+    margin: 0.5rem 0;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--teal-bg);
+  }
+
+  /* Teacher mode */
+  .teacher-only { display: none; }
+  body.teacher-active .teacher-only { display: block; }
+  body.teacher-active .student-only { display: none; }
+  .conc-input-wrap { display: none; }
+  body.teacher-active .conc-input-wrap { display: inline; }
+  body.teacher-active .conc-readonly-wrap { display: none; }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+
+  /* ── Data Collection Panel ── */
+  .data-panel {
+    margin-top: 1rem;
+  }
+  .data-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
+    user-select: none;
+  }
+  .data-panel-header:hover { color: var(--text); }
+  .data-panel-arrow {
+    font-size: 0.65rem;
+    line-height: 1;
+  }
+  .data-panel-body {
+    display: none;
+    padding-top: 0.5rem;
+  }
+  .data-panel-body.open {
+    display: block;
+  }
+  .data-config {
+    margin-bottom: 0.75rem;
+  }
+  .data-config label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+  }
+  .data-config select,
+  .data-config input[type="number"] {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    background: white;
+    color: var(--text);
+  }
+  .data-config-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .var-checkboxes {
+    margin-bottom: 0.75rem;
+  }
+  .var-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text);
+    padding: 0.15rem 0;
+    cursor: pointer;
+  }
+  .var-checkboxes label input[type="checkbox"] {
+    margin: 0;
+  }
+  .progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+    margin: 0.5rem 0;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .progress-text {
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .data-btn {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .data-btn:hover { background: var(--light-bg); }
+  .data-btn-primary {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+  .data-btn-primary:hover { background: #0B8377; }
+  .data-btn-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .snapshot-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .snapshot-table th,
+  .snapshot-table td {
+    padding: 0.2rem 0.4rem;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Fira Code', monospace;
+  }
+  .snapshot-table th {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: right;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .data-section-hidden { display: none; }
+  .data-complete-msg {
+    font-size: 0.8rem;
+    color: var(--green);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .sweep-config {
+    border-top: 1px solid var(--border);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .sweep-config .data-config-row {
+    margin-bottom: 0.5rem;
+  }
+  .snapshot-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .sim-graph-row { grid-template-columns: 1fr; }
+    .hl-readout-grid { grid-template-columns: 1fr 1fr; }
+  }
+  @media (max-width: 600px) {
+    .sim-container { padding: 0.75rem; }
+    .header { padding: 1rem; }
+    .header h1 { font-size: 1.2rem; }
+    .hl-readout-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ── Keyboard hint bar ── */
+  .keyboard-hint {
+    text-align: center;
+    padding: .75rem;
+    font-size: .7rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block;
+    padding: .1rem .4rem;
+    border-radius: 4px;
+    background: white;
+    border: 1px solid var(--border);
+    font-family: 'Fira Code', monospace;
+    font-size: .65rem;
+    margin: 0 .1rem;
+  }
+
+  /* ── Palette search ── */
+  .palette-search {
+    width: 100%;
+    padding: .4rem .6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: .8rem;
+    margin-bottom: .5rem;
+    font-family: inherit;
+  }
+  .palette-search:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 2px rgba(13,148,136,0.15);
+    outline: none;
+  }
+
+  /* ── Print ── */
+  @media print {
+    .titration-btns, .sim-toggle-group,
+    .sim-slider-group, .sim-dropdown-group, .sim-btn,
+    .data-panel, .teacher-only { display: none !important; }
+    .sim-card { break-inside: avoid; page-break-inside: avoid; box-shadow: none; }
+    .hl-panel { page-break-before: always; }
+    body { font-size: 13px; }
+  }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>Acid-Base Titration Explorer</h1>
+    <div class="subtitle">IB Chemistry SimEngine — Reactivity 3.1</div>
+  </div>
+  <div class="header-right">
+    <span class="header-badge hl" id="hl-badge">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="sim-container" id="main-content">
+
+  <!-- Top row: beaker canvas + controls -->
+  <div class="sim-top-row">
+
+    <!-- Beaker canvas card -->
+    <div class="sim-card">
+      <div class="sim-card-header">Beaker View</div>
+      <div class="sim-card-body" style="padding: 0;">
+        <div class="beaker-canvas-wrap">
+          <canvas id="beakerCanvas" aria-label="Titration beaker diagram" role="img"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Control panel card -->
+    <div class="sim-card control-panel-card">
+      <div class="sim-card-header">Controls</div>
+      <div class="sim-card-body control-panel">
+
+        <!-- Palette search -->
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search">
+
+        <!-- Preset -->
+        <div class="sim-dropdown-group">
+          <span class="sim-label">Preset</span>
+          <select id="presetSelect" class="sim-dropdown" aria-label="Titration preset selection"></select>
+        </div>
+
+        <!-- Acid -->
+        <div class="sim-dropdown-group">
+          <span class="sim-label">Acid</span>
+          <select id="acidSelect" class="sim-dropdown" aria-label="Acid selection"></select>
+          <div class="conc-row">
+            <span class="sim-label" style="font-size:0.75rem;">Conc (M):</span>
+            <span class="conc-readonly-wrap"><span class="conc-readonly" id="acidConcReadonly">0.10</span></span>
+            <span class="conc-input-wrap"><input type="number" id="acidConc" class="conc-input" min="0.01" max="2.00" step="0.01" value="0.10" aria-label="Acid concentration"></span>
+          </div>
+        </div>
+
+        <!-- Base -->
+        <div class="sim-dropdown-group">
+          <span class="sim-label">Base</span>
+          <select id="baseSelect" class="sim-dropdown" aria-label="Base selection"></select>
+          <div class="conc-row">
+            <span class="sim-label" style="font-size:0.75rem;">Conc (M):</span>
+            <span class="conc-readonly-wrap"><span class="conc-readonly" id="baseConcReadonly">0.10</span></span>
+            <span class="conc-input-wrap"><input type="number" id="baseConc" class="conc-input" min="0.01" max="2.00" step="0.01" value="0.10" aria-label="Base concentration"></span>
+          </div>
+        </div>
+
+        <!-- Indicator -->
+        <div class="sim-dropdown-group">
+          <span class="sim-label">Indicator</span>
+          <select id="indicatorSelect" class="sim-dropdown" aria-label="Indicator selection"></select>
+        </div>
+
+        <!-- pH display -->
+        <div class="ph-display">
+          <div class="sim-label" style="font-size:0.7rem;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:0.2rem;">Current pH</div>
+          <div id="phReadout" class="ph-readout" aria-live="polite">&mdash;</div>
+          <div id="volReadout" class="volume-readout">0.0 mL</div>
+          <div style="margin-top:0.3rem;"><span id="regionBadge" class="region-badge" aria-live="polite">&mdash;</span></div>
+        </div>
+
+        <!-- Titration buttons (student mode) -->
+        <div class="titration-btns student-only">
+          <button id="btnAddDrop" class="sim-btn primary">Add Drop</button>
+          <button id="btnStream" class="sim-btn">Stream</button>
+          <button id="btnReset" class="sim-btn">Reset</button>
+        </div>
+
+        <!-- Volume slider (teacher mode) -->
+        <div class="teacher-only">
+          <div class="sim-slider-group">
+            <div class="sim-slider-row">
+              <span class="sim-label">Volume (mL)</span>
+              <span class="sim-value" id="volSliderValue">0.0</span>
+            </div>
+            <input type="range" id="volSlider" class="sim-slider" min="0" max="50" step="0.1" value="0" aria-label="Volume of base added">
+          </div>
+          <button id="btnResetTeacher" class="sim-btn" style="margin-top:0.5rem;">Reset</button>
+        </div>
+
+        <!-- Info readout -->
+        <div class="sim-info" aria-live="polite">
+          <div class="sim-info-title">Titration Info</div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Equiv. Volume</span>
+            <span class="sim-info-value" id="infoEquivVol">&mdash;</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Region</span>
+            <span class="sim-info-value" id="infoRegion">&mdash;</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Type</span>
+            <span class="sim-info-value" id="infoType">&mdash;</span>
+          </div>
+        </div>
+
+        <!-- Data Collection Panel -->
+        <div class="data-panel">
+          <div class="data-panel-header" id="dataPanelHeader">
+            <span class="data-panel-arrow" id="dataPanelArrow">&#9654;</span>
+            <span>Data Collection</span>
+          </div>
+          <div class="data-panel-body" id="dataPanelBody">
+
+            <!-- Config: Collection Mode + Points -->
+            <div class="data-config-row">
+              <div class="data-config">
+                <label for="dataMode">Collection Mode</label>
+                <select id="dataMode">
+                  <option value="auto" selected>Auto-collect</option>
+                  <option value="manual">Manual snapshots</option>
+                </select>
+              </div>
+              <div class="data-config">
+                <label for="dataPoints">Data Points</label>
+                <select id="dataPoints">
+                  <option value="10">10</option>
+                  <option value="20" selected>20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Variable Checkboxes -->
+            <div class="data-config">
+              <label>Variables</label>
+              <div class="var-checkboxes" id="varCheckboxes"></div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="data-btn-row" id="dataControlBtns">
+              <button class="data-btn data-btn-primary" id="btnStartRun">Start Collection</button>
+              <button class="data-btn" id="btnSnapshot">Snapshot</button>
+            </div>
+
+            <!-- Progress section (hidden) -->
+            <div id="dataProgressSection" class="data-section-hidden">
+              <div class="progress-bar">
+                <div class="progress-bar-fill" id="dataProgressFill"></div>
+              </div>
+              <div class="progress-text" id="dataProgressText">Recording...</div>
+              <div class="data-btn-row">
+                <button class="data-btn" id="btnStopRun">Stop Early</button>
+              </div>
+            </div>
+
+            <!-- Complete section (hidden) -->
+            <div id="dataCompleteSection" class="data-section-hidden">
+              <div class="data-complete-msg" id="dataCompleteMsg"></div>
+              <div class="data-btn-row">
+                <button class="data-btn data-btn-primary" id="btnDownloadRun">Download CSV</button>
+                <button class="data-btn" id="btnClearRun">Clear</button>
+              </div>
+            </div>
+
+            <!-- Snapshots section -->
+            <div style="margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">
+              <div class="snapshot-count" id="snapshotCount">Snapshots: 0</div>
+              <div id="snapshotTableWrap" class="data-section-hidden">
+                <table class="snapshot-table" id="snapshotTable">
+                  <thead id="snapshotTableHead"></thead>
+                  <tbody id="snapshotTableBody"></tbody>
+                </table>
+              </div>
+              <div id="snapshotBtns" class="data-btn-row data-section-hidden">
+                <button class="data-btn" id="btnDownloadSnapshots">Download Snapshots</button>
+              </div>
+            </div>
+
+            <!-- Sweep section (teacher only) -->
+            <div class="sweep-config data-section-hidden" id="sweepSection">
+              <div class="data-config">
+                <label for="sweepParam">Sweep Variable</label>
+                <select id="sweepParam">
+                  <option value="volume">Volume</option>
+                </select>
+              </div>
+              <div class="data-config-row">
+                <div class="data-config">
+                  <label for="sweepFrom">From (mL)</label>
+                  <input type="number" id="sweepFrom" value="0">
+                </div>
+                <div class="data-config">
+                  <label for="sweepTo">To (mL)</label>
+                  <input type="number" id="sweepTo" value="50">
+                </div>
+              </div>
+              <div class="data-config-row">
+                <div class="data-config">
+                  <label for="sweepSteps">Steps</label>
+                  <input type="number" id="sweepSteps" value="20" min="2" max="100">
+                </div>
+              </div>
+              <div class="data-btn-row">
+                <button class="data-btn data-btn-primary" id="btnStartSweep">Run Sweep</button>
+              </div>
+              <div id="sweepProgressSection" class="data-section-hidden">
+                <div class="progress-bar">
+                  <div class="progress-bar-fill" id="sweepProgressFill"></div>
+                </div>
+                <div class="progress-text" id="sweepProgressText">Sweeping...</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- pH Curve graph (full width) -->
+  <div class="sim-graph-row">
+    <div class="sim-card">
+      <div class="sim-card-header">pH vs Volume Added</div>
+      <div class="sim-card-body">
+        <canvas id="phCurveCanvas" class="graph-canvas" aria-label="pH titration curve graph" role="img"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- HL panel -->
+  <div class="sim-card hl-panel" id="hl-panel">
+    <div class="sim-card-header">Acid-Base Thermodynamics (HL)</div>
+    <div class="sim-card-body">
+      <div class="hl-readout-grid">
+        <div class="hl-readout-item">
+          <div class="hl-readout-label" id="hlKaLabel"></div>
+          <div class="hl-readout-value" id="hlKa">&mdash;</div>
+        </div>
+        <div class="hl-readout-item">
+          <div class="hl-readout-label" id="hlKbLabel"></div>
+          <div class="hl-readout-value" id="hlKb">&mdash;</div>
+        </div>
+        <div class="hl-readout-item">
+          <div class="hl-readout-label" id="hlPKaLabel"></div>
+          <div class="hl-readout-value" id="hlPKa">&mdash;</div>
+        </div>
+        <div class="hl-readout-item">
+          <div class="hl-readout-label" id="hlPKbLabel"></div>
+          <div class="hl-readout-value" id="hlPKb">&mdash;</div>
+        </div>
+        <div class="hl-readout-item">
+          <div class="hl-readout-label" id="hlHConcLabel"></div>
+          <div class="hl-readout-value" id="hlHConc">&mdash;</div>
+        </div>
+        <div class="hl-readout-item">
+          <div class="hl-readout-label" id="hlOHConcLabel"></div>
+          <div class="hl-readout-value" id="hlOHConc">&mdash;</div>
+        </div>
+      </div>
+      <div class="hl-hh-row" id="hlHH" style="display:none;"></div>
+      <div class="hl-deriv-toggle">
+        <input type="checkbox" id="hlDerivToggle" aria-label="Show derivative curve toggle">
+        <label for="hlDerivToggle">Show dpH/dV derivative on graph</label>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search
+</div>
+
+<div class="footer">IB Chemistry SimEngine — Acid-Base Titration Explorer &bull; Reactivity 3.1 — Acid-Base Titrations</div>
+
+<!-- ENGINE -->
+<script src="../../3-Resources/SimEngine/SimEngine_Core.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Safely set text with subscript/superscript support ──
+  function setLabelHTML(el, parts) {
+    // parts is an array of { text, tag } where tag is null, 'sub', or 'sup'
+    while (el.firstChild) el.removeChild(el.firstChild);
+    for (var i = 0; i < parts.length; i++) {
+      if (parts[i].tag) {
+        var tagEl = document.createElement(parts[i].tag);
+        tagEl.textContent = parts[i].text;
+        el.appendChild(tagEl);
+      } else {
+        el.appendChild(document.createTextNode(parts[i].text));
+      }
+    }
+  }
+
+  // Initialize HL panel labels using safe DOM methods
+  setLabelHTML(document.getElementById('hlKaLabel'), [
+    { text: 'K' }, { text: 'a', tag: 'sub' }
+  ]);
+  setLabelHTML(document.getElementById('hlKbLabel'), [
+    { text: 'K' }, { text: 'b', tag: 'sub' }
+  ]);
+  setLabelHTML(document.getElementById('hlPKaLabel'), [
+    { text: 'pK' }, { text: 'a', tag: 'sub' }
+  ]);
+  setLabelHTML(document.getElementById('hlPKbLabel'), [
+    { text: 'pK' }, { text: 'b', tag: 'sub' }
+  ]);
+  setLabelHTML(document.getElementById('hlHConcLabel'), [
+    { text: '[H' }, { text: '+', tag: 'sup' }, { text: ']' }
+  ]);
+  setLabelHTML(document.getElementById('hlOHConcLabel'), [
+    { text: '[OH' }, { text: '\u2212', tag: 'sup' }, { text: ']' }
+  ]);
+
+  // ── Canvas setup (HiDPI) ──
+  function setupCanvas(id, w, h, responsive) {
+    var c = document.getElementById(id);
+    var dpr = window.devicePixelRatio || 1;
+    c.width = w * dpr;
+    c.height = h * dpr;
+    if (responsive) {
+      c.style.width = '100%';
+      c.style.height = 'auto';
+    } else {
+      c.style.width = w + 'px';
+      c.style.height = h + 'px';
+    }
+    var ctx = c.getContext('2d');
+    ctx.scale(dpr, dpr);
+    return { ctx: ctx, w: w, h: h, canvas: c };
+  }
+
+  var BEAKER_W = 400, BEAKER_H = 400;
+  var GRAPH_W = 800, GRAPH_H = 350;
+
+  var beaker = setupCanvas('beakerCanvas', BEAKER_W, BEAKER_H, true);
+  var graph  = setupCanvas('phCurveCanvas', GRAPH_W, GRAPH_H, true);
+  var beakerCtx = beaker.ctx;
+  var graphCtx  = graph.ctx;
+
+  // ── State ──
+  var _currentVol = 0;
+  var _isTeacher = false;
+  var _isHL = false;
+  var _streaming = false;
+  var _streamInterval = null;
+  var _autoCollect = true;
+  var _graphPoints = [];
+  var _particles = [];
+  var _animId = null;
+
+  // ── Titration module reference ──
+  var Tit = SimEngine.Titration;
+
+  // ── Populate Dropdowns ──
+
+  function populatePresets() {
+    var sel = document.getElementById('presetSelect');
+    sel.textContent = '';
+    var presets = Tit.PRESETS;
+    for (var i = 0; i < presets.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = presets[i].label;
+      sel.appendChild(opt);
+    }
+  }
+
+  function populateAcids() {
+    var sel = document.getElementById('acidSelect');
+    sel.textContent = '';
+    var acids = Tit.ACIDS;
+    for (var key in acids) {
+      if (!acids.hasOwnProperty(key)) continue;
+      if (!_isHL && acids[key].hl) continue;
+      var opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = acids[key].name + ' (' + acids[key].formula + ')';
+      sel.appendChild(opt);
+    }
+  }
+
+  function populateBases() {
+    var sel = document.getElementById('baseSelect');
+    sel.textContent = '';
+    var bases = Tit.BASES;
+    for (var key in bases) {
+      if (!bases.hasOwnProperty(key)) continue;
+      var opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = bases[key].name + ' (' + bases[key].formula + ')';
+      sel.appendChild(opt);
+    }
+  }
+
+  function populateIndicators() {
+    var sel = document.getElementById('indicatorSelect');
+    sel.textContent = '';
+    var indicators = Tit.INDICATORS;
+    for (var key in indicators) {
+      if (!indicators.hasOwnProperty(key)) continue;
+      var opt = document.createElement('option');
+      opt.value = key;
+      opt.textContent = indicators[key].name;
+      sel.appendChild(opt);
+    }
+  }
+
+  // ── Init titration ──
+
+  function reinitTitration() {
+    var acidKey = document.getElementById('acidSelect').value;
+    var baseKey = document.getElementById('baseSelect').value;
+    var acidConc = parseFloat(document.getElementById('acidConc').value) || 0.10;
+    var baseConc = parseFloat(document.getElementById('baseConc').value) || 0.10;
+
+    Tit.init({
+      acidKey: acidKey,
+      baseKey: baseKey,
+      acidConc: acidConc,
+      baseConc: baseConc,
+      acidVol: 25
+    });
+
+    _currentVol = 0;
+    _graphPoints = [];
+    _particles = [];
+
+    // Update slider max
+    var maxVol = Tit.getMaxVolume();
+    var slider = document.getElementById('volSlider');
+    slider.max = maxVol;
+    slider.value = 0;
+    document.getElementById('volSliderValue').textContent = '0.0';
+
+    // Update sweep To
+    document.getElementById('sweepTo').value = Math.round(maxVol);
+
+    // Update readonly concentrations
+    document.getElementById('acidConcReadonly').textContent = acidConc.toFixed(2);
+    document.getElementById('baseConcReadonly').textContent = baseConc.toFixed(2);
+
+    // Update info
+    updateInfoPanel();
+    updateDisplay();
+  }
+
+  function updateInfoPanel() {
+    var acidKey = document.getElementById('acidSelect').value;
+    var baseKey = document.getElementById('baseSelect').value;
+    var acid = Tit.ACIDS[acidKey];
+    var base = Tit.BASES[baseKey];
+
+    // Equivalence volume(s)
+    var eqPoints = Tit.getEquivalencePoints();
+    var eqStr = '';
+    for (var i = 0; i < eqPoints.length; i++) {
+      if (i > 0) eqStr += ', ';
+      eqStr += eqPoints[i].volume.toFixed(1) + ' mL';
+    }
+    document.getElementById('infoEquivVol').textContent = eqStr || '\u2014';
+
+    // Type
+    var typeStr = '';
+    if (acid.strong && base.strong) typeStr = 'Strong/Strong';
+    else if (!acid.strong && base.strong) typeStr = 'Weak acid/Strong base';
+    else if (acid.strong && !base.strong) typeStr = 'Strong acid/Weak base';
+    else typeStr = 'Weak/Weak';
+    if (acid.Ka.length > 1) typeStr += ' (polyprotic)';
+    document.getElementById('infoType').textContent = typeStr;
+  }
+
+  // ── Region badge colors ──
+  var REGION_COLORS = {
+    'initial':    '#3B82F6',
+    'buffer':     '#059669',
+    'half-equiv': '#0D9488',
+    'equivalence':'#DC2626',
+    'excess':     '#D97706',
+    'pre-equiv':  '#3B82F6'
+  };
+
+  // ── updateDisplay: master update ──
+
+  function updateDisplay() {
+    var maxVol = Tit.getMaxVolume();
+    if (_currentVol > maxVol) _currentVol = maxVol;
+    if (_currentVol < 0) _currentVol = 0;
+
+    var data = Tit.getPHAtVolume(_currentVol);
+
+    // pH readout
+    document.getElementById('phReadout').textContent = data.pH.toFixed(2);
+
+    // Volume readout
+    document.getElementById('volReadout').textContent = _currentVol.toFixed(1) + ' mL';
+
+    // Region badge
+    var badge = document.getElementById('regionBadge');
+    badge.textContent = data.region;
+    badge.style.background = REGION_COLORS[data.region] || '#64748B';
+
+    // Info region
+    document.getElementById('infoRegion').textContent = data.region;
+
+    // Slider sync
+    document.getElementById('volSlider').value = _currentVol;
+    document.getElementById('volSliderValue').textContent = _currentVol.toFixed(1);
+
+    // Add point to graph
+    _graphPoints.push({ vol: _currentVol, pH: data.pH });
+
+    // Draw pH curve
+    drawPHCurve();
+
+    // Sync particles
+    syncParticles(_currentVol);
+
+    // HL panel
+    if (_isHL) {
+      updateHLPanel(data);
+    }
+  }
+
+  // ── HL Panel ──
+
+  function updateHLPanel(data) {
+    var acidKey = document.getElementById('acidSelect').value;
+    var acid = Tit.ACIDS[acidKey];
+    var baseKey = document.getElementById('baseSelect').value;
+    var base = Tit.BASES[baseKey];
+
+    // Ka
+    if (!acid.strong) {
+      var Ka = acid.Ka[0];
+      var pKa = -Math.log10(Ka);
+      document.getElementById('hlKa').textContent = Ka.toExponential(2);
+      document.getElementById('hlPKa').textContent = pKa.toFixed(2);
+    } else {
+      document.getElementById('hlKa').textContent = '\u221E (strong)';
+      document.getElementById('hlPKa').textContent = '\u2014';
+    }
+
+    // Kb
+    if (!base.strong) {
+      var Kb = base.Kb;
+      var pKb = -Math.log10(Kb);
+      document.getElementById('hlKb').textContent = Kb.toExponential(2);
+      document.getElementById('hlPKb').textContent = pKb.toFixed(2);
+    } else {
+      document.getElementById('hlKb').textContent = '\u221E (strong)';
+      document.getElementById('hlPKb').textContent = '\u2014';
+    }
+
+    // [H+] and [OH-]
+    document.getElementById('hlHConc').textContent = data.hConc.toExponential(2);
+    document.getElementById('hlOHConc').textContent = data.ohConc.toExponential(2);
+
+    // Henderson-Hasselbalch
+    var hhRow = document.getElementById('hlHH');
+    var hh = Tit.getHendersonHasselbalch(_currentVol);
+    if (hh && (data.region === 'buffer' || data.region === 'half-equiv')) {
+      hhRow.style.display = 'block';
+      // Build safely with DOM
+      while (hhRow.firstChild) hhRow.removeChild(hhRow.firstChild);
+      hhRow.appendChild(document.createTextNode(
+        'pH = pKa + log([A\u207B]/[HA]) = ' +
+        hh.pKa.toFixed(2) + ' + log(' + hh.concA.toExponential(2) + ' / ' + hh.concHA.toExponential(2) + ') = ' +
+        hh.pH.toFixed(2)
+      ));
+    } else {
+      hhRow.style.display = 'none';
+    }
+  }
+
+  // ── Indicator color interpolation ──
+
+  function getIndicatorColor(pH) {
+    var indKey = document.getElementById('indicatorSelect').value;
+    if (indKey === 'none') return null;
+    var ind = Tit.INDICATORS[indKey];
+    if (!ind || !ind.colorLow) return null;
+
+    if (pH <= ind.pHLow) return ind.colorLow;
+    if (pH >= ind.pHHigh) return ind.colorHigh;
+
+    var t = (pH - ind.pHLow) / (ind.pHHigh - ind.pHLow);
+    return lerpHex(ind.colorLow, ind.colorHigh, t);
+  }
+
+  function hexToRGB(hex) {
+    hex = hex.replace('#', '');
+    return {
+      r: parseInt(hex.substring(0, 2), 16),
+      g: parseInt(hex.substring(2, 4), 16),
+      b: parseInt(hex.substring(4, 6), 16)
+    };
+  }
+
+  function rgbToHex(r, g, b) {
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+
+  function lerpHex(hex1, hex2, t) {
+    var c1 = hexToRGB(hex1);
+    var c2 = hexToRGB(hex2);
+    var r = Math.round(c1.r + (c2.r - c1.r) * t);
+    var g = Math.round(c1.g + (c2.g - c1.g) * t);
+    var b = Math.round(c1.b + (c2.b - c1.b) * t);
+    return rgbToHex(r, g, b);
+  }
+
+  // ── pH Curve Drawing ──
+
+  function drawPHCurve() {
+    var ctx = graphCtx;
+    var W = GRAPH_W;
+    var H = GRAPH_H;
+    var maxVol = Tit.getMaxVolume();
+    var PAD_L = 55, PAD_R = 20, PAD_T = 20, PAD_B = 45;
+    var plotW = W - PAD_L - PAD_R;
+    var plotH = H - PAD_T - PAD_B;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    ctx.fillStyle = '#FAFBFC';
+    ctx.fillRect(0, 0, W, H);
+
+    // Region background colors (semi-transparent)
+    if (_isTeacher || _isHL) {
+      var curve = Tit.getCurve();
+      var prevRegion = '';
+      var regionStart = 0;
+      for (var ci = 0; ci < curve.length; ci++) {
+        var reg = curve[ci].region;
+        if (reg !== prevRegion && prevRegion !== '') {
+          drawRegionBand(ctx, PAD_L, PAD_T, plotW, plotH, maxVol, regionStart, curve[ci].volume, prevRegion);
+          regionStart = curve[ci].volume;
+        }
+        if (reg !== prevRegion) {
+          prevRegion = reg;
+          if (regionStart === 0 && ci > 0) regionStart = 0;
+        }
+        if (ci === curve.length - 1) {
+          drawRegionBand(ctx, PAD_L, PAD_T, plotW, plotH, maxVol, regionStart, curve[ci].volume, reg);
+        }
+      }
+    }
+
+    // Gridlines
+    ctx.strokeStyle = '#E2E8F0';
+    ctx.lineWidth = 0.5;
+    for (var p = 0; p <= 14; p += 2) {
+      var yg = PAD_T + plotH - (p / 14) * plotH;
+      ctx.beginPath();
+      ctx.moveTo(PAD_L, yg);
+      ctx.lineTo(PAD_L + plotW, yg);
+      ctx.stroke();
+    }
+    for (var v = 0; v <= maxVol; v += Math.max(5, Math.round(maxVol / 10))) {
+      var xg = PAD_L + (v / maxVol) * plotW;
+      ctx.beginPath();
+      ctx.moveTo(xg, PAD_T);
+      ctx.lineTo(xg, PAD_T + plotH);
+      ctx.stroke();
+    }
+
+    // Axes
+    ctx.strokeStyle = '#1E293B';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(PAD_L, PAD_T);
+    ctx.lineTo(PAD_L, PAD_T + plotH);
+    ctx.lineTo(PAD_L + plotW, PAD_T + plotH);
+    ctx.stroke();
+
+    // Axis labels
+    ctx.fillStyle = '#1E293B';
+    ctx.font = '600 12px Inter, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('Volume of base added (mL)', PAD_L + plotW / 2, H - 5);
+
+    ctx.save();
+    ctx.translate(15, PAD_T + plotH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.fillText('pH', 0, 0);
+    ctx.restore();
+
+    // Tick labels - Y axis
+    ctx.font = '11px "Fira Code", monospace';
+    ctx.textAlign = 'right';
+    ctx.fillStyle = '#64748B';
+    for (var p = 0; p <= 14; p += 2) {
+      var yy = PAD_T + plotH - (p / 14) * plotH;
+      ctx.fillText(p.toString(), PAD_L - 8, yy + 4);
+    }
+
+    // Tick labels - X axis
+    ctx.textAlign = 'center';
+    var xStep = Math.max(5, Math.round(maxVol / 10));
+    for (var v = 0; v <= maxVol; v += xStep) {
+      var xx = PAD_L + (v / maxVol) * plotW;
+      ctx.fillText(v.toFixed(0), xx, PAD_T + plotH + 18);
+    }
+
+    // Indicator range band
+    if (_isHL || _isTeacher) {
+      var indKey = document.getElementById('indicatorSelect').value;
+      if (indKey !== 'none') {
+        var ind = Tit.INDICATORS[indKey];
+        var y1 = PAD_T + plotH - (ind.pHHigh / 14) * plotH;
+        var y2 = PAD_T + plotH - (ind.pHLow / 14) * plotH;
+        ctx.fillStyle = 'rgba(236, 72, 153, 0.12)';
+        ctx.fillRect(PAD_L, y1, plotW, y2 - y1);
+        ctx.strokeStyle = 'rgba(236, 72, 153, 0.4)';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 3]);
+        ctx.beginPath();
+        ctx.moveTo(PAD_L, y1);
+        ctx.lineTo(PAD_L + plotW, y1);
+        ctx.moveTo(PAD_L, y2);
+        ctx.lineTo(PAD_L + plotW, y2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = 'rgba(236, 72, 153, 0.7)';
+        ctx.font = '10px Inter, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText(ind.name, PAD_L + 4, y1 - 3);
+      }
+    }
+
+    // Equivalence point markers (vertical dashed red lines)
+    var eqPoints = Tit.getEquivalencePoints();
+    ctx.strokeStyle = '#DC2626';
+    ctx.lineWidth = 1;
+    ctx.setLineDash([5, 4]);
+    for (var e = 0; e < eqPoints.length; e++) {
+      var ex = PAD_L + (eqPoints[e].volume / maxVol) * plotW;
+      ctx.beginPath();
+      ctx.moveTo(ex, PAD_T);
+      ctx.lineTo(ex, PAD_T + plotH);
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+
+    // In teacher mode: full precomputed curve
+    if (_isTeacher) {
+      var curve = Tit.getCurve();
+      ctx.strokeStyle = '#94A3B8';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      for (var i = 0; i < curve.length; i++) {
+        var cx = PAD_L + (curve[i].volume / maxVol) * plotW;
+        var cy = PAD_T + plotH - (curve[i].pH / 14) * plotH;
+        if (i === 0) ctx.moveTo(cx, cy);
+        else ctx.lineTo(cx, cy);
+      }
+      ctx.stroke();
+    }
+
+    // Draw collected points (connected line)
+    if (_graphPoints.length > 0) {
+      // Sort by volume for proper line drawing
+      var sorted = _graphPoints.slice().sort(function (a, b) { return a.vol - b.vol; });
+      // Remove duplicates keeping last value at each volume
+      var unique = [];
+      for (var i = 0; i < sorted.length; i++) {
+        if (unique.length === 0 || Math.abs(sorted[i].vol - unique[unique.length - 1].vol) > 0.01) {
+          unique.push(sorted[i]);
+        } else {
+          unique[unique.length - 1] = sorted[i];
+        }
+      }
+
+      ctx.strokeStyle = '#0D9488';
+      ctx.lineWidth = 2.5;
+      ctx.beginPath();
+      for (var i = 0; i < unique.length; i++) {
+        var px = PAD_L + (unique[i].vol / maxVol) * plotW;
+        var py = PAD_T + plotH - (unique[i].pH / 14) * plotH;
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+
+      // Dots
+      ctx.fillStyle = '#0D9488';
+      for (var i = 0; i < unique.length; i++) {
+        if (unique.length < 200 || i % 5 === 0) {
+          var px = PAD_L + (unique[i].vol / maxVol) * plotW;
+          var py = PAD_T + plotH - (unique[i].pH / 14) * plotH;
+          ctx.beginPath();
+          ctx.arc(px, py, 2.5, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+    }
+
+    // Current position marker
+    var data = Tit.getPHAtVolume(_currentVol);
+    var dotX = PAD_L + (_currentVol / maxVol) * plotW;
+    var dotY = PAD_T + plotH - (data.pH / 14) * plotH;
+    ctx.fillStyle = '#DC2626';
+    ctx.beginPath();
+    ctx.arc(dotX, dotY, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'white';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Derivative curve (HL + toggle on)
+    if (_isHL && document.getElementById('hlDerivToggle').checked) {
+      var deriv = Tit.getDerivative();
+      if (deriv.length > 0) {
+        // Find max abs derivative for scaling
+        var maxD = 0;
+        for (var d = 0; d < deriv.length; d++) {
+          var absD = Math.abs(deriv[d].dPHdV);
+          if (absD > maxD && isFinite(absD)) maxD = absD;
+        }
+        if (maxD < 1) maxD = 1;
+
+        ctx.strokeStyle = 'rgba(124, 58, 237, 0.6)';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        var started = false;
+        for (var d = 0; d < deriv.length; d++) {
+          var dx = PAD_L + (deriv[d].volume / maxVol) * plotW;
+          var dVal = deriv[d].dPHdV;
+          if (!isFinite(dVal)) continue;
+          var dy = PAD_T + plotH - (Math.abs(dVal) / maxD) * plotH;
+          if (!started) { ctx.moveTo(dx, dy); started = true; }
+          else ctx.lineTo(dx, dy);
+        }
+        ctx.stroke();
+
+        // Label
+        ctx.fillStyle = 'rgba(124, 58, 237, 0.7)';
+        ctx.font = '10px Inter, sans-serif';
+        ctx.textAlign = 'right';
+        ctx.fillText('dpH/dV', PAD_L + plotW - 4, PAD_T + 12);
+      }
+    }
+  }
+
+  function drawRegionBand(ctx, padL, padT, plotW, plotH, maxVol, startVol, endVol, region) {
+    var color = REGION_COLORS[region] || '#64748B';
+    var x1 = padL + (startVol / maxVol) * plotW;
+    var x2 = padL + (endVol / maxVol) * plotW;
+    ctx.fillStyle = hexToRGBA(color, 0.06);
+    ctx.fillRect(x1, padT, x2 - x1, plotH);
+  }
+
+  function hexToRGBA(hex, alpha) {
+    var c = hexToRGB(hex);
+    return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + alpha + ')';
+  }
+
+  // ── Particle System ──
+
+  var PARTICLE_TYPES = {
+    HA:        { color: '#64748B', r: 5, label: 'HA' },
+    H:         { color: '#EF4444', r: 3, label: 'H\u207A' },
+    A:         { color: '#3B82F6', r: 4, label: 'A\u207B' },
+    OH:        { color: '#60A5FA', r: 3, label: 'OH\u207B' },
+    water:     { color: '#0D9488', r: 6, label: 'H\u2082O' },
+    spectator: { color: '#CBD5E1', r: 3, label: 'Spectator' }
+  };
+
+  function createParticle(type) {
+    var margin = 30;
+    return {
+      x: margin + Math.random() * (BEAKER_W - 2 * margin - 60) + 30,
+      y: 100 + Math.random() * (BEAKER_H - 160),
+      vx: (Math.random() - 0.5) * 1.5,
+      vy: (Math.random() - 0.5) * 1.5,
+      type: type,
+      alpha: 1,
+      life: type === 'water' ? 30 : -1
+    };
+  }
+
+  function syncParticles(vol) {
+    var target = Tit.getSpeciesCounts(vol, 80);
+    var typeKeys = ['HA', 'H', 'A', 'OH', 'spectator'];
+
+    for (var t = 0; t < typeKeys.length; t++) {
+      var key = typeKeys[t];
+      var targetCount = target[key] || 0;
+      var currentCount = 0;
+      for (var i = 0; i < _particles.length; i++) {
+        if (_particles[i].type === key) currentCount++;
+      }
+
+      // Add particles
+      while (currentCount < targetCount) {
+        _particles.push(createParticle(key));
+        currentCount++;
+      }
+
+      // Remove particles
+      var toRemove = currentCount - targetCount;
+      if (toRemove > 0) {
+        for (var i = _particles.length - 1; i >= 0 && toRemove > 0; i--) {
+          if (_particles[i].type === key) {
+            _particles.splice(i, 1);
+            toRemove--;
+          }
+        }
+      }
+    }
+
+    // Add water flash particles
+    var waterTarget = target.water || 0;
+    for (var w = 0; w < waterTarget; w++) {
+      var hasFlash = false;
+      for (var i = 0; i < _particles.length; i++) {
+        if (_particles[i].type === 'water' && _particles[i].life > 0) {
+          hasFlash = true;
+          break;
+        }
+      }
+      if (!hasFlash && waterTarget > 0) {
+        _particles.push(createParticle('water'));
+      }
+    }
+  }
+
+  function annihilateParticles() {
+    var hIndices = [];
+    var ohIndices = [];
+    for (var i = 0; i < _particles.length; i++) {
+      if (_particles[i].type === 'H') hIndices.push(i);
+      else if (_particles[i].type === 'OH') ohIndices.push(i);
+    }
+
+    var toRemoveSet = {};
+    for (var h = 0; h < hIndices.length && ohIndices.length > 0; h++) {
+      var hi = hIndices[h];
+      var pH_p = _particles[hi];
+      for (var o = ohIndices.length - 1; o >= 0; o--) {
+        var oi = ohIndices[o];
+        var pOH_p = _particles[oi];
+        var dx = pH_p.x - pOH_p.x;
+        var dy = pH_p.y - pOH_p.y;
+        var dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist < 12) {
+          toRemoveSet[hi] = true;
+          toRemoveSet[oi] = true;
+          var flash = {
+            x: (pH_p.x + pOH_p.x) / 2,
+            y: (pH_p.y + pOH_p.y) / 2,
+            vx: 0, vy: 0,
+            type: 'water',
+            alpha: 1,
+            life: 30
+          };
+          _particles.push(flash);
+          ohIndices.splice(o, 1);
+          break;
+        }
+      }
+    }
+
+    var indices = Object.keys(toRemoveSet).map(Number).sort(function (a, b) { return b - a; });
+    for (var r = 0; r < indices.length; r++) {
+      _particles.splice(indices[r], 1);
+    }
+  }
+
+  function updateParticles() {
+    var beakerLeft = 60;
+    var beakerRight = BEAKER_W - 60;
+    var beakerTop = 90;
+    var beakerBottom = BEAKER_H - 40;
+
+    for (var i = _particles.length - 1; i >= 0; i--) {
+      var p = _particles[i];
+
+      // Brownian motion
+      p.vx += (Math.random() - 0.5) * 0.4;
+      p.vy += (Math.random() - 0.5) * 0.4;
+
+      // Damping
+      p.vx *= 0.95;
+      p.vy *= 0.95;
+
+      p.x += p.vx;
+      p.y += p.vy;
+
+      // Bounds
+      if (p.x < beakerLeft + 10) { p.x = beakerLeft + 10; p.vx = Math.abs(p.vx); }
+      if (p.x > beakerRight - 10) { p.x = beakerRight - 10; p.vx = -Math.abs(p.vx); }
+      if (p.y < beakerTop + 10) { p.y = beakerTop + 10; p.vy = Math.abs(p.vy); }
+      if (p.y > beakerBottom - 10) { p.y = beakerBottom - 10; p.vy = -Math.abs(p.vy); }
+
+      // Water flash: fade and expire
+      if (p.life > 0) {
+        p.life--;
+        p.alpha = p.life / 30;
+        if (p.life <= 0) {
+          _particles.splice(i, 1);
+        }
+      }
+    }
+
+    annihilateParticles();
+  }
+
+  function drawBeaker() {
+    var ctx = beakerCtx;
+    var W = BEAKER_W;
+    var H = BEAKER_H;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Background
+    ctx.fillStyle = '#FAFBFC';
+    ctx.fillRect(0, 0, W, H);
+
+    var data = Tit.getPHAtVolume(_currentVol);
+    var indColor = getIndicatorColor(data.pH);
+
+    // Beaker trapezoid (wider at top)
+    var topLeft = 50, topRight = W - 50;
+    var botLeft = 70, botRight = W - 70;
+    var top = 60, bot = H - 30;
+
+    // Fill level based on volume
+    var maxVol = Tit.getMaxVolume();
+    var fillFrac = 0.3 + (_currentVol / maxVol) * 0.55;
+    var fillTop = bot - (bot - top) * fillFrac;
+
+    // Interpolate beaker walls at fill level
+    var frac = (fillTop - top) / (bot - top);
+    var fillLeftX = topLeft + (botLeft - topLeft) * frac;
+    var fillRightX = topRight + (botRight - topRight) * frac;
+
+    // Liquid fill
+    var liquidColor = indColor || 'rgba(147, 197, 253, 0.35)';
+    ctx.fillStyle = liquidColor;
+    ctx.globalAlpha = indColor ? 0.5 : 0.35;
+    ctx.beginPath();
+    ctx.moveTo(fillLeftX, fillTop);
+    ctx.lineTo(botLeft, bot);
+    ctx.lineTo(botRight, bot);
+    ctx.lineTo(fillRightX, fillTop);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Beaker outline
+    ctx.strokeStyle = '#94A3B8';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(topLeft, top);
+    ctx.lineTo(botLeft, bot);
+    ctx.lineTo(botRight, bot);
+    ctx.lineTo(topRight, top);
+    ctx.stroke();
+
+    // Pour spout
+    ctx.beginPath();
+    ctx.moveTo(topLeft, top);
+    ctx.lineTo(topLeft - 8, top - 10);
+    ctx.stroke();
+
+    // Volume markings
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 1;
+    ctx.font = '10px "Fira Code", monospace';
+    ctx.fillStyle = '#94A3B8';
+    ctx.textAlign = 'left';
+    for (var m = 0.2; m <= 0.8; m += 0.2) {
+      var my = bot - (bot - top) * m;
+      var mlx = topLeft + (botLeft - topLeft) * ((my - top) / (bot - top));
+      ctx.beginPath();
+      ctx.moveTo(mlx + 3, my);
+      ctx.lineTo(mlx + 12, my);
+      ctx.stroke();
+    }
+
+    // Draw particles
+    for (var i = 0; i < _particles.length; i++) {
+      var p = _particles[i];
+      var pType = PARTICLE_TYPES[p.type];
+      if (!pType) continue;
+
+      ctx.globalAlpha = p.alpha;
+      ctx.fillStyle = pType.color;
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, pType.r, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Water flash: glow effect
+      if (p.type === 'water' && p.life > 0) {
+        ctx.globalAlpha = p.alpha * 0.3;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, pType.r * 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+    ctx.globalAlpha = 1;
+
+    // Legend
+    var legendTypes = ['HA', 'H', 'A', 'OH', 'spectator'];
+    var legendY = 20;
+    ctx.font = '10px Inter, sans-serif';
+    ctx.textAlign = 'left';
+    for (var l = 0; l < legendTypes.length; l++) {
+      var lt = PARTICLE_TYPES[legendTypes[l]];
+      var count = 0;
+      for (var pi = 0; pi < _particles.length; pi++) {
+        if (_particles[pi].type === legendTypes[l]) count++;
+      }
+      if (count === 0) continue;
+      var lx = W - 110;
+      ctx.fillStyle = lt.color;
+      ctx.beginPath();
+      ctx.arc(lx, legendY, lt.r, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = '#64748B';
+      ctx.fillText(lt.label + ' (' + count + ')', lx + 10, legendY + 4);
+      legendY += 16;
+    }
+
+    // Burette tip at top center
+    ctx.fillStyle = '#64748B';
+    ctx.fillRect(W / 2 - 4, 0, 8, 55);
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillRect(W / 2 - 6, 48, 12, 8);
+
+    // Drip animation when streaming
+    if (_streaming) {
+      var dripY = 56 + (Date.now() % 400) / 400 * (fillTop - 56);
+      ctx.fillStyle = indColor || '#93C5FD';
+      ctx.globalAlpha = 0.7;
+      ctx.beginPath();
+      ctx.ellipse(W / 2, dripY, 3, 5, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.globalAlpha = 1;
+    }
+  }
+
+  // ── Animation Loop ──
+
+  function animate() {
+    updateParticles();
+    drawBeaker();
+    _animId = requestAnimationFrame(animate);
+  }
+
+  // ── Titration Button Handlers ──
+
+  document.getElementById('btnAddDrop').addEventListener('click', function () {
+    _currentVol += 0.5;
+    var maxVol = Tit.getMaxVolume();
+    if (_currentVol > maxVol) _currentVol = maxVol;
+    updateDisplay();
+    if (_autoCollect && document.getElementById('dataMode').value === 'auto') {
+      SimEngine.DataCollector.recordSnapshot();
+    }
+  });
+
+  // Stream: mousedown/touchstart starts, mouseup/touchend stops
+  var streamBtn = document.getElementById('btnStream');
+
+  function startStream() {
+    if (_streaming) return;
+    _streaming = true;
+    streamBtn.classList.add('active');
+    _streamInterval = setInterval(function () {
+      _currentVol += 0.1;
+      var maxVol = Tit.getMaxVolume();
+      if (_currentVol > maxVol) {
+        _currentVol = maxVol;
+        stopStream();
+      }
+      updateDisplay();
+      if (_autoCollect && document.getElementById('dataMode').value === 'auto') {
+        SimEngine.DataCollector.recordSnapshot();
+      }
+    }, 50);
+  }
+
+  function stopStream() {
+    _streaming = false;
+    streamBtn.classList.remove('active');
+    if (_streamInterval) {
+      clearInterval(_streamInterval);
+      _streamInterval = null;
+    }
+  }
+
+  streamBtn.addEventListener('mousedown', startStream);
+  streamBtn.addEventListener('touchstart', function (e) { e.preventDefault(); startStream(); });
+  document.addEventListener('mouseup', stopStream);
+  document.addEventListener('touchend', stopStream);
+
+  function resetTitration() {
+    _currentVol = 0;
+    _graphPoints = [];
+    updateDisplay();
+  }
+
+  document.getElementById('btnReset').addEventListener('click', resetTitration);
+  document.getElementById('btnResetTeacher').addEventListener('click', resetTitration);
+
+  // Volume slider (teacher mode)
+  document.getElementById('volSlider').addEventListener('input', function () {
+    _currentVol = parseFloat(this.value);
+    updateDisplay();
+  });
+
+  // ── Dropdown Change Handlers ──
+
+  document.getElementById('presetSelect').addEventListener('change', function () {
+    var idx = parseInt(this.value, 10);
+    var preset = Tit.PRESETS[idx];
+    if (!preset) return;
+
+    document.getElementById('acidSelect').value = preset.acidKey;
+    document.getElementById('baseSelect').value = preset.baseKey;
+    document.getElementById('acidConc').value = preset.acidConc;
+    document.getElementById('baseConc').value = preset.baseConc;
+    document.getElementById('acidConcReadonly').textContent = preset.acidConc.toFixed(2);
+    document.getElementById('baseConcReadonly').textContent = preset.baseConc.toFixed(2);
+
+    reinitTitration();
+  });
+
+  document.getElementById('acidSelect').addEventListener('change', reinitTitration);
+  document.getElementById('baseSelect').addEventListener('change', reinitTitration);
+  document.getElementById('acidConc').addEventListener('change', reinitTitration);
+  document.getElementById('baseConc').addEventListener('change', reinitTitration);
+  document.getElementById('indicatorSelect').addEventListener('change', function () {
+    updateDisplay();
+  });
+
+  // ── Header Toggles ──
+
+  SimEngine.State.reset({
+    hlEnabled: false,
+    mode: false
+  });
+
+  SimEngine.Controls.createToggle({
+    id: 'hlToggle', label: 'HL', labelOn: 'HL', labelOff: 'SL',
+    checked: false, stateKey: 'hlEnabled',
+    container: 'headerToggles', colorOn: '#7C3AED'
+  });
+  SimEngine.Controls.createToggle({
+    id: 'modeToggle', label: 'Mode', labelOn: 'Teacher', labelOff: 'Student',
+    checked: false, stateKey: 'mode',
+    container: 'headerToggles'
+  });
+
+  SimEngine.State.on('hlEnabled', function (data) {
+    _isHL = !!data.value;
+    document.body.classList.toggle('hl-active', _isHL);
+    var currentAcid = document.getElementById('acidSelect').value;
+    populateAcids();
+    var acidSel = document.getElementById('acidSelect');
+    if (acidSel.querySelector('option[value="' + currentAcid + '"]')) {
+      acidSel.value = currentAcid;
+    }
+    buildVarCheckboxes();
+    updateDisplay();
+  });
+
+  SimEngine.State.on('mode', function (data) {
+    var isTeacher = (data.value === true || data.value === 'teacher');
+    _isTeacher = isTeacher;
+    document.body.classList.toggle('teacher-active', isTeacher);
+    document.getElementById('sweepSection').classList.toggle('data-section-hidden', !isTeacher);
+    updateDisplay();
+  });
+
+  // ── Keyboard Shortcuts ──
+
+  SimEngine.Controls.initKeyboard();
+
+  document.addEventListener('keydown', function (e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+    switch (e.code) {
+      case 'Space':
+        e.preventDefault();
+        _currentVol += 0.5;
+        var maxVol = Tit.getMaxVolume();
+        if (_currentVol > maxVol) _currentVol = maxVol;
+        updateDisplay();
+        if (_autoCollect && document.getElementById('dataMode').value === 'auto') {
+          SimEngine.DataCollector.recordSnapshot();
+        }
+        break;
+      case 'Slash':
+        e.preventDefault();
+        document.getElementById('paletteSearch').focus();
+        break;
+    }
+  });
+
+  // ── Palette Search Filtering ──
+
+  var paletteSearch = document.getElementById('paletteSearch');
+  paletteSearch.addEventListener('input', function() {
+    var filter = paletteSearch.value.toLowerCase();
+    var items = document.querySelectorAll('.palette-item');
+    for (var i = 0; i < items.length; i++) {
+      items[i].style.display = items[i].textContent.toLowerCase().indexOf(filter) !== -1 ? '' : 'none';
+    }
+  });
+
+  SimEngine.State.on('reset', function () {
+    resetTitration();
+  });
+
+  // ── Data Collection Setup ──
+
+  SimEngine.DataCollector.registerVariables([
+    { key: 'volume', label: 'Volume (mL)', getter: function () { return parseFloat(_currentVol.toFixed(1)); }, default: true },
+    { key: 'pH', label: 'pH', getter: function () { var d = Tit.getPHAtVolume(_currentVol); return parseFloat(d.pH.toFixed(2)); }, default: true },
+    { key: 'pOH', label: 'pOH', getter: function () { var d = Tit.getPHAtVolume(_currentVol); return parseFloat(d.pOH.toFixed(2)); }, default: true },
+    { key: 'hConc', label: '[H+] (M)', getter: function () { return Tit.getPHAtVolume(_currentVol).hConc; }, default: false, hl: true },
+    { key: 'ohConc', label: '[OH-] (M)', getter: function () { return Tit.getPHAtVolume(_currentVol).ohConc; }, default: false, hl: true },
+    { key: 'haConc', label: '[HA] (M)', getter: function () { return Tit.getPHAtVolume(_currentVol).haConc; }, default: false, hl: true },
+    { key: 'aConc', label: '[A-] (M)', getter: function () { return Tit.getPHAtVolume(_currentVol).aConc; }, default: false, hl: true }
+  ]);
+
+  function buildVarCheckboxes() {
+    var container = document.getElementById('varCheckboxes');
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    var vars = SimEngine.DataCollector.getVariables();
+    for (var i = 0; i < vars.length; i++) {
+      var v = vars[i];
+      if (v.hl && !_isHL) continue;
+      var label = document.createElement('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = v.key;
+      cb.checked = !!v.default;
+      label.appendChild(cb);
+      label.appendChild(document.createTextNode(' ' + v.label));
+      container.appendChild(label);
+    }
+  }
+
+  function getSelectedVarKeys() {
+    var checkboxes = document.querySelectorAll('#varCheckboxes input[type="checkbox"]');
+    var keys = [];
+    for (var i = 0; i < checkboxes.length; i++) {
+      if (checkboxes[i].checked) keys.push(checkboxes[i].value);
+    }
+    return keys;
+  }
+
+  // Data panel toggle
+  document.getElementById('dataPanelHeader').addEventListener('click', function () {
+    var body = document.getElementById('dataPanelBody');
+    var arrow = document.getElementById('dataPanelArrow');
+    var isOpen = body.classList.toggle('open');
+    arrow.textContent = isOpen ? '\u25BC' : '\u25B6';
+  });
+
+  // Start Collection
+  document.getElementById('btnStartRun').addEventListener('click', function () {
+    var points = parseInt(document.getElementById('dataPoints').value, 10);
+    var vars = getSelectedVarKeys();
+    if (vars.length === 0) return;
+
+    SimEngine.DataCollector.startRun({
+      durationSec: 30,
+      pointCount: points,
+      variables: vars
+    });
+
+    document.getElementById('dataControlBtns').classList.add('data-section-hidden');
+    document.getElementById('dataProgressSection').classList.remove('data-section-hidden');
+    document.getElementById('dataCompleteSection').classList.add('data-section-hidden');
+  });
+
+  // Stop Early
+  document.getElementById('btnStopRun').addEventListener('click', function () {
+    SimEngine.DataCollector.stopRun();
+  });
+
+  // Snapshot
+  document.getElementById('btnSnapshot').addEventListener('click', function () {
+    SimEngine.DataCollector.recordSnapshot();
+  });
+
+  // Download Run CSV
+  document.getElementById('btnDownloadRun').addEventListener('click', function () {
+    SimEngine.DataCollector.download('simengine_titration_run.csv', 'run');
+  });
+
+  // Download Snapshots
+  document.getElementById('btnDownloadSnapshots').addEventListener('click', function () {
+    SimEngine.DataCollector.download('simengine_titration_snapshots.csv', 'snapshots');
+  });
+
+  // Clear
+  document.getElementById('btnClearRun').addEventListener('click', function () {
+    SimEngine.DataCollector.clearData();
+    document.getElementById('dataCompleteSection').classList.add('data-section-hidden');
+    document.getElementById('dataProgressSection').classList.add('data-section-hidden');
+    document.getElementById('dataControlBtns').classList.remove('data-section-hidden');
+    document.getElementById('snapshotTableWrap').classList.add('data-section-hidden');
+    document.getElementById('snapshotBtns').classList.add('data-section-hidden');
+    document.getElementById('snapshotCount').textContent = 'Snapshots: 0';
+    var tbody = document.getElementById('snapshotTableBody');
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+  });
+
+  // Sweep
+  document.getElementById('btnStartSweep').addEventListener('click', function () {
+    var from = parseFloat(document.getElementById('sweepFrom').value) || 0;
+    var to = parseFloat(document.getElementById('sweepTo').value) || 50;
+    var steps = parseInt(document.getElementById('sweepSteps').value, 10) || 20;
+    var vars = getSelectedVarKeys();
+    if (vars.length === 0) return;
+
+    // Manual sweep: iterate volume and record data points
+    var sweepData = [];
+    for (var s = 0; s < steps; s++) {
+      var vol = from + (to - from) * s / (steps - 1);
+      _currentVol = vol;
+      var row = {};
+      row.volume = parseFloat(vol.toFixed(1));
+      var d = Tit.getPHAtVolume(vol);
+      if (vars.indexOf('pH') !== -1) row.pH = parseFloat(d.pH.toFixed(2));
+      if (vars.indexOf('pOH') !== -1) row.pOH = parseFloat(d.pOH.toFixed(2));
+      if (vars.indexOf('hConc') !== -1) row.hConc = d.hConc;
+      if (vars.indexOf('ohConc') !== -1) row.ohConc = d.ohConc;
+      if (vars.indexOf('haConc') !== -1) row.haConc = d.haConc;
+      if (vars.indexOf('aConc') !== -1) row.aConc = d.aConc;
+      sweepData.push(row);
+    }
+
+    // Build CSV and download
+    var headers = Object.keys(sweepData[0]);
+    var varMap = SimEngine.DataCollector.getVariables();
+    var labelMap = {};
+    for (var v = 0; v < varMap.length; v++) labelMap[varMap[v].key] = varMap[v].label;
+    var csvLines = [headers.map(function (k) { return labelMap[k] || k; }).join(',')];
+    for (var r = 0; r < sweepData.length; r++) {
+      var cells = [];
+      for (var c = 0; c < headers.length; c++) {
+        var val = sweepData[r][headers[c]];
+        if (typeof val === 'number') {
+          var abs = Math.abs(val);
+          if (abs !== 0 && (abs >= 1e5 || abs < 1e-3)) cells.push(val.toExponential(4));
+          else cells.push(Number(val.toPrecision(4)).toString());
+        } else {
+          cells.push(String(val));
+        }
+      }
+      csvLines.push(cells.join(','));
+    }
+    var csv = csvLines.join('\n');
+    var blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = 'simengine_titration_sweep.csv';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    // Restore current volume
+    _currentVol = 0;
+    updateDisplay();
+  });
+
+  // ── DataCollector event wiring ──
+
+  SimEngine.State.on('dataCollectionProgress', function (data) {
+    document.getElementById('dataProgressFill').style.width = data.percent + '%';
+    document.getElementById('dataProgressText').textContent = 'Recording... ' + data.collected + '/' + data.total;
+  });
+
+  SimEngine.State.on('dataCollectionComplete', function (data) {
+    document.getElementById('dataProgressSection').classList.add('data-section-hidden');
+    document.getElementById('dataCompleteSection').classList.remove('data-section-hidden');
+    document.getElementById('dataCompleteMsg').textContent = '\u2713 Collection complete (' + data.collected + ' points)';
+  });
+
+  SimEngine.State.on('dataCollectionStop', function (data) {
+    document.getElementById('dataProgressSection').classList.add('data-section-hidden');
+    document.getElementById('dataControlBtns').classList.remove('data-section-hidden');
+    if (data.collected > 0) {
+      document.getElementById('dataCompleteSection').classList.remove('data-section-hidden');
+      document.getElementById('dataCompleteMsg').textContent = '\u2713 Stopped (' + data.collected + ' points)';
+    }
+  });
+
+  SimEngine.State.on('snapshotRecorded', function (data) {
+    document.getElementById('snapshotCount').textContent = 'Snapshots: ' + data.count;
+    document.getElementById('snapshotTableWrap').classList.remove('data-section-hidden');
+    document.getElementById('snapshotBtns').classList.remove('data-section-hidden');
+
+    var displayKeys = getSelectedVarKeys();
+    if (displayKeys.length === 0) {
+      displayKeys = ['volume', 'pH', 'pOH'];
+    }
+
+    // Build header
+    var thead = document.getElementById('snapshotTableHead');
+    while (thead.firstChild) thead.removeChild(thead.firstChild);
+    var varMap = SimEngine.DataCollector.getVariables();
+    var labelMap = {};
+    for (var v = 0; v < varMap.length; v++) labelMap[varMap[v].key] = varMap[v].label;
+    var headTr = document.createElement('tr');
+    for (var c = 0; c < displayKeys.length; c++) {
+      var th = document.createElement('th');
+      th.textContent = labelMap[displayKeys[c]] || displayKeys[c];
+      headTr.appendChild(th);
+    }
+    thead.appendChild(headTr);
+
+    // Rebuild body with all snapshots
+    var tbody = document.getElementById('snapshotTableBody');
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    var snapshots = SimEngine.DataCollector.getSnapshots();
+    for (var s = 0; s < snapshots.length; s++) {
+      var tr = document.createElement('tr');
+      for (var c = 0; c < displayKeys.length; c++) {
+        var td = document.createElement('td');
+        var val = snapshots[s][displayKeys[c]];
+        if (val === undefined || val === null) {
+          td.textContent = '\u2014';
+        } else if (typeof val === 'number') {
+          var abs = Math.abs(val);
+          if (val === 0) td.textContent = '0';
+          else if (abs >= 1e5 || abs < 1e-3) td.textContent = val.toExponential(3);
+          else td.textContent = Number(val.toPrecision(4)).toString();
+        } else {
+          td.textContent = String(val);
+        }
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+  });
+
+  SimEngine.State.on('dataCleared', function () {
+    document.getElementById('snapshotCount').textContent = 'Snapshots: 0';
+    var tbody = document.getElementById('snapshotTableBody');
+    while (tbody.firstChild) tbody.removeChild(tbody.firstChild);
+    document.getElementById('snapshotTableWrap').classList.add('data-section-hidden');
+    document.getElementById('snapshotBtns').classList.add('data-section-hidden');
+  });
+
+  // Derivative toggle redraws
+  document.getElementById('hlDerivToggle').addEventListener('change', function () {
+    drawPHCurve();
+  });
+
+  // ── DataCollector tick (for timed runs) ──
+  setInterval(function () {
+    SimEngine.DataCollector.tick();
+  }, 1000 / 60);
+
+  // ── Initialize ──
+
+  populatePresets();
+  populateAcids();
+  populateBases();
+  populateIndicators();
+  buildVarCheckboxes();
+
+  // Load first preset
+  var firstPreset = Tit.PRESETS[0];
+  document.getElementById('acidSelect').value = firstPreset.acidKey;
+  document.getElementById('baseSelect').value = firstPreset.baseKey;
+  document.getElementById('acidConc').value = firstPreset.acidConc;
+  document.getElementById('baseConc').value = firstPreset.baseConc;
+  reinitTitration();
+
+  // Start animation loop
+  animate();
+
+})();
+</script>
+<footer>SimEngine &mdash; Acid-Base Titration &bull; H=HL T=Teacher</footer>
+</body>
+</html>

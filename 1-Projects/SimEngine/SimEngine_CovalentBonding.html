@@ -28,7 +28,8 @@
     --sim-canvas-bg: #FAFBFC;
     --hl-badge-bg: #7C3AED;
     --hl-border: rgba(124, 58, 237, 0.2);
-  }
+    --orange: #F59E0B;
+}
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -42,9 +43,9 @@
 
   /* ── Header ── */
   .header {
-    background: linear-gradient(135deg, var(--navy), #2D4A7A);
+    background: var(--navy);
     color: white;
-    padding: 1.5rem 2rem;
+    padding: .75rem 1.5rem;
     display: flex; align-items: center; justify-content: space-between;
     flex-wrap: wrap; gap: 0.75rem;
   }
@@ -253,9 +254,12 @@
     .property-cards { grid-template-columns: 1fr; }
     .property-cards.four-col { grid-template-columns: 1fr 1fr; }
   }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
 <body>
+<a href="#main-content" class="skip-link">Skip to content</a>
 
 <!-- Header -->
 <div class="header">
@@ -271,14 +275,14 @@
 </div>
 
 <!-- Tab Bar -->
-<div class="tab-bar">
-  <button class="tab-btn active" data-tab="explorer"><span class="tab-num">1</span>Bond Explorer</button>
-  <button class="tab-btn hl-panel" data-tab="orbitals"><span class="tab-num">2</span>Orbital Overlap</button>
-  <button class="tab-btn" data-tab="compare"><span class="tab-num">3</span>Bond Comparison</button>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="explorer" role="tab"><span class="tab-num">1</span>Bond Explorer</button>
+  <button class="tab-btn hl-panel" data-tab="orbitals" role="tab"><span class="tab-num">2</span>Orbital Overlap</button>
+  <button class="tab-btn" data-tab="compare" role="tab"><span class="tab-num">3</span>Bond Comparison</button>
 </div>
 
 <!-- Main Content -->
-<div class="sim-container">
+<div class="sim-container" id="main-content">
   <div class="sim-top-row">
 
     <!-- Sidebar -->
@@ -297,7 +301,7 @@
     </div>
 
     <!-- Tab 1: Bond Explorer -->
-    <div class="tab-content active" id="tab-explorer">
+    <div class="tab-content active" id="tab-explorer" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Bond Visualization</div>
         <div class="sim-card-body">
@@ -314,7 +318,7 @@
     </div>
 
     <!-- Tab 2: Orbital Overlap & Hybridization (HL) -->
-    <div class="tab-content hl-panel" id="tab-orbitals">
+    <div class="tab-content hl-panel" id="tab-orbitals" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Orbital Overlap Diagram</div>
         <div class="sim-card-body">
@@ -325,7 +329,7 @@
     </div>
 
     <!-- Tab 3: Bond Comparison -->
-    <div class="tab-content" id="tab-compare">
+    <div class="tab-content" id="tab-compare" role="tabpanel">
       <div class="sim-card">
         <div class="sim-card-header">Visual Comparison</div>
         <div class="sim-card-body">
@@ -432,15 +436,15 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
     { id:'c-n',   atoms:['C','N'],  order:1, length:147, energy:305, enDiff:0.5 },
     { id:'c=n',   atoms:['C','N'],  order:2, length:127, energy:615, enDiff:0.5 },
     { id:'c\u2261n', atoms:['C','N'],  order:3, length:116, energy:891, enDiff:0.5 },
-    { id:'c-o',   atoms:['C','O'],  order:1, length:143, energy:360, enDiff:1.0 },
-    { id:'c=o',   atoms:['C','O'],  order:2, length:123, energy:799, enDiff:1.0 },
+    { id:'c-o',   atoms:['C','O'],  order:1, length:143, energy:358, enDiff:1.0 },
+    { id:'c=o',   atoms:['C','O'],  order:2, length:123, energy:804, enDiff:1.0 },
     { id:'c-f',   atoms:['C','F'],  order:1, length:135, energy:484, enDiff:1.5 },
-    { id:'c-cl',  atoms:['C','Cl'], order:1, length:177, energy:338, enDiff:0.5 },
+    { id:'c-cl',  atoms:['C','Cl'], order:1, length:177, energy:324, enDiff:0.5 },
     { id:'o-h',   atoms:['O','H'],  order:1, length:96,  energy:463, enDiff:1.4 },
     { id:'n-h',   atoms:['N','H'],  order:1, length:101, energy:391, enDiff:0.9 },
     { id:'n-n',   atoms:['N','N'],  order:1, length:146, energy:163, enDiff:0.0 },
     { id:'n=n',   atoms:['N','N'],  order:2, length:120, energy:418, enDiff:0.0 },
-    { id:'n\u2261n', atoms:['N','N'],  order:3, length:110, energy:941, enDiff:0.0 },
+    { id:'n\u2261n', atoms:['N','N'],  order:3, length:110, energy:945, enDiff:0.0 },
     { id:'o-o',   atoms:['O','O'],  order:1, length:148, energy:146, enDiff:0.0 },
     { id:'o=o',   atoms:['O','O'],  order:2, length:121, energy:498, enDiff:0.0 },
     { id:'f-f',   atoms:['F','F'],  order:1, length:142, energy:158, enDiff:0.0 },
@@ -1765,5 +1769,6 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
 
 })();
 </script>
+<footer>SimEngine &mdash; Covalent Bonding &bull; H=HL T=Teacher</footer>
 </body>
 </html>

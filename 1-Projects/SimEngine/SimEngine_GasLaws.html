@@ -1,0 +1,1636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gas Laws Explorer — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Caveat:wght@400;600;700&display=swap');
+
+  :root {
+    --navy: #1B2A4A;
+    --teal: #0D9488;
+    --blue: #2563EB;
+    --purple: #7C3AED;
+    --light-bg: #F8FAFC;
+    --card-bg: #FFFFFF;
+    --text: #1E293B;
+    --text-muted: #64748B;
+    --border: #E2E8F0;
+    --green: #059669;
+    --red: #DC2626;
+    --amber: #D97706;
+    --teal-bg: #F0FDFA;
+    --blue-bg: #EFF6FF;
+
+    /* SimEngine additions */
+    --sim-canvas-bg: #FAFBFC;
+    --sim-particle-hot: #EF4444;
+    --sim-particle-cold: #3B82F6;
+    --sim-particle-neutral: #64748B;
+    --sim-grid: #E2E8F0;
+    --sim-axis: #1E293B;
+    --sim-data-1: #0D9488;
+    --sim-data-2: #2563EB;
+    --sim-data-3: #D97706;
+    --sim-data-4: #7C3AED;
+    --hl-badge-bg: #7C3AED;
+    --hl-border: rgba(124, 58, 237, 0.2);
+    --orange: #F59E0B;
+}
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Inter', -apple-system, sans-serif;
+    background: var(--light-bg);
+    color: var(--text);
+    line-height: 1.6;
+    font-size: 16px;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--navy);
+    color: white;
+    padding: .75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .header .subtitle {
+    font-size: 0.9rem;
+    opacity: 0.85;
+  }
+  .header-left { display: flex; flex-direction: column; gap: 0.25rem; }
+  .header-right { display: flex; align-items: center; gap: 1rem; }
+  .header-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.15);
+    color: white;
+  }
+  .header-badge.hl {
+    background: var(--hl-badge-bg);
+    display: none;
+  }
+  body.hl-active .header-badge.hl { display: inline-block; }
+
+  /* ── Main layout ── */
+  .sim-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+
+  .sim-top-row {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .sim-graph-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* ── Cards ── */
+  .sim-card {
+    background: var(--card-bg);
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .sim-card-header {
+    background: var(--navy);
+    color: white;
+    padding: 0.6rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sim-card-body {
+    padding: 1rem;
+  }
+
+  /* ── Particle canvas ── */
+  .particle-canvas-wrap {
+    position: relative;
+    background: var(--sim-canvas-bg);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  #particleCanvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ── Container outline + piston ── */
+  .container-overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    pointer-events: none;
+  }
+
+  /* ── Control panel ── */
+  .control-panel { display: flex; flex-direction: column; gap: 0.5rem; }
+  .sim-slider-group { margin-bottom: 0.75rem; }
+  .sim-slider-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.3rem;
+  }
+  .sim-label {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text);
+  }
+  .sim-value {
+    font-family: 'Fira Code', monospace;
+    font-size: 0.85rem;
+    color: var(--teal);
+    font-weight: 600;
+  }
+  .sim-slider {
+    width: 100%;
+    height: 6px;
+    -webkit-appearance: none;
+    appearance: none;
+    background: var(--border);
+    border-radius: 3px;
+    outline: none;
+  }
+  .sim-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .sim-slider::-moz-range-thumb {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal);
+    cursor: pointer;
+    border: 2px solid white;
+  }
+
+  .sim-dropdown-group { margin-bottom: 0.75rem; }
+  .sim-dropdown {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.85rem;
+    background: white;
+    margin-top: 0.3rem;
+  }
+
+  /* ── Playback buttons ── */
+  .sim-playback {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+  }
+  .sim-btn {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sim-btn:hover { background: var(--light-bg); }
+  .sim-btn.primary {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+  .sim-btn.primary:hover { background: #0B8377; }
+  .sim-btn.active {
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue);
+  }
+
+  /* ── Speed buttons ── */
+  .sim-speed-row {
+    display: flex;
+    gap: 0.3rem;
+    align-items: center;
+  }
+  .sim-speed-row .sim-label { margin-right: 0.5rem; }
+  .sim-speed-btn {
+    padding: 0.25rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .sim-speed-btn.active {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+
+  /* ── Info readout ── */
+  .sim-info {
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border);
+  }
+  .sim-info-title {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .sim-info-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.2rem 0;
+    font-size: 0.8rem;
+  }
+  .sim-info-label { color: var(--text-muted); }
+  .sim-info-value {
+    font-family: 'Fira Code', monospace;
+    font-weight: 500;
+    color: var(--text);
+  }
+
+  /* ── Toggle ── */
+  .sim-toggle-group {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  .sim-toggle {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+  }
+  .sim-toggle input { opacity: 0; width: 0; height: 0; }
+  .sim-toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: #CBD5E1;
+    border-radius: 22px;
+    transition: 0.2s;
+    --toggle-on: var(--teal);
+  }
+  .sim-toggle-slider::before {
+    content: '';
+    position: absolute;
+    height: 16px; width: 16px;
+    left: 3px; bottom: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: 0.2s;
+  }
+  .sim-toggle input:checked + .sim-toggle-slider {
+    background: var(--toggle-on);
+  }
+  .sim-toggle input:checked + .sim-toggle-slider::before {
+    transform: translateX(18px);
+  }
+  .sim-toggle-label {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  /* ── Graph canvases ── */
+  .graph-canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+
+  /* ── HL panel ── */
+  .hl-panel {
+    display: none;
+    border: 2px solid var(--hl-border);
+  }
+  body.hl-active .hl-panel { display: block; }
+  .hl-panel .sim-card-header {
+    background: var(--purple);
+  }
+
+  /* ── Teacher mode ── */
+  body.teacher-active .sim-top-row {
+    grid-template-columns: 1fr;
+  }
+  body.teacher-active .control-panel-card { display: none; }
+  body.teacher-active .caption-bar { display: block; }
+
+  .caption-bar {
+    display: none;
+    background: var(--navy);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+    text-align: center;
+    border-radius: 0 0 12px 12px;
+    font-family: 'Caveat', cursive;
+    font-weight: 600;
+  }
+
+  /* ── Footer ── */
+  .footer {
+    text-align: center;
+    padding: 1.5rem;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    border-top: 1px solid var(--border);
+    margin-top: 1rem;
+  }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .sim-top-row { grid-template-columns: 1fr; }
+    .sim-graph-row { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .sim-container { padding: 0.75rem; }
+    .header { padding: 1rem; }
+    .header h1 { font-size: 1.2rem; }
+  }
+
+  /* ── Keyboard hint ── */
+  .keyboard-hint {
+    text-align: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .keyboard-hint kbd {
+    display: inline-block;
+    padding: 0.1rem 0.4rem;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    font-family: 'Fira Code', monospace;
+    font-size: 0.7rem;
+    background: white;
+    margin: 0 0.1rem;
+  }
+
+  /* ── Palette search ── */
+  .palette-search {
+    width: 100%;
+    padding: 0.4rem 0.6rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-family: inherit;
+    margin-bottom: 0.5rem;
+    outline: none;
+  }
+  .palette-search:focus {
+    border-color: var(--teal);
+    box-shadow: 0 0 0 2px rgba(13,148,136,0.15);
+  }
+  .palette-category {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding: 0.4rem 0.3rem 0.2rem;
+    margin-top: 0.3rem;
+  }
+  .palette-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.3rem 0.5rem;
+    margin: 0.15rem 0;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: white;
+    color: var(--text);
+    transition: all 0.15s;
+  }
+  .palette-item:hover {
+    background: var(--teal-bg);
+    border-color: var(--teal);
+    color: var(--teal);
+  }
+  .palette-item.active {
+    background: var(--teal-bg);
+    border-color: var(--teal);
+    color: var(--teal);
+    font-weight: 600;
+  }
+
+  /* ── Teacher presets ── */
+  .preset-section{display:none;margin-top:.75rem;}
+  .preset-section select{width:100%;padding:.4rem;border-radius:6px;border:1px solid var(--border);font-size:.8rem;font-family:inherit;}
+  body.teacher-active .preset-section{display:block;}
+
+  /* ── Print ── */
+  @media print {
+    .sim-playback, .sim-speed-row, .sim-toggle-group,
+    .sim-slider-group, .sim-dropdown-group, .sim-btn,
+    .caption-bar, .data-panel { display: none !important; }
+    .sim-card { break-inside: avoid; page-break-inside: avoid; box-shadow: none; }
+    body { font-size: 13px; }
+  }
+
+  /* -- Data Collection Panel -- */
+  .data-panel {
+    margin-top: 1rem;
+  }
+  .data-panel-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    padding: 0.5rem 0;
+    border-top: 1px solid var(--border);
+    user-select: none;
+  }
+  .data-panel-header:hover { color: var(--text); }
+  .data-panel-arrow {
+    font-size: 0.65rem;
+    line-height: 1;
+  }
+  .data-panel-body {
+    display: none;
+    padding-top: 0.5rem;
+  }
+  .data-panel-body.open {
+    display: block;
+  }
+  .data-config {
+    margin-bottom: 0.75rem;
+  }
+  .data-config label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-bottom: 0.2rem;
+  }
+  .data-config select,
+  .data-config input[type="number"] {
+    width: 100%;
+    padding: 0.35rem 0.5rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    background: white;
+    color: var(--text);
+  }
+  .data-config-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+  }
+  .var-checkboxes {
+    margin-bottom: 0.75rem;
+  }
+  .var-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: var(--text);
+    padding: 0.15rem 0;
+    cursor: pointer;
+  }
+  .var-checkboxes label input[type="checkbox"] {
+    margin: 0;
+  }
+  .progress-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: var(--border);
+    overflow: hidden;
+    margin: 0.5rem 0;
+  }
+  .progress-bar-fill {
+    height: 100%;
+    background: var(--teal);
+    border-radius: 3px;
+    width: 0%;
+    transition: width 0.3s ease;
+  }
+  .progress-text {
+    font-size: 0.75rem;
+    text-align: center;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+  }
+  .data-btn {
+    padding: 0.35rem 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: white;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .data-btn:hover { background: var(--light-bg); }
+  .data-btn-primary {
+    background: var(--teal);
+    color: white;
+    border-color: var(--teal);
+  }
+  .data-btn-primary:hover { background: #0B8377; }
+  .data-btn-row {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+  }
+  .snapshot-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+  }
+  .snapshot-table th,
+  .snapshot-table td {
+    padding: 0.2rem 0.4rem;
+    text-align: right;
+    border-bottom: 1px solid var(--border);
+    font-family: 'Fira Code', monospace;
+  }
+  .snapshot-table th {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-align: right;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .data-section-hidden { display: none; }
+  .data-complete-msg {
+    font-size: 0.8rem;
+    color: var(--green);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  .sweep-config {
+    border-top: 1px solid var(--border);
+    padding-top: 0.75rem;
+    margin-top: 0.75rem;
+  }
+  .sweep-config .data-config-row {
+    margin-bottom: 0.5rem;
+  }
+  .snapshot-count {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 0.25rem;
+  }
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <h1>Gas Laws Explorer</h1>
+    <div class="subtitle">IB Chemistry SimEngine — Structure 1.5</div>
+  </div>
+  <div class="header-right">
+    <span class="header-badge hl">HL</span>
+    <div id="headerToggles"></div>
+  </div>
+</div>
+
+<!-- MAIN CONTENT -->
+<div class="sim-container" id="main-content">
+
+  <!-- Top row: particle canvas + controls -->
+  <div class="sim-top-row">
+
+    <!-- Particle canvas card -->
+    <div class="sim-card">
+      <div class="sim-card-header">Particle Simulation</div>
+      <div class="sim-card-body" style="padding: 0;">
+        <div class="particle-canvas-wrap">
+          <canvas id="particleCanvas" aria-label="Gas particle simulation" role="img"></canvas>
+        </div>
+        <div class="caption-bar" id="captionBar">
+          Press Space to play/pause. Use sliders to explore gas law relationships.
+        </div>
+      </div>
+    </div>
+
+    <!-- Control panel card -->
+    <div class="sim-card control-panel-card">
+      <div class="sim-card-header">Controls</div>
+      <div class="sim-card-body control-panel">
+        <input type="text" class="palette-search" id="paletteSearch" placeholder="Search controls..." aria-label="Search controls">
+        <div id="paletteList"></div>
+        <div id="controlSliders"></div>
+        <div id="controlDropdowns"></div>
+        <div class="preset-section" id="presetSection">
+          <select id="presetSelect" aria-label="Teacher presets">
+            <option value="">Teacher Presets...</option>
+          </select>
+        </div>
+        <div class="sim-playback" id="playbackBtns"></div>
+        <div class="sim-speed-row" id="speedBtns">
+          <span class="sim-label">Speed:</span>
+        </div>
+        <div class="sim-info" aria-live="polite">
+          <div class="sim-info-title">Live Readout</div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">P (simulated)</span>
+            <span class="sim-info-value" id="infoPressSim">—</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">P (ideal)</span>
+            <span class="sim-info-value" id="infoPressIdeal">—</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Avg speed</span>
+            <span class="sim-info-value" id="infoAvgSpeed">—</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Avg KE</span>
+            <span class="sim-info-value" id="infoAvgKE">—</span>
+          </div>
+          <div class="sim-info-row">
+            <span class="sim-info-label">Particles</span>
+            <span class="sim-info-value" id="infoParticles">—</span>
+          </div>
+        </div>
+
+        <!-- Data Collection Panel -->
+        <div class="data-panel">
+          <div class="data-panel-header" id="dataPanelHeader">
+            <span class="data-panel-arrow" id="dataPanelArrow">&#9654;</span>
+            <span>Data Collection</span>
+          </div>
+          <div class="data-panel-body" id="dataPanelBody">
+
+            <!-- Config: Duration + Points -->
+            <div class="data-config-row">
+              <div class="data-config">
+                <label for="dataDuration">Duration</label>
+                <select id="dataDuration">
+                  <option value="10">10 s</option>
+                  <option value="30" selected>30 s</option>
+                  <option value="60">60 s</option>
+                  <option value="120">120 s</option>
+                </select>
+              </div>
+              <div class="data-config">
+                <label for="dataPoints">Data Points</label>
+                <select id="dataPoints">
+                  <option value="10">10</option>
+                  <option value="20" selected>20</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Variable Checkboxes -->
+            <div class="data-config">
+              <label>Variables</label>
+              <div class="var-checkboxes" id="varCheckboxes"></div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="data-btn-row" id="dataControlBtns">
+              <button class="data-btn data-btn-primary" id="btnStartRun">Start Collection</button>
+              <button class="data-btn" id="btnSnapshot">Snapshot</button>
+            </div>
+
+            <!-- Progress section (hidden) -->
+            <div id="dataProgressSection" class="data-section-hidden">
+              <div class="progress-bar">
+                <div class="progress-bar-fill" id="dataProgressFill"></div>
+              </div>
+              <div class="progress-text" id="dataProgressText">Recording...</div>
+              <div class="data-btn-row">
+                <button class="data-btn" id="btnStopRun">Stop Early</button>
+              </div>
+            </div>
+
+            <!-- Complete section (hidden) -->
+            <div id="dataCompleteSection" class="data-section-hidden">
+              <div class="data-complete-msg" id="dataCompleteMsg">&#10003; Collection complete</div>
+              <div class="data-btn-row">
+                <button class="data-btn data-btn-primary" id="btnDownloadRun">Download CSV</button>
+                <button class="data-btn" id="btnClearRun">Clear</button>
+              </div>
+            </div>
+
+            <!-- Snapshots section -->
+            <div style="margin-top: 0.75rem; border-top: 1px solid var(--border); padding-top: 0.5rem;">
+              <div class="snapshot-count" id="snapshotCount">Snapshots: 0</div>
+              <div id="snapshotTableWrap" class="data-section-hidden">
+                <table class="snapshot-table" id="snapshotTable">
+                  <thead id="snapshotTableHead"></thead>
+                  <tbody id="snapshotTableBody"></tbody>
+                </table>
+              </div>
+              <div id="snapshotBtns" class="data-btn-row data-section-hidden">
+                <button class="data-btn" id="btnDownloadSnapshots">Download Snapshots</button>
+              </div>
+            </div>
+
+            <!-- Sweep section (teacher only) -->
+            <div class="sweep-config data-section-hidden" id="sweepSection">
+              <div class="data-config">
+                <label for="sweepParam">Vary Parameter</label>
+                <select id="sweepParam">
+                  <option value="temperature">Temperature</option>
+                  <option value="volume">Volume</option>
+                  <option value="moles">Moles</option>
+                </select>
+              </div>
+              <div class="data-config-row">
+                <div class="data-config">
+                  <label for="sweepFrom">From</label>
+                  <input type="number" id="sweepFrom" value="100">
+                </div>
+                <div class="data-config">
+                  <label for="sweepTo">To</label>
+                  <input type="number" id="sweepTo" value="1000">
+                </div>
+              </div>
+              <div class="data-config-row">
+                <div class="data-config">
+                  <label for="sweepSteps">Steps</label>
+                  <input type="number" id="sweepSteps" value="10" min="2" max="50">
+                </div>
+                <div class="data-config">
+                  <label for="sweepSettle">Settle (frames)</label>
+                  <input type="number" id="sweepSettle" value="60" min="10" max="300">
+                </div>
+              </div>
+              <div class="data-btn-row">
+                <button class="data-btn data-btn-primary" id="btnStartSweep">Run Sweep</button>
+              </div>
+              <div id="sweepProgressSection" class="data-section-hidden">
+                <div class="progress-bar">
+                  <div class="progress-bar-fill" id="sweepProgressFill"></div>
+                </div>
+                <div class="progress-text" id="sweepProgressText">Sweeping...</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graph row -->
+  <div class="sim-graph-row">
+    <div class="sim-card">
+      <div class="sim-card-header">Pressure vs Volume (Isothermal)</div>
+      <div class="sim-card-body">
+        <canvas id="pvGraph" class="graph-canvas" aria-label="Pressure vs volume graph" role="img"></canvas>
+      </div>
+    </div>
+    <div class="sim-card">
+      <div class="sim-card-header">Maxwell-Boltzmann Speed Distribution</div>
+      <div class="sim-card-body">
+        <canvas id="mbGraph" class="graph-canvas" aria-label="Maxwell-Boltzmann speed distribution" role="img"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- HL panel -->
+  <div class="sim-card hl-panel">
+    <div class="sim-card-header">Ideal vs Real Gas (Van der Waals) — HL</div>
+    <div class="sim-card-body">
+      <canvas id="hlGraph" class="graph-canvas" aria-label="Ideal vs real gas comparison graph" role="img"></canvas>
+    </div>
+  </div>
+
+</div>
+
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>R</kbd> Reset &nbsp; <kbd>/</kbd> Search
+</div>
+
+<div class="footer">IB Chemistry SimEngine — Gas Laws Explorer &bull; Structure 1.5 — Ideal Gases</div>
+
+<!-- ENGINE -->
+<script src="../../3-Resources/SimEngine/SimEngine_Core.js"></script>
+
+<script>
+(function () {
+  'use strict';
+
+  // ── Defaults ──
+  var DEFAULTS = {
+    temperature: 300,
+    volume: 2.0,
+    moles: 3,
+    gasSpecies: 'ideal',
+    playing: true,
+    speed: 1,
+    mode: 'student',
+    hlEnabled: false
+  };
+
+  // ── Canvas setup ──
+  var DPR = window.devicePixelRatio || 1;
+  var SIM_W = 840;
+  var SIM_H = 420;
+  var particleCanvas = document.getElementById('particleCanvas');
+  particleCanvas.width = SIM_W * DPR;
+  particleCanvas.height = SIM_H * DPR;
+  var simCtx = particleCanvas.getContext('2d');
+  simCtx.scale(DPR, DPR);
+  // Container bounds within the canvas (leave margin for piston drawing)
+  var CONTAINER_MARGIN = 20;
+  var PISTON_WIDTH = 12;
+
+  function getContainerBounds() {
+    var vol = SimEngine.State.get('volume') || DEFAULTS.volume;
+    var fraction = vol / 5.0; // volume range 0.5–5.0, normalized
+    var maxRight = SIM_W - CONTAINER_MARGIN - PISTON_WIDTH;
+    var left = CONTAINER_MARGIN;
+    var right = left + (maxRight - left) * fraction;
+    return {
+      left: left,
+      top: CONTAINER_MARGIN,
+      right: right,
+      bottom: SIM_H - CONTAINER_MARGIN
+    };
+  }
+
+  // ── Initialize State ──
+  SimEngine.State.reset(DEFAULTS);
+
+  // Initialize particles
+  var bounds = getContainerBounds();
+  SimEngine.Particles.init(DEFAULTS.moles, DEFAULTS.temperature, bounds);
+
+  // ── Create Controls ──
+  SimEngine.Controls.createSlider({
+    id: 'tempSlider', label: 'Temperature', unit: ' K',
+    min: 100, max: 1000, step: 10, value: DEFAULTS.temperature,
+    stateKey: 'temperature', container: 'controlSliders'
+  });
+  SimEngine.Controls.createSlider({
+    id: 'volSlider', label: 'Volume', unit: '',
+    min: 0.5, max: 5.0, step: 0.1, value: DEFAULTS.volume,
+    stateKey: 'volume', container: 'controlSliders'
+  });
+  SimEngine.Controls.createSlider({
+    id: 'molSlider', label: 'Moles (n)', unit: '',
+    min: 1, max: 10, step: 1, value: DEFAULTS.moles,
+    stateKey: 'moles', container: 'controlSliders'
+  });
+  SimEngine.Controls.createDropdown({
+    id: 'speciesSelect', label: 'Gas Species',
+    options: [
+      { value: 'ideal', text: 'Ideal Gas' },
+      { value: 'he',    text: 'Helium (He)' },
+      { value: 'n2',    text: 'Nitrogen (N\u2082)' },
+      { value: 'co2',   text: 'Carbon Dioxide (CO\u2082)' }
+    ],
+    value: DEFAULTS.gasSpecies,
+    stateKey: 'gasSpecies', container: 'controlDropdowns'
+  });
+
+  // Playback buttons
+  var playBtn = SimEngine.Controls.createButton({
+    id: 'playBtn', text: 'Play', className: 'primary',
+    container: 'playbackBtns',
+    onClick: function () { SimEngine.State.set('playing', true); }
+  });
+  var pauseBtn = SimEngine.Controls.createButton({
+    id: 'pauseBtn', text: 'Pause',
+    container: 'playbackBtns',
+    onClick: function () { SimEngine.State.set('playing', false); }
+  });
+  SimEngine.Controls.createButton({
+    id: 'resetBtn', text: 'Reset',
+    container: 'playbackBtns',
+    onClick: function () { resetSim(); }
+  });
+
+  // Speed buttons
+  var speeds = [0.5, 1, 2, 4];
+  speeds.forEach(function (s) {
+    var btn = document.createElement('button');
+    btn.className = 'sim-speed-btn' + (s === 1 ? ' active' : '');
+    btn.textContent = s + 'x';
+    btn.addEventListener('click', function () {
+      SimEngine.State.set('speed', s);
+      document.querySelectorAll('.sim-speed-btn').forEach(function (b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+    });
+    document.getElementById('speedBtns').appendChild(btn);
+  });
+
+  // Header toggles (SL/HL and Teacher/Student)
+  SimEngine.Controls.createToggle({
+    id: 'hlToggle', label: 'HL', labelOn: 'HL', labelOff: 'SL',
+    checked: false, stateKey: 'hlEnabled',
+    container: 'headerToggles', colorOn: '#7C3AED'
+  });
+  SimEngine.Controls.createToggle({
+    id: 'modeToggle', label: 'Mode', labelOn: 'Teacher', labelOff: 'Student',
+    checked: false, stateKey: 'mode',
+    container: 'headerToggles'
+  });
+
+  // Keyboard shortcuts
+  SimEngine.Controls.initKeyboard();
+
+  // ── Palette search ──
+  var paletteSearch = document.getElementById('paletteSearch');
+  var paletteList = document.getElementById('paletteList');
+
+  var paletteItems = [
+    { label: 'Temperature (100–1000 K)', category: 'Sliders', action: function () { document.getElementById('tempSlider').focus(); } },
+    { label: 'Volume (0.5–5.0)', category: 'Sliders', action: function () { document.getElementById('volSlider').focus(); } },
+    { label: 'Moles (1–10)', category: 'Sliders', action: function () { document.getElementById('molSlider').focus(); } },
+    { label: 'Ideal Gas', category: 'Gas Species', action: function () { SimEngine.State.set('gasSpecies', 'ideal'); document.getElementById('speciesSelect').value = 'ideal'; } },
+    { label: 'Helium (He)', category: 'Gas Species', action: function () { SimEngine.State.set('gasSpecies', 'he'); document.getElementById('speciesSelect').value = 'he'; } },
+    { label: 'Nitrogen (N\u2082)', category: 'Gas Species', action: function () { SimEngine.State.set('gasSpecies', 'n2'); document.getElementById('speciesSelect').value = 'n2'; } },
+    { label: 'Carbon Dioxide (CO\u2082)', category: 'Gas Species', action: function () { SimEngine.State.set('gasSpecies', 'co2'); document.getElementById('speciesSelect').value = 'co2'; } },
+    { label: 'Play', category: 'Playback', action: function () { SimEngine.State.set('playing', true); } },
+    { label: 'Pause', category: 'Playback', action: function () { SimEngine.State.set('playing', false); } },
+    { label: 'Reset', category: 'Playback', action: function () { resetSim(); } }
+  ];
+
+  function buildPalette() {
+    while (paletteList.firstChild) { paletteList.removeChild(paletteList.firstChild); }
+    var filter = paletteSearch.value.toLowerCase();
+    var lastCat = '';
+    for (var i = 0; i < paletteItems.length; i++) {
+      var item = paletteItems[i];
+      if (filter && item.label.toLowerCase().indexOf(filter) === -1 && item.category.toLowerCase().indexOf(filter) === -1) {
+        continue;
+      }
+      if (item.category !== lastCat) {
+        lastCat = item.category;
+        var catEl = document.createElement('div');
+        catEl.className = 'palette-category';
+        catEl.textContent = item.category;
+        paletteList.appendChild(catEl);
+      }
+      var btn = document.createElement('button');
+      btn.className = 'palette-item';
+      btn.textContent = item.label;
+      btn.setAttribute('data-index', String(i));
+      (function (action) {
+        btn.addEventListener('click', function () { action(); });
+      })(item.action);
+      paletteList.appendChild(btn);
+    }
+  }
+  buildPalette();
+  paletteSearch.addEventListener('input', buildPalette);
+
+  // ── Teacher presets ──
+  var presetSelect = document.getElementById('presetSelect');
+  var TEACHER_PRESETS = [
+    {
+      name: "Boyle\u2019s Law",
+      description: "Isothermal: vary volume, observe inverse P-V relationship",
+      settings: { temperature: 300, volume: 2.0, moles: 3, gasSpecies: 'ideal', playing: true }
+    },
+    {
+      name: "Charles\u2019s Law",
+      description: "Isobaric: vary temperature, observe V-T relationship",
+      settings: { temperature: 200, volume: 1.5, moles: 3, gasSpecies: 'ideal', playing: true }
+    },
+    {
+      name: "Ideal vs Real",
+      description: "High pressure / low T: show deviation from ideal behavior",
+      settings: { temperature: 150, volume: 0.8, moles: 8, gasSpecies: 'co2', playing: true, hlEnabled: true }
+    }
+  ];
+
+  function buildPresetOptions() {
+    while (presetSelect.firstChild) { presetSelect.removeChild(presetSelect.firstChild); }
+    var defOpt = document.createElement('option');
+    defOpt.value = '';
+    defOpt.textContent = 'Teacher Presets...';
+    presetSelect.appendChild(defOpt);
+    for (var i = 0; i < TEACHER_PRESETS.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = String(i);
+      opt.textContent = TEACHER_PRESETS[i].name;
+      presetSelect.appendChild(opt);
+    }
+  }
+  buildPresetOptions();
+
+  presetSelect.addEventListener('change', function () {
+    var idx = this.value;
+    if (idx === '') { return; }
+    var preset = TEACHER_PRESETS[parseInt(idx, 10)];
+    if (!preset) { return; }
+    var s = preset.settings;
+
+    // Apply all settings
+    if (s.temperature !== undefined) { SimEngine.State.set('temperature', s.temperature); }
+    if (s.volume !== undefined) { SimEngine.State.set('volume', s.volume); }
+    if (s.moles !== undefined) { SimEngine.State.set('moles', s.moles); }
+    if (s.gasSpecies !== undefined) { SimEngine.State.set('gasSpecies', s.gasSpecies); }
+    if (s.playing !== undefined) { SimEngine.State.set('playing', s.playing); }
+    if (s.hlEnabled !== undefined) {
+      SimEngine.State.set('hlEnabled', s.hlEnabled);
+      document.body.classList.toggle('hl-active', s.hlEnabled);
+    }
+
+    // Sync UI controls
+    var tempSlider = document.getElementById('tempSlider');
+    var volSlider = document.getElementById('volSlider');
+    var molSlider = document.getElementById('molSlider');
+    var speciesSelect = document.getElementById('speciesSelect');
+    if (tempSlider && s.temperature !== undefined) { tempSlider.value = s.temperature; tempSlider.dispatchEvent(new Event('input')); }
+    if (volSlider && s.volume !== undefined) { volSlider.value = s.volume; volSlider.dispatchEvent(new Event('input')); }
+    if (molSlider && s.moles !== undefined) { molSlider.value = s.moles; molSlider.dispatchEvent(new Event('input')); }
+    if (speciesSelect && s.gasSpecies !== undefined) { speciesSelect.value = s.gasSpecies; speciesSelect.dispatchEvent(new Event('change')); }
+
+    // Re-initialize particles with new settings
+    var b = getContainerBounds();
+    SimEngine.Particles.setSpecies(s.gasSpecies || DEFAULTS.gasSpecies);
+    SimEngine.Particles.init(s.moles || DEFAULTS.moles, s.temperature || DEFAULTS.temperature, b);
+
+    // Clear graphs for fresh data
+    pvGraph.clearSeries('measured');
+    pvGraph.clearSeries('ideal');
+
+    // Update caption
+    var captionBar = document.getElementById('captionBar');
+    captionBar.textContent = preset.name + ': ' + preset.description;
+
+    // Reset select
+    this.value = '';
+  });
+
+  // ── Enhanced keyboard shortcuts ──
+  document.addEventListener('keydown', function (e) {
+    // Skip if user is typing in an input/textarea/select
+    var tag = e.target.tagName.toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select') {
+      if (e.key === 'Escape') { e.target.blur(); }
+      return;
+    }
+    switch (e.key.toLowerCase()) {
+      case '/':
+        e.preventDefault();
+        paletteSearch.focus();
+        paletteSearch.select();
+        break;
+      case 'arrowdown':
+        if (document.activeElement === paletteSearch) {
+          e.preventDefault();
+          var items = paletteList.querySelectorAll('.palette-item');
+          if (items.length) { items[0].focus(); }
+        }
+        break;
+    }
+  });
+
+  // ── Create Graphs ──
+  var pvGraph = SimEngine.Graph.create('pvGraph', {
+    width: 440, height: 280,
+    title: 'P vs V (Isothermal)',
+    xLabel: 'Volume (arbitrary)',
+    yLabel: 'Pressure (sim units)',
+    xRange: [0, 5.5],
+    yRange: [0, 0.1],
+    autoScaleY: true
+  });
+  pvGraph.addSeries('measured', '#0D9488', 2);
+  pvGraph.addSeries('ideal', '#2563EB', 1.5);
+
+  var mbGraph = SimEngine.Graph.create('mbGraph', {
+    width: 440, height: 280,
+    title: 'Speed Distribution',
+    xLabel: 'Speed (sim units)',
+    yLabel: 'Probability Density',
+    xRange: [0, 10],
+    yRange: [0, 1],
+    autoScaleY: true
+  });
+
+  var hlGraph = SimEngine.Graph.create('hlGraph', {
+    width: 920, height: 300,
+    title: 'Ideal vs Real Gas Deviation',
+    xLabel: 'Volume (arbitrary)',
+    yLabel: 'Pressure (sim units)',
+    xRange: [0, 5.5],
+    yRange: [0, 0.1],
+    autoScaleY: true
+  });
+  hlGraph.addSeries('ideal', '#2563EB', 2);
+  hlGraph.addSeries('vdw', '#7C3AED', 2);
+
+  // ── State change handlers ──
+  SimEngine.State.on('temperature', function (e) {
+    SimEngine.Particles.setTemperature(e.value, e.prev);
+  });
+
+  SimEngine.State.on('volume', function () {
+    var newBounds = getContainerBounds();
+    SimEngine.Particles.setBounds(newBounds);
+  });
+
+  SimEngine.State.on('moles', function (e) {
+    var T = SimEngine.State.get('temperature');
+    SimEngine.Particles.setParticleCount(e.value, T);
+  });
+
+  SimEngine.State.on('gasSpecies', function (e) {
+    SimEngine.Particles.setSpecies(e.value);
+    // Re-init to get new species behavior
+    var T = SimEngine.State.get('temperature');
+    var n = SimEngine.State.get('moles');
+    SimEngine.Particles.init(n, T, getContainerBounds());
+  });
+
+  SimEngine.State.on('playing', function (e) {
+    playBtn.classList.toggle('active', e.value);
+    pauseBtn.classList.toggle('active', !e.value);
+  });
+
+  SimEngine.State.on('hlEnabled', function (e) {
+    document.body.classList.toggle('hl-active', e.value);
+  });
+
+  SimEngine.State.on('mode', function (e) {
+    // mode toggle stores boolean (checkbox), convert to teacher/student
+    var isTeacher = e.value === true || e.value === 'teacher';
+    document.body.classList.toggle('teacher-active', isTeacher);
+    document.body.classList.toggle('teacher-active', isTeacher);
+  });
+
+  SimEngine.State.on('reset', function () {
+    resetSim();
+  });
+
+  function resetSim() {
+    SimEngine.State.reset(DEFAULTS);
+    var b = getContainerBounds();
+    SimEngine.Particles.setSpecies(DEFAULTS.gasSpecies);
+    SimEngine.Particles.init(DEFAULTS.moles, DEFAULTS.temperature, b);
+    pvGraph.clearSeries('measured');
+    pvGraph.clearSeries('ideal');
+    document.body.classList.remove('hl-active', 'teacher-active', 'teacher-active');
+  }
+
+  // ── Info panel update ──
+  var infoPressSim  = document.getElementById('infoPressSim');
+  var infoPressIdeal = document.getElementById('infoPressIdeal');
+  var infoAvgSpeed  = document.getElementById('infoAvgSpeed');
+  var infoAvgKE     = document.getElementById('infoAvgKE');
+  var infoParticles = document.getElementById('infoParticles');
+
+  function updateInfo() {
+    var T = SimEngine.State.get('temperature');
+    var n = SimEngine.State.get('moles');
+    var pIdeal = SimEngine.Particles.getIdealPressure(T, n);
+    infoPressIdeal.textContent = pIdeal.toFixed(4);
+    infoAvgSpeed.textContent  = SimEngine.Particles.getAverageSpeed().toFixed(2);
+    infoAvgKE.textContent     = SimEngine.Particles.getAverageKE().toFixed(4);
+    infoParticles.textContent = SimEngine.Particles.getCount();
+
+    if (SimEngine.Particles.isPressureWarmedUp()) {
+      var pSim = SimEngine.Particles.getSmoothedPressure();
+      infoPressSim.textContent = pSim.toFixed(4);
+    } else {
+      infoPressSim.textContent = 'warming up\u2026';
+    }
+  }
+
+  // ── Render container walls + piston ──
+  function drawContainer() {
+    var b = getContainerBounds();
+    simCtx.strokeStyle = '#1E293B';
+    simCtx.lineWidth = 3;
+
+    // Draw 3 walls (left, top, bottom)
+    simCtx.beginPath();
+    simCtx.moveTo(b.left, b.bottom);
+    simCtx.lineTo(b.left, b.top);
+    simCtx.lineTo(b.right + PISTON_WIDTH, b.top);
+    simCtx.moveTo(b.left, b.bottom);
+    simCtx.lineTo(b.right + PISTON_WIDTH, b.bottom);
+    simCtx.stroke();
+
+    // Piston (right wall)
+    simCtx.fillStyle = '#94A3B8';
+    simCtx.fillRect(b.right, b.top, PISTON_WIDTH, b.bottom - b.top);
+    simCtx.strokeStyle = '#475569';
+    simCtx.lineWidth = 2;
+    simCtx.strokeRect(b.right, b.top, PISTON_WIDTH, b.bottom - b.top);
+
+    // Piston handle lines
+    simCtx.strokeStyle = '#64748B';
+    simCtx.lineWidth = 1;
+    var midX = b.right + PISTON_WIDTH / 2;
+    for (var yy = b.top + 10; yy < b.bottom - 5; yy += 15) {
+      simCtx.beginPath();
+      simCtx.moveTo(midX - 3, yy);
+      simCtx.lineTo(midX + 3, yy);
+      simCtx.stroke();
+    }
+  }
+
+  // ── Data Collection Setup ──
+  SimEngine.DataCollector.registerVariables([
+    { key: 'time', label: 'Time (s)', getter: function() { return parseFloat((frameCount / 60).toFixed(2)); }, default: true },
+    { key: 'pressure', label: 'Pressure (sim)', getter: function() { return SimEngine.Particles.isPressureWarmedUp() ? SimEngine.Particles.getSmoothedPressure() : 0; }, default: true },
+    { key: 'pressureIdeal', label: 'Pressure (ideal)', getter: function() { return SimEngine.Particles.getIdealPressure(SimEngine.State.get('temperature'), SimEngine.State.get('moles')); }, default: true },
+    { key: 'temperature', label: 'Temperature (K)', getter: function() { return SimEngine.State.get('temperature'); }, default: true },
+    { key: 'volume', label: 'Volume', getter: function() { return SimEngine.State.get('volume'); } },
+    { key: 'avgSpeed', label: 'Avg Speed', getter: function() { return SimEngine.Particles.getAverageSpeed(); } },
+    { key: 'avgKE', label: 'Avg KE', getter: function() { return SimEngine.Particles.getAverageKE(); } },
+    { key: 'moles', label: 'Moles (n)', getter: function() { return SimEngine.State.get('moles'); } }
+  ]);
+
+  // Build variable checkboxes dynamically
+  function buildVarCheckboxes() {
+    var container = document.getElementById('varCheckboxes');
+    while (container.firstChild) {
+      container.removeChild(container.firstChild);
+    }
+    var vars = SimEngine.DataCollector.getVariables();
+    for (var i = 0; i < vars.length; i++) {
+      var v = vars[i];
+      var lbl = document.createElement('label');
+      var cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.value = v.key;
+      if (v.default) { cb.checked = true; }
+      var span = document.createElement('span');
+      span.textContent = v.label;
+      lbl.appendChild(cb);
+      lbl.appendChild(span);
+      container.appendChild(lbl);
+    }
+  }
+  buildVarCheckboxes();
+
+  // Get selected variable keys from checkboxes
+  function getSelectedVarKeys() {
+    var container = document.getElementById('varCheckboxes');
+    var checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    var keys = [];
+    for (var i = 0; i < checkboxes.length; i++) {
+      if (checkboxes[i].checked) {
+        keys.push(checkboxes[i].value);
+      }
+    }
+    return keys;
+  }
+
+  // Panel toggle
+  document.getElementById('dataPanelHeader').addEventListener('click', function() {
+    var body = document.getElementById('dataPanelBody');
+    var arrow = document.getElementById('dataPanelArrow');
+    var isOpen = body.classList.contains('open');
+    if (isOpen) {
+      body.classList.remove('open');
+      arrow.textContent = '\u25B6';
+    } else {
+      body.classList.add('open');
+      arrow.textContent = '\u25BC';
+    }
+  });
+
+  // Start Collection button
+  document.getElementById('btnStartRun').addEventListener('click', function() {
+    var duration = parseInt(document.getElementById('dataDuration').value, 10);
+    var points = parseInt(document.getElementById('dataPoints').value, 10);
+    var vars = getSelectedVarKeys();
+    if (vars.length === 0) { return; }
+
+    SimEngine.DataCollector.startRun({
+      durationSec: duration,
+      pointCount: points,
+      variables: vars
+    });
+
+    document.getElementById('dataControlBtns').classList.add('data-section-hidden');
+    document.getElementById('dataProgressSection').classList.remove('data-section-hidden');
+    document.getElementById('dataCompleteSection').classList.add('data-section-hidden');
+  });
+
+  // Stop Early button
+  document.getElementById('btnStopRun').addEventListener('click', function() {
+    SimEngine.DataCollector.stopRun();
+  });
+
+  // Snapshot button
+  document.getElementById('btnSnapshot').addEventListener('click', function() {
+    SimEngine.DataCollector.recordSnapshot();
+  });
+
+  // Download Run CSV button
+  document.getElementById('btnDownloadRun').addEventListener('click', function() {
+    var species = SimEngine.State.get('gasSpecies') || 'gaslaws';
+    var filename = 'simengine_' + species + '_run.csv';
+    SimEngine.DataCollector.download(filename, 'run');
+  });
+
+  // Download Snapshots button
+  document.getElementById('btnDownloadSnapshots').addEventListener('click', function() {
+    var species = SimEngine.State.get('gasSpecies') || 'gaslaws';
+    var filename = 'simengine_' + species + '_snapshots.csv';
+    SimEngine.DataCollector.download(filename, 'snapshots');
+  });
+
+  // Clear button
+  document.getElementById('btnClearRun').addEventListener('click', function() {
+    SimEngine.DataCollector.clearData();
+    document.getElementById('dataCompleteSection').classList.add('data-section-hidden');
+    document.getElementById('dataProgressSection').classList.add('data-section-hidden');
+    document.getElementById('dataControlBtns').classList.remove('data-section-hidden');
+    document.getElementById('dataProgressFill').style.width = '0%';
+    document.getElementById('dataProgressText').textContent = 'Recording...';
+  });
+
+  // Start Sweep button
+  document.getElementById('btnStartSweep').addEventListener('click', function() {
+    var paramKey = document.getElementById('sweepParam').value;
+    var from = parseFloat(document.getElementById('sweepFrom').value);
+    var to = parseFloat(document.getElementById('sweepTo').value);
+    var steps = parseInt(document.getElementById('sweepSteps').value, 10);
+    var settle = parseInt(document.getElementById('sweepSettle').value, 10);
+    var vars = getSelectedVarKeys();
+
+    SimEngine.DataCollector.startSweep({
+      paramKey: paramKey,
+      from: from,
+      to: to,
+      steps: steps,
+      settleFrames: settle,
+      variables: vars
+    });
+
+    document.getElementById('sweepProgressSection').classList.remove('data-section-hidden');
+    document.getElementById('sweepProgressFill').style.width = '0%';
+    document.getElementById('sweepProgressText').textContent = 'Sweeping... 0/' + steps + ' steps';
+  });
+
+  // -- Data Collection Event Listeners --
+
+  SimEngine.State.on('dataCollectionProgress', function(data) {
+    var pct = data.percent || 0;
+    document.getElementById('dataProgressFill').style.width = pct + '%';
+    document.getElementById('dataProgressText').textContent = 'Recording... ' + data.collected + '/' + data.total + ' points';
+  });
+
+  SimEngine.State.on('dataCollectionComplete', function() {
+    document.getElementById('dataProgressSection').classList.add('data-section-hidden');
+    document.getElementById('dataCompleteSection').classList.remove('data-section-hidden');
+  });
+
+  SimEngine.State.on('dataCollectionStop', function(data) {
+    document.getElementById('dataProgressSection').classList.add('data-section-hidden');
+    if (data.collected > 0) {
+      document.getElementById('dataCompleteSection').classList.remove('data-section-hidden');
+    } else {
+      document.getElementById('dataControlBtns').classList.remove('data-section-hidden');
+    }
+  });
+
+  SimEngine.State.on('snapshotRecorded', function(data) {
+    document.getElementById('snapshotCount').textContent = 'Snapshots: ' + data.count;
+    document.getElementById('snapshotTableWrap').classList.remove('data-section-hidden');
+    document.getElementById('snapshotBtns').classList.remove('data-section-hidden');
+
+    // Display first 3 columns in snapshot table: time, pressure, temperature
+    var displayKeys = ['time', 'pressure', 'temperature'];
+    var displayLabels = ['Time (s)', 'P (sim)', 'Temp (K)'];
+
+    var thead = document.getElementById('snapshotTableHead');
+    while (thead.firstChild) { thead.removeChild(thead.firstChild); }
+    var headerRow = document.createElement('tr');
+    for (var h = 0; h < displayLabels.length; h++) {
+      var th = document.createElement('th');
+      th.textContent = displayLabels[h];
+      headerRow.appendChild(th);
+    }
+    thead.appendChild(headerRow);
+
+    var tbody = document.getElementById('snapshotTableBody');
+    while (tbody.firstChild) { tbody.removeChild(tbody.firstChild); }
+    var snapshots = SimEngine.DataCollector.getSnapshots();
+    for (var s = 0; s < snapshots.length; s++) {
+      var tr = document.createElement('tr');
+      for (var c = 0; c < displayKeys.length; c++) {
+        var td = document.createElement('td');
+        var val = snapshots[s][displayKeys[c]];
+        if (typeof val === 'number') {
+          td.textContent = val < 0.01 && val !== 0 ? val.toExponential(2) : val.toFixed(4);
+        } else {
+          td.textContent = val !== undefined ? String(val) : '';
+        }
+        tr.appendChild(td);
+      }
+      tbody.appendChild(tr);
+    }
+  });
+
+  SimEngine.State.on('sweepProgress', function(data) {
+    var pct = data.percent || 0;
+    document.getElementById('sweepProgressFill').style.width = pct + '%';
+    document.getElementById('sweepProgressText').textContent = 'Sweeping... ' + data.step + '/' + data.total + ' steps';
+  });
+
+  SimEngine.State.on('sweepComplete', function() {
+    document.getElementById('sweepProgressSection').classList.add('data-section-hidden');
+    var species = SimEngine.State.get('gasSpecies') || 'gaslaws';
+    var filename = 'simengine_' + species + '_sweep.csv';
+    SimEngine.DataCollector.download(filename, 'sweep');
+  });
+
+  SimEngine.State.on('dataCleared', function() {
+    document.getElementById('snapshotCount').textContent = 'Snapshots: 0';
+    document.getElementById('snapshotTableWrap').classList.add('data-section-hidden');
+    document.getElementById('snapshotBtns').classList.add('data-section-hidden');
+    var tbody = document.getElementById('snapshotTableBody');
+    while (tbody.firstChild) { tbody.removeChild(tbody.firstChild); }
+    var thead = document.getElementById('snapshotTableHead');
+    while (thead.firstChild) { thead.removeChild(thead.firstChild); }
+    document.getElementById('dataCompleteSection').classList.add('data-section-hidden');
+    document.getElementById('dataProgressSection').classList.add('data-section-hidden');
+    document.getElementById('dataControlBtns').classList.remove('data-section-hidden');
+    document.getElementById('dataProgressFill').style.width = '0%';
+  });
+
+  // Teacher mode: show/hide sweep section
+  function updateTeacherDataUI() {
+    var mode = SimEngine.State.get('mode');
+    var isTeacher = (mode === true || mode === 'teacher');
+    var sweepSection = document.getElementById('sweepSection');
+    if (isTeacher) {
+      sweepSection.classList.remove('data-section-hidden');
+    } else {
+      sweepSection.classList.add('data-section-hidden');
+    }
+  }
+  updateTeacherDataUI();
+
+  SimEngine.State.on('mode', function() {
+    updateTeacherDataUI();
+  });
+
+  // ── Main animation loop ──
+  var frameCount = 0;
+  var lastPVUpdate = 0;
+
+  var _raf = window.requestAnimationFrame || function (cb) { setTimeout(cb, 16); };
+  function animate() {
+    _raf(animate);
+
+    var playing = SimEngine.State.get('playing');
+    var speed = SimEngine.State.get('speed') || 1;
+
+    if (playing) {
+      // Step physics (multiple sub-steps for higher speeds)
+      var steps = Math.round(speed);
+      for (var s = 0; s < steps; s++) {
+        var vdwInteractions = SimEngine.Particles.step(1);
+      }
+      frameCount++;
+
+      // Data collection tick (once per frame, outside speed loop)
+      SimEngine.DataCollector.tick();
+    }
+
+    // Render particle canvas
+    simCtx.clearRect(0, 0, SIM_W, SIM_H);
+    drawContainer();
+
+    var speciesKey = SimEngine.State.get('gasSpecies');
+    var showSpeciesColor = speciesKey !== 'ideal';
+    SimEngine.Particles.render(simCtx, showSpeciesColor);
+
+    // Render VdW interaction lines if HL
+    if (SimEngine.State.get('hlEnabled') && vdwInteractions) {
+      SimEngine.Particles.renderVdWInteractions(simCtx, vdwInteractions);
+    }
+
+    // Update info panel every 10 frames
+    if (frameCount % 10 === 0) {
+      updateInfo();
+    }
+
+    // Update MB graph every 15 frames
+    if (playing && frameCount % 15 === 0) {
+      var T = SimEngine.State.get('temperature');
+      var hist = SimEngine.Particles.getSpeedHistogram(25);
+      var theory = SimEngine.Particles.getMBTheoryCurve(T, 80);
+
+      mbGraph.setRanges([0, Math.max(hist.maxSpeed, theory.maxV)], null);
+      mbGraph.setHistogramData(hist.bins, hist.counts, '#0D9488');
+      mbGraph.setOverlayCurve(theory.xs, theory.ys, '#EF4444');
+      mbGraph.draw();
+    }
+
+    // Update PV graph periodically — add current P,V point
+    // Only plot once pressure rolling average is warmed up
+    if (playing && SimEngine.Particles.isPressureWarmedUp() && frameCount % 30 === 0) {
+      var V = SimEngine.State.get('volume');
+      var T = SimEngine.State.get('temperature');
+      var n = SimEngine.State.get('moles');
+      var pSim = SimEngine.Particles.getSmoothedPressure();
+      var pIdeal = SimEngine.Particles.getIdealPressure(T, n);
+
+      pvGraph.addPoint('measured', V, pSim);
+      pvGraph.addPoint('ideal', V, pIdeal);
+      pvGraph.draw();
+    }
+
+    // Update HL graph
+    if (SimEngine.State.get('hlEnabled') && playing && frameCount % 30 === 0) {
+      var T = SimEngine.State.get('temperature');
+      var n = SimEngine.State.get('moles');
+      hlGraph.clearSeries('ideal');
+      hlGraph.clearSeries('vdw');
+
+      for (var v = 0.5; v <= 5.0; v += 0.1) {
+        // Temporarily compute pressure at each volume
+        var tempBounds = {
+          left: CONTAINER_MARGIN,
+          top: CONTAINER_MARGIN,
+          right: CONTAINER_MARGIN + ((SIM_W - 2 * CONTAINER_MARGIN - PISTON_WIDTH) * (v / 5.0)),
+          bottom: SIM_H - CONTAINER_MARGIN
+        };
+        var tempA = (tempBounds.right - tempBounds.left) * (tempBounds.bottom - tempBounds.top);
+        var N = Math.min(n * SimEngine.Particles.PARTICLES_PER_MOLE, 600);
+        var pI = N * SimEngine.Particles.K_SIM * T / tempA;
+        hlGraph.addPoint('ideal', v, pI);
+
+        var pV = SimEngine.Particles.getVdWPressure(T, n);
+        // Recalculate VdW for this volume
+        var spec = SimEngine.Particles.SPECIES[SimEngine.State.get('gasSpecies')];
+        var nDensity = N / tempA;
+        var effectiveA = tempA - N * spec.b * 100;
+        var pVdW = effectiveA > 0 ? (N * SimEngine.Particles.K_SIM * T / effectiveA) - spec.a * nDensity * nDensity * 0.01 : pI;
+        hlGraph.addPoint('vdw', v, Math.max(pVdW, 0));
+      }
+      hlGraph.draw();
+    }
+  }
+
+  // Start animation
+  animate();
+  updateInfo();
+  mbGraph.draw();
+  pvGraph.draw();
+})();
+</script>
+
+<footer>SimEngine &mdash; Gas Laws &bull; H=HL T=Teacher</footer>
+</body>
+</html>
