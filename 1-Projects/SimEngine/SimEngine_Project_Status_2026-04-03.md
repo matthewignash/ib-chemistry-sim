@@ -1,8 +1,8 @@
-# SimEngine Project Status — April 4, 2026
+# SimEngine Project Status — April 5, 2026
 
 ## Executive Summary
 
-**36 interactive HTML simulations** have been built, covering all 18 of the 18 IB Chemistry 2025 syllabus subtopics — **100% syllabus coverage achieved**. The original architecture planned ~82 simulation modules across 7 phases. Phases 1–3 complete, Phase 7 complete with three trainers (Uncertainty & Error, Graph Interpretation, Equipment Recognition). Calorimetry Lab, Qualitative Analysis Lab, Titration Lab, and Gravimetric Analysis Lab sims have been added to address the highest-impact gaps identified in the Kognity lab alignment audit. Phase 4 (Virtual Lab Builder) is in progress with the LabBuilder sim completed.
+**36 interactive HTML simulations** have been built, covering all 18 IB Chemistry 2025 syllabus subtopics — **100% syllabus coverage achieved**. The original architecture planned ~82 simulation modules across 7 phases. **Phases 1–4 and 7 are COMPLETE.** Phase 4 Lab Builder has 6 guided assembly templates and 37 canvas-drawn equipment items. A comprehensive polish pass has been applied: IB content accuracy fixes, full ARIA accessibility attributes across all sims, and normalized CSS styling. Phases 5–6 (Vernier Sensors, Advanced IA) remain not started.
 
 ---
 
@@ -180,10 +180,10 @@ All planned topic-level simulations from the architecture doc have been built, c
 - Graphical Analysis UI not built
 - Sensor configuration files not created
 
-### Phase 6: IA Scaffold — NOT STARTED
-- No IA workflow modules (Design → Collect → Process → Evaluate)
-- No rubric-aligned prompts
-- No embedded math checks in labs
+### Phase 6: Advanced IA Workflow — NOT STARTED (IAScaffold is a partial MVP)
+- IAScaffold sim covers basic IA workflow (Research Design → Data Analysis → Conclusion → Evaluation)
+- No advanced rubric-aligned assessment integration
+- No query param deep linking from lab sims (?lab= parameter)
 
 ### Phase 7: Math Skills Trainers — COMPLETE (3 of 3)
 - **Uncertainty/error propagation trainer** — **COMPLETE** (`SimEngine_UncertaintyTrainer.html`, 4 tabs: Reading Uncertainty, Propagation, % Error, Practice)
@@ -234,11 +234,22 @@ All planned topic-level simulations from the architecture doc have been built, c
 12. ~~Consolidate all sims into a single index/launcher page for student access~~ — **DONE** (April 4, SimEngine_Index.html — searchable card-based launcher, SL/HL filter, section quick-jump, responsive mobile layout, keyboard shortcuts)
 13. ~~Visual overlap audit~~ — **DONE** (April 4, fixed OrganicMechanisms curly arrow z-order, fixed Electrochem ion label hidden behind electrode, verified CovalentBonding/VSEPR/HessLaw/BornHaber)
 14. ~~Equipment recognition trainer (Phase 7)~~ — **DONE** (April 4, SimEngine_EquipmentTrainer.html — 26 equipment items with canvas drawings, 4 tabs: Identification, Selection (14 scenarios), Precision, Practice; Phase 7 now complete 3/3)
-15. Equipment.json data file (lab apparatus for future Phase 4)
+15. ~~Equipment.json data file~~ — **DONE** (April 4, 50 items for Phase 4)
+
+### April 5 Sprint:
+16. ~~DPR canvas doubling bug~~ — **DONE** (April 5, fixed setupCanvas() in 5 sims using data-w/data-h attributes to prevent re-reading already-scaled dimensions)
+17. ~~Phase 4: Virtual Lab Builder~~ — **DONE** (April 5, SimEngine_LabBuilder.html — 2 tabs, 31 draw functions, guided + sandbox modes, distillation + titration templates)
+18. ~~Comprehensive polish pass~~ — **DONE** (April 5, 3 waves across all 37 files):
+    - Wave 1: Fixed 5 IB bond enthalpy values (C–O, C=O, N≡N, C–Cl, C–Br), added 'use strict' to PeriodicTrends
+    - Wave 2: Added aria-label to all canvas/input elements, role=tablist/tab/tabpanel, aria-live regions, skip-to-content links
+    - Wave 3: Normalized CSS palette (--text, --blue), added --orange/--green vars, standardized headers/footers/tab-bars
+19. ~~Extended LabBuilder templates~~ — **DONE** (April 5, 4 new templates: Recrystallization, Filtration & Evaporation, Coffee-Cup Calorimetry, Paper/TLC Chromatography + 6 new equipment items)
 
 ### Long-term (summer/next year):
-16. Phase 4–6: Virtual labs with LabBuilder
+20. Phase 5: Vernier Sensor Simulation
+21. Phase 6: Advanced IA Workflow (rubric alignment, deep linking)
+22. Equipment photo library for LabBuilder
 
 ---
 
-*Last updated: April 4, 2026 (revised to reflect 31 sims + CalorimetryLab added for Kognity lab alignment, Phase 7 complete with 3 trainers: Uncertainty, Graph, Equipment)*
+*Last updated: April 5, 2026. 36 sims, 100% syllabus coverage, Phases 1–4 and 7 complete, comprehensive accessibility + visual polish applied.*
