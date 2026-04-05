@@ -1,37 +1,33 @@
-# Copyrighted textbook resources (keep local only)
-3-Resources/Pearson IB Chemistry HL/
-3-Resources/Kognity/
-3-Resources/Pearson_*.pdf
-3-Resources/IB-Guide/
+# ============================================
+# Only SimEngine simulation files belong in this repo.
+# Everything else stays local.
+# ============================================
 
-# POGIL downloads (copyrighted)
-POGIL IB Versions/
-POGIL download*/
-POGIL_IB_Alignment_Guide.pdf
+# Ignore everything by default
+*
 
-# Mock exams & assessments with answer keys
-Mock Exam/
-2-Areas/Assessment-Bank/
+# Allow SimEngine sims and supporting files
+!1-Projects/
+!1-Projects/SimEngine/
+!1-Projects/SimEngine/**
 
-# Large binary files (local only)
+# Allow SimEngine core engine, data, and scripts
+!3-Resources/
+!3-Resources/SimEngine/
+!3-Resources/SimEngine/**
+
+# Allow repo config
+!.gitignore
+!vercel.json
+
+# Still exclude binaries and editor junk inside allowed dirs
 *.pptx
 *.docx
 *.png
 *.gif
-Annual Calendar*.pdf
-Scheduling Proposal*.xlsx
-Line spectra*.pdf
-The big picture*.pdf
-The hydrogen emission spectrum*.pdf
-
-# Electrochemistry unit lesson plans (contains copyrighted PPTs)
-1-Projects/R3.2-Electrochemistry-Unit/Lesson-Plans/
-
-# OS / editor
+*.xlsx
 .DS_Store
 .~lock.*
 *.swp
 *~
-
-# Claude Code config (session-specific)
 .claude/
