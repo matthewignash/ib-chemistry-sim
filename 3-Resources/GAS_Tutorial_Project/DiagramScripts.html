@@ -1,0 +1,597 @@
+<script>
+// ═══════════════════════════════════════════
+// ROUGH.JS DRAWING HELPERS
+// ═══════════════════════════════════════════
+var DPR = window.devicePixelRatio || 1;
+
+function setupCanvas(id, w, h) {
+  var c = document.getElementById(id);
+  c.width = w * DPR;
+  c.height = h * DPR;
+  c.style.width = w + 'px';
+  c.style.height = h + 'px';
+  var ctx = c.getContext('2d');
+  ctx.scale(DPR, DPR);
+  return { canvas: c, ctx: ctx, rc: rough.canvas(c) };
+}
+
+function txt(ctx, str, x, y, opts) {
+  opts = opts || {};
+  ctx.save();
+  ctx.font = (opts.weight||'400') + ' ' + (opts.size||14) + 'px ' + (opts.font||"'Caveat', cursive");
+  ctx.fillStyle = opts.color || '#1E293B';
+  ctx.textAlign = opts.align || 'center';
+  ctx.textBaseline = opts.baseline || 'middle';
+  if (opts.rotate) {
+    ctx.translate(x, y);
+    ctx.rotate(opts.rotate * Math.PI / 180);
+    ctx.fillText(str, 0, 0);
+  } else {
+    ctx.fillText(str, x, y);
+  }
+  ctx.restore();
+}
+
+function arw(rc, ctx, x1, y1, x2, y2, color, width) {
+  color = color || '#0D9488'; width = width || 2;
+  rc.line(x1, y1, x2, y2, { stroke: color, strokeWidth: width, roughness: 1.2 });
+  var a = Math.atan2(y2 - y1, x2 - x1), hl = 10;
+  ctx.save(); ctx.fillStyle = color;
+  ctx.beginPath(); ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - hl * Math.cos(a - 0.4), y2 - hl * Math.sin(a - 0.4));
+  ctx.lineTo(x2 - hl * Math.cos(a + 0.4), y2 - hl * Math.sin(a + 0.4));
+  ctx.closePath(); ctx.fill(); ctx.restore();
+}
+
+function dash(ctx, x1, y1, x2, y2, color, width) {
+  ctx.save(); ctx.strokeStyle = color || '#94A3B8';
+  ctx.lineWidth = width || 1.5; ctx.setLineDash([6, 4]);
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2);
+  ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+}
+
+function badge(rc, ctx, x, y, w, h, bg, label) {
+  rc.rectangle(x, y, w, h, { fill: bg, fillStyle: 'solid', stroke: bg, strokeWidth: 1, roughness: 0.8 });
+  txt(ctx, label, x+w/2, y+h/2, { size: 11, weight: '700', color: 'white', font: "'Inter', sans-serif" });
+}
+
+// ═══════════════════════════════════════════
+// ═══════════════════════════════════════════
+// MOLECULE DRAWING HELPER
+// ═══════════════════════════════════════════
+// Draws an atom label at (x,y) and returns {x,y} for bond connections
+function atom(ctx, label, x, y, color, size) {
+  txt(ctx, label, x, y, { size: size||16, weight: '600', color: color||'#1E293B', font: "'Caveat', cursive" });
+  return {x:x, y:y};
+}
+// Draws a bond line between two points (offset from atom centers)
+function bond(rc, x1, y1, x2, y2, color, dbl) {
+  color = color || '#1E293B';
+  rc.line(x1, y1, x2, y2, { stroke: color, strokeWidth: 2, roughness: 0.8 });
+  if (dbl) { // double bond: offset second line by 3px perpendicular
+    var dx = x2-x1, dy = y2-y1, len = Math.sqrt(dx*dx+dy*dy);
+    var nx = -dy/len*3.5, ny = dx/len*3.5;
+    rc.line(x1+nx, y1+ny, x2+nx, y2+ny, { stroke: color, strokeWidth: 2, roughness: 0.8 });
+  }
+}
+
+// ═══════════════════════════════════════════
+// DIAGRAM 1: PRIMARY ALCOHOL OXIDATION
+// ═══════════════════════════════════════════
+function drawD1Base(rc, ctx) {
+  rc.rectangle(8, 8, 944, 524, { fill: '#FAFFFE', fillStyle: 'solid', stroke: '#CBD5E1', strokeWidth: 1, roughness: 0.5 });
+  // Primary alcohol molecule box
+  rc.rectangle(30, 25, 190, 140, { fill: '#CCFBF1', fillStyle: 'solid', stroke: '#0D9488', strokeWidth: 2, roughness: 1.8, bowing: 1.5 });
+  txt(ctx, 'Primary Alcohol', 125, 48, { size: 20, weight: '700', color: '#0D9488' });
+  // Ethanol structural formula - positioned individually
+  // H H
+  // | |
+  // H-C-C-O-H
+  // | |
+  // H H
+  var cx1=100, cx2=148, ox=185, oy=98; // C1, C2, O positions (y=98)
+  atom(ctx, 'H', cx1-25, 98, '#64748B'); bond(rc, cx1-16, 98, cx1-8, 98);
+  atom(ctx, 'C', cx1, 98);               bond(rc, cx1+8, 98, cx2-8, 98);
+  atom(ctx, 'C', cx2, 98);               bond(rc, cx2+8, 98, ox-10, 98);
+  atom(ctx, 'O', ox, 98, '#EF4444');      bond(rc, ox+8, 98, ox+20, 98);
+  atom(ctx, 'H', ox+28, 98, '#64748B');
+  // Vertical H's on C1
+  atom(ctx, 'H', cx1, 72, '#64748B'); bond(rc, cx1, 78, cx1, 90);
+  atom(ctx, 'H', cx1, 124, '#64748B'); bond(rc, cx1, 106, cx1, 118);
+  // Vertical H's on C2
+  atom(ctx, 'H', cx2, 72, '#64748B'); bond(rc, cx2, 78, cx2, 90);
+  atom(ctx, 'H', cx2, 124, '#64748B'); bond(rc, cx2, 106, cx2, 118);
+  txt(ctx, 'C oxidation state: \u22121', 125, 150, { size: 12, weight: '600', color: '#EF4444', font: "'Inter', sans-serif" });
+}
+
+function drawD1S1(rc, ctx) {
+  arw(rc, ctx, 230, 95, 340, 95, '#0D9488');
+  txt(ctx, '+ [O]', 285, 78, { size: 13, weight: '700', color: '#0D9488', font: "'Inter', sans-serif" });
+  badge(rc, ctx, 255, 105, 60, 22, '#0D9488', 'DISTIL');
+  // Aldehyde box
+  rc.rectangle(350, 25, 200, 140, { fill: '#FEF3C7', fillStyle: 'solid', stroke: '#F59E0B', strokeWidth: 2, roughness: 1.8, bowing: 1.5 });
+  txt(ctx, 'Aldehyde', 450, 48, { size: 20, weight: '700', color: '#B45309' });
+  // Ethanal: H₃C-CHO
+  //     O
+  //     ‖
+  // H-C-C-H   (with H's on C1)
+  //   |
+  //   H
+  var ac1=420, ac2=468; // C positions
+  atom(ctx, 'H', ac1-25, 98, '#64748B'); bond(rc, ac1-16, 98, ac1-8, 98);
+  atom(ctx, 'C', ac1, 98);               bond(rc, ac1+8, 98, ac2-8, 98);
+  atom(ctx, 'C', ac2, 98);               bond(rc, ac2+16, 98, ac2+24, 98);
+  atom(ctx, 'H', ac2+32, 98, '#64748B');
+  // H's on C1
+  atom(ctx, 'H', ac1, 72, '#64748B');  bond(rc, ac1, 78, ac1, 90);
+  atom(ctx, 'H', ac1, 124, '#64748B'); bond(rc, ac1, 106, ac1, 118);
+  // C=O double bond on C2
+  atom(ctx, 'O', ac2, 72, '#EF4444');
+  bond(rc, ac2-4, 78, ac2-4, 90, '#EF4444', true);
+  txt(ctx, 'C: +1', 450, 150, { size: 12, weight: '600', color: '#EF4444', font: "'Inter', sans-serif" });
+}
+
+function drawD1S2(rc, ctx) {
+  arw(rc, ctx, 560, 95, 660, 95, '#2563EB');
+  txt(ctx, '+ [O]', 610, 78, { size: 13, weight: '700', color: '#2563EB', font: "'Inter', sans-serif" });
+  badge(rc, ctx, 580, 105, 60, 22, '#2563EB', 'REFLUX');
+  // Carboxylic acid box
+  rc.rectangle(670, 25, 250, 140, { fill: '#DBEAFE', fillStyle: 'solid', stroke: '#2563EB', strokeWidth: 2, roughness: 1.8, bowing: 1.5 });
+  txt(ctx, 'Carboxylic Acid', 795, 48, { size: 20, weight: '700', color: '#2563EB' });
+  // Ethanoic acid structure
+  //     O
+  //     ‖
+  // H-C-C
+  //   |   \
+  //   H    O-H
+  var cc1=755, cc2=803; // C positions
+  atom(ctx, 'H', cc1-25, 92, '#64748B'); bond(rc, cc1-16, 92, cc1-8, 92);
+  atom(ctx, 'C', cc1, 92);               bond(rc, cc1+8, 92, cc2-8, 92);
+  atom(ctx, 'C', cc2, 92);
+  // H's on C1
+  atom(ctx, 'H', cc1, 66, '#64748B');  bond(rc, cc1, 72, cc1, 84);
+  atom(ctx, 'H', cc1, 118, '#64748B'); bond(rc, cc1, 100, cc1, 112);
+  // C=O double bond (up from C2)
+  atom(ctx, 'O', cc2, 66, '#EF4444');
+  bond(rc, cc2-4, 72, cc2-4, 84, '#EF4444', true);
+  // C-O-H single bond (down-right from C2)
+  atom(ctx, 'O', cc2+30, 118, '#EF4444'); bond(rc, cc2+6, 100, cc2+22, 112);
+  atom(ctx, 'H', cc2+55, 118, '#64748B'); bond(rc, cc2+38, 118, cc2+48, 118);
+  txt(ctx, 'C: +3', 795, 150, { size: 12, weight: '600', color: '#EF4444', font: "'Inter', sans-serif" });
+}
+
+function drawD1S3(rc, ctx) {
+  rc.rectangle(30, 175, 870, 30, { fill: '#FEE2E2', fillStyle: 'solid', stroke: '#FECACA', strokeWidth: 1, roughness: 0.8 });
+  txt(ctx, 'Oxidation state of C:  \u22121  \u2192  +1  \u2192  +3   (each step loses 2e\u207B)', 465, 190, { size: 13, weight: '600', color: '#EF4444', font: "'Inter', sans-serif" });
+}
+
+function drawD1S4(rc, ctx) {
+  // DISTILLATION APPARATUS
+  txt(ctx, 'Distillation Setup', 200, 230, { size: 22, weight: '700', color: '#0D9488' });
+  // Heat source
+  rc.rectangle(85, 460, 130, 18, { fill: '#F59E0B', fillStyle: 'solid', stroke: '#B45309', strokeWidth: 1.5, roughness: 1 });
+  txt(ctx, 'HEAT', 150, 470, { size: 11, weight: '700', color: 'white', font: "'Inter', sans-serif" });
+  rc.ellipse(115, 454, 14, 18, { fill: '#FCD34D', fillStyle: 'solid', stroke: 'none', roughness: 2 });
+  rc.ellipse(150, 452, 12, 22, { fill: '#FB923C', fillStyle: 'solid', stroke: 'none', roughness: 2 });
+  rc.ellipse(185, 454, 14, 18, { fill: '#FCD34D', fillStyle: 'solid', stroke: 'none', roughness: 2 });
+  // Round-bottom flask
+  rc.ellipse(150, 415, 100, 60, { fill: '#DBEAFE', fillStyle: 'solid', stroke: '#1E293B', strokeWidth: 2, roughness: 1.5 });
+  rc.ellipse(150, 420, 80, 40, { fill: '#93C5FD', fillStyle: 'solid', stroke: 'none', roughness: 1, fillWeight: 2 });
+  rc.circle(135, 408, 7, { fill: 'white', fillStyle: 'solid', stroke: 'none', roughness: 1.5 });
+  rc.circle(158, 404, 5, { fill: 'white', fillStyle: 'solid', stroke: 'none', roughness: 1.5 });
+  // Neck
+  rc.line(140, 385, 140, 345, { stroke: '#1E293B', strokeWidth: 2, roughness: 1 });
+  rc.line(160, 385, 160, 345, { stroke: '#1E293B', strokeWidth: 2, roughness: 1 });
+  txt(ctx, 'alcohol + Cr\u2082O\u2087\u00B2\u207B/H\u207A', 150, 490, { size: 12, color: '#64748B' });
+  // Condenser (angled down-right)
+  rc.line(160, 345, 330, 290, { stroke: '#1E293B', strokeWidth: 2, roughness: 1.2 });
+  rc.line(140, 340, 310, 285, { stroke: '#1E293B', strokeWidth: 2, roughness: 1.2 });
+  dash(ctx, 165, 350, 335, 295, '#94A3B8');
+  dash(ctx, 135, 335, 305, 280, '#94A3B8');
+  txt(ctx, 'condenser', 230, 295, { size: 14, color: '#64748B', rotate: -12 });
+  txt(ctx, 'water in \u2191', 200, 325, { size: 11, color: '#3B82F6', rotate: -12 });
+  txt(ctx, 'water out \u2193', 260, 350, { size: 11, color: '#3B82F6', rotate: -12 });
+  // Collection flask
+  rc.ellipse(345, 340, 55, 35, { fill: '#FEF3C7', fillStyle: 'solid', stroke: '#1E293B', strokeWidth: 1.5, roughness: 1.5 });
+  rc.line(330, 322, 330, 300, { stroke: '#1E293B', strokeWidth: 1.5, roughness: 1 });
+  rc.line(360, 322, 360, 300, { stroke: '#1E293B', strokeWidth: 1.5, roughness: 1 });
+  rc.circle(325, 296, 6, { fill: '#93C5FD', fillStyle: 'solid', stroke: 'none', roughness: 1.5 });
+  txt(ctx, 'aldehyde collected!', 345, 370, { size: 14, weight: '600', color: '#B45309' });
+  arw(rc, ctx, 345, 382, 395, 392, '#0D9488');
+  txt(ctx, 'Product removed', 410, 402, { size: 14, weight: '600', color: '#0D9488', align: 'left' });
+  txt(ctx, '\u2192 prevents further oxidation', 410, 418, { size: 12, color: '#64748B', align: 'left' });
+}
+
+function drawD1S5(rc, ctx) {
+  // REFLUX APPARATUS
+  txt(ctx, 'Reflux Setup', 730, 230, { size: 22, weight: '700', color: '#2563EB' });
+  rc.rectangle(665, 460, 130, 18, { fill: '#F59E0B', fillStyle: 'solid', stroke: '#B45309', strokeWidth: 1.5, roughness: 1 });
+  txt(ctx, 'HEAT', 730, 470, { size: 11, weight: '700', color: 'white', font: "'Inter', sans-serif" });
+  rc.ellipse(695, 454, 14, 18, { fill: '#FCD34D', fillStyle: 'solid', stroke: 'none', roughness: 2 });
+  rc.ellipse(730, 452, 12, 22, { fill: '#FB923C', fillStyle: 'solid', stroke: 'none', roughness: 2 });
+  rc.ellipse(765, 454, 14, 18, { fill: '#FCD34D', fillStyle: 'solid', stroke: 'none', roughness: 2 });
+  // Flask
+  rc.ellipse(730, 415, 100, 60, { fill: '#DBEAFE', fillStyle: 'solid', stroke: '#1E293B', strokeWidth: 2, roughness: 1.5 });
+  rc.ellipse(730, 420, 80, 40, { fill: '#86EFAC', fillStyle: 'solid', stroke: 'none', roughness: 1, fillWeight: 2 });
+  rc.circle(718, 408, 7, { fill: 'white', fillStyle: 'solid', stroke: 'none', roughness: 1.5 });
+  rc.circle(742, 404, 5, { fill: 'white', fillStyle: 'solid', stroke: 'none', roughness: 1.5 });
+  rc.line(720, 385, 720, 290, { stroke: '#1E293B', strokeWidth: 2, roughness: 1 });
+  rc.line(740, 385, 740, 290, { stroke: '#1E293B', strokeWidth: 2, roughness: 1 });
+  txt(ctx, 'alcohol + Cr\u2082O\u2087\u00B2\u207B/H\u207A', 730, 490, { size: 12, color: '#64748B' });
+  // Vertical condenser (inner tube + outer jacket)
+  rc.line(720, 290, 720, 250, { stroke: '#1E293B', strokeWidth: 2, roughness: 1 });
+  rc.line(740, 290, 740, 250, { stroke: '#1E293B', strokeWidth: 2, roughness: 1 });
+  // Outer jacket (wider, dashed)
+  dash(ctx, 710, 258, 710, 285, '#94A3B8');
+  dash(ctx, 750, 258, 750, 285, '#94A3B8');
+  dash(ctx, 710, 258, 750, 258, '#94A3B8');
+  dash(ctx, 710, 285, 750, 285, '#94A3B8');
+  txt(ctx, 'condenser', 730, 242, { size: 14, color: '#64748B' });
+  txt(ctx, 'water in \u2192', 778, 264, { size: 11, color: '#3B82F6', align: 'left' });
+  txt(ctx, '\u2190 water out', 778, 280, { size: 11, color: '#3B82F6', align: 'left' });
+  // Vapour arrows
+  dash(ctx, 724, 370, 724, 300, '#94A3B8');
+  txt(ctx, 'vapour \u2191', 700, 340, { size: 12, color: '#94A3B8', rotate: -90 });
+  dash(ctx, 736, 300, 736, 370, '#3B82F6');
+  txt(ctx, 'drips back \u2193', 760, 340, { size: 12, color: '#3B82F6', rotate: 90 });
+  txt(ctx, 'Nothing escapes!', 730, 505, { size: 16, weight: '700', color: '#2563EB' });
+  txt(ctx, '\u2192 full oxidation to carboxylic acid', 730, 522, { size: 12, color: '#64748B' });
+}
+
+function drawD1S6(rc, ctx) {
+  rc.rectangle(380, 440, 230, 75, { fill: '#FFF7ED', fillStyle: 'solid', stroke: '#F59E0B', strokeWidth: 1.5, roughness: 1.5 });
+  txt(ctx, 'Dichromate Test', 495, 458, { size: 15, weight: '600', color: '#64748B' });
+  rc.circle(425, 486, 28, { fill: '#F97316', fillStyle: 'solid', stroke: '#EA580C', strokeWidth: 1, roughness: 1.5 });
+  txt(ctx, 'Cr\u2082O\u2087\u00B2\u207B', 425, 486, { size: 8, weight: '700', color: 'white', font: "'Inter', sans-serif" });
+  dash(ctx, 445, 486, 545, 486, '#94A3B8');
+  txt(ctx, 'oxidation', 495, 478, { size: 12, color: '#94A3B8' });
+  rc.circle(565, 486, 28, { fill: '#10B981', fillStyle: 'solid', stroke: '#059669', strokeWidth: 1, roughness: 1.5 });
+  txt(ctx, 'Cr\u00B3\u207A', 565, 486, { size: 10, weight: '700', color: 'white', font: "'Inter', sans-serif" });
+}
+
+// ═══════════════════════════════════════════
+// DIAGRAM 2: SECONDARY & TERTIARY
+// ═══════════════════════════════════════════
+function drawD2Base(rc, ctx) {
+  rc.rectangle(8, 8, 944, 424, { fill: '#FAFCFF', fillStyle: 'solid', stroke: '#CBD5E1', strokeWidth: 1, roughness: 0.5 });
+  rc.rectangle(30, 30, 220, 160, { fill: '#CCFBF1', fillStyle: 'solid', stroke: '#0D9488', strokeWidth: 2, roughness: 1.8, bowing: 1.5 });
+  txt(ctx, 'Secondary Alcohol', 140, 55, { size: 19, weight: '700', color: '#0D9488' });
+  // Propan-2-ol:  CH₃-CH(OH)-CH₃
+  //   CH₃
+  //     \
+  //      C — OH
+  //     /
+  //   CH₃
+  var sc = 140; // center C
+  atom(ctx, 'C', sc, 108);
+  // Upper CH₃
+  txt(ctx, 'CH\u2083', 95, 78, { size: 15, weight: '600', color: '#64748B' });
+  bond(rc, 105, 84, sc-6, 100);
+  // Lower CH₃
+  txt(ctx, 'CH\u2083', 95, 138, { size: 15, weight: '600', color: '#64748B' });
+  bond(rc, 105, 132, sc-6, 116);
+  // OH to the right
+  atom(ctx, 'O', sc+40, 108, '#EF4444'); bond(rc, sc+8, 108, sc+32, 108);
+  atom(ctx, 'H', sc+60, 108, '#64748B'); bond(rc, sc+48, 108, sc+54, 108);
+  // H on central C (up)
+  atom(ctx, 'H', sc+12, 82, '#64748B'); bond(rc, sc+6, 88, sc+10, 100);
+  txt(ctx, 'C: 0', 140, 164, { size: 12, weight: '600', color: '#EF4444', font: "'Inter', sans-serif" });
+  txt(ctx, 'e.g. propan-2-ol', 140, 180, { size: 11, color: '#94A3B8', font: "'Inter', sans-serif" });
+}
+
+function drawD2S1(rc, ctx) {
+  arw(rc, ctx, 260, 108, 380, 108, '#0D9488');
+  txt(ctx, '+ [O]', 320, 90, { size: 13, weight: '700', color: '#0D9488', font: "'Inter', sans-serif" });
+  txt(ctx, 'Cr\u2082O\u2087\u00B2\u207B / H\u207A', 320, 128, { size: 11, color: '#64748B', font: "'Inter', sans-serif" });
+  rc.rectangle(390, 30, 220, 160, { fill: '#FEF3C7', fillStyle: 'solid', stroke: '#F59E0B', strokeWidth: 2, roughness: 1.8, bowing: 1.5 });
+  txt(ctx, 'Ketone', 500, 55, { size: 19, weight: '700', color: '#B45309' });
+  // Propanone:  CH₃-CO-CH₃
+  //   CH₃
+  //     \
+  //      C = O
+  //     /
+  //   CH₃
+  var kc = 500;
+  atom(ctx, 'C', kc, 108);
+  txt(ctx, 'CH\u2083', kc-45, 78, { size: 15, weight: '600', color: '#64748B' });
+  bond(rc, kc-35, 84, kc-6, 100);
+  txt(ctx, 'CH\u2083', kc-45, 138, { size: 15, weight: '600', color: '#64748B' });
+  bond(rc, kc-35, 132, kc-6, 116);
+  // C=O double bond to the right
+  atom(ctx, 'O', kc+40, 108, '#EF4444');
+  bond(rc, kc+8, 104, kc+32, 104, '#EF4444', true);
+  txt(ctx, 'C: +2', 500, 164, { size: 12, weight: '600', color: '#EF4444', font: "'Inter', sans-serif" });
+  txt(ctx, 'e.g. propanone', 500, 180, { size: 11, color: '#94A3B8', font: "'Inter', sans-serif" });
+}
+
+function drawD2S2(rc, ctx) {
+  dash(ctx, 620, 108, 700, 108, '#EF4444', 2.5);
+  rc.circle(730, 108, 46, { fill: '#FEE2E2', fillStyle: 'solid', stroke: '#EF4444', strokeWidth: 2, roughness: 1.5 });
+  txt(ctx, '\u2717', 730, 108, { size: 26, weight: '700', color: '#EF4444', font: "'Inter', sans-serif" });
+  txt(ctx, 'No further', 800, 95, { size: 16, weight: '600', color: '#EF4444', align: 'left' });
+  txt(ctx, 'oxidation!', 800, 115, { size: 16, weight: '600', color: '#EF4444', align: 'left' });
+  txt(ctx, 'No H on carbonyl C', 800, 135, { size: 11, color: '#64748B', font: "'Inter', sans-serif", align: 'left' });
+}
+
+function drawD2S3(rc, ctx) {
+  rc.rectangle(30, 210, 900, 200, { fill: '#FEE2E2', fillStyle: 'solid', stroke: '#EF4444', strokeWidth: 1.5, roughness: 1.5 });
+  txt(ctx, 'Compare: Tertiary Alcohol', 200, 232, { size: 20, weight: '700', color: '#EF4444', align: 'left' });
+  rc.rectangle(50, 250, 210, 145, { fill: 'white', fillStyle: 'solid', stroke: '#EF4444', strokeWidth: 1.5, roughness: 1.5 });
+  txt(ctx, 'Tertiary Alcohol', 155, 272, { size: 17, weight: '600', color: '#EF4444' });
+  // 2-methylpropan-2-ol:
+  //      CH₃
+  //       |
+  //  CH₃—C—OH    (no H on this C!)
+  //       |
+  //      CH₃
+  var tc = 155, ty = 325;
+  atom(ctx, 'C', tc, ty);
+  txt(ctx, 'CH\u2083', tc, ty-30, { size: 14, weight: '600', color: '#64748B' });
+  bond(rc, tc, ty-22, tc, ty-8);
+  txt(ctx, 'CH\u2083', tc, ty+30, { size: 14, weight: '600', color: '#64748B' });
+  bond(rc, tc, ty+8, tc, ty+22);
+  txt(ctx, 'CH\u2083', tc-48, ty, { size: 14, weight: '600', color: '#64748B' });
+  bond(rc, tc-35, ty, tc-8, ty);
+  atom(ctx, 'O', tc+30, ty, '#EF4444'); bond(rc, tc+8, ty, tc+22, ty);
+  atom(ctx, 'H', tc+50, ty, '#64748B'); bond(rc, tc+38, ty, tc+44, ty);
+  txt(ctx, '2-methylpropan-2-ol', 155, ty+50, { size: 10, color: '#94A3B8', font: "'Inter', sans-serif" });
+  dash(ctx, 270, 320, 370, 320, '#EF4444', 2.5);
+  txt(ctx, 'NO REACTION', 450, 305, { size: 28, weight: '700', color: '#EF4444' });
+  txt(ctx, 'Orange dichromate stays orange \u2014 no colour change', 450, 335, { size: 13, weight: '500', color: '#1E293B', font: "'Inter', sans-serif" });
+  rc.rectangle(580, 260, 330, 130, { fill: 'white', fillStyle: 'solid', stroke: '#94A3B8', strokeWidth: 1, roughness: 1.2 });
+  txt(ctx, 'Why no reaction?', 745, 285, { size: 18, weight: '700', color: '#1E293B' });
+  txt(ctx, 'The carbon bonded to \u2014OH has', 745, 310, { size: 13, color: '#1E293B', font: "'Inter', sans-serif" });
+  txt(ctx, 'NO hydrogen atoms', 745, 330, { size: 14, weight: '700', color: '#EF4444', font: "'Inter', sans-serif" });
+  txt(ctx, 'to lose. Oxidation requires removal', 745, 350, { size: 13, color: '#1E293B', font: "'Inter', sans-serif" });
+  txt(ctx, 'of H from the C bearing \u2014OH.', 745, 370, { size: 13, color: '#1E293B', font: "'Inter', sans-serif" });
+}
+
+function drawD2S4() { /* insight only */ }
+
+// ═══════════════════════════════════════════
+// DIAGRAM 3: HYDROGENATION
+// ═══════════════════════════════════════════
+function drawD3Base(rc, ctx) {
+  rc.rectangle(8, 8, 944, 444, { fill: '#FFFBF5', fillStyle: 'solid', stroke: '#CBD5E1', strokeWidth: 1, roughness: 0.5 });
+  rc.rectangle(30, 25, 240, 140, { fill: '#FEF3C7', fillStyle: 'solid', stroke: '#F59E0B', strokeWidth: 2, roughness: 1.8, bowing: 1.5 });
+  txt(ctx, 'Alkene (unsaturated)', 150, 48, { size: 19, weight: '700', color: '#B45309' });
+  // Ethene:  H₂C=CH₂
+  //   H     H
+  //    \   /
+  //     C=C
+  //    /   \
+  //   H     H
+  var ec1=120, ec2=180;
+  atom(ctx, 'C', ec1, 100); atom(ctx, 'C', ec2, 100);
+  bond(rc, ec1+8, 97, ec2-8, 97, '#1E293B', true); // C=C double bond
+  // H's on C1 (upper-left, lower-left)
+  atom(ctx, 'H', ec1-30, 75, '#64748B'); bond(rc, ec1-22, 80, ec1-6, 93);
+  atom(ctx, 'H', ec1-30, 125, '#64748B'); bond(rc, ec1-22, 120, ec1-6, 107);
+  // H's on C2 (upper-right, lower-right)
+  atom(ctx, 'H', ec2+30, 75, '#64748B'); bond(rc, ec2+22, 80, ec2+6, 93);
+  atom(ctx, 'H', ec2+30, 125, '#64748B'); bond(rc, ec2+22, 120, ec2+6, 107);
+  // Pi bond highlight circle
+  ctx.save(); ctx.strokeStyle = '#EF4444'; ctx.lineWidth = 2.5;
+  ctx.setLineDash([4, 3]); ctx.beginPath();
+  ctx.ellipse(150, 100, 40, 16, 0, 0, Math.PI * 2);
+  ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+  txt(ctx, '\u03C0 bond', 150, 68, { size: 11, weight: '600', color: '#EF4444', font: "'Inter', sans-serif" });
+  txt(ctx, 'e.g. ethene (C\u2082H\u2084)', 150, 155, { size: 11, color: '#94A3B8', font: "'Inter', sans-serif" });
+}
+
+function drawD3S1(rc, ctx) {
+  txt(ctx, '+', 305, 95, { size: 24, weight: '700', color: '#64748B', font: "'Inter', sans-serif" });
+  rc.rectangle(335, 55, 110, 75, { fill: '#E0E7FF', fillStyle: 'solid', stroke: '#6366F1', strokeWidth: 1.5, roughness: 1.5 });
+  txt(ctx, 'H \u2014 H', 390, 85, { size: 24, weight: '700', color: '#6366F1' });
+  txt(ctx, 'hydrogen gas', 390, 108, { size: 13, color: '#6366F1' });
+  txt(ctx, '(\u03C3 bond)', 390, 122, { size: 10, color: '#94A3B8', font: "'Inter', sans-serif" });
+}
+
+function drawD3S2(rc, ctx) {
+  arw(rc, ctx, 460, 95, 580, 95, '#F59E0B');
+  badge(rc, ctx, 485, 72, 70, 20, '#F59E0B', 'Ni / 150\u00B0C');
+  txt(ctx, 'catalyst surface', 520, 112, { size: 12, color: '#64748B' });
+}
+
+function drawD3S3(rc, ctx) {
+  rc.rectangle(600, 25, 260, 140, { fill: '#D1FAE5', fillStyle: 'solid', stroke: '#10B981', strokeWidth: 2, roughness: 1.8, bowing: 1.5 });
+  txt(ctx, 'Alkane (saturated)', 730, 48, { size: 19, weight: '700', color: '#10B981' });
+  // Ethane: H₃C—CH₃ (with all H shown)
+  //   H  H     H  H
+  //    \ |     | /
+  //     C  —  C
+  //    / |     | \
+  //   H  H     H  H
+  // but simpler: just show H-C-C-H with vertical H's + highlight new H's
+  var pc1=700, pc2=760;
+  atom(ctx, 'C', pc1, 100); atom(ctx, 'C', pc2, 100);
+  bond(rc, pc1+8, 100, pc2-8, 100); // C-C single bond
+  // H's on C1
+  atom(ctx, 'H', pc1-30, 75, '#64748B'); bond(rc, pc1-22, 80, pc1-6, 93);
+  atom(ctx, 'H', pc1-30, 125, '#64748B'); bond(rc, pc1-22, 120, pc1-6, 107);
+  // NEW H on C1 (from H₂) — highlighted green
+  atom(ctx, 'H', pc1, 68, '#10B981', 18); bond(rc, pc1, 74, pc1, 92, '#10B981');
+  // H's on C2
+  atom(ctx, 'H', pc2+30, 75, '#64748B'); bond(rc, pc2+22, 80, pc2+6, 93);
+  atom(ctx, 'H', pc2+30, 125, '#64748B'); bond(rc, pc2+22, 120, pc2+6, 107);
+  // NEW H on C2 (from H₂) — highlighted green
+  atom(ctx, 'H', pc2, 68, '#10B981', 18); bond(rc, pc2, 74, pc2, 92, '#10B981');
+  txt(ctx, '\u2191 new', pc1, 58, { size: 10, weight: '600', color: '#10B981', font: "'Inter', sans-serif" });
+  txt(ctx, '\u2191 new', pc2, 58, { size: 10, weight: '600', color: '#10B981', font: "'Inter', sans-serif" });
+  txt(ctx, 'e.g. ethane (C\u2082H\u2086)', 730, 155, { size: 11, color: '#94A3B8', font: "'Inter', sans-serif" });
+}
+
+function drawD3S4(rc, ctx) {
+  txt(ctx, 'What happens on the catalyst surface?', 480, 200, { size: 20, weight: '700', color: '#B45309' });
+  // Catalyst bar
+  rc.rectangle(80, 370, 800, 45, { fill: '#D4D4D8', fillStyle: 'solid', stroke: '#71717A', strokeWidth: 2, roughness: 1.5 });
+  txt(ctx, 'Nickel catalyst surface', 480, 394, { size: 16, weight: '600', color: '#52525B' });
+  [160, 300, 480, 660, 800].forEach(function(x) {
+    rc.circle(x, 378, 24, { fill: '#A1A1AA', fillStyle: 'solid', stroke: '#71717A', strokeWidth: 1, roughness: 1 });
+    txt(ctx, 'Ni', x, 378, { size: 9, weight: '700', color: 'white', font: "'Inter', sans-serif" });
+  });
+  // Steps
+  rc.rectangle(100, 225, 210, 120, { fill: 'white', fillStyle: 'solid', stroke: '#F59E0B', strokeWidth: 1.5, roughness: 1.5 });
+  txt(ctx, '\u2460 Adsorption', 205, 248, { size: 16, weight: '700', color: '#B45309' });
+  txt(ctx, 'C=C and H-H both', 205, 272, { size: 12, color: '#1E293B', font: "'Inter', sans-serif" });
+  txt(ctx, 'bind to the Ni surface.', 205, 290, { size: 12, color: '#1E293B', font: "'Inter', sans-serif" });
+  txt(ctx, 'Bonds are weakened.', 205, 310, { size: 12, color: '#1E293B', font: "'Inter', sans-serif" });
+  arw(rc, ctx, 205, 348, 205, 365, '#F59E0B');
+
+  rc.rectangle(375, 225, 210, 120, { fill: 'white', fillStyle: 'solid', stroke: '#EF4444', strokeWidth: 1.5, roughness: 1.5 });
+  txt(ctx, '\u2461 Bonds Break', 480, 248, { size: 16, weight: '700', color: '#EF4444' });
+  txt(ctx, '\u03C0 bond in C=C breaks', 480, 272, { size: 12, color: '#1E293B', font: "'Inter', sans-serif" });
+  txt(ctx, '\u03C3 bond in H-H breaks', 480, 290, { size: 12, color: '#1E293B', font: "'Inter', sans-serif" });
+  txt(ctx, 'H atoms are now free', 480, 310, { size: 12, weight: '600', color: '#EF4444', font: "'Inter', sans-serif" });
+  arw(rc, ctx, 480, 348, 480, 365, '#EF4444');
+
+  rc.rectangle(650, 225, 210, 120, { fill: 'white', fillStyle: 'solid', stroke: '#10B981', strokeWidth: 1.5, roughness: 1.5 });
+  txt(ctx, '\u2462 New C\u2014H Bonds', 755, 248, { size: 16, weight: '700', color: '#10B981' });
+  txt(ctx, 'Each C gets one H atom.', 755, 272, { size: 12, color: '#1E293B', font: "'Inter', sans-serif" });
+  txt(ctx, 'C=C becomes C\u2014C.', 755, 290, { size: 12, color: '#1E293B', font: "'Inter', sans-serif" });
+  txt(ctx, 'Product desorbs \u2191', 755, 310, { size: 12, weight: '600', color: '#10B981', font: "'Inter', sans-serif" });
+  arw(rc, ctx, 755, 348, 755, 365, '#10B981');
+}
+
+function drawD3S5(rc, ctx) {
+  rc.rectangle(80, 425, 800, 25, { fill: '#E0E7FF', fillStyle: 'solid', stroke: '#C7D2FE', strokeWidth: 1, roughness: 0.8 });
+  txt(ctx, 'Alkynes (C\u2261C) need 2 mol H\u2082 for complete hydrogenation:  alkyne \u2192 alkene \u2192 alkane', 480, 438, { size: 12, weight: '600', color: '#6366F1', font: "'Inter', sans-serif" });
+}
+
+// ═══════════════════════════════════════════
+// STEP DEFINITIONS
+// ═══════════════════════════════════════════
+var diagrams = {
+  d1: {
+    canvasId: 'c1', w: 960, h: 540, drawBase: drawD1Base,
+    steps: [
+      { draw: drawD1S1, caption: '<strong>Step 1 \u2014 Distillation:</strong> Primary alcohol \u2192 <strong>aldehyde</strong> (R-CHO). Distillation removes it before further oxidation.', quiz: '<span class="quiz-q">What product forms when a primary alcohol is distilled with acidified dichromate?</span>' },
+      { draw: drawD1S2, caption: '<strong>Step 2 \u2014 Reflux:</strong> Aldehyde \u2192 <strong>carboxylic acid</strong> (R-COOH). Reflux keeps everything in the flask for complete oxidation.', quiz: '<span class="quiz-q">What happens if we use reflux instead of distillation?</span>' },
+      { draw: drawD1S3, caption: '<strong>Oxidation states:</strong> Carbon goes \u22121 \u2192 +1 \u2192 +3. Each step = loss of 2 electrons.' },
+      { draw: drawD1S4, caption: '<strong>Distillation apparatus:</strong> Condenser angles <em>downward</em>. Aldehyde (lower BP) evaporates, condenses, and is collected \u2014 preventing further oxidation.', quiz: '<span class="quiz-q">Why is the condenser angled downward in distillation?</span>' },
+      { draw: drawD1S5, caption: '<strong>Reflux apparatus:</strong> Condenser is <em>vertical</em>. Vapours rise, condense, drip back. Nothing escapes \u2014 reaction goes to completion.', quiz: '<span class="quiz-q">In reflux, what does the vertical condenser do?</span>' },
+      { draw: drawD1S6, caption: '<strong>Dichromate test:</strong> K\u2082Cr\u2082O\u2087 changes from <strong style="color:#F97316;">orange</strong> \u2192 <strong style="color:#10B981;">green</strong> when oxidation occurs. No change = tertiary alcohol.', final: true }
+    ],
+    current: 0, autoTimer: null, speed: 2000
+  },
+  d2: {
+    canvasId: 'c2', w: 960, h: 440, drawBase: drawD2Base,
+    steps: [
+      { draw: drawD2S1, caption: '<strong>One step:</strong> Secondary alcohol \u2192 <strong>ketone</strong> (R\u2082C=O). Carbon: 0 \u2192 +2.', quiz: '<span class="quiz-q">What functional group does a secondary alcohol become?</span>' },
+      { draw: drawD2S2, caption: '<strong>Dead end:</strong> Ketones cannot be further oxidized \u2014 no H on the carbonyl carbon.', quiz: '<span class="quiz-q">Why can\u2019t ketones be oxidized further?</span>' },
+      { draw: drawD2S3, caption: '<strong>Tertiary alcohols:</strong> R\u2083COH has NO C-H on the carbon bearing \u2014OH. Dichromate stays orange. <strong>No reaction.</strong>', quiz: '<span class="quiz-q">Will 2-methylpropan-2-ol react with dichromate?</span>' },
+      { draw: drawD2S4, caption: '<strong>Summary:</strong> Primary \u2192 2 products. Secondary \u2192 1 product. Tertiary \u2192 none. Directly tested on IB exams!', final: true }
+    ],
+    current: 0, autoTimer: null, speed: 2000
+  },
+  d3: {
+    canvasId: 'c3', w: 960, h: 460, drawBase: drawD3Base,
+    steps: [
+      { draw: drawD3S1, caption: '<strong>Reactants:</strong> An alkene (C=C) reacts with H\u2082. Both the \u03C0 bond and the H-H \u03C3 bond will break.', quiz: '<span class="quiz-q">What type of bond in the alkene reacts with H\u2082?</span>' },
+      { draw: drawD3S2, caption: '<strong>Conditions:</strong> Requires <strong>Ni catalyst</strong> (or Pt/Pd) + heat (~150\u00B0C). The surface weakens bonds.', quiz: '<span class="quiz-q">Why is a catalyst needed for hydrogenation?</span>' },
+      { draw: drawD3S3, caption: '<strong>Product:</strong> C=C becomes C\u2014C. Two new <strong style="color:#10B981;">C\u2014H bonds</strong> form. The molecule is now saturated.', quiz: '<span class="quiz-q">How many new bonds form per C=C hydrogenated?</span>' },
+      { draw: drawD3S4, caption: '<strong>On the surface:</strong> \u2460 Both adsorb onto Ni. \u2461 \u03C0 and H-H bonds break. \u2462 Free H atoms bond to each C.' },
+      { draw: drawD3S5, caption: '<strong>Alkynes:</strong> C\u2261C needs <strong>2 mol H\u2082</strong> for full hydrogenation. Partial (1 mol) gives an alkene.', final: true }
+    ],
+    current: 0, autoTimer: null, speed: 2000
+  }
+};
+
+// ═══════════════════════════════════════════
+// CORE LOGIC
+// ═══════════════════════════════════════════
+var canvasState = {};
+
+function initCanvas(id) {
+  var d = diagrams[id];
+  var s = setupCanvas(d.canvasId, d.w, d.h);
+  canvasState[id] = s;
+  d.drawBase(s.rc, s.ctx);
+}
+
+function redraw(id) {
+  var d = diagrams[id];
+  var s = canvasState[id];
+  s.ctx.clearRect(0, 0, d.w, d.h);
+  // Re-create rough canvas to get fresh seed
+  s.rc = rough.canvas(s.canvas);
+  d.drawBase(s.rc, s.ctx);
+  for (var i = 0; i < d.current; i++) {
+    d.steps[i].draw(s.rc, s.ctx);
+  }
+}
+
+function advance(id) {
+  var d = diagrams[id];
+  if (d.current >= d.steps.length) return;
+  var step = d.steps[d.current];
+  var s = canvasState[id];
+  step.draw(s.rc, s.ctx);
+  document.getElementById(id + '-caption').innerHTML = step.caption;
+  document.getElementById(id + '-quiz').innerHTML = step.quiz || '';
+  d.current++;
+  document.getElementById(id + '-indicator').textContent = 'Step ' + d.current + ' / ' + d.steps.length;
+  if (step.final) document.getElementById(id + '-insight').style.display = 'block';
+}
+
+function resetDiagram(id) {
+  var d = diagrams[id];
+  stopAuto(id);
+  d.current = 0;
+  redraw(id);
+  document.getElementById(id + '-caption').innerHTML = 'Click <strong>Next Step</strong> to begin...';
+  document.getElementById(id + '-quiz').innerHTML = '';
+  document.getElementById(id + '-indicator').textContent = 'Step 0 / ' + d.steps.length;
+  document.getElementById(id + '-insight').style.display = 'none';
+}
+
+function toggleAuto(id) { diagrams[id].autoTimer ? stopAuto(id) : startAuto(id); }
+function startAuto(id) {
+  var d = diagrams[id];
+  document.getElementById(id + '-play').innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14"><rect x="6" y="4" width="4" height="16" fill="currentColor"/><rect x="14" y="4" width="4" height="16" fill="currentColor"/></svg>';
+  if (d.current >= d.steps.length) resetDiagram(id);
+  d.autoTimer = setInterval(function() {
+    if (d.current >= d.steps.length) { stopAuto(id); return; }
+    advance(id);
+  }, d.speed);
+}
+function stopAuto(id) {
+  var d = diagrams[id];
+  document.getElementById(id + '-play').innerHTML = '<svg viewBox="0 0 24 24" width="14" height="14"><polygon points="6,4 20,12 6,20" fill="currentColor"/></svg>';
+  if (d.autoTimer) { clearInterval(d.autoTimer); d.autoTimer = null; }
+}
+function updateSpeed(id) {
+  var d = diagrams[id];
+  d.speed = parseInt(document.getElementById(id + '-speed').value);
+  if (d.autoTimer) { stopAuto(id); startAuto(id); }
+}
+
+function setMode(mode, btn) {
+  document.body.classList.toggle('student-mode', mode === 'student');
+  document.querySelectorAll('.mode-toggle button').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('hint-teacher').style.display = mode === 'teacher' ? 'block' : 'none';
+  document.getElementById('hint-student').style.display = mode === 'student' ? 'block' : 'none';
+}
+
+var activeDiagram = 'd1';
+document.addEventListener('keydown', function(e) {
+  if (document.body.classList.contains('student-mode')) return;
+  if (e.key === 'ArrowRight' || e.key === ' ') {
+    e.preventDefault();
+    advance(activeDiagram);
+    var d = diagrams[activeDiagram];
+    if (d.current >= d.steps.length) {
+      if (activeDiagram === 'd1') activeDiagram = 'd2';
+      else if (activeDiagram === 'd2') activeDiagram = 'd3';
+    }
+  }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); resetDiagram(activeDiagram); }
+  if (e.key === 'r' || e.key === 'R') { resetDiagram('d1'); resetDiagram('d2'); resetDiagram('d3'); activeDiagram = 'd1'; }
+  if (e.key === '1') activeDiagram = 'd1';
+  if (e.key === '2') activeDiagram = 'd2';
+  if (e.key === '3') activeDiagram = 'd3';
+});
+
+// Canvas init handled by switchTab in Scripts.html
+</script>

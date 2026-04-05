@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "source": "SimEngine_IonicBonding.html ELEMENTS and COMPOUNDS objects",
+    "extracted": "2026-04-03",
+    "notes": "Ionic compound data for IB Chemistry. Lattice enthalpies in kJ/mol, melting points in °C, solubility in g/100mL at 25°C, ionic radii in pm. All values from SimEngine inline data."
+  },
+  "ions": [
+    { "symbol": "Li⁺", "element": "Lithium", "z": 3, "charge": 1, "type": "metal", "atomicRadius": 152, "ionicRadius": 76, "en": 1.0, "electronConfig": [2, 1] },
+    { "symbol": "Na⁺", "element": "Sodium", "z": 11, "charge": 1, "type": "metal", "atomicRadius": 186, "ionicRadius": 102, "en": 0.9, "electronConfig": [2, 8, 1] },
+    { "symbol": "K⁺", "element": "Potassium", "z": 19, "charge": 1, "type": "metal", "atomicRadius": 227, "ionicRadius": 138, "en": 0.8, "electronConfig": [2, 8, 8, 1] },
+    { "symbol": "Cs⁺", "element": "Caesium", "z": 55, "charge": 1, "type": "metal", "atomicRadius": 265, "ionicRadius": 167, "en": 0.7, "electronConfig": [2, 8, 18, 18, 8, 1] },
+    { "symbol": "Mg²⁺", "element": "Magnesium", "z": 12, "charge": 2, "type": "metal", "atomicRadius": 160, "ionicRadius": 72, "en": 1.2, "electronConfig": [2, 8, 2] },
+    { "symbol": "Ca²⁺", "element": "Calcium", "z": 20, "charge": 2, "type": "metal", "atomicRadius": 197, "ionicRadius": 100, "en": 1.0, "electronConfig": [2, 8, 8, 2] },
+    { "symbol": "Sr²⁺", "element": "Strontium", "z": 38, "charge": 2, "type": "metal", "atomicRadius": 215, "ionicRadius": 118, "en": 1.0, "electronConfig": [2, 8, 18, 8, 2] },
+    { "symbol": "Ba²⁺", "element": "Barium", "z": 56, "charge": 2, "type": "metal", "atomicRadius": 222, "ionicRadius": 135, "en": 0.9, "electronConfig": [2, 8, 18, 18, 8, 2] },
+    { "symbol": "Al³⁺", "element": "Aluminium", "z": 13, "charge": 3, "type": "metal", "atomicRadius": 143, "ionicRadius": 53.5, "en": 1.5, "electronConfig": [2, 8, 3] },
+    { "symbol": "F⁻", "element": "Fluorine", "z": 9, "charge": -1, "type": "nonmetal", "atomicRadius": 64, "ionicRadius": 133, "en": 4.0, "electronConfig": [2, 7] },
+    { "symbol": "Cl⁻", "element": "Chlorine", "z": 17, "charge": -1, "type": "nonmetal", "atomicRadius": 99, "ionicRadius": 181, "en": 3.0, "electronConfig": [2, 8, 7] },
+    { "symbol": "Br⁻", "element": "Bromine", "z": 35, "charge": -1, "type": "nonmetal", "atomicRadius": 114, "ionicRadius": 196, "en": 2.8, "electronConfig": [2, 8, 18, 7] },
+    { "symbol": "O²⁻", "element": "Oxygen", "z": 8, "charge": -2, "type": "nonmetal", "atomicRadius": 66, "ionicRadius": 140, "en": 3.5, "electronConfig": [2, 6] },
+    { "symbol": "S²⁻", "element": "Sulfur", "z": 16, "charge": -2, "type": "nonmetal", "atomicRadius": 104, "ionicRadius": 184, "en": 2.5, "electronConfig": [2, 8, 6] }
+  ],
+  "compounds": [
+    { "id": "NaCl", "formula": "NaCl", "name": "Sodium chloride", "cation": "Na⁺", "anion": "Cl⁻", "ratio": [1, 1], "latticeEnthalpy": 787, "meltingPoint": 801, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 36, "solubilityClass": "soluble" },
+    { "id": "LiF", "formula": "LiF", "name": "Lithium fluoride", "cation": "Li⁺", "anion": "F⁻", "ratio": [1, 1], "latticeEnthalpy": 1037, "meltingPoint": 845, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 0.13, "solubilityClass": "slightly soluble" },
+    { "id": "KBr", "formula": "KBr", "name": "Potassium bromide", "cation": "K⁺", "anion": "Br⁻", "ratio": [1, 1], "latticeEnthalpy": 689, "meltingPoint": 734, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 65, "solubilityClass": "soluble" },
+    { "id": "MgO", "formula": "MgO", "name": "Magnesium oxide", "cation": "Mg²⁺", "anion": "O²⁻", "ratio": [1, 1], "latticeEnthalpy": 3850, "meltingPoint": 2852, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 0.0086, "solubilityClass": "insoluble" },
+    { "id": "CaS", "formula": "CaS", "name": "Calcium sulfide", "cation": "Ca²⁺", "anion": "S²⁻", "ratio": [1, 1], "latticeEnthalpy": 3119, "meltingPoint": 2524, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 0.2, "solubilityClass": "slightly soluble" },
+    { "id": "CaF2", "formula": "CaF₂", "name": "Calcium fluoride", "cation": "Ca²⁺", "anion": "F⁻", "ratio": [1, 2], "latticeEnthalpy": 2630, "meltingPoint": 1418, "crystalStructure": "Fluorite", "coordinationNumber": 8, "solubility": 0.0016, "solubilityClass": "insoluble" },
+    { "id": "MgCl2", "formula": "MgCl₂", "name": "Magnesium chloride", "cation": "Mg²⁺", "anion": "Cl⁻", "ratio": [1, 2], "latticeEnthalpy": 2523, "meltingPoint": 714, "crystalStructure": "CdCl₂-type", "coordinationNumber": 6, "solubility": 54, "solubilityClass": "soluble" },
+    { "id": "BaCl2", "formula": "BaCl₂", "name": "Barium chloride", "cation": "Ba²⁺", "anion": "Cl⁻", "ratio": [1, 2], "latticeEnthalpy": 2056, "meltingPoint": 963, "crystalStructure": "Fluorite", "coordinationNumber": 8, "solubility": 36, "solubilityClass": "soluble" },
+    { "id": "Na2O", "formula": "Na₂O", "name": "Sodium oxide", "cation": "Na⁺", "anion": "O²⁻", "ratio": [2, 1], "latticeEnthalpy": 2478, "meltingPoint": 1275, "crystalStructure": "Anti-fluorite", "coordinationNumber": 4, "solubility": null, "solubilityClass": "reacts" },
+    { "id": "K2O", "formula": "K₂O", "name": "Potassium oxide", "cation": "K⁺", "anion": "O²⁻", "ratio": [2, 1], "latticeEnthalpy": 2232, "meltingPoint": 740, "crystalStructure": "Anti-fluorite", "coordinationNumber": 4, "solubility": null, "solubilityClass": "reacts" },
+    { "id": "Li2O", "formula": "Li₂O", "name": "Lithium oxide", "cation": "Li⁺", "anion": "O²⁻", "ratio": [2, 1], "latticeEnthalpy": 2814, "meltingPoint": 1438, "crystalStructure": "Anti-fluorite", "coordinationNumber": 4, "solubility": null, "solubilityClass": "reacts" },
+    { "id": "Al2O3", "formula": "Al₂O₃", "name": "Aluminium oxide", "cation": "Al³⁺", "anion": "O²⁻", "ratio": [2, 3], "latticeEnthalpy": 15916, "meltingPoint": 2072, "crystalStructure": "Corundum", "coordinationNumber": 6, "solubility": 0, "solubilityClass": "insoluble" },
+    { "id": "NaF", "formula": "NaF", "name": "Sodium fluoride", "cation": "Na⁺", "anion": "F⁻", "ratio": [1, 1], "latticeEnthalpy": 923, "meltingPoint": 993, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 4.1, "solubilityClass": "soluble" },
+    { "id": "NaBr", "formula": "NaBr", "name": "Sodium bromide", "cation": "Na⁺", "anion": "Br⁻", "ratio": [1, 1], "latticeEnthalpy": 747, "meltingPoint": 747, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 94, "solubilityClass": "soluble" },
+    { "id": "LiCl", "formula": "LiCl", "name": "Lithium chloride", "cation": "Li⁺", "anion": "Cl⁻", "ratio": [1, 1], "latticeEnthalpy": 852, "meltingPoint": 605, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 83, "solubilityClass": "soluble" },
+    { "id": "LiBr", "formula": "LiBr", "name": "Lithium bromide", "cation": "Li⁺", "anion": "Br⁻", "ratio": [1, 1], "latticeEnthalpy": 807, "meltingPoint": 552, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 167, "solubilityClass": "soluble" },
+    { "id": "KF", "formula": "KF", "name": "Potassium fluoride", "cation": "K⁺", "anion": "F⁻", "ratio": [1, 1], "latticeEnthalpy": 821, "meltingPoint": 858, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 92, "solubilityClass": "soluble" },
+    { "id": "KCl", "formula": "KCl", "name": "Potassium chloride", "cation": "K⁺", "anion": "Cl⁻", "ratio": [1, 1], "latticeEnthalpy": 717, "meltingPoint": 770, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 34, "solubilityClass": "soluble" },
+    { "id": "CaO", "formula": "CaO", "name": "Calcium oxide", "cation": "Ca²⁺", "anion": "O²⁻", "ratio": [1, 1], "latticeEnthalpy": 3401, "meltingPoint": 2614, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 1.2, "solubilityClass": "slightly soluble" },
+    { "id": "SrO", "formula": "SrO", "name": "Strontium oxide", "cation": "Sr²⁺", "anion": "O²⁻", "ratio": [1, 1], "latticeEnthalpy": 3223, "meltingPoint": 2531, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 0.1, "solubilityClass": "slightly soluble" },
+    { "id": "BaO", "formula": "BaO", "name": "Barium oxide", "cation": "Ba²⁺", "anion": "O²⁻", "ratio": [1, 1], "latticeEnthalpy": 3054, "meltingPoint": 1923, "crystalStructure": "NaCl-type", "coordinationNumber": 6, "solubility": 3.5, "solubilityClass": "soluble" },
+    { "id": "CsCl", "formula": "CsCl", "name": "Caesium chloride", "cation": "Cs⁺", "anion": "Cl⁻", "ratio": [1, 1], "latticeEnthalpy": 657, "meltingPoint": 645, "crystalStructure": "CsCl-type", "coordinationNumber": 8, "solubility": 186, "solubilityClass": "soluble" },
+    { "id": "MgF2", "formula": "MgF₂", "name": "Magnesium fluoride", "cation": "Mg²⁺", "anion": "F⁻", "ratio": [1, 2], "latticeEnthalpy": 2957, "meltingPoint": 1261, "crystalStructure": "Rutile", "coordinationNumber": 6, "solubility": 0.013, "solubilityClass": "insoluble" }
+  ],
+  "lattice_groups": {
+    "Group 1 halides": ["LiF", "LiCl", "LiBr", "NaF", "NaCl", "NaBr", "KF", "KCl", "KBr"],
+    "Group 2 oxides": ["MgO", "CaO", "SrO", "BaO"],
+    "Charge comparison": ["NaCl", "MgO", "Al2O3"]
+  },
+  "covalent_comparisons": [
+    { "name": "Diamond (covalent network)", "meltingPoint": 3550, "type": "covalent" },
+    { "name": "Ice (molecular)", "meltingPoint": 0, "type": "molecular" }
+  ]
+}

@@ -1,0 +1,1003 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rechargeable Voltaic Cells Simulation - IB Chemistry</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e8f0fe 0%, #d0dff5 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.95;
+        }
+
+        .controls-section {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            border-bottom: 2px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .control-group label {
+            font-weight: 600;
+            font-size: 1.05em;
+            color: #2c3e50;
+        }
+
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            width: 140px;
+            height: 50px;
+            background: #ddd;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .toggle-switch.li-ion {
+            background: #ff6b6b;
+        }
+
+        .toggle-switch.lead-acid {
+            background: #4ecdc4;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 42px;
+            height: 42px;
+            background: white;
+            border-radius: 50%;
+            transition: left 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75em;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .toggle-switch.lead-acid .toggle-slider {
+            left: 94px;
+        }
+
+        /* Mode Buttons */
+        .mode-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .mode-btn {
+            padding: 12px 25px;
+            font-size: 1em;
+            font-weight: 600;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .mode-btn.active {
+            background: #667eea;
+            color: white;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .mode-btn:hover:not(.active) {
+            background: #dee2e6;
+        }
+
+        /* Playback Controls */
+        .playback-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .playback-btn {
+            padding: 10px 15px;
+            border: none;
+            border-radius: 6px;
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .playback-btn:hover {
+            background: #764ba2;
+        }
+
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .speed-control input[type="range"] {
+            width: 120px;
+        }
+
+        .speed-value {
+            min-width: 40px;
+            font-weight: 600;
+            color: #667eea;
+        }
+
+        /* Main Content */
+        .content {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 30px;
+            padding: 30px;
+            background: white;
+        }
+
+        .diagram-section {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .cell-diagram {
+            background: #f0f4f8;
+            border-radius: 12px;
+            padding: 40px;
+            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.08);
+            border: 2px solid #d0dff5;
+        }
+
+        svg {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .info-panel {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+        }
+
+        .info-panel h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .reaction-box {
+            background: white;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            line-height: 1.6;
+        }
+
+        .reaction-box strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 8px;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
+        .reaction-box.anode {
+            border-left-color: #ff6b6b;
+        }
+
+        .reaction-box.anode strong {
+            color: #ff6b6b;
+        }
+
+        .reaction-box.cathode {
+            border-left-color: #4ecdc4;
+        }
+
+        .reaction-box.cathode strong {
+            color: #4ecdc4;
+        }
+
+        .reaction-box.overall {
+            border-left-color: #95e1d3;
+        }
+
+        .reaction-box.overall strong {
+            color: #95e1d3;
+        }
+
+        .cell-notation {
+            background: white;
+            border: 2px dashed #667eea;
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            word-break: break-all;
+        }
+
+        .voltage-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-panel {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar-panel h3 {
+            color: #2c3e50;
+            margin-bottom: 12px;
+            font-size: 1.1em;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 8px;
+        }
+
+        .sidebar-panel p {
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #34495e;
+            margin-bottom: 10px;
+        }
+
+        .sidebar-panel ul {
+            margin-left: 20px;
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #34495e;
+        }
+
+        .sidebar-panel li {
+            margin-bottom: 8px;
+        }
+
+        .electrode-label {
+            font-weight: bold;
+            fill: #1a202c;
+            text-anchor: middle;
+        }
+
+        .component-label {
+            fill: #1a202c;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* Animations */
+        @keyframes moveElectron {
+            0% {
+                offset-distance: 0%;
+            }
+            100% {
+                offset-distance: 100%;
+            }
+        }
+
+        @keyframes moveIon {
+            0% {
+                offset-distance: 0%;
+            }
+            100% {
+                offset-distance: 100%;
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.6;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .electron {
+            animation: moveElectron linear infinite;
+            filter: drop-shadow(0 0 4px #ffd700);
+        }
+
+        .electron.reverse {
+            animation-direction: reverse;
+        }
+
+        .cation {
+            animation: moveIon linear infinite;
+            filter: drop-shadow(0 0 3px #ff6b6b);
+        }
+
+        .cation.reverse {
+            animation-direction: reverse;
+        }
+
+        .anion {
+            animation: moveIon linear infinite;
+            filter: drop-shadow(0 0 3px #4ecdc4);
+        }
+
+        .anion.reverse {
+            animation-direction: reverse;
+        }
+
+        .paused .electron,
+        .paused .cation,
+        .paused .anion {
+            animation-play-state: paused;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .content {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .controls-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .control-group {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header h1 {
+                font-size: 1.8em;
+            }
+
+            .sidebar {
+                grid-template-columns: 1fr;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            .cell-diagram {
+                padding: 20px;
+                min-height: 400px;
+            }
+        }
+
+        /* Electrode styling */
+        .electrode-anode {
+            fill: #ef4444;
+            opacity: 0.9;
+        }
+
+        .electrode-cathode {
+            fill: #0891b2;
+            opacity: 0.9;
+        }
+
+        .electrode-border {
+            stroke: #334155;
+            stroke-width: 2;
+        }
+
+        .electrolyte {
+            fill: #bfdbfe;
+            opacity: 0.6;
+        }
+
+        /* Mode indicator */
+        .mode-indicator {
+            background: #e8f4f8;
+            border-left: 4px solid #667eea;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .mode-indicator.charge {
+            border-left-color: #ff9ff3;
+            background: #ffe8ff;
+        }
+
+        .mode-indicator.discharge {
+            border-left-color: #54a0ff;
+            background: #e8f4ff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⚡ Rechargeable Voltaic Cells Simulation</h1>
+            <p>Interactive demonstration of Li-ion and Lead-acid batteries for IB Chemistry</p>
+        </div>
+
+        <div class="controls-section">
+            <div class="control-group">
+                <label>Battery Type:</label>
+                <div class="toggle-switch li-ion" id="batteryToggle">
+                    <div class="toggle-slider">Li-ion</div>
+                </div>
+            </div>
+
+            <div class="control-group">
+                <label>Mode:</label>
+                <div class="mode-buttons">
+                    <button class="mode-btn active" id="dischargeBtn">🔋 Discharge</button>
+                    <button class="mode-btn" id="chargeBtn">⚡ Charge</button>
+                </div>
+            </div>
+
+            <div class="control-group playback-controls">
+                <button class="playback-btn" id="pausePlayBtn">⏸ Pause</button>
+            </div>
+
+            <div class="control-group speed-control">
+                <label>Speed:</label>
+                <input type="range" id="speedSlider" min="0.5" max="3" step="0.5" value="1">
+                <span class="speed-value" id="speedValue">1x</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <div class="diagram-section">
+                <div class="cell-diagram" id="cellDiagram">
+                    <!-- SVG will be inserted here -->
+                </div>
+
+                <div class="info-panel">
+                    <div class="mode-indicator discharge" id="modeIndicator">
+                        Discharge Mode: Battery powering external device
+                    </div>
+
+                    <div class="voltage-display" id="voltageDisplay">
+                        E°cell = 3.7 V
+                    </div>
+
+                    <div id="reactionsContainer">
+                        <!-- Reactions will be inserted here -->
+                    </div>
+
+                    <div class="cell-notation" id="cellNotation">
+                        Cell notation will appear here
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar">
+                <div class="sidebar-panel">
+                    <h3>🔄 Why Rechargeable?</h3>
+                    <p id="rechargeableInfo">
+                        <!-- Content will be updated based on battery type -->
+                    </p>
+                </div>
+
+                <div class="sidebar-panel">
+                    <h3>⚠️ Battery "Death"</h3>
+                    <p id="batteryDeathInfo">
+                        <!-- Content will be updated based on battery type -->
+                    </p>
+                </div>
+
+                <div class="sidebar-panel">
+                    <h3>🌍 Real-World Applications</h3>
+                    <ul id="applicationsList">
+                        <!-- Content will be updated based on battery type -->
+                    </ul>
+                </div>
+
+                <div class="sidebar-panel">
+                    <h3>📋 Color Guide</h3>
+                    <ul>
+                        <li><span style="color: #dc2626; font-weight: bold;">●</span> Electrons (e⁻)</li>
+                        <li><span style="color: #dc2626; font-weight: bold;">●</span> Cations (+)</li>
+                        <li><span style="color: #0891b2; font-weight: bold;">●</span> Anions (−)</li>
+                        <li><span style="color: #ef4444; font-weight: bold;">█</span> Anode</li>
+                        <li><span style="color: #0891b2; font-weight: bold;">█</span> Cathode</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Battery data
+        const batteries = {
+            'li-ion': {
+                name: 'Lithium-ion (Li-ion)',
+                voltage: 3.7,
+                anode: 'Graphite (C₆)',
+                cathode: 'Lithium Cobalt Oxide (LiCoO₂)',
+                electrolyte: 'Organic electrolyte + Li⁺',
+                dischargeReactions: {
+                    anode: 'LiC₆ → Li⁺ + e⁻ + C₆',
+                    cathode: 'Li⁺ + e⁻ + CoO₂ → LiCoO₂',
+                    overall: 'LiC₆ + CoO₂ → C₆ + LiCoO₂'
+                },
+                chargeReactions: {
+                    anode: 'C₆ + Li⁺ + e⁻ → LiC₆',
+                    cathode: 'LiCoO₂ → Li⁺ + e⁻ + CoO₂',
+                    overall: 'C₆ + LiCoO₂ → LiC₆ + CoO₂'
+                },
+                cellNotation: 'C₆|Li⁺(org)||Li⁺(org)|LiCoO₂',
+                rechargeableReason: 'Li⁺ ions can move reversibly between the graphite anode and lithium oxide cathode. The reversible intercalation of lithium ions allows the battery to be charged and discharged multiple times without permanent chemical change.',
+                batteryDeath: 'Over many charge-discharge cycles, structural changes occur in the electrode materials. Lithium ions become "trapped" in the electrolyte or form resistive surface layers (SEI layer). This increases internal resistance, reducing available voltage and capacity.',
+                applications: [
+                    'Smartphones and tablets',
+                    'Electric vehicles (Tesla, Nissan Leaf)',
+                    'Laptops and power tools',
+                    'Renewable energy storage',
+                    'Wearable devices'
+                ]
+            },
+            'lead-acid': {
+                name: 'Lead-acid Battery',
+                voltage: 2.0,
+                anode: 'Lead (Pb)',
+                cathode: 'Lead Dioxide (PbO₂)',
+                electrolyte: 'Sulfuric Acid (H₂SO₄)',
+                dischargeReactions: {
+                    anode: 'Pb + SO₄²⁻ → PbSO₄ + 2e⁻',
+                    cathode: 'PbO₂ + SO₄²⁻ + 4H⁺ + 2e⁻ → PbSO₄ + 2H₂O',
+                    overall: 'Pb + PbO₂ + 2H₂SO₄ → 2PbSO₄ + 2H₂O'
+                },
+                chargeReactions: {
+                    anode: 'PbSO₄ + 2e⁻ → Pb + SO₄²⁻',
+                    cathode: 'PbSO₄ + 2H₂O → PbO₂ + SO₄²⁻ + 4H⁺ + 2e⁻',
+                    overall: '2PbSO₄ + 2H₂O → Pb + PbO₂ + 2H₂SO₄'
+                },
+                cellNotation: 'Pb|PbSO₄(s)||PbSO₄(s)|PbO₂|Pb',
+                rechargeableReason: 'Lead-acid batteries rely on the reversible conversion of PbSO₄ back to Pb and PbO₂. When charged, an external power source drives the reverse reactions, regenerating the active electrode materials for another discharge cycle.',
+                batteryDeath: 'PbSO₄ crystals can grow large and irreversible during discharge, a process called "sulfation." Once formed, these crystals cannot easily convert back to Pb and PbO₂, permanently reducing capacity. Cold temperatures accelerate this process.',
+                applications: [
+                    'Car starter batteries',
+                    'Backup power systems (UPS)',
+                    'Forklifts and golf carts',
+                    'Emergency lighting',
+                    'Industrial applications'
+                ]
+            }
+        };
+
+        // State
+        let currentBattery = 'li-ion';
+        let isCharging = false;
+        let isPaused = false;
+        let animationSpeed = 1;
+
+        // DOM elements
+        const batteryToggle = document.getElementById('batteryToggle');
+        const dischargeBtn = document.getElementById('dischargeBtn');
+        const chargeBtn = document.getElementById('chargeBtn');
+        const pausePlayBtn = document.getElementById('pausePlayBtn');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const cellDiagram = document.getElementById('cellDiagram');
+        const voltageDisplay = document.getElementById('voltageDisplay');
+        const modeIndicator = document.getElementById('modeIndicator');
+        const cellNotation = document.getElementById('cellNotation');
+        const reactionsContainer = document.getElementById('reactionsContainer');
+
+        // Event listeners
+        batteryToggle.addEventListener('click', toggleBattery);
+        dischargeBtn.addEventListener('click', () => setMode(false));
+        chargeBtn.addEventListener('click', () => setMode(true));
+        pausePlayBtn.addEventListener('click', togglePause);
+        speedSlider.addEventListener('input', updateSpeed);
+
+        function toggleBattery() {
+            currentBattery = currentBattery === 'li-ion' ? 'lead-acid' : 'li-ion';
+            batteryToggle.classList.toggle('li-ion');
+            batteryToggle.classList.toggle('lead-acid');
+            batteryToggle.querySelector('.toggle-slider').textContent =
+                currentBattery === 'li-ion' ? 'Li-ion' : 'Lead-acid';
+            updateDisplay();
+        }
+
+        function setMode(charge) {
+            isCharging = charge;
+            dischargeBtn.classList.toggle('active');
+            chargeBtn.classList.toggle('active');
+            updateDisplay();
+        }
+
+        function togglePause() {
+            isPaused = !isPaused;
+            cellDiagram.classList.toggle('paused');
+            pausePlayBtn.textContent = isPaused ? '▶ Play' : '⏸ Pause';
+        }
+
+        function updateSpeed(e) {
+            animationSpeed = parseFloat(e.target.value);
+            speedValue.textContent = animationSpeed + 'x';
+            updateAnimationSpeeds();
+        }
+
+        function updateAnimationSpeeds() {
+            const duration = 3 / animationSpeed;
+            const styles = document.querySelectorAll('style')[0];
+            if (styles) {
+                const newStyle = `
+                    @keyframes moveElectron {
+                        0% { offset-distance: 0%; }
+                        100% { offset-distance: 100%; }
+                    }
+                    @keyframes moveIon {
+                        0% { offset-distance: 0%; }
+                        100% { offset-distance: 100%; }
+                    }
+                    .electron {
+                        animation: moveElectron linear infinite;
+                        animation-duration: ${duration}s;
+                        filter: drop-shadow(0 0 4px #ffd700);
+                    }
+                    .electron.reverse {
+                        animation-direction: reverse;
+                    }
+                    .cation {
+                        animation: moveIon linear infinite;
+                        animation-duration: ${duration}s;
+                        filter: drop-shadow(0 0 3px #ff6b6b);
+                    }
+                    .cation.reverse {
+                        animation-direction: reverse;
+                    }
+                    .anion {
+                        animation: moveIon linear infinite;
+                        animation-duration: ${duration}s;
+                        filter: drop-shadow(0 0 3px #4ecdc4);
+                    }
+                    .anion.reverse {
+                        animation-direction: reverse;
+                    }
+                `;
+                const styleSheet = document.createElement('style');
+                styleSheet.textContent = newStyle;
+                document.head.appendChild(styleSheet);
+            }
+        }
+
+        function updateDisplay() {
+            const battery = batteries[currentBattery];
+
+            // Update voltage
+            voltageDisplay.innerHTML = `E°cell = ${battery.voltage} V`;
+
+            // Update mode indicator
+            if (isCharging) {
+                modeIndicator.className = 'mode-indicator charge';
+                modeIndicator.textContent = '⚡ Charge Mode: External power forcing reverse reaction';
+            } else {
+                modeIndicator.className = 'mode-indicator discharge';
+                modeIndicator.textContent = '🔋 Discharge Mode: Battery powering external device';
+            }
+
+            // Update reactions
+            const reactions = isCharging ? battery.chargeReactions : battery.dischargeReactions;
+            const electrodeInfo = getElectrodeInfo(battery);
+
+            reactionsContainer.innerHTML = `
+                <div class="reaction-box anode">
+                    <strong>Anode (${electrodeInfo.anodeLabel}): ${battery.anode}</strong>
+                    ${reactions.anode}
+                </div>
+                <div class="reaction-box cathode">
+                    <strong>Cathode (${electrodeInfo.cathodeLabel}): ${battery.cathode}</strong>
+                    ${reactions.cathode}
+                </div>
+                <div class="reaction-box overall">
+                    <strong>Overall Cell Reaction:</strong>
+                    ${reactions.overall}
+                </div>
+            `;
+
+            // Update cell notation
+            cellNotation.innerHTML = `<strong>Cell Notation:</strong> ${battery.cellNotation}`;
+
+            // Update sidebar
+            document.getElementById('rechargeableInfo').textContent = battery.rechargeableReason;
+            document.getElementById('batteryDeathInfo').textContent = battery.batteryDeath;
+            const appsList = document.getElementById('applicationsList');
+            appsList.innerHTML = battery.applications.map(app => `<li>${app}</li>`).join('');
+
+            // Redraw diagram
+            drawDiagram();
+        }
+
+        function getElectrodeInfo(battery) {
+            if (isCharging) {
+                return {
+                    anodeLabel: 'Cathode in charging',
+                    cathodeLabel: 'Anode in charging'
+                };
+            } else {
+                return {
+                    anodeLabel: 'Oxidation (negative)',
+                    cathodeLabel: 'Reduction (positive)'
+                };
+            }
+        }
+
+        function drawDiagram() {
+            const battery = batteries[currentBattery];
+            let svg = '';
+
+            if (currentBattery === 'li-ion') {
+                svg = drawLiIonDiagram();
+            } else {
+                svg = drawLeadAcidDiagram();
+            }
+
+            cellDiagram.innerHTML = svg;
+
+            // Reapply paused state if needed
+            if (isPaused) {
+                cellDiagram.classList.add('paused');
+            }
+        }
+
+        function drawLiIonDiagram() {
+            const reverseClass = isCharging ? 'reverse' : '';
+            const width = 800;
+            const height = 520;
+            const electrodeY = 280;
+            const electrodeW = 60;
+            const electrodeH = 150;
+
+            let svg = `
+                <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+                    <!-- External Circuit -->
+                    <defs>
+                        <path id="electronPath" d="M 150,${electrodeY - 110} Q 400,${electrodeY - 200} 650,${electrodeY - 110}" fill="none" stroke="none"/>
+                        <path id="ionPath" d="M 200,${electrodeY + 80} Q 400,${electrodeY + 140} 700,${electrodeY + 80}" fill="none" stroke="none"/>
+                    </defs>
+
+                    <!-- Anode (Graphite) -->
+                    <rect x="100" y="${electrodeY - electrodeH/2}" width="${electrodeW}" height="${electrodeH}"
+                          class="electrode-anode electrode-border" rx="8"/>
+                    <text x="130" y="${electrodeY + electrodeH/2 + 25}" class="electrode-label" font-size="15" font-weight="bold">Anode (−)</text>
+                    <text x="130" y="${electrodeY + electrodeH/2 + 48}" class="electrode-label" font-size="13">Graphite</text>
+                    <text x="130" y="${electrodeY + electrodeH/2 + 68}" class="electrode-label" font-size="12" font-style="italic">Oxidation</text>
+
+                    <!-- Cathode (LiCoO₂) -->
+                    <rect x="${width - 160}" y="${electrodeY - electrodeH/2}" width="${electrodeW}" height="${electrodeH}"
+                          class="electrode-cathode electrode-border" rx="8"/>
+                    <text x="${width - 130}" y="${electrodeY + electrodeH/2 + 25}" class="electrode-label" font-size="15" font-weight="bold">Cathode (+)</text>
+                    <text x="${width - 130}" y="${electrodeY + electrodeH/2 + 48}" class="electrode-label" font-size="13">LiCoO₂</text>
+                    <text x="${width - 130}" y="${electrodeY + electrodeH/2 + 68}" class="electrode-label" font-size="12" font-style="italic">Reduction</text>
+
+                    <!-- Electrolyte -->
+                    <rect x="180" y="${electrodeY - 100}" width="${width - 360}" height="200"
+                          class="electrolyte" rx="6" stroke="#60a5fa" stroke-width="2"/>
+                    <text x="${width/2}" y="${electrodeY - 110}" class="component-label" text-anchor="middle" font-size="15" fill="#1e3a8a">
+                        Organic Electrolyte + Li⁺
+                    </text>
+
+                    <!-- External Circuit (wires) -->
+                    <g stroke="#334155" stroke-width="3" fill="none">
+                        <path d="M 130,${electrodeY - electrodeH/2 - 10} L 130,${electrodeY - 140} Q 400,${electrodeY - 210} ${width - 130},${electrodeY - 140} L ${width - 130},${electrodeY - electrodeH/2 - 10}"/>
+                    </g>
+
+                    <!-- Load indicator (on wire, left of center) -->
+                    <circle cx="260" cy="${electrodeY - 185}" r="22" stroke="#b45309" stroke-width="2" fill="#fef3c7"/>
+                    <text x="260" y="${electrodeY - 179}" class="component-label" text-anchor="middle" font-size="11" fill="#92400e">Load</text>
+
+                    <!-- Voltmeter (on wire, right of center) -->
+                    <circle cx="540" cy="${electrodeY - 185}" r="22" stroke="#065a82" stroke-width="2" fill="#e0f2fe"/>
+                    <text x="540" y="${electrodeY - 179}" class="component-label" text-anchor="middle" font-size="16" fill="#065a82">V</text>
+                    <text x="540" y="${electrodeY - 160}" class="component-label" text-anchor="middle" font-size="13" fill="#065a82" font-weight="bold">3.7 V</text>
+
+                    <!-- Electron flow arrow label -->
+                    <text x="400" y="${electrodeY - 215}" class="component-label" text-anchor="middle" font-size="12" fill="#475569">e⁻ flow →</text>
+
+                    <!-- Animated Electrons (external circuit) -->
+                    <g class="electron ${reverseClass}" style="offset-path: url(#electronPath); offset-distance: 0%; offset-rotate: auto;">
+                        <circle cx="0" cy="0" r="6" fill="#dc2626"/>
+                    </g>
+                    <g class="electron ${reverseClass}" style="offset-path: url(#electronPath); offset-distance: 33%; offset-rotate: auto;">
+                        <circle cx="0" cy="0" r="6" fill="#dc2626"/>
+                    </g>
+                    <g class="electron ${reverseClass}" style="offset-path: url(#electronPath); offset-distance: 66%; offset-rotate: auto;">
+                        <circle cx="0" cy="0" r="6" fill="#dc2626"/>
+                    </g>
+
+                    <!-- Animated Lithium Ions (through electrolyte) -->
+                    <g class="cation ${reverseClass}" style="offset-path: url(#ionPath); offset-distance: 0%; offset-rotate: auto;">
+                        <circle cx="0" cy="0" r="5" fill="#dc2626"/>
+                        <text x="0" y="2" class="component-label" font-size="10" fill="#fff">+</text>
+                    </g>
+                    <g class="cation ${reverseClass}" style="offset-path: url(#ionPath); offset-distance: 50%; offset-rotate: auto;">
+                        <circle cx="0" cy="0" r="5" fill="#dc2626"/>
+                        <text x="0" y="2" class="component-label" font-size="10" fill="#fff">+</text>
+                    </g>
+
+                    <!-- Legend -->
+                    <text x="20" y="${height - 10}" class="component-label" font-size="11" fill="#475569">
+                        e⁻ flow: Anode → Cathode (Discharge) | Li⁺ ion flow: Anode → Cathode (Discharge)
+                    </text>
+                </svg>
+            `;
+
+            return svg;
+        }
+
+        function drawLeadAcidDiagram() {
+            const reverseClass = isCharging ? 'reverse' : '';
+            const width = 800;
+            const height = 520;
+            const electrodeY = 280;
+            const electrodeW = 60;
+            const electrodeH = 150;
+
+            let svg = `
+                <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+                    <!-- External Circuit Paths -->
+                    <defs>
+                        <path id="electronPath2" d="M 150,${electrodeY - 110} Q 400,${electrodeY - 200} 650,${electrodeY - 110}" fill="none" stroke="none"/>
+                        <path id="ionPath2" d="M 200,${electrodeY + 80} Q 400,${electrodeY + 140} 700,${electrodeY + 80}" fill="none" stroke="none"/>
+                    </defs>
+
+                    <!-- Anode (Lead) -->
+                    <rect x="100" y="${electrodeY - electrodeH/2}" width="${electrodeW}" height="${electrodeH}"
+                          class="electrode-anode electrode-border" rx="8"/>
+                    <text x="130" y="${electrodeY + electrodeH/2 + 25}" class="electrode-label" font-size="15" font-weight="bold">Anode (−)</text>
+                    <text x="130" y="${electrodeY + electrodeH/2 + 48}" class="electrode-label" font-size="13">Pb</text>
+                    <text x="130" y="${electrodeY + electrodeH/2 + 68}" class="electrode-label" font-size="12" font-style="italic">Oxidation</text>
+
+                    <!-- Cathode (PbO₂) -->
+                    <rect x="${width - 160}" y="${electrodeY - electrodeH/2}" width="${electrodeW}" height="${electrodeH}"
+                          class="electrode-cathode electrode-border" rx="8"/>
+                    <text x="${width - 130}" y="${electrodeY + electrodeH/2 + 25}" class="electrode-label" font-size="15" font-weight="bold">Cathode (+)</text>
+                    <text x="${width - 130}" y="${electrodeY + electrodeH/2 + 48}" class="electrode-label" font-size="13">PbO₂</text>
+                    <text x="${width - 130}" y="${electrodeY + electrodeH/2 + 68}" class="electrode-label" font-size="12" font-style="italic">Reduction</text>
+
+                    <!-- Electrolyte -->
+                    <rect x="180" y="${electrodeY - 100}" width="${width - 360}" height="200"
+                          class="electrolyte" rx="6" stroke="#60a5fa" stroke-width="2"/>
+                    <text x="${width/2}" y="${electrodeY - 110}" class="component-label" text-anchor="middle" font-size="15" fill="#1e3a8a">
+                        Sulfuric Acid (H₂SO₄)
+                    </text>
+
+                    <!-- External Circuit (wires) -->
+                    <g stroke="#334155" stroke-width="3" fill="none">
+                        <path d="M 130,${electrodeY - electrodeH/2 - 10} L 130,${electrodeY - 140} Q 400,${electrodeY - 210} ${width - 130},${electrodeY - 140} L ${width - 130},${electrodeY - electrodeH/2 - 10}"/>
+                    </g>
+
+                    <!-- Load indicator (on wire, left of center) -->
+                    <circle cx="260" cy="${electrodeY - 185}" r="22" stroke="#b45309" stroke-width="2" fill="#fef3c7"/>
+                    <text x="260" y="${electrodeY - 179}" class="component-label" text-anchor="middle" font-size="11" fill="#92400e">Load</text>
+
+                    <!-- Voltmeter (on wire, right of center) -->
+                    <circle cx="540" cy="${electrodeY - 185}" r="22" stroke="#065a82" stroke-width="2" fill="#e0f2fe"/>
+                    <text x="540" y="${electrodeY - 179}" class="component-label" text-anchor="middle" font-size="16" fill="#065a82">V</text>
+                    <text x="540" y="${electrodeY - 160}" class="component-label" text-anchor="middle" font-size="13" fill="#065a82" font-weight="bold">2.0 V</text>
+
+                    <!-- Electron flow arrow label -->
+                    <text x="400" y="${electrodeY - 215}" class="component-label" text-anchor="middle" font-size="12" fill="#475569">e⁻ flow →</text>
+
+                    <!-- Animated Electrons (external circuit) -->
+                    <g class="electron ${reverseClass}" style="offset-path: url(#electronPath2); offset-distance: 0%; offset-rotate: auto;">
+                        <circle cx="0" cy="0" r="6" fill="#dc2626"/>
+                    </g>
+                    <g class="electron ${reverseClass}" style="offset-path: url(#electronPath2); offset-distance: 33%; offset-rotate: auto;">
+                        <circle cx="0" cy="0" r="6" fill="#dc2626"/>
+                    </g>
+                    <g class="electron ${reverseClass}" style="offset-path: url(#electronPath2); offset-distance: 66%; offset-rotate: auto;">
+                        <circle cx="0" cy="0" r="6" fill="#dc2626"/>
+                    </g>
+
+                    <!-- Animated Ions (through electrolyte) -->
+                    <!-- H+ cations -->
+                    <g class="cation ${reverseClass}" style="offset-path: url(#ionPath2); offset-distance: 0%; offset-rotate: auto;">
+                        <circle cx="0" cy="0" r="5" fill="#dc2626"/>
+                        <text x="0" y="2" class="component-label" font-size="10" fill="#fff">+</text>
+                    </g>
+                    <g class="cation ${reverseClass}" style="offset-path: url(#ionPath2); offset-distance: 50%; offset-rotate: auto;">
+                        <circle cx="0" cy="0" r="5" fill="#dc2626"/>
+                        <text x="0" y="2" class="component-label" font-size="10" fill="#fff">+</text>
+                    </g>
+
+                    <!-- SO₄²⁻ anions -->
+                    <g class="anion ${reverseClass}" style="offset-path: url(#ionPath2); offset-distance: 25%; offset-rotate: auto;">
+                        <circle cx="0" cy="-8" r="5" fill="#0891b2"/>
+                        <text x="0" y="-4" class="component-label" font-size="9" fill="#fff">−</text>
+                    </g>
+                    <g class="anion ${reverseClass}" style="offset-path: url(#ionPath2); offset-distance: 75%; offset-rotate: auto;">
+                        <circle cx="0" cy="-8" r="5" fill="#0891b2"/>
+                        <text x="0" y="-4" class="component-label" font-size="9" fill="#fff">−</text>
+                    </g>
+
+                    <!-- Legend -->
+                    <text x="20" y="${height - 10}" class="component-label" font-size="11" fill="#475569">
+                        e⁻ flow: Anode → Cathode (Discharge) | Ion flow: Reversed in Charge mode
+                    </text>
+                </svg>
+            `;
+
+            return svg;
+        }
+
+        // Initial display
+        updateDisplay();
+        updateAnimationSpeeds();
+    </script>
+</body>
+</html>

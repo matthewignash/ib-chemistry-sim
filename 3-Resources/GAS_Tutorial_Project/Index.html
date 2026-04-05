@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/roughjs@4.6.6/bundled/rough.js"></script>
+  <?!= include('Styles') ?>
+</head>
+<body>
+
+<!-- ═══ NAME GATE ═══ -->
+<div class="name-gate" id="nameGate">
+  <div class="name-box">
+    <h2>IB Chemistry</h2>
+    <p>Enter your name to begin. Your responses will be recorded.</p>
+    <input type="text" class="name-input" id="nameInput" placeholder="First and Last Name" autocomplete="off">
+    <button class="name-submit" id="nameBtn" onclick="submitName()" disabled>Start</button>
+  </div>
+</div>
+
+<!-- ═══ HEADER ═══ -->
+<div class="header">
+  <h1 id="headerTitle">Loading...</h1>
+  <div class="subtitle" id="headerSubtitle"></div>
+  <div class="tags">
+    <span class="tag tag-teal" id="headerTag"></span>
+    <span class="tag tag-outline" id="headerCode"></span>
+  </div>
+  <div class="student-tag">Student: <span id="studentNameDisplay"></span></div>
+</div>
+
+<!-- ═══ TAB BAR ═══ -->
+<div class="tab-bar">
+  <button class="tab-btn active" data-tab="tutorial" onclick="switchTab('tutorial')">
+    <span class="tab-icon">&#128218;</span> Worked Tutorial
+  </button>
+  <button class="tab-btn" data-tab="practice" onclick="switchTab('practice')">
+    <span class="tab-icon">&#9998;</span> Practice Problems
+  </button>
+  <button class="tab-btn" data-tab="diagrams" onclick="switchTab('diagrams')">
+    <span class="tab-icon">&#127912;</span> Reaction Diagrams
+  </button>
+</div>
+
+<!-- ═══ TUTORIAL TAB ═══ -->
+<div class="tab-panel active" id="panel-tutorial">
+  <div class="container">
+    <div class="intro-box">
+      <strong>How to use this tutorial:</strong> Try each question yourself first, then click
+      "Show Solution" to see a detailed walkthrough. Each solution explains not just the correct
+      answer, but <em>why</em> each distractor is wrong — a skill critical for IB exam success.
+    </div>
+
+    <div class="loading" id="tutorialLoading">
+      <div class="spinner"></div>
+      Loading tutorial questions...
+    </div>
+
+    <div id="tutorialQuestions" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ═══ PRACTICE TAB ═══ -->
+<div class="tab-panel" id="panel-practice">
+  <div class="container">
+
+    <div class="score-banner" id="scoreBanner">
+      <div class="score-num" id="scoreNum">0 / 0</div>
+      <div class="score-label" id="scoreLabel">MC Questions</div>
+    </div>
+
+    <div class="toggle-bar">
+      <span>Answer Key</span>
+      <button class="toggle-btn" id="toggleAllBtn" onclick="toggleAllAnswers()">Show All Answers</button>
+    </div>
+
+    <div class="loading" id="practiceLoading">
+      <div class="spinner"></div>
+      Loading practice problems...
+    </div>
+
+    <div id="practiceQuestions" style="display:none;"></div>
+  </div>
+</div>
+
+<!-- ═══ DIAGRAMS TAB ═══ -->
+<div class="tab-panel" id="panel-diagrams">
+  <div class="container" style="max-width:1100px;">
+
+    <!-- Mode Bar -->
+    <div class="mode-bar">
+      <h3>Organic Redox Reactions</h3>
+      <div style="text-align:center;">
+        <div class="mode-toggle">
+          <button class="active" onclick="setMode('teacher',this)">Teacher</button>
+          <button onclick="setMode('student',this)">Student</button>
+        </div>
+        <div class="controls-hint" id="hint-teacher">Spacebar or &rarr; to advance &bull; 1/2/3 to switch diagram &bull; R to reset all</div>
+        <div class="controls-hint" id="hint-student" style="display:none;">Click play to auto-advance &bull; Predict each product before revealing!</div>
+      </div>
+      <div style="font-size:0.7rem;opacity:0.5;">R3.2.9 – 3.2.11</div>
+    </div>
+
+    <!-- Diagram 1 -->
+    <div class="diagram-section teal" id="d1" onclick="activeDiagram='d1'">
+      <h2>1. Oxidation of Primary Alcohols</h2>
+      <p class="syllabus">R3.2.9 — Two-step pathway controlled by apparatus choice</p>
+      <div class="canvas-wrap"><canvas id="c1" width="960" height="540"></canvas></div>
+      <div class="caption-box" id="d1-caption">Click <strong>Next Step</strong> to begin the oxidation pathway...</div>
+      <div class="quiz-prompt" id="d1-quiz"></div>
+      <div class="step-controls">
+        <button class="step-btn primary advance-btn" onclick="advance('d1')">Next Step &rarr;</button>
+        <button class="step-btn secondary" onclick="resetDiagram('d1')">Reset</button>
+        <span class="step-indicator" id="d1-indicator">Step 0 / 6</span>
+        <div class="auto-controls">
+          <button class="play-btn" id="d1-play" onclick="toggleAuto('d1')"><svg viewBox="0 0 24 24" width="14" height="14"><polygon points="6,4 20,12 6,20" fill="currentColor"/></svg></button>
+          <select class="speed-select" id="d1-speed" onchange="updateSpeed('d1')"><option value="3000">Slow</option><option value="2000" selected>Normal</option><option value="1000">Fast</option></select>
+        </div>
+      </div>
+      <div class="insight teal" id="d1-insight" style="display:none;">
+        <strong>Key Insight:</strong> The apparatus controls the product. Distillation removes the aldehyde; reflux keeps everything for complete oxidation. Same reagents &mdash; different outcomes!
+      </div>
+    </div>
+
+    <!-- Diagram 2 -->
+    <div class="diagram-section blue" id="d2" onclick="activeDiagram='d2'">
+      <h2>2. Oxidation of Secondary &amp; Tertiary Alcohols</h2>
+      <p class="syllabus">R3.2.9 — Secondary &rarr; ketone; Tertiary &rarr; no reaction</p>
+      <div class="canvas-wrap"><canvas id="c2" width="960" height="440"></canvas></div>
+      <div class="caption-box blue" id="d2-caption">Click <strong>Next Step</strong> to see secondary alcohol oxidation...</div>
+      <div class="quiz-prompt" id="d2-quiz"></div>
+      <div class="step-controls">
+        <button class="step-btn primary advance-btn" onclick="advance('d2')">Next Step &rarr;</button>
+        <button class="step-btn secondary" onclick="resetDiagram('d2')">Reset</button>
+        <span class="step-indicator" id="d2-indicator">Step 0 / 4</span>
+        <div class="auto-controls">
+          <button class="play-btn" id="d2-play" onclick="toggleAuto('d2')"><svg viewBox="0 0 24 24" width="14" height="14"><polygon points="6,4 20,12 6,20" fill="currentColor"/></svg></button>
+          <select class="speed-select" id="d2-speed" onchange="updateSpeed('d2')"><option value="3000">Slow</option><option value="2000" selected>Normal</option><option value="1000">Fast</option></select>
+        </div>
+      </div>
+      <div class="insight blue" id="d2-insight" style="display:none;">
+        <strong>Comparison:</strong> Primary &rarr; 2 products. Secondary &rarr; 1 product (ketone). Tertiary &rarr; none. This classification is a key IB exam topic!
+      </div>
+    </div>
+
+    <!-- Diagram 3 -->
+    <div class="diagram-section orange" id="d3" onclick="activeDiagram='d3'">
+      <h2>3. Hydrogenation — Reduction of Unsaturated Compounds</h2>
+      <p class="syllabus">R3.2.11 — Addition of H&#x2082; across C=C or C&#x2261;C with Ni/Pt/Pd catalyst + heat</p>
+      <div class="canvas-wrap"><canvas id="c3" width="960" height="460"></canvas></div>
+      <div class="caption-box orange" id="d3-caption">Click <strong>Next Step</strong> to explore hydrogenation...</div>
+      <div class="quiz-prompt" id="d3-quiz"></div>
+      <div class="step-controls">
+        <button class="step-btn primary advance-btn" onclick="advance('d3')">Next Step &rarr;</button>
+        <button class="step-btn secondary" onclick="resetDiagram('d3')">Reset</button>
+        <span class="step-indicator" id="d3-indicator">Step 0 / 5</span>
+        <div class="auto-controls">
+          <button class="play-btn" id="d3-play" onclick="toggleAuto('d3')"><svg viewBox="0 0 24 24" width="14" height="14"><polygon points="6,4 20,12 6,20" fill="currentColor"/></svg></button>
+          <select class="speed-select" id="d3-speed" onchange="updateSpeed('d3')"><option value="3000">Slow</option><option value="2000" selected>Normal</option><option value="1000">Fast</option></select>
+        </div>
+      </div>
+      <div class="insight orange" id="d3-insight" style="display:none;">
+        <strong>This is a reduction:</strong> Addition of H&#x2082; lowers the degree of unsaturation. The catalyst surface weakens bonds so new C&mdash;H bonds can form.
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══ FOOTER ═══ -->
+<div class="footer" id="pageFooter">IB Chemistry</div>
+
+<?!= include('Scripts') ?>
+<?!= include('DiagramScripts') ?>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    initNameGate();
+    loadAllData();
+  });
+</script>
+
+</body>
+</html>

@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IB Chemistry SL - Reactivity 3.2 Review Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        header {
+            background: linear-gradient(135deg, #1a5f7a 0%, #2d8fa3 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .progress-section {
+            background: #f0f4f8;
+            padding: 20px 30px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .progress-label {
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #2d8fa3;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #52c41a 0%, #95de64 100%);
+            width: 0%;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .main-content {
+            padding: 40px 30px;
+        }
+
+        .section {
+            margin-bottom: 50px;
+        }
+
+        .section h2 {
+            color: #1a5f7a;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #2d8fa3;
+        }
+
+        .section h3 {
+            color: #2d8fa3;
+            font-size: 1.2em;
+            margin-top: 25px;
+            margin-bottom: 12px;
+        }
+
+        .key-concepts {
+            background: #e8f4f8;
+            border-left: 4px solid #2d8fa3;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            line-height: 1.8;
+        }
+
+        .key-concepts strong {
+            color: #1a5f7a;
+        }
+
+        .problem {
+            margin-bottom: 25px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .problem-header {
+            background: #f5f5f5;
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            color: #333;
+            transition: background 0.3s;
+        }
+
+        .problem-header:hover {
+            background: #efefef;
+        }
+
+        .problem-header .problem-number {
+            color: #2d8fa3;
+            font-weight: 700;
+            margin-right: 10px;
+        }
+
+        .confidence-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .confidence-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #ddd;
+            background: white;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.9em;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .confidence-btn:hover {
+            background: #f0f0f0;
+        }
+
+        .confidence-btn.selected {
+            background: #2d8fa3;
+            color: white;
+            border-color: #1a5f7a;
+        }
+
+        .problem-content {
+            padding: 20px;
+            display: none;
+            background: #fafafa;
+            border-top: 1px solid #ddd;
+        }
+
+        .problem-content.visible {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .toggle-button {
+            background: #2d8fa3;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-top: 10px;
+            transition: background 0.3s;
+        }
+
+        .toggle-button:hover {
+            background: #1a5f7a;
+        }
+
+        .answer {
+            background: #f0f8e8;
+            border-left: 4px solid #52c41a;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .answer.visible {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .walkthrough {
+            background: #fff9e6;
+            border-left: 4px solid #faad14;
+            padding: 15px;
+            margin-top: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .walkthrough.visible {
+            display: block;
+            animation: slideDown 0.3s ease;
+        }
+
+        .step {
+            margin: 10px 0;
+            padding: 10px;
+            background: white;
+            border-radius: 4px;
+        }
+
+        .step-number {
+            color: #faad14;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .tip-box {
+            background: #fff7e6;
+            border-left: 4px solid #faad14;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+
+        .tip-box strong {
+            color: #d48806;
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            background: white;
+        }
+
+        .comparison-table th {
+            background: #2d8fa3;
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .comparison-table td {
+            padding: 12px;
+            border: 1px solid #ddd;
+        }
+
+        .comparison-table tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+
+        .mcq-options {
+            margin: 15px 0;
+        }
+
+        .mcq-option {
+            padding: 10px;
+            margin: 8px 0;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .mcq-option:hover {
+            background: #f5f5f5;
+        }
+
+        .mcq-option.selected {
+            background: #e8f4f8;
+            border-color: #2d8fa3;
+        }
+
+        .marking-point {
+            margin: 8px 0;
+            padding: 8px;
+            background: white;
+            border-left: 3px solid #52c41a;
+            padding-left: 15px;
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 20px 30px;
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            border-top: 1px solid #ddd;
+        }
+
+        .print-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2d8fa3;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            transition: all 0.3s;
+            z-index: 100;
+        }
+
+        .print-button:hover {
+            background: #1a5f7a;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+            .print-button {
+                display: none;
+            }
+            .problem-content {
+                display: block !important;
+            }
+            .answer {
+                display: block !important;
+            }
+            .walkthrough {
+                display: block !important;
+            }
+            .progress-section {
+                display: none;
+            }
+        }
+
+        @media (max-width: 768px) {
+            header h1 {
+                font-size: 1.4em;
+            }
+            main-content {
+                padding: 20px 15px;
+            }
+            .print-button {
+                bottom: 10px;
+                right: 10px;
+                padding: 10px 15px;
+                font-size: 0.9em;
+            }
+        }
+
+        sup {
+            font-size: 0.8em;
+        }
+
+        sub {
+            font-size: 0.8em;
+        }
+
+        .equation {
+            font-family: 'Courier New', monospace;
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+
+        .cell-diagram {
+            border: 2px solid #2d8fa3;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 6px;
+            background: #f0f8ff;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>IB Chemistry SL - Reactivity 3.2 Review Guide</h1>
+            <p>Electron Transfer Reactions: Comprehensive Study Tool</p>
+        </header>
+
+        <div class="progress-section">
+            <div class="progress-label">Your Progress: <span id="progress-text">0/12</span></div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill" style="width: 0%">0%</div>
+            </div>
+        </div>
+
+        <div class="main-content">
+
+            <!-- SECTION 1: OXIDATION AND REDUCTION -->
+            <div class="section">
+                <h2>Section 1: Oxidation and Reduction (R3.2.1–R3.2.2)</h2>
+
+                <div class="key-concepts">
+                    <strong>Key Concepts:</strong><br>
+                    Oxidation is the <strong>loss of electrons</strong> (or increase in oxidation state). Reduction is the <strong>gain of electrons</strong> (or decrease in oxidation state). A redox reaction involves both processes simultaneously. Oxidation states follow specific rules: elements = 0, monoatomic ions = charge, O usually −2 (except in peroxides −1), H usually +1 (except in metal hydrides −1), and all oxidation states sum to molecular charge.
+                </div>
+
+                <!-- Problem 1 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 1:</span>
+                            Assign oxidation states to all atoms in K₂Cr₂O₇
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Assign oxidation states to all atoms in K₂Cr₂O₇ (potassium dichromate).</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Walkthrough</button>
+                        <div class="walkthrough">
+                            <div class="step">
+                                <span class="step-number">Step 1:</span> Start with what you know. Potassium is a Group 1 metal → oxidation state = <strong>+1</strong>
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 2:</span> Oxygen is not in a peroxide → oxidation state = <strong>−2</strong>
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 3:</span> Set up an equation. Compound is neutral, so: 2(+1) + 2x + 7(−2) = 0, where x = oxidation state of Cr
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 4:</span> Solve: +2 + 2x − 14 = 0 → 2x = 12 → <strong>x = +6</strong>
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 5:</span> Check: 2(+1) + 2(+6) + 7(−2) = +2 + 12 − 14 = 0 ✓
+                            </div>
+                        </div>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Answer:</strong><br>
+                            K: <strong>+1</strong><br>
+                            Cr: <strong>+6</strong><br>
+                            O: <strong>−2</strong>
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem 2 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 2:</span>
+                            Identify oxidized and reduced species
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Identify the oxidized and reduced species in this reaction:</strong></p>
+                        <div class="equation">2Fe³⁺(aq) + Sn²⁺(aq) → 2Fe²⁺(aq) + Sn⁴⁺(aq)</div>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Walkthrough</button>
+                        <div class="walkthrough">
+                            <div class="step">
+                                <span class="step-number">Step 1:</span> Assign oxidation states to each species:
+                                <br>Fe³⁺ = +3, Sn²⁺ = +2, Fe²⁺ = +2, Sn⁴⁺ = +4
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 2:</span> Track oxidation state changes:
+                                <br>Fe: +3 → +2 (decrease by 1) = <strong>REDUCTION</strong> (gains electrons)
+                                <br>Sn: +2 → +4 (increase by 2) = <strong>OXIDATION</strong> (loses electrons)
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 3:</span> Identify species by their role:
+                                <br><strong>Oxidized species:</strong> The substance that is oxidized (loses electrons) = Sn²⁺
+                                <br><strong>Reduced species:</strong> The substance that is reduced (gains electrons) = Fe³⁺
+                            </div>
+                        </div>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Oxidized species:</strong> Sn²⁺ (oxidation state +2 → +4)<br>
+                            <strong>Reduced species:</strong> Fe³⁺ (oxidation state +3 → +2)
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem 3 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 3:</span>
+                            Spontaneity from reactivity series (MCQ)
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Which reaction is spontaneous? (Use the reactivity series: K > Na > Ca > Mg > Al > Zn > Fe > Cu > Ag)</strong></p>
+                        <div class="mcq-options">
+                            <div class="mcq-option" onclick="selectMCQ(this)">A) Cu(s) + 2Ag⁺(aq) → Cu²⁺(aq) + 2Ag(s)</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">B) Zn(s) + Cu²⁺(aq) → Zn²⁺(aq) + Cu(s)</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">C) Fe(s) + Zn²⁺(aq) → Fe²⁺(aq) + Zn(s)</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">D) Ag(s) + Cu²⁺(aq) → Ag⁺(aq) + Cu(s)</div>
+                        </div>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Correct Answer: B</strong><br>
+                            A spontaneous redox reaction occurs when a more reactive metal reduces the ions of a less reactive metal. Zn is more reactive than Cu, so Zn can reduce Cu²⁺ → spontaneous. ✓<br><br>
+                            <strong>Why others are wrong:</strong><br>
+                            A) Cu is less reactive than Ag - not spontaneous<br>
+                            C) Fe is less reactive than Zn - not spontaneous<br>
+                            D) Ag is less reactive than Cu - not spontaneous
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tip-box">
+                    <strong>IB Exam Strategy:</strong> When asked to assign oxidation states, always show your working step-by-step. For redox reactions, clearly state which species is oxidized (loses electrons/goes to higher oxidation state) and which is reduced (gains electrons/goes to lower oxidation state). Examiners reward clear method. Remember: oxidation and reduction always occur together in the same reaction.
+                </div>
+            </div>
+
+            <!-- SECTION 2: VOLTAIC CELLS -->
+            <div class="section">
+                <h2>Section 2: Voltaic (Galvanic) Cells (R3.2.3–R3.2.4)</h2>
+
+                <div class="key-concepts">
+                    <strong>Key Concepts:</strong><br>
+                    Voltaic cells harness spontaneous redox reactions to produce electrical current. Components include two <strong>electrodes</strong> (anode = where oxidation occurs, cathode = where reduction occurs), an <strong>electrolyte</strong> in each half-cell, and a <strong>salt bridge</strong> (allows ions to flow, maintains electrical neutrality). Electrons flow from anode to cathode through external circuit. Cell notation: Anode | Electrolyte || Electrolyte | Cathode
+                </div>
+
+                <div class="cell-diagram">
+                    <svg width="350" height="280" style="max-width: 100%;">
+                        <!-- Containers -->
+                        <rect x="30" y="120" width="120" height="120" fill="none" stroke="#2d8fa3" stroke-width="2"/>
+                        <rect x="200" y="120" width="120" height="120" fill="none" stroke="#2d8fa3" stroke-width="2"/>
+
+                        <!-- Electrodes -->
+                        <rect x="70" y="50" width="40" height="70" fill="#888" stroke="#333" stroke-width="2"/>
+                        <rect x="240" y="50" width="40" height="70" fill="#d4af37" stroke="#333" stroke-width="2"/>
+
+                        <!-- Labels -->
+                        <text x="85" y="35" font-weight="bold" font-size="12">Zn</text>
+                        <text x="255" y="35" font-weight="bold" font-size="12">Cu</text>
+
+                        <!-- Solutions -->
+                        <text x="45" y="180" font-size="11">ZnSO₄</text>
+                        <text x="215" y="180" font-size="11">CuSO₄</text>
+
+                        <!-- Salt Bridge -->
+                        <circle cx="160" cy="140" r="8" fill="white" stroke="#faad14" stroke-width="2"/>
+                        <circle cx="160" cy="200" r="8" fill="white" stroke="#faad14" stroke-width="2"/>
+                        <line x1="160" y1="148" x2="160" y2="192" stroke="#faad14" stroke-width="3" stroke-dasharray="5,5"/>
+                        <text x="165" y="175" font-size="10" fill="#d48806">salt bridge</text>
+
+                        <!-- Electron flow -->
+                        <defs>
+                            <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="5" refY="3" orient="auto">
+                                <polygon points="0 0, 10 3, 0 6" fill="#ff6b6b"/>
+                            </marker>
+                        </defs>
+                        <line x1="105" y1="40" x2="265" y2="40" stroke="#ff6b6b" stroke-width="3" marker-end="url(#arrowhead)"/>
+                        <text x="160" y="20" font-size="11" fill="#ff6b6b" text-anchor="middle">e⁻ flow</text>
+
+                        <!-- Anode/Cathode labels -->
+                        <text x="85" y="270" font-size="12" font-weight="bold" fill="#1a5f7a" text-anchor="middle">ANODE</text>
+                        <text x="260" y="270" font-size="12" font-weight="bold" fill="#1a5f7a" text-anchor="middle">CATHODE</text>
+                    </svg>
+                </div>
+
+                <!-- Problem 4 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 4:</span>
+                            Write cell notation for Zn/Cu cell
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>For a Zn/Cu voltaic cell with Zn in ZnSO₄ and Cu in CuSO₄, write the cell notation and identify the anode and cathode.</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Walkthrough</button>
+                        <div class="walkthrough">
+                            <div class="step">
+                                <span class="step-number">Step 1:</span> Determine which metal is more reactive. Zn is more reactive than Cu (from reactivity series).
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 2:</span> The more reactive metal is oxidized (loses electrons) → this is the <strong>ANODE</strong> (negative pole)
+                                <br>Zn → Zn²⁺ + 2e⁻
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 3:</span> The less reactive metal is where reduction occurs → this is the <strong>CATHODE</strong> (positive pole)
+                                <br>Cu²⁺ + 2e⁻ → Cu
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 4:</span> Write cell notation: Anode (−) | Electrolyte || Electrolyte | Cathode (+)
+                            </div>
+                        </div>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Cell Notation:</strong><br>
+                            Zn(s) | Zn²⁺(aq) || Cu²⁺(aq) | Cu(s)<br><br>
+                            <strong>Anode:</strong> Zn (where oxidation occurs)<br>
+                            <strong>Cathode:</strong> Cu (where reduction occurs)
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem 5 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 5:</span>
+                            Electrode identification (MCQ)
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>In a voltaic cell, which statement is correct about the electrodes?</strong></p>
+                        <div class="mcq-options">
+                            <div class="mcq-option" onclick="selectMCQ(this)">A) The anode is positive and reduction occurs there</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">B) The cathode is negative and oxidation occurs there</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">C) The anode is where oxidation occurs and it is the negative electrode</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">D) Electrons flow from cathode to anode through the external circuit</div>
+                        </div>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Correct Answer: C</strong><br>
+                            In a voltaic cell, the anode is where oxidation occurs (loss of electrons), making it the negative pole. Electrons are produced here and flow toward the cathode. ✓<br><br>
+                            <strong>Why others are wrong:</strong><br>
+                            A) Anode is negative (not positive) in a voltaic cell; reduction occurs at cathode<br>
+                            B) Cathode is positive (not negative); reduction (not oxidation) occurs there<br>
+                            D) Electrons flow from anode to cathode (not the reverse)
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem 6 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 6:</span>
+                            Role of the salt bridge
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Explain the role of the salt bridge in a voltaic cell.</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Model Answer with Marking Points:</strong><br><br>
+                            <div class="marking-point"><strong>Point 1:</strong> The salt bridge connects the two half-cells / allows ionic communication between compartments</div>
+                            <div class="marking-point"><strong>Point 2:</strong> It maintains electrical neutrality / allows anions to migrate toward the anode and cations toward the cathode</div>
+                            <div class="marking-point"><strong>Point 3:</strong> Without it, charge imbalances build up and the cell stops working / reaction cannot continue</div>
+                            <div class="marking-point"><strong>Point 4:</strong> It does NOT allow electrons to pass / electrons only flow through external circuit</div>
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SECTION 3: ELECTROLYSIS -->
+            <div class="section">
+                <h2>Section 3: Electrolysis (R3.2.5)</h2>
+
+                <div class="key-concepts">
+                    <strong>Key Concepts:</strong><br>
+                    Electrolysis is a <strong>non-spontaneous</strong> process that uses electrical energy to drive a redox reaction. At the <strong>cathode (−)</strong>, reduction occurs (cations gain electrons). At the <strong>anode (+)</strong>, oxidation occurs (anions lose electrons, or the electrode corrodes). Products depend on electrolyte type: molten salts vs. aqueous solutions. In aqueous solutions, water can be oxidized/reduced if the ions in solution are harder to oxidize/reduce.
+                </div>
+
+                <!-- Problem 7 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 7:</span>
+                            Electrolysis of molten NaCl
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Write the half-equations for the electrolysis of molten NaCl. Identify the product at each electrode.</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Walkthrough</button>
+                        <div class="walkthrough">
+                            <div class="step">
+                                <span class="step-number">Step 1:</span> In molten NaCl, only Na⁺ and Cl⁻ ions are present.
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 2:</span> At the <strong>cathode (−)</strong>, cations are reduced. Na⁺ is present, so:
+                                <br>Na⁺ + e⁻ → Na
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 3:</span> At the <strong>anode (+)</strong>, anions are oxidized. Cl⁻ is present, so:
+                                <br>2Cl⁻ → Cl₂ + 2e⁻
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 4:</span> Overall reaction: 2Na⁺ + 2Cl⁻ → 2Na + Cl₂ (with electrical energy)
+                            </div>
+                        </div>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Cathode (reduction):</strong> Na⁺ + e⁻ → Na<br>
+                            <strong>Anode (oxidation):</strong> 2Cl⁻ → Cl₂ + 2e⁻<br><br>
+                            <strong>Products:</strong> Sodium metal (cathode), Chlorine gas (anode)
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem 8 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 8:</span>
+                            Voltaic vs. Electrolytic Cells
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Complete the comparison table below:</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Table</button>
+                        <div class="answer">
+                            <table class="comparison-table">
+                                <tr>
+                                    <th>Feature</th>
+                                    <th>Voltaic Cell</th>
+                                    <th>Electrolytic Cell</th>
+                                </tr>
+                                <tr>
+                                    <td><strong>Type of Process</strong></td>
+                                    <td>Spontaneous redox reaction</td>
+                                    <td>Non-spontaneous; requires electrical energy</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Anode Polarity</strong></td>
+                                    <td>Negative (−)</td>
+                                    <td>Positive (+)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Cathode Polarity</strong></td>
+                                    <td>Positive (+)</td>
+                                    <td>Negative (−)</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Where Oxidation Occurs</strong></td>
+                                    <td>At the anode</td>
+                                    <td>At the anode</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Where Reduction Occurs</strong></td>
+                                    <td>At the cathode</td>
+                                    <td>At the cathode</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Electron Flow Direction</strong></td>
+                                    <td>From anode → cathode (through external circuit)</td>
+                                    <td>From power supply, enters at cathode, leaves at anode</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Example</strong></td>
+                                    <td>Zn/Cu battery</td>
+                                    <td>Electrolysis of molten NaCl</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem 9 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 9:</span>
+                            Electrolysis of molten Al₂O₃ (MCQ)
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Which statement is correct about the electrolysis of molten Al₂O₃?</strong></p>
+                        <div class="mcq-options">
+                            <div class="mcq-option" onclick="selectMCQ(this)">A) Al forms at the anode and O₂ forms at the cathode</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">B) Al forms at the cathode and O₂ forms at the anode</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">C) Both Al and O₂ form at the cathode due to displacement</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">D) Na metal is produced because Al³⁺ cannot be reduced</div>
+                        </div>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Correct Answer: B</strong><br>
+                            At the cathode (−), Al³⁺ is reduced: Al³⁺ + 3e⁻ → Al<br>
+                            At the anode (+), O²⁻ is oxidized: 2O²⁻ → O₂ + 4e⁻<br>
+                            This is the basis of the Hall-Héroult process for aluminum production. ✓<br><br>
+                            <strong>Why others are wrong:</strong><br>
+                            A) Products reversed<br>
+                            C) Al is a single product, forms only at cathode<br>
+                            D) Al³⁺ can be reduced if sufficient voltage applied; this is a commercial process
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SECTION 4: RECHARGEABLE BATTERIES -->
+            <div class="section">
+                <h2>Section 4: Rechargeable Batteries (R3.2.7)</h2>
+
+                <div class="key-concepts">
+                    <strong>Key Concepts:</strong><br>
+                    <strong>Primary cells</strong> (non-rechargeable) produce energy through irreversible reactions. <strong>Secondary cells</strong> (rechargeable) involve reversible reactions; applying external voltage reverses the reaction, restoring the cell. Examples: Lead-acid batteries, Li-ion batteries. The key difference is whether the discharge reactions can be reversed without decomposing the electrode materials.
+                </div>
+
+                <!-- Problem 10 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 10:</span>
+                            Li-ion battery charging reaction
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>During discharge, a Li-ion battery undergoes: Li + CoO₂ → LiCoO₂. Write the equation for the charging reaction.</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Walkthrough</button>
+                        <div class="walkthrough">
+                            <div class="step">
+                                <span class="step-number">Step 1:</span> Understand discharge: Li is oxidized (anode), CoO₂ is reduced (cathode), forming LiCoO₂
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 2:</span> Charging reverses this process. External voltage applies reverse electromotive force.
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 3:</span> The product of discharge (LiCoO₂) is the reactant of charging.
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 4:</span> Charging equation is the reverse of discharge:
+                                <br>LiCoO₂ → Li + CoO₂ (with electrical energy input)
+                            </div>
+                            <div class="step">
+                                <span class="step-number">Step 5:</span> This restores the original materials, allowing another discharge cycle.
+                            </div>
+                        </div>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Charging Reaction:</strong><br>
+                            LiCoO₂ → Li + CoO₂<br><br>
+                            This is the exact reverse of the discharge reaction, which is why Li-ion batteries are rechargeable.
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem 11 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 11:</span>
+                            Why lead-acid rechargeable but Zn-C not
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Explain why lead-acid batteries can be recharged but zinc-carbon batteries cannot.</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Model Answer with Marking Points:</strong><br><br>
+                            <div class="marking-point"><strong>Point 1:</strong> Lead-acid batteries undergo reversible reactions: PbO₂ + Pb + 2H₂SO₄ ⇌ 2PbSO₄ + 2H₂O</div>
+                            <div class="marking-point"><strong>Point 2:</strong> When charged, the reverse reaction occurs, regenerating PbO₂ and Pb electrodes</div>
+                            <div class="marking-point"><strong>Point 3:</strong> Zinc-carbon batteries involve irreversible reactions where the zinc anode is consumed/corroded</div>
+                            <div class="marking-point"><strong>Point 4:</strong> The products of discharge cannot be converted back to original reactants by applying reverse voltage</div>
+                            <div class="marking-point"><strong>Point 5:</strong> Attempting to charge Zn-C cells damages electrodes and can cause leakage</div>
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problem 12 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Practice Problem 12:</span>
+                            Electron flow during charging
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Describe the direction of electron flow during charging of a rechargeable battery and explain how it differs from discharge.</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Answer:</strong><br>
+                            <strong>During Discharge:</strong> Electrons flow spontaneously from the anode (negative pole) → through external circuit → to the cathode (positive pole).<br><br>
+                            <strong>During Charging:</strong> An external power source pumps electrons from the cathode to the anode, forcing them to flow in the opposite direction. Electrons are pushed INTO the anode and pulled OUT of the cathode.<br><br>
+                            <strong>Key difference:</strong> Discharge is spontaneous (oxidation at anode, reduction at cathode); charging is forced (the polarity effectively reverses at the electrodes, but we still call them anode/cathode based on the discharge reaction).
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- SECTION 5: MIXED REVIEW -->
+            <div class="section">
+                <h2>Section 5: Mixed Review & Exam Practice</h2>
+
+                <p style="margin-bottom: 20px; color: #666;">The following five questions integrate concepts from all sections above. Test your understanding across R3.2 topics.</p>
+
+                <!-- Mixed Problem 1 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Mixed Q1:</span>
+                            Complete redox analysis (challenging)
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Consider the reaction: 2MnO₄⁻(aq) + 5H₂O₂(aq) + 6H⁺(aq) → 2Mn²⁺(aq) + 5O₂(g) + 8H₂O(l)</strong></p>
+                        <p style="margin-top: 10px;"><strong>a) Assign oxidation states to Mn in MnO₄⁻ and Mn²⁺</strong></p>
+                        <p style="margin-top: 8px;"><strong>b) Assign oxidation states to O in H₂O₂ and O₂</strong></p>
+                        <p style="margin-top: 8px;"><strong>c) Identify the oxidizing agent and reducing agent</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>a) Mn oxidation states:</strong><br>
+                            MnO₄⁻: Let x = oxidation state of Mn. x + 4(−2) = −1 → x = +7<br>
+                            Mn²⁺: +2<br><br>
+                            <strong>b) O oxidation states:</strong><br>
+                            H₂O₂: Each O is −1 (peroxide)<br>
+                            O₂: Each O is 0 (elemental)<br><br>
+                            <strong>c) Agent identification:</strong><br>
+                            <div class="marking-point">Mn: +7 → +2 (decrease by 5) = REDUCTION → MnO₄⁻ is the <strong>oxidizing agent</strong></div>
+                            <div class="marking-point">O: −1 → 0 (increase) = OXIDATION → H₂O₂ is the <strong>reducing agent</strong></div>
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mixed Problem 2 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Mixed Q2:</span>
+                            Cell analysis and notation
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>A voltaic cell is constructed using Ag and Ni electrodes with AgNO₃ and NiSO₄ solutions. (Ag is more easily reduced than Ni.)</strong></p>
+                        <p style="margin-top: 10px;"><strong>a) Write the cell notation</strong></p>
+                        <p style="margin-top: 8px;"><strong>b) Write half-equations for anode and cathode reactions</strong></p>
+                        <p style="margin-top: 8px;"><strong>c) Write the overall ionic equation</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>a) Cell notation:</strong><br>
+                            Ni(s) | Ni²⁺(aq) || Ag⁺(aq) | Ag(s)<br><br>
+                            <strong>b) Half-equations:</strong><br>
+                            Anode (oxidation): Ni(s) → Ni²⁺(aq) + 2e⁻<br>
+                            Cathode (reduction): Ag⁺(aq) + e⁻ → Ag(s)<br><br>
+                            <strong>c) Overall ionic equation:</strong><br>
+                            Ni(s) + 2Ag⁺(aq) → Ni²⁺(aq) + 2Ag(s)
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mixed Problem 3 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Mixed Q3:</span>
+                            Electrolysis MCQ: aqueous vs molten
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Compare the electrolysis of molten NaCl vs aqueous NaCl. At the anode of aqueous NaCl, why is Cl₂ produced instead of O₂?</strong></p>
+                        <div class="mcq-options">
+                            <div class="mcq-option" onclick="selectMCQ(this)">A) Cl⁻ is always preferentially oxidized regardless of concentration</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">B) O₂ is never produced in aqueous electrolysis</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">C) Cl⁻ concentration is high enough that it is preferentially oxidized over water despite being harder to oxidize</div>
+                            <div class="mcq-option" onclick="selectMCQ(this)">D) The anode material determines which product forms</div>
+                        </div>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Correct Answer: C</strong><br>
+                            Although water is thermodynamically easier to oxidize than Cl⁻ (O₂ requires lower potential than Cl₂), at high Cl⁻ concentration (like in saturated NaCl), kinetic factors dominate and Cl₂ is preferentially produced. ✓<br><br>
+                            In dilute aqueous NaCl, however, O₂ gas would form at the anode.<br><br>
+                            <strong>Why others are wrong:</strong><br>
+                            A) Concentration matters significantly<br>
+                            B) O₂ is produced in dilute aqueous electrolysis<br>
+                            D) Electrode material affects rate, not this preference
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mixed Problem 4 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Mixed Q4:</span>
+                            Battery comparison and design
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>A student claims that a Zn-C battery can be recharged by applying a reverse voltage. Evaluate this claim.</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Evaluation: The claim is INCORRECT.</strong><br><br>
+                            <div class="marking-point"><strong>Reason 1:</strong> Zn-C batteries involve irreversible reactions. The zinc anode corrodes and is consumed during discharge.</div>
+                            <div class="marking-point"><strong>Reason 2:</strong> Applying reverse voltage cannot regenerate the electrode materials; the reactions are not easily reversed.</div>
+                            <div class="marking-point"><strong>Reason 3:</strong> Attempting to recharge can cause electrode damage, internal pressure buildup, and leakage of electrolyte.</div>
+                            <div class="marking-point"><strong>Reason 4:</strong> Only batteries with reversible reactions (like lead-acid or Li-ion) can be reliably recharged.</div>
+                            <div class="marking-point"><strong>Conclusion:</strong> Zn-C batteries are primary cells; they are designed for single-use discharge only.</div>
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mixed Problem 5 -->
+                <div class="problem">
+                    <div class="problem-header" onclick="toggleProblem(this)">
+                        <span>
+                            <span class="problem-number">Mixed Q5:</span>
+                            Extended response: voltaic cell design
+                        </span>
+                        <span>▼</span>
+                    </div>
+                    <div class="problem-content">
+                        <p><strong>Design a voltaic cell to produce electrical current from the reaction: Cu(s) + 2Ag⁺(aq) → Cu²⁺(aq) + 2Ag(s). Describe all components and explain how each contributes to function.</strong></p>
+                        <button class="toggle-button" onclick="toggleElement(this)">Show Answer</button>
+                        <div class="answer">
+                            <strong>Model Cell Design (IB Markscheme-style):</strong><br><br>
+                            <div class="marking-point"><strong>Component 1 — Anode (−):</strong> Copper electrode. Cu is oxidized (Cu → Cu²⁺ + 2e⁻), losing electrons. These electrons are the source of electrical current.</div>
+                            <div class="marking-point"><strong>Component 2 — Cathode (+):</strong> Silver electrode. Ag⁺ is reduced here (Ag⁺ + e⁻ → Ag), accepting electrons from the anode via the external circuit.</div>
+                            <div class="marking-point"><strong>Component 3 — Half-cell solutions:</strong> One containing Cu²⁺/Cu and one containing Ag⁺. These provide the ions necessary for the redox reactions.</div>
+                            <div class="marking-point"><strong>Component 4 — Salt bridge:</strong> Allows anions to flow from the Ag⁺ half-cell to the Cu half-cell (and cations flow in reverse), maintaining electrical neutrality. Without it, charge imbalance would stop the reaction.</div>
+                            <div class="marking-point"><strong>Component 5 — External circuit:</strong> Connects the anode and cathode, allowing electrons to flow from Cu → Ag, driving current and powering devices.</div>
+                            <div class="marking-point"><strong>Overall result:</strong> Spontaneous electron transfer produces measurable electrical potential (EMF) between electrodes.</div>
+                        </div>
+                        <div class="confidence-buttons">
+                            <button class="confidence-btn" onclick="setConfidence(this, 1)">1</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 2)">2</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 3)">3</button>
+                            <button class="confidence-btn" onclick="setConfidence(this, 4)">4</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="footer">
+            <p><strong>IB Chemistry SL — Reactivity 3.2 Review Guide</strong><br>
+            This guide covers oxidation/reduction, voltaic cells, electrolysis, and rechargeable batteries. Excluded: organic chemistry (R3.3–R3.4).<br>
+            <strong>Study Tips:</strong> Work through problems at your own pace. Use the confidence ratings to identify weak areas. Print for exam preparation.</p>
+        </div>
+    </div>
+
+    <button class="print-button" onclick="window.print()">🖨 Print / Save as PDF</button>
+
+    <script>
+        function toggleProblem(header) {
+            const content = header.nextElementSibling;
+            content.classList.toggle('visible');
+            header.style.backgroundColor = content.classList.contains('visible') ? '#e8f4f8' : '#f5f5f5';
+        }
+
+        function toggleElement(button) {
+            const container = button.parentElement;
+            const target = button.nextElementSibling;
+            if (!target) return;
+            target.classList.toggle('visible');
+            button.textContent = target.classList.contains('visible')
+                ? button.textContent.replace('Show', 'Hide')
+                : button.textContent.replace('Hide', 'Show');
+        }
+
+        function setConfidence(button, rating) {
+            const parent = button.parentElement;
+            parent.querySelectorAll('.confidence-btn').forEach(btn => btn.classList.remove('selected'));
+            button.classList.add('selected');
+            updateProgress();
+        }
+
+        function selectMCQ(option) {
+            const parent = option.parentElement;
+            parent.querySelectorAll('.mcq-option').forEach(opt => opt.classList.remove('selected'));
+            option.classList.add('selected');
+        }
+
+        function updateProgress() {
+            const problems = document.querySelectorAll('.problem');
+            const completed = document.querySelectorAll('.confidence-btn.selected').length;
+            const total = problems.length;
+            const percent = Math.round((completed / total) * 100);
+
+            document.getElementById('progress-text').textContent = `${completed}/${total}`;
+            document.getElementById('progress-fill').style.width = percent + '%';
+            document.getElementById('progress-fill').textContent = percent + '%';
+        }
+
+        // Initialize progress on page load
+        window.addEventListener('load', updateProgress);
+    </script>
+</body>
+</html>

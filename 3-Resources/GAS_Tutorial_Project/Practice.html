@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <?!= include('Styles') ?>
+</head>
+<body>
+
+<!-- NAME GATE -->
+<div class="name-gate" id="nameGate">
+  <div class="name-box">
+    <h2>IB Chemistry Practice</h2>
+    <p>Enter your name to begin. Your responses will be recorded.</p>
+    <input type="text" class="name-input" id="nameInput" placeholder="First and Last Name" autocomplete="off">
+    <button class="name-submit" id="nameBtn" onclick="submitName()" disabled>Start Practice</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header" id="pageHeader">
+  <h1 id="headerTitle">Loading...</h1>
+  <div class="subtitle" id="headerSubtitle"></div>
+  <div class="tags">
+    <span class="tag tag-teal" id="headerTag"></span>
+    <span class="tag tag-outline" id="headerCode"></span>
+  </div>
+  <div class="student-tag">Student: <span id="studentNameDisplay"></span></div>
+</div>
+
+<div class="container">
+
+  <!-- SCORE BANNER -->
+  <div class="score-banner" id="scoreBanner">
+    <div class="score-num" id="scoreNum">0 / 0</div>
+    <div class="score-label" id="scoreLabel">MC Questions</div>
+  </div>
+
+  <!-- TOGGLE BAR -->
+  <div class="toggle-bar">
+    <span>Answer Key</span>
+    <button class="toggle-btn" id="toggleAllBtn" onclick="toggleAllAnswers()">Show All Answers</button>
+  </div>
+
+  <!-- LOADING -->
+  <div class="loading" id="loadingSpinner">
+    <div class="spinner"></div>
+    Loading questions...
+  </div>
+
+  <!-- QUESTIONS CONTAINER -->
+  <div id="questionsContainer" style="display:none;"></div>
+</div>
+
+<div class="footer" id="pageFooter">IB Chemistry — Practice Problems</div>
+
+<?!= include('Scripts') ?>
+
+<script>
+  PAGE_TYPE = 'practice';
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initNameGate();
+
+    google.script.run
+      .withSuccessHandler(function(config) {
+        document.getElementById('headerTitle').textContent =
+          (config.topicCode || '') + ': ' + (config.topicName || '');
+        document.getElementById('headerSubtitle').textContent =
+          config.practiceTitle + ' — ' + config.practiceSubtitle;
+        document.getElementById('headerTag').textContent = config.topicTag || 'IB Chemistry';
+        document.getElementById('headerCode').textContent = 'Practice Problems';
+        document.getElementById('pageFooter').textContent =
+          'IB Chemistry — ' + (config.topicCode || '') + ' Practice Problems';
+      })
+      .getConfig();
+
+    google.script.run
+      .withSuccessHandler(buildPractice)
+      .withFailureHandler(function(err) {
+        document.getElementById('loadingSpinner').innerHTML =
+          '<p style="color:#DC2626;">Error loading questions: ' + err.message + '</p>';
+      })
+      .getQuestions('practice');
+  });
+
+  function buildPractice(questions) {
+    var container = document.getElementById('questionsContainer');
+    container.innerHTML = '';
+    var letters = ['A', 'B', 'C', 'D'];
+
+    questions.forEach(function(q) {
+      var card = document.createElement('div');
+      card.className = 'question-card';
+      card.id = 'q-' + q.id;
+      card.dataset.num = q.number;
+      card.dataset.format = q.format;
+
+      // Header
+      var typeBadge = q.format === 'MC'
+        ? '<span class="p-type p-type-mc">Multiple Choice</span>'
+        : '<span class="p-type p-type-sa">Short Answer</span>';
+
+      var header = '<div class="q-header">' +
+        '<div class="q-number">' + q.number + '</div>' +
+        '<div class="q-title">' + esc(q.topic) + '</div>' +
+        typeBadge +
+        '<span class="p-marks">[' + q.marks + ' mark' + (q.marks > 1 ? 's' : '') + ']</span>' +
+        '</div>';
+
+      var body = '<div class="q-body">';
+      body += '<div class="q-stem">' + esc(q.stem) + '</div>';
+
+      if (q.format === 'MC') {
+        // MC Options
+        body += '<ul class="options">';
+        q.options.forEach(function(opt, i) {
+          body += '<li data-val="' + letters[i] + '" onclick="selectOption(this)">' +
+            '<span class="opt-letter">' + letters[i] + '</span> ' + esc(opt) + '</li>';
+        });
+        body += '</ul>';
+
+        // Submit button
+        body += '<button class="submit-btn" onclick="submitMC(\'' +
+          q.id + '\', \'' + q.correctAnswer + '\')">Check Answer</button>';
+
+        // Answer key
+        body += '<div class="answer-key">';
+        body += '<h4>Answer: ' + q.correctAnswer + '</h4>';
+
+        // Distractor explanations
+        var hasExplanations = false;
+        var explHtml = '<ul>';
+        letters.forEach(function(letter, i) {
+          var text = '';
+          if (letter === q.correctAnswer && q.options[i]) {
+            text = '<strong>' + letter + ' (correct):</strong> This is the right answer.';
+            hasExplanations = true;
+          } else if (q.distractors[letter]) {
+            text = '<strong>' + letter + ':</strong> ' + esc(q.distractors[letter]);
+            hasExplanations = true;
+          }
+          if (text) explHtml += '<li>' + text + '</li>';
+        });
+        explHtml += '</ul>';
+        if (hasExplanations) body += explHtml;
+        body += '</div>'; // end answer-key
+
+      } else {
+        // SA Parts
+        body += '<div class="sa-parts">';
+        q.saParts.forEach(function(part) {
+          body += '<div class="sa-part">' +
+            '<div class="sa-part-label">(' + part.label + ') ' + esc(part.prompt) +
+            ' [' + part.marks + ']</div>' +
+            '<div class="answer-space">Write your answer here...</div>' +
+            '</div>';
+        });
+        body += '</div>';
+
+        // Reveal button for SA
+        body += '<button class="reveal-btn" onclick="toggleSAAnswer(\'' + q.id + '\')">Show Answer</button>';
+
+        // Answer key
+        body += '<div class="answer-key"><h4>Marking Scheme</h4>';
+        q.saParts.forEach(function(part) {
+          body += '<p><strong>(' + part.label + ')</strong> ' + part.answer + '</p>';
+        });
+        body += '</div>';
+      }
+
+      body += '</div>'; // end q-body
+
+      card.innerHTML = header + body;
+      container.appendChild(card);
+    });
+
+    document.getElementById('loadingSpinner').style.display = 'none';
+    container.style.display = 'block';
+  }
+
+  function esc(str) {
+    if (!str) return '';
+    return String(str);
+  }
+</script>
+
+</body>
+</html>

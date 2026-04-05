@@ -1,0 +1,37 @@
+# Copyrighted textbook resources (keep local only)
+3-Resources/Pearson IB Chemistry HL/
+3-Resources/Kognity/
+3-Resources/Pearson_*.pdf
+3-Resources/IB-Guide/
+
+# POGIL downloads (copyrighted)
+POGIL IB Versions/
+POGIL download*/
+POGIL_IB_Alignment_Guide.pdf
+
+# Mock exams & assessments with answer keys
+Mock Exam/
+2-Areas/Assessment-Bank/
+
+# Large binary files (local only)
+*.pptx
+*.docx
+*.png
+*.gif
+Annual Calendar*.pdf
+Scheduling Proposal*.xlsx
+Line spectra*.pdf
+The big picture*.pdf
+The hydrogen emission spectrum*.pdf
+
+# Electrochemistry unit lesson plans (contains copyrighted PPTs)
+1-Projects/R3.2-Electrochemistry-Unit/Lesson-Plans/
+
+# OS / editor
+.DS_Store
+.~lock.*
+*.swp
+*~
+
+# Claude Code config (session-specific)
+.claude/

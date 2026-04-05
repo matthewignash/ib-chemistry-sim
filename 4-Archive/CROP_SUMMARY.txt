@@ -1,0 +1,88 @@
+PEARSON IB CHEMISTRY HL - STRUCTURE 3 QUESTION IMAGE CROPPING SUMMARY
+=====================================================================
+Date: April 2, 2026
+Total Images Cropped: 39
+
+STRUCTURE 3.1 - PERIODIC TABLE & MAIN GROUP ELEMENTS (20 images)
+-----------------------------------------------------------------
+
+Periodic Properties:
+  ✓ S3.1_02_periodic_table.png              - Color-coded periodic table with groups
+  ✓ S3.1_05_atomic_radius_table.png         - Atomic and ionic radius data
+  ✓ S3.1_05_ionization_energy_table.png    - First ionization energy trends table
+  ✓ S3.1_06_IE_graph_across_period.png     - IE variation across a period (graph)
+  ✓ S3.1_06_electron_affinity_chart.png    - Electron affinity bar chart
+
+Trends and Properties:
+  ✓ S3.1_07_electronegativity_trends.png   - Electronegativity trend graphs
+  ✓ S3.1_09_halogen_solutions.png          - Halogen solution colors (F₂, Cl₂, Br₂, I₂)
+  ✓ S3.1_09_displacement_reactions.png     - Halogen displacement reaction tubes
+  ✓ S3.1_11_period3_oxides_table.png       - Period 3 oxides acid-base properties
+  ✓ S3.1_11_oxide_acidbase_photo.png       - Period 3 oxides with pH indicators
+
+Transition Metals (HL):
+  ✓ S3.1_12_acid_rain_diagram.png          - Acid rain formation and effects
+  ✓ S3.1_18_melting_point_graph.png        - Transition metal melting point trends
+  ✓ S3.1_18_transition_metal_table.png     - Transition metal properties table
+  ✓ S3.1_18_magnetic_property_photo.png    - Magnetic properties demonstration
+
+Colored Complexes & Spectroscopy (HL):
+  ✓ S3.1_22_colour_wheel.png               - Color wheel (complementary colors)
+  ✓ S3.1_22_d_orbital_splitting.png        - d-orbital splitting diagrams
+  ✓ S3.1_23_colorimeter_setup.png          - Colorimeter/spectrophotometer apparatus
+  ✓ S3.1_23_absorption_curve.png           - Beer-Lambert law absorption curve
+  ✓ S3.1_23_colored_solutions.png          - Series of colored solutions
+  ✓ S3.1_23_beerlambert_data.png           - Beer-Lambert law data table
+
+
+STRUCTURE 3.2 - ORGANIC CHEMISTRY & ANALYTICAL TECHNIQUES (19 images)
+----------------------------------------------------------------------
+
+Organic Structures and Nomenclature:
+  ✓ S3.2_04_functional_groups_table.png    - Comprehensive functional groups table
+  ✓ S3.2_06_homologous_series_table.png    - Homologous series properties (alkanes)
+  ✓ S3.2_06_boiling_point_table.png        - Boiling point trends data table
+
+Isomerism:
+  ✓ S3.2_14_stereoisomer_classification.png  - Stereoisomer classification flowchart
+  ✓ S3.2_14_stereoisomer_models.png          - 3D molecular models of cis-trans isomers
+  ✓ S3.2_16_chiral_center_diagram.png        - Chiral center and enantiomers diagram
+  ✓ S3.2_16_chirality_models.png             - Hand models and 3D molecular models
+
+Analytical Chemistry (HL):
+
+Mass Spectrometry:
+  ✓ S3.2_20_mass_spectrometer.png          - Mass spectrometer apparatus diagram
+  ✓ S3.2_20_mass_spectrum.png              - Example mass spectrum
+
+Infrared Spectroscopy:
+  ✓ S3.2_22_IR_spectrum_diagrams.png       - IR spectrum examples with assignments
+  ✓ S3.2_22_IR_wavenumber_table.png        - IR wavenumber reference table
+  ✓ S3.2_24_ir_spectra_examples.png        - IR spectra of organic compounds
+  ✓ S3.2_24_ir_identification_table.png    - IR peak identification table
+
+NMR Spectroscopy (HL):
+  ✓ S3.2_27_magnetic_resonance_explanation.png  - Magnetic resonance & NMR principles
+  ✓ S3.2_27_mri_image.png                       - MRI brain scan (NMR application)
+  ✓ S3.2_28_nmr_spectra_examples.png            - ¹H NMR spectra with integration
+  ✓ S3.2_28_chemical_shift_table.png            - Chemical shift reference table
+  ✓ S3.2_29_hnmr_integration_table.png          - H-NMR peak integration guide
+  ✓ S3.2_29_hnmr_spectra_examples.png           - H-NMR spectra with splitting patterns
+
+
+OUTPUT DIRECTORIES
+------------------
+Structure 3.1 images: /3-Resources/Pearson IB Chemistry HL/Structure_3.1/Question_Images/
+Structure 3.2 images: /3-Resources/Pearson IB Chemistry HL/Structure_3.2/Question_Images/
+
+NAMING CONVENTION
+-----------------
+Format: S[X].[X]_[XX]_[description].png
+Example: S3.1_06_electron_affinity_chart.png
+  - S3.1/S3.2  = Section/Structure designation
+  - [XX]       = Screenshot number
+  - description = Content (lowercase, underscores, descriptive)
+
+All images saved at 95% JPEG quality for optimal balance of clarity and file size.
+Crop dimensions optimized to exclude page headers, footers, and sidebar elements.
+

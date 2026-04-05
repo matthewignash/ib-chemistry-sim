@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IB Chemistry 2-Year Course Plan (2026–2028)</title>
+<style>
+:root {
+    --ib-blue: #003366; --ib-light: #e8f0fe;
+    --ahl-purple: #6b21a8; --ahl-light: #f3e8ff;
+    --green: #059669; --green-light: #d1fae5;
+    --red: #dc2626; --red-light: #fee2e2;
+    --orange: #d97706; --orange-light: #fef3c7;
+    --gray-50: #f9fafb; --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb; --gray-600: #4b5563; --gray-800: #1f2937;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'Segoe UI',system-ui,sans-serif; color:var(--gray-800); line-height:1.6; background:var(--gray-50); padding:2rem; max-width:1500px; margin:0 auto; }
+h1 { font-size:1.7rem; color:var(--ib-blue); }
+h2 { font-size:1.3rem; color:var(--ib-blue); margin:2.5rem 0 0.8rem; padding-bottom:0.4rem; border-bottom:2px solid var(--ib-blue); }
+h3 { font-size:1.05rem; margin-bottom:0.5rem; }
+h4 { font-size:0.92rem; color:var(--ib-blue); margin-bottom:0.3rem; }
+.subtitle { color:var(--gray-600); font-size:0.85rem; margin-bottom:1.5rem; }
+.dashboard { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:0.7rem; margin-bottom:1.5rem; }
+.dash-card { background:white; border-radius:8px; padding:0.9rem; box-shadow:0 1px 3px rgba(0,0,0,.1); text-align:center; }
+.dash-card .label { font-size:0.68rem; color:var(--gray-600); text-transform:uppercase; letter-spacing:.05em; }
+.dash-card .value { font-size:1.5rem; font-weight:700; margin:0.15rem 0; }
+.dash-card .detail { font-size:0.7rem; color:var(--gray-600); }
+.blue { color:var(--ib-blue); } .purple { color:var(--ahl-purple); }
+.green-text { color:var(--green); } .red { color:var(--red); } .orange { color:var(--orange); }
+table { width:100%; border-collapse:collapse; background:white; border-radius:8px; overflow:hidden; box-shadow:0 1px 3px rgba(0,0,0,.1); margin-bottom:1.2rem; font-size:0.82rem; }
+th { background:var(--ib-blue); color:white; padding:0.5rem 0.6rem; text-align:left; font-weight:600; font-size:0.75rem; white-space:nowrap; }
+td { padding:0.45rem 0.6rem; border-bottom:1px solid var(--gray-200); vertical-align:top; }
+.num { text-align:center; font-variant-numeric:tabular-nums; }
+tr:hover { background:var(--gray-50); }
+.months { font-weight:600; white-space:nowrap; color:var(--ib-blue); min-width:80px; font-size:0.78rem; }
+.subtopics { font-size:0.72rem; color:var(--gray-600); }
+.notes { font-size:0.78rem; color:var(--gray-600); max-width:320px; }
+.content-col { font-weight:700; color:var(--ib-blue); }
+.flip-col { color:var(--ahl-purple); font-weight:600; }
+.assess-col { color:var(--orange); font-weight:600; }
+.flip-details { margin-top:0.3rem; }
+.flip-details summary { font-size:0.74rem; color:var(--ahl-purple); cursor:pointer; font-weight:600; }
+.flip-content { font-size:0.72rem; color:var(--ahl-purple); margin-top:0.2rem; }
+.exp-block td { background:var(--green-light); }
+.rev-block td { background:var(--orange-light); }
+.assess-block td { background:#fef9ee; }
+.sem-total td { font-weight:700; border-top:2px solid var(--ib-blue); background:var(--ib-light); }
+.budget-ok { color:var(--green); }
+.di-block td { background:#fff7ed; border-left:3px solid var(--orange); }
+.assess-flow { display:flex; align-items:center; gap:0.15rem; flex-wrap:wrap; padding:1rem 0; justify-content:center; }
+.assess-chip { background:white; border:2px solid var(--ib-blue); border-radius:6px; padding:0.4rem 0.5rem; text-align:center; min-width:55px; font-size:0.7rem; }
+.yr2-badge { border-color:var(--ahl-purple); }
+.final-badge { border-color:var(--gray-600); background:var(--gray-100); }
+.mock-badge { border-color:var(--red); background:var(--red-light); }
+.form-badge { border-style:dashed; }
+.chip-num { display:block; font-weight:700; font-size:0.75rem; color:var(--ib-blue); }
+.yr2-badge .chip-num { color:var(--ahl-purple); }
+.final-badge .chip-num { color:var(--gray-600); }
+.mock-badge .chip-num { color:var(--red); }
+.form-badge .chip-num { font-size:0.65rem; }
+.chip-name { display:block; font-size:0.65rem; font-weight:600; }
+.chip-when { display:block; font-size:0.6rem; color:var(--gray-600); }
+.chip-arrow { color:var(--gray-200); font-size:1rem; }
+.seq-visual { background:white; border-radius:8px; padding:1.2rem; box-shadow:0 1px 3px rgba(0,0,0,.1); margin-bottom:1.2rem; overflow-x:auto; }
+.tl-row { display:flex; align-items:center; margin-bottom:0.4rem; }
+.tl-label { width:55px; flex-shrink:0; font-weight:700; font-size:0.75rem; color:var(--ib-blue); }
+.tl-label span { font-size:0.62rem; font-weight:400; display:block; }
+.tl { display:flex; gap:1px; flex-grow:1; min-width:700px; }
+.tl-block { padding:0.35rem 0.15rem; text-align:center; border-radius:3px; font-size:0.62rem; font-weight:600; color:white; display:flex; flex-direction:column; justify-content:center; min-height:45px; }
+.tl-block .tl-hrs { font-size:0.58rem; opacity:0.8; }
+.bg-s1{background:#2563eb} .bg-s2{background:#7c3aed} .bg-s3{background:#059669}
+.bg-r1{background:#dc2626} .bg-r2{background:#d97706} .bg-r3{background:#0891b2}
+.bg-ia{background:#16a34a} .bg-rev{background:#6b7280} .bg-ax{background:#f59e0b;color:#92400e}
+.bg-di{background:#fb923c;color:#7c2d12}
+.legend { display:flex; gap:0.7rem; flex-wrap:wrap; margin-top:0.5rem; font-size:0.7rem; }
+.legend-item { display:flex; align-items:center; gap:0.25rem; }
+.legend-sw { width:11px; height:11px; border-radius:2px; }
+.nlm-section { margin:1.5rem 0; }
+.nlm-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:1rem; margin-top:0.8rem; }
+.nlm-card { background:white; border-radius:8px; padding:1.2rem; box-shadow:0 1px 3px rgba(0,0,0,.1); border-left:3px solid var(--ahl-purple); }
+.nlm-card ul, .nlm-card ol { margin:0.3rem 0 0 1.2rem; font-size:0.85rem; }
+.nlm-card li { margin-bottom:0.2rem; }
+.nlm-card p { font-size:0.85rem; color:var(--gray-600); margin:0.3rem 0; }
+.nlm-time { background:var(--ahl-light); padding:0.4rem 0.6rem; border-radius:4px; margin-top:0.5rem; }
+.acct-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1rem; margin:1rem 0; }
+.acct-card { background:white; border-radius:8px; padding:1rem; box-shadow:0 1px 3px rgba(0,0,0,.1); border-left:3px solid var(--ib-blue); }
+.acct-card p { font-size:0.85rem; margin:0.3rem 0; }
+.acct-why { font-size:0.82rem; padding:0.3rem 0.5rem; background:var(--green-light); border-radius:4px; margin-top:0.3rem; }
+.recovery-box { background:white; border-radius:8px; padding:1.2rem; box-shadow:0 1px 3px rgba(0,0,0,.1); border-left:4px solid var(--ib-blue); margin:1.2rem 0; }
+.gap-note { margin-top:0.8rem; padding:0.6rem; border-radius:6px; font-size:0.88rem; }
+.gap-ok { background:var(--green-light); }
+.strategy-box { background:white; border-radius:8px; padding:1.2rem; box-shadow:0 1px 3px rgba(0,0,0,.1); margin:1.2rem 0; }
+.strategy-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:0.8rem; margin-top:0.8rem; }
+.strategy { background:var(--gray-50); border-radius:6px; padding:0.8rem; border:1px solid var(--gray-200); }
+.strategy p { font-size:0.84rem; color:var(--gray-600); }
+.callout { background:var(--red-light); border-left:4px solid var(--red); padding:0.8rem 1rem; border-radius:0 6px 6px 0; margin:1rem 0; font-size:0.88rem; }
+.callout-blue { background:var(--ib-light); border-left:4px solid var(--ib-blue); padding:0.8rem 1rem; border-radius:0 6px 6px 0; margin:1rem 0; font-size:0.88rem; }
+.callout-orange { background:var(--orange-light); border-left:4px solid var(--orange); padding:0.8rem 1rem; border-radius:0 6px 6px 0; margin:1rem 0; font-size:0.88rem; }
+.ia-timeline { background:white; border-radius:8px; padding:1rem; box-shadow:0 1px 3px rgba(0,0,0,.1); margin:1rem 0; }
+.ia-timeline h4 { margin-bottom:0.5rem; }
+.ia-steps { display:flex; gap:0.3rem; flex-wrap:wrap; align-items:center; }
+.ia-step { background:var(--green-light); border:2px solid var(--green); border-radius:6px; padding:0.5rem 0.8rem; font-size:0.8rem; text-align:center; }
+.ia-step strong { display:block; color:var(--green); font-size:0.85rem; }
+.ia-arrow { color:var(--gray-200); font-size:1rem; }
+.hw-table { max-width:700px; }
+.hw-table td { font-size:0.8rem; }
+.hw-bar { height:14px; border-radius:3px; display:inline-block; vertical-align:middle; }
+footer { margin-top:2rem; padding-top:0.8rem; border-top:1px solid var(--gray-200); font-size:0.75rem; color:var(--gray-600); text-align:center; }
+@media print { body { padding:0.5rem; font-size:0.72rem; } }
+</style>
+</head>
+<body>
+
+<h1>IB Chemistry 2-Year Course Plan</h1>
+<p class="subtitle">AISC Chennai &middot; 2026&ndash;2028 &middot; Mixed SL/HL &middot; A/B Block &middot; No extra sessions &middot; No holiday work &middot; v5 April 2026</p>
+
+<div class="dashboard">
+    <div class="dash-card"><div class="label">IB HL Required</div><div class="value purple">240h</div><div class="detail">180h content + 60h experimental</div></div>
+    <div class="dash-card"><div class="label">In-Class (2yr)</div><div class="value blue">197h</div><div class="detail">total available</div></div>
+    <div class="dash-card"><div class="label">Teaching</div><div class="value blue">95h</div><div class="detail">in-class instruction</div></div>
+    <div class="dash-card"><div class="label">Flipped</div><div class="value purple">72h</div><div class="detail">~2h/wk homework</div></div>
+    <div class="dash-card"><div class="label">Labs + IA</div><div class="value green-text">25h</div><div class="detail">experimental programme</div></div>
+    <div class="dash-card"><div class="label">Assessment</div><div class="value orange">38h</div><div class="detail">12 summatives + 3 finals + mock</div></div>
+    <div class="dash-card"><div class="label">Mock Exam</div><div class="value red">2.6h</div><div class="detail">P1A+P1B + P2 (2 classes)</div></div>
+    <div class="dash-card"><div class="label">Total Programme</div><div class="value blue">230h</div><div class="detail">class + flipped + IA write-up</div></div>
+</div>
+
+<!-- Assessment Rules -->
+<div class="callout-orange">
+<strong>Assessment rules:</strong> Every summative has a formal formative before it with feedback. Semester finals and mock exam do not require a formal formative. Semester finals are cumulative. Unit assessments: <strong>70&ndash;80% new content, 20&ndash;30% old content</strong> once material is established. No homework assigned over DI week. Mock exam = 2 classes: P1A+P1B (1 period) + P2 (1 period). One week revision before mock.
+</div>
+
+<!-- Timeline -->
+<div class="seq-visual">
+<h3>2-Year Sequence</h3>
+<div class="tl-row">
+    <div class="tl-label">Y1 S1<span>Aug&ndash;Dec</span></div>
+    <div class="tl">
+        <div class="tl-block bg-s1" style="flex:10"><span>S1</span><span class="tl-hrs">10h</span></div>
+        <div class="tl-block bg-ax" style="flex:2.6"><span>F+S</span></div>
+        <div class="tl-block bg-s2" style="flex:3"><span>S2a</span><span class="tl-hrs">3h</span></div>
+        <div class="tl-block bg-ax" style="flex:1.3"><span>F</span></div>
+        <div class="tl-block bg-di" style="flex:2"><span>DI</span></div>
+        <div class="tl-block bg-s2" style="flex:7"><span>S2a</span><span class="tl-hrs">7h</span></div>
+        <div class="tl-block bg-ax" style="flex:1.3"><span>S</span></div>
+        <div class="tl-block bg-s2" style="flex:9"><span>S2b</span><span class="tl-hrs">9h</span></div>
+        <div class="tl-block bg-ax" style="flex:2.6"><span>F+S</span></div>
+        <div class="tl-block bg-rev" style="flex:1.3"><span>Fin</span></div>
+    </div>
+</div>
+<div class="tl-row">
+    <div class="tl-label">Y1 S2<span>Jan&ndash;Jun</span></div>
+    <div class="tl">
+        <div class="tl-block bg-r1" style="flex:12"><span>R1</span><span class="tl-hrs">12h</span></div>
+        <div class="tl-block bg-ax" style="flex:2.6"><span>F+S</span></div>
+        <div class="tl-block bg-s3" style="flex:8"><span>S3.1</span><span class="tl-hrs">8h</span></div>
+        <div class="tl-block bg-ax" style="flex:2.6"><span>F+S</span></div>
+        <div class="tl-block bg-r2" style="flex:20"><span>R2</span><span class="tl-hrs">20h</span></div>
+        <div class="tl-block bg-ax" style="flex:2.6"><span>F+S</span></div>
+        <div class="tl-block bg-ax" style="flex:2.6"><span>F+S</span></div>
+        <div class="tl-block bg-rev" style="flex:1.3"><span>Fin</span></div>
+        <div class="tl-block bg-ia" style="flex:6"><span>Mock IA</span><span class="tl-hrs">6h</span></div>
+    </div>
+</div>
+<div class="tl-row">
+    <div class="tl-label">Y2 S1<span>Aug&ndash;Dec</span></div>
+    <div class="tl">
+        <div class="tl-block bg-s3" style="flex:10"><span>S3.2</span><span class="tl-hrs">10h</span></div>
+        <div class="tl-block bg-ax" style="flex:2.6"><span>F+S</span></div>
+        <div class="tl-block bg-r3" style="flex:3"><span>R3.1</span><span class="tl-hrs">3h</span></div>
+        <div class="tl-block bg-ax" style="flex:1.3"><span>F</span></div>
+        <div class="tl-block bg-di" style="flex:2"><span>DI</span></div>
+        <div class="tl-block bg-ia" style="flex:8"><span>IA</span><span class="tl-hrs">8h</span></div>
+        <div class="tl-block bg-r3" style="flex:9"><span>R3.1</span><span class="tl-hrs">9h</span></div>
+        <div class="tl-block bg-ax" style="flex:1.3"><span>S</span></div>
+        <div class="tl-block bg-ax" style="flex:2.6"><span>F+S</span></div>
+        <div class="tl-block bg-rev" style="flex:1.3"><span>Fin</span></div>
+    </div>
+</div>
+<div class="tl-row">
+    <div class="tl-label">Y2 S2<span>Jan&ndash;May</span></div>
+    <div class="tl">
+        <div class="tl-block bg-r3" style="flex:10"><span>R3.2</span><span class="tl-hrs">10h</span></div>
+        <div class="tl-block bg-ax" style="flex:2.6"><span>F+S</span></div>
+        <div class="tl-block bg-rev" style="flex:3.3"><span>Rev</span><span class="tl-hrs">3.3h</span></div>
+        <div class="tl-block" style="flex:2.6;background:#991b1b;color:white"><span>Mock</span><span class="tl-hrs">2.6h</span></div>
+        <div class="tl-block bg-r3" style="flex:8"><span>R3.3/3.4</span><span class="tl-hrs">8h</span></div>
+        <div class="tl-block bg-ax" style="flex:2.6"><span>F+S</span></div>
+        <div class="tl-block bg-rev" style="flex:10"><span>IB Revision</span><span class="tl-hrs">~10h</span></div>
+    </div>
+</div>
+<div class="legend">
+    <div class="legend-item"><div class="legend-sw bg-s1"></div>S1</div>
+    <div class="legend-item"><div class="legend-sw bg-s2"></div>S2</div>
+    <div class="legend-item"><div class="legend-sw bg-s3"></div>S3</div>
+    <div class="legend-item"><div class="legend-sw bg-r1"></div>R1</div>
+    <div class="legend-item"><div class="legend-sw bg-r2"></div>R2</div>
+    <div class="legend-item"><div class="legend-sw bg-r3"></div>R3</div>
+    <div class="legend-item"><div class="legend-sw bg-ia"></div>IA</div>
+    <div class="legend-item"><div class="legend-sw bg-ax"></div>F=Form S=Summ</div>
+    <div class="legend-item"><div class="legend-sw bg-di"></div>DI/Break</div>
+    <div class="legend-item"><div class="legend-sw bg-rev"></div>Final/Rev</div>
+</div>
+</div>
+
+<!-- Assessment Architecture -->
+<h2>Assessment Architecture: 12 Summatives + 3 Finals + Mock</h2>
+<p style="margin-bottom:0.3rem;font-size:0.85rem;color:var(--gray-600);">
+F = Formative (dashed border) &middot; S = Summative (solid border) &middot; Each F&rarr;S pair = 2 periods (~2.6h) &middot; * = no formative required
+</p>
+<p style="margin-bottom:0.5rem;font-size:0.82rem;color:var(--orange);font-weight:600;">
+&#9888; 3 graded events before DI week (Sep 21) in both years. DI + Fall Break = no homework gap.
+</p>
+<div class="assess-flow">
+<div class="assess-chip form-badge"><span class="chip-num">F1</span><span class="chip-name">S1</span><span class="chip-when">Sep 1</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip"><span class="chip-num">S1</span><span class="chip-name">S1</span><span class="chip-when">Sep 9</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip form-badge"><span class="chip-num">F2</span><span class="chip-name">S2 Pt1</span><span class="chip-when">Sep 17</span></div><span class="chip-arrow" style="color:var(--orange)">DI</span><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip"><span class="chip-num">S2</span><span class="chip-name">S2 Pt1</span><span class="chip-when">Oct</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip form-badge"><span class="chip-num">F3</span><span class="chip-name">S2 Pt2</span><span class="chip-when">Nov</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip"><span class="chip-num">S3</span><span class="chip-name">S2 Pt2</span><span class="chip-when">Dec</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip final-badge"><span class="chip-num">Fin</span><span class="chip-name">Sem 1</span><span class="chip-when">Dec*</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip form-badge"><span class="chip-num">F4</span><span class="chip-name">R1</span><span class="chip-when">Feb</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip"><span class="chip-num">S4</span><span class="chip-name">R1</span><span class="chip-when">Feb</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip form-badge"><span class="chip-num">F5</span><span class="chip-name">S3.1</span><span class="chip-when">Mar</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip"><span class="chip-num">S5</span><span class="chip-name">S3.1</span><span class="chip-when">Mar</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip"><span class="chip-num">S6</span><span class="chip-name">R2.1+2.2</span><span class="chip-when">Apr</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip"><span class="chip-num">S7</span><span class="chip-name">R2.3</span><span class="chip-when">May</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip final-badge"><span class="chip-num">Fin</span><span class="chip-name">Sem 2</span><span class="chip-when">May*</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip yr2-badge form-badge"><span class="chip-num">F8</span><span class="chip-name">S3.2</span><span class="chip-when">Sep 1</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip yr2-badge"><span class="chip-num">S8</span><span class="chip-name">S3.2</span><span class="chip-when">Sep 9</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip yr2-badge form-badge"><span class="chip-num">F9</span><span class="chip-name">R3.1</span><span class="chip-when">Sep 17</span></div><span class="chip-arrow" style="color:var(--orange)">DI</span><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip yr2-badge"><span class="chip-num">S9</span><span class="chip-name">R3.1 SL</span><span class="chip-when">Nov</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip yr2-badge"><span class="chip-num">S10</span><span class="chip-name">R3.1 AHL</span><span class="chip-when">Dec</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip final-badge"><span class="chip-num">Fin</span><span class="chip-name">Sem 1</span><span class="chip-when">Dec*</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip yr2-badge"><span class="chip-num">S11</span><span class="chip-name">R3.2</span><span class="chip-when">Feb</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip mock-badge"><span class="chip-num">M</span><span class="chip-name">Mock</span><span class="chip-when">Mar</span></div><span class="chip-arrow">&rsaquo;</span>
+<div class="assess-chip yr2-badge"><span class="chip-num">S12</span><span class="chip-name">R3.3+3.4</span><span class="chip-when">Apr</span></div>
+</div>
+
+<!-- IA Timeline -->
+<div class="ia-timeline">
+    <h4>Internal Assessment Timeline</h4>
+    <div class="ia-steps">
+        <div class="ia-step"><strong>Mock IA</strong>Y1 May<br>Group project (6h)</div>
+        <span class="ia-arrow">&rarr;</span>
+        <div class="ia-step"><strong>RQ Finalized</strong>Y2 Sep<br>Before fall break</div>
+        <span class="ia-arrow">&rarr;</span>
+        <div class="ia-step"><strong>Data Collection</strong>Y2 Oct<br>8h in-class lab</div>
+        <span class="ia-arrow">&rarr;</span>
+        <div class="ia-step" style="border-color:var(--orange);background:var(--orange-light)"><strong>Draft Due (Formative)</strong>Y2 November<br>Written feedback given</div>
+        <span class="ia-arrow">&rarr;</span>
+        <div class="ia-step" style="border-color:var(--red);background:var(--red-light)"><strong>Final Draft Due</strong>Y2 January<br>Submitted for moderation</div>
+    </div>
+</div>
+
+<!-- ==================== YEAR 1 SEMESTER 1 ==================== -->
+<h2>Year 1 &mdash; Semester 1 (Aug&ndash;Dec) &bull; ~51h total chemistry time</h2>
+<div class="callout-orange">
+<strong>Pre-DI target:</strong> 3 graded events before Sep 21 &mdash; S1 Formative, S1 Summative, S2 Pt1 Formative. No homework over DI week (Sep 21&ndash;25). Fall break immediately follows (Sep 28&ndash;Oct 2).
+</div>
+<table>
+<thead><tr><th>When</th><th>Unit / Assessment</th><th>IB HL</th><th>Teach</th><th>Flip</th><th>Labs</th><th>Assess</th><th>In-Class</th><th>Notes</th></tr></thead>
+<tbody>
+    <tr>
+        <td class="months">Aug 6 &ndash; ~Sep 1</td>
+        <td><strong>S1: Atomic Structure</strong><br><span class="subtopics">S1.1&ndash;S1.5</span></td>
+        <td class="num">21</td>
+        <td class="num">8</td>
+        <td class="num flip-col">11</td>
+        <td class="num">2</td>
+        <td class="num"></td>
+        <td class="num content-col">10</td>
+        <td class="notes">Most flipped unit in Y1 &mdash; S1.1 MYP review, S1.4 mole concept, S1.5 gas laws all strong candidates for NotebookLM. Class time: mole calculations practice, gas law problem sets, orbital diagrams. Lab: flame tests + emission spectra. <strong>HW: ~3h/wk flipped content weeks 1&ndash;3.</strong>
+        <details class='flip-details'><summary>Flipped breakdown (11h)</summary><p class='flip-content'>S1.1 particle models (2.5h review), S1.2 notation+isotopes (1.5h), S1.3 orbital diagrams+config (2h), S1.4 mole intro+calculations (3h), S1.5 gas equations+PV=nRT (2h)</p></details></td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Sep 1&ndash;3</td>
+        <td><strong>&#x1F4DD; Assessment 1 Formative: S1</strong><br><span class="subtopics">Practice exam (1 period)</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">1.3</td>
+        <td class="num content-col">1.3</td>
+        <td class="notes"><strong>PRE-DI EVENT 1.</strong> S1 practice exam. 100% S1 content. Graded, returned with feedback before summative.</td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Sep 8&ndash;10</td>
+        <td><strong>&#x1F4DD; Assessment 1 Summative: S1 Exam</strong><br><span class="subtopics">Unit exam (1 period)</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">1.3</td>
+        <td class="num content-col">1.3</td>
+        <td class="notes"><strong>PRE-DI EVENT 2.</strong> S1 unit exam. 100% S1 (first unit, no old content yet).</td>
+    </tr>
+    <tr>
+        <td class="months">Sep 10 &ndash; Sep 18</td>
+        <td><strong>S2 Part 1: Ionic &amp; Covalent (start)</strong><br><span class="subtopics">S2.1 ionic + S2.2 Lewis/VSEPR</span></td>
+        <td class="num" rowspan="2">16</td>
+        <td class="num">3</td>
+        <td class="num flip-col">(6)</td>
+        <td class="num"></td>
+        <td class="num"></td>
+        <td class="num content-col">3</td>
+        <td class="notes">Start S2 &mdash; ionic bonding naming/formulas flipped, Lewis structure intro in class. ~2&ndash;3 periods before DI. Flipped S2.1 content assigned week of Sep 7. <strong>Last HW due Sep 18; nothing over DI or fall break.</strong></td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Sep 16&ndash;18</td>
+        <td><strong>&#x1F4DD; Assessment 2 Formative: S2 Pt1</strong><br><span class="subtopics">Ionic bonding + Lewis basics (1 period)</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">1.3</td>
+        <td class="num content-col">1.3</td>
+        <td class="notes"><strong>PRE-DI EVENT 3.</strong> Covers S2.1 ionic + early Lewis structures from ~3h teaching + flipped content. Graded and returned. Summative after DI + fall break.</td>
+    </tr>
+    <tr class="di-block">
+        <td class="months" colspan="8" style="text-align:center;padding:0.3rem;font-size:0.75rem;color:var(--orange);">DI Week (Sep 21&ndash;25) + Fall Break (Sep 28&ndash;Oct 2) &mdash; No classes, no homework</td>
+        <td></td>
+    </tr>
+    <tr>
+        <td class="months">Oct 5 &ndash; Oct 20</td>
+        <td><strong>S2 Part 1 (continued)</strong><br><span class="subtopics">S2.2 VSEPR, polarity, sigma/pi</span></td>
+        <td class="num"></td>
+        <td class="num">5</td>
+        <td class="num flip-col"></td>
+        <td class="num">2</td>
+        <td class="num"></td>
+        <td class="num content-col">7</td>
+        <td class="notes">Resume S2 after break. Review formative feedback (15 min). Continue: VSEPR practice, polarity analysis, sigma/pi bonds. Labs: ionic vs covalent properties. Flipped content resumes.</td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Oct 21&ndash;23</td>
+        <td><strong>&#x1F4DD; Assessment 2 Summative: S2 Pt1</strong><br><span class="subtopics">Unit exam (1 period)</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">1.3</td>
+        <td class="num content-col">1.3</td>
+        <td class="notes">S2 Part 1 exam. <strong>80% S2.1+S2.2 (new), 20% S1 (old)</strong>. Formative was pre-DI; students had break to study feedback.</td>
+    </tr>
+    <tr>
+        <td class="months">Oct 26 &ndash; Nov 25</td>
+        <td><strong>S2 Part 2: IMFs, Metallic &amp; Materials</strong><br><span class="subtopics">S2.2 AHL hybridization, S2.3, S2.4</span></td>
+        <td class="num">14</td>
+        <td class="num">8</td>
+        <td class="num flip-col">6</td>
+        <td class="num">1</td>
+        <td class="num"></td>
+        <td class="num content-col">9</td>
+        <td class="notes">AHL hybridization, metallic bonding &amp; IMFs (bonding triangle analysis in class), polymers &amp; alloys. Lab: chromatography.
+        <details class='flip-details'><summary>Flipped breakdown (6h)</summary><p class='flip-content'>S2.2 hybridization intro (1.5h), S2.3 metallic properties (1h), S2.3 IMF types+ranking (1.5h), S2.4 polymers (1.5h), S2.4 alloys (0.5h)</p></details></td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Nov 23&ndash;Dec 4</td>
+        <td><strong>&#x1F4DD; Assessment 3: S2 Part 2</strong><br><span class="subtopics">Formative &rarr; Summative</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">2.6</td>
+        <td class="num content-col">2.6</td>
+        <td class="notes">Formative: bonding triangle + IMF ranking practice paper. Summative: <strong>75% S2 Pt2 (new), 25% S1+S2 Pt1 (old)</strong>.</td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">Dec revision week</td>
+        <td><strong>&#x1F3EB; Semester 1 Final</strong><br><span class="subtopics">S1 + S2 cumulative</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">1.3</td>
+        <td class="num content-col">1.3</td>
+        <td class="notes">Cumulative exam: all S1 + S2 content. No formal formative. During revision week.</td>
+    </tr>
+    <tr class="sem-total">
+        <td colspan="2"><strong>Semester 1 Total</strong></td>
+        <td class="num"></td>
+        <td class="num">24</td>
+        <td class="num">23</td>
+        <td class="num">5</td>
+        <td class="num">9.1</td>
+        <td class="num content-col">38.1</td>
+        <td class="notes"><span class="budget-ok">Available: ~51h &bull; Buffer: ~13h (practice time + review)</span></td>
+    </tr>
+</tbody>
+</table>
+
+<!-- ==================== YEAR 1 SEMESTER 2 ==================== -->
+<h2>Year 1 &mdash; Semester 2 (Jan&ndash;Jun) &bull; ~58h total chemistry time</h2>
+<table>
+<thead><tr><th>When</th><th>Unit / Assessment</th><th>IB HL</th><th>Teach</th><th>Flip</th><th>Labs</th><th>Assess</th><th>In-Class</th><th>Notes</th></tr></thead>
+<tbody>
+    <tr>
+        <td class="months">Jan 6 &ndash; Feb 12</td>
+        <td><strong>R1: Energetics</strong><br><span class="subtopics">R1.1&ndash;R1.4</span></td>
+        <td class="num">22</td>
+        <td class="num">10</td>
+        <td class="num flip-col">10</td>
+        <td class="num">2</td>
+        <td class="num"></td>
+        <td class="num content-col">12</td>
+        <td class="notes">Fresh start after winter break with calculation-heavy topic. R1.3 fuels + R1.4 entropy intro flipped. Class: calorimetry calculations, Hess&rsquo;s law, Born-Haber (AHL). Lab: calorimetry.
+        <details class='flip-details'><summary>Flipped breakdown (10h)</summary><p class='flip-content'>R1.1 heat vs temp (1h), R1.2 Hess&rsquo;s law examples (2.5h), R1.2 Born-Haber intro (1.5h), R1.3 fuels+biofuels (2.5h), R1.4 entropy+Gibbs intro (2.5h)</p></details></td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Feb 15&ndash;20</td>
+        <td><strong>&#x1F4DD; Assessment 4: R1 Exam</strong><br><span class="subtopics">Formative &rarr; Summative</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">2.6</td>
+        <td class="num content-col">2.6</td>
+        <td class="notes">Formative: enthalpy calculations + Hess&rsquo;s law practice. Summative: <strong>80% R1 (new), 20% S1+S2 (old)</strong>.</td>
+    </tr>
+    <tr>
+        <td class="months">Feb 22 &ndash; Mar 19</td>
+        <td><strong>S3.1: Periodic Table</strong><br><span class="subtopics">S3.1</span></td>
+        <td class="num">11</td>
+        <td class="num">7</td>
+        <td class="num flip-col">4</td>
+        <td class="num">1</td>
+        <td class="num"></td>
+        <td class="num content-col">8</td>
+        <td class="notes">Periodic trends via data analysis. Flip: group names, trend definitions, oxidation states. Class: trend analysis, transition metals (AHL). Lab: TM complex colours.
+        <details class='flip-details'><summary>Flipped breakdown (4h)</summary><p class='flip-content'>S3.1 blocks/groups (0.5h), S3.1 trend definitions (1.5h), S3.1 oxidation states (1h), S3.1 TM properties (1h)</p></details></td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Mar 22&ndash;26</td>
+        <td><strong>&#x1F4DD; Assessment 5: S3.1 Exam</strong><br><span class="subtopics">Formative &rarr; Summative</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">2.6</td>
+        <td class="num content-col">2.6</td>
+        <td class="notes">Formative: trends + oxidation states practice. Summative: <strong>75% S3.1 (new), 25% R1+S1/S2 (old)</strong>.</td>
+    </tr>
+    <tr>
+        <td class="months">Mar 29 &ndash; May 10</td>
+        <td><strong>R2: Quantitative, Kinetics &amp; Equilibrium</strong><br><span class="subtopics">R2.1&ndash;R2.3</span></td>
+        <td class="num">31</td>
+        <td class="num">16</td>
+        <td class="num flip-col">12</td>
+        <td class="num">4</td>
+        <td class="num"></td>
+        <td class="num content-col">20</td>
+        <td class="notes">Largest unit &mdash; splits across 2 assessment windows. R2.1 stoichiometry builds on S1.4 (flipped refresh). Class: limiting reagent, rates labs, Maxwell-Boltzmann, ICE tables. AHL: Arrhenius, mechanisms, Q.
+        <details class='flip-details'><summary>Flipped breakdown (12h)</summary><p class='flip-content'>R2.1 stoich refresh (2h), R2.1 atom economy (1h), R2.1 titration calcs (1h), R2.2 collision theory (1.5h), R2.2 Arrhenius intro (1.5h), R2.2 mechanisms (1h), R2.3 equilibrium intro (2h), R2.3 Le Chatelier (1.5h), R2.3 Q vs K (0.5h)</p></details></td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Apr 19&ndash;23</td>
+        <td><strong>&#x1F4DD; Assessment 6: R2.1 + R2.2</strong><br><span class="subtopics">Formative &rarr; Summative</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">2.6</td>
+        <td class="num content-col">2.6</td>
+        <td class="notes">Formative: limiting reagent + rate calculations. Summative: <strong>70% R2.1+R2.2 (new), 30% earlier topics (old)</strong>.</td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~May 10&ndash;14</td>
+        <td><strong>&#x1F4DD; Assessment 7: R2.3</strong><br><span class="subtopics">Formative &rarr; Summative</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">2.6</td>
+        <td class="num content-col">2.6</td>
+        <td class="notes">Formative: ICE tables + Le Chatelier. Summative: <strong>70% R2.3 (new), 30% R2.1+R2.2+earlier (old)</strong>.</td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">May revision week</td>
+        <td><strong>&#x1F3EB; Semester 2 Final</strong><br><span class="subtopics">S1&ndash;R2 cumulative</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">1.3</td>
+        <td class="num content-col">1.3</td>
+        <td class="notes">Cumulative exam: all Year 1 content. No formative. During revision week.</td>
+    </tr>
+    <tr class="exp-block">
+        <td class="months">May 17 &ndash; May 28</td>
+        <td><strong>Mock IA (Group Project)</strong><br><span class="subtopics">Experimental programme</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num">6</td><td class="num"></td>
+        <td class="num content-col">6</td>
+        <td class="notes">6h group investigation. Design (1), data collection (2&ndash;3), analysis + presentation (1). Rates or calorimetry investigation. Teaches IA rubric and process.</td>
+    </tr>
+    <tr class="sem-total">
+        <td colspan="2"><strong>Semester 2 Total</strong></td>
+        <td class="num"></td>
+        <td class="num">33</td>
+        <td class="num">26</td>
+        <td class="num">7</td>
+        <td class="num">11.7</td>
+        <td class="num content-col">57.7</td>
+        <td class="notes"><span class="budget-ok">Available: ~58h &bull; Buffer: ~0.3h</span></td>
+    </tr>
+</tbody>
+</table>
+
+<!-- ==================== YEAR 2 SEMESTER 1 ==================== -->
+<h2>Year 2 &mdash; Semester 1 (Aug&ndash;Dec) &bull; ~48h total chemistry time</h2>
+<div class="callout-blue">
+<strong>IA Draft (Formative) due November.</strong> Students work on IA write-up alongside R3.1 teaching. Written feedback provided. Final draft due January.
+</div>
+<div class="callout-orange">
+<strong>Pre-DI target (Y2):</strong> 3 graded events before Sep 21 &mdash; S3.2 Formative, S3.2 Summative, R3.1 Formative. Same DI + fall break no-homework gap applies.
+</div>
+<table>
+<thead><tr><th>When</th><th>Unit / Assessment</th><th>IB HL</th><th>Teach</th><th>Flip</th><th>Labs</th><th>Assess</th><th>In-Class</th><th>Notes</th></tr></thead>
+<tbody>
+    <tr>
+        <td class="months">Aug &ndash; ~Sep 1</td>
+        <td><strong>S3.2: Organic Chemistry</strong><br><span class="subtopics">S3.2</span></td>
+        <td class="num">20</td>
+        <td class="num">9</td>
+        <td class="num flip-col">10</td>
+        <td class="num">1</td>
+        <td class="num"></td>
+        <td class="num content-col">10</td>
+        <td class="notes">Nomenclature heavily flipped (algorithmic rules). Class: spectroscopy interpretation (MS, IR, &sup1;H NMR), stereochemistry models. AHL spectroscopy is the priority for class time.
+        <details class='flip-details'><summary>Flipped breakdown (10h)</summary><p class='flip-content'>S3.2 formula types (1h), S3.2 functional groups (2h), S3.2 IUPAC naming (3h), S3.2 homologous series (1h), S3.2 isomers (1.5h), S3.2 MS fragmentation (1h), S3.2 structural drawing rules (0.5h)</p></details></td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Sep 1&ndash;3</td>
+        <td><strong>&#x1F4DD; Assessment 8 Formative: S3.2</strong><br><span class="subtopics">Naming + spectroscopy practice (1 period)</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">1.3</td>
+        <td class="num content-col">1.3</td>
+        <td class="notes"><strong>PRE-DI EVENT 1.</strong> Organic naming + spectroscopy interpretation practice. Graded, returned with feedback.</td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Sep 8&ndash;10</td>
+        <td><strong>&#x1F4DD; Assessment 8 Summative: S3.2 Exam</strong><br><span class="subtopics">Unit exam (1 period)</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">1.3</td>
+        <td class="num content-col">1.3</td>
+        <td class="notes"><strong>PRE-DI EVENT 2.</strong> S3.2 exam. <strong>80% S3.2 (new), 20% Y1 content (old)</strong>. Y2 students now have extensive old content to draw from.</td>
+    </tr>
+    <tr>
+        <td class="months">Sep 10 &ndash; Sep 18</td>
+        <td><strong>R3.1: Acids &amp; Bases (start)</strong><br><span class="subtopics">R3.1 definitions + pH basics</span></td>
+        <td class="num" rowspan="2">17</td>
+        <td class="num">3</td>
+        <td class="num flip-col">(6)</td>
+        <td class="num"></td>
+        <td class="num"></td>
+        <td class="num content-col">3</td>
+        <td class="notes">Start R3.1: Br&oslash;nsted-Lowry definitions, strong/weak distinction, pH concept. ~2&ndash;3 periods. Flipped content on acid-base definitions assigned. <strong>Last HW due Sep 18.</strong></td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Sep 16&ndash;18</td>
+        <td><strong>&#x1F4DD; Assessment 9 Formative: R3.1 Basics</strong><br><span class="subtopics">Definitions + pH intro (1 period)</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">1.3</td>
+        <td class="num content-col">1.3</td>
+        <td class="notes"><strong>PRE-DI EVENT 3.</strong> Covers Br&oslash;nsted-Lowry defs, strong/weak acids, basic pH. Summative after DI + fall break.</td>
+    </tr>
+    <tr class="di-block">
+        <td class="months" colspan="8" style="text-align:center;padding:0.3rem;font-size:0.75rem;color:var(--orange);">DI Week (Sep 21&ndash;25) + Fall Break (Sep 28&ndash;Oct 2) &mdash; No classes, no homework</td>
+        <td></td>
+    </tr>
+    <tr class="exp-block">
+        <td class="months">Oct 5 &ndash; late Oct</td>
+        <td><strong>IA Data Collection</strong><br><span class="subtopics">Experimental programme</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num">8</td><td class="num"></td>
+        <td class="num content-col">8</td>
+        <td class="notes">8h dedicated lab time (~6 periods). RQs finalized before fall break. Students collect data for IA. Some may need 1&ndash;2 additional sessions in early January.</td>
+    </tr>
+    <tr>
+        <td class="months">Oct &ndash; Nov</td>
+        <td><strong>R3.1: Acids &amp; Bases (continued)</strong><br><span class="subtopics">pH calcs, Ka/Kb, titrations, buffers (AHL)</span></td>
+        <td class="num"></td>
+        <td class="num">7</td>
+        <td class="num flip-col"></td>
+        <td class="num">2</td>
+        <td class="num"></td>
+        <td class="num content-col">9</td>
+        <td class="notes">Resume R3.1 after IA block. Review formative feedback. pH calculations, Ka/Kb problems, titration curves (AHL), buffer calculations (AHL). Lab: titrations + pH curves. IA DRAFT due November.</td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~mid Nov</td>
+        <td><strong>&#x1F4DD; Assessment 9 Summative: R3.1 SL+AHL</strong><br><span class="subtopics">Unit exam (1 period)</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">1.3</td>
+        <td class="num content-col">1.3</td>
+        <td class="notes">R3.1 SL core + early AHL. <strong>75% R3.1 (new), 25% S3.2+Y1 topics (old)</strong>. Formative was pre-DI (basics).</td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~early Dec</td>
+        <td><strong>&#x1F4DD; Assessment 10: R3.1 AHL Complete</strong><br><span class="subtopics">Formative &rarr; Summative</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">2.6</td>
+        <td class="num content-col">2.6</td>
+        <td class="notes">AHL acids &amp; bases: Ka/Kb, buffers, polyprotic pH curves, salt hydrolysis. <strong>70% R3.1 AHL (new), 30% R3.1 SL+earlier (old)</strong>.</td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">Dec revision week</td>
+        <td><strong>&#x1F3EB; Semester 1 Final</strong><br><span class="subtopics">S3.2 + R3.1 cumulative</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">1.3</td>
+        <td class="num content-col">1.3</td>
+        <td class="notes">Cumulative Y2 Sem 1 exam. No formative.</td>
+    </tr>
+    <tr class="sem-total">
+        <td colspan="2"><strong>Semester 1 Total</strong></td>
+        <td class="num"></td>
+        <td class="num">19</td>
+        <td class="num">16</td>
+        <td class="num">11</td>
+        <td class="num">9.1</td>
+        <td class="num content-col">39.1</td>
+        <td class="notes"><span class="budget-ok">Available: ~48h &bull; Buffer: ~9h (IA support + review)</span></td>
+    </tr>
+</tbody>
+</table>
+
+<!-- ==================== YEAR 2 SEMESTER 2 ==================== -->
+<h2>Year 2 &mdash; Semester 2 (Jan&ndash;May) &bull; ~40h total chemistry time</h2>
+<div class="callout-blue">
+<strong>IA Final Draft due January. Mock Exam mid-March (P1A+P1B + P2 = 2 classes). Content continues after mock &mdash; R3.3+R3.4 taught post-mock.</strong>
+</div>
+<table>
+<thead><tr><th>When</th><th>Unit / Assessment</th><th>IB HL</th><th>Teach</th><th>Flip</th><th>Labs</th><th>Assess</th><th>In-Class</th><th>Notes</th></tr></thead>
+<tbody>
+    <tr>
+        <td class="months">Jan 6 &ndash; Feb 5</td>
+        <td><strong>R3.2: Redox (Complete)</strong><br><span class="subtopics">R3.2.1&ndash;R3.2.16</span></td>
+        <td class="num">15</td>
+        <td class="num">8</td>
+        <td class="num flip-col">5</td>
+        <td class="num">2</td>
+        <td class="num"></td>
+        <td class="num content-col">10</td>
+        <td class="notes">Full redox: SL (oxidation states, half-equations, cells, electrolysis) + AHL (electrode potentials, &Delta;G=&minus;nFE&deg;, aqueous electrolysis). IA FINAL DRAFT due January. Lab: voltaic cells + electrolysis.
+        <details class='flip-details'><summary>Flipped breakdown (5h)</summary><p class='flip-content'>R3.2 oxidation states (0.5h), R3.2 half-equations (1h), R3.2 cell types (1h), R3.2 electrode potentials (1h), R3.2 aqueous electrolysis (1h), R3.2 electroplating (0.5h)</p></details></td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~Feb 8&ndash;12</td>
+        <td><strong>&#x1F4DD; Assessment 11: R3.2 Exam</strong><br><span class="subtopics">Formative &rarr; Summative</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">2.6</td>
+        <td class="num content-col">2.6</td>
+        <td class="notes">Full R3.2 exam (SL + AHL). <strong>75% R3.2 (new), 25% R3.1+earlier (old)</strong>.</td>
+    </tr>
+    <tr class="rev-block">
+        <td class="months">~Feb 23 &ndash; Feb 27</td>
+        <td><strong>Mock Revision Week</strong><br><span class="subtopics">All content through R3.2</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num"></td>
+        <td class="num content-col">3.3</td>
+        <td class="notes">1 week targeted revision before mock exam. Past papers by topic, weak-area review based on Assessment 11 and earlier results. ~2&ndash;3 chemistry periods.</td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~early/mid Mar</td>
+        <td><strong>&#x1F3AF; Mock Exam</strong><br><span class="subtopics">Full IB exam simulation (2 classes)</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">2.6</td>
+        <td class="num content-col">2.6</td>
+        <td class="notes"><strong>Class 1:</strong> Paper 1A + Paper 1B (MCQ, 1 period). <strong>Class 2:</strong> Paper 2 (structured, 1 period). Covers ALL content through R3.2. No formative. Serves as mid-year comprehensive check.</td>
+    </tr>
+    <tr>
+        <td class="months">Mid-Mar &ndash; mid-Apr</td>
+        <td><strong>R3.3 + R3.4: Organic Mechanisms</strong><br><span class="subtopics">R3.3 Radicals, R3.4 Mechanisms</span></td>
+        <td class="num">13</td>
+        <td class="num">8</td>
+        <td class="num flip-col">5</td>
+        <td class="num"></td>
+        <td class="num"></td>
+        <td class="num content-col">8</td>
+        <td class="notes">Post-mock content. R3.3 radicals (quick, 1.5 classes). R3.4: nucleophilic substitution (SN1/SN2), electrophilic addition, Lewis acid-base. All curly arrow work. No lab.
+        <details class='flip-details'><summary>Flipped breakdown (5h)</summary><p class='flip-content'>R3.3 radical types (0.5h), R3.4 nucleophile/electrophile defs (1h), R3.4 Lewis acid-base (1h), R3.4 leaving groups (0.5h), R3.4 electrophilic addition (1h), R3.4 SN1/SN2 intro (1h)</p></details></td>
+    </tr>
+    <tr class="assess-block">
+        <td class="months">~mid Apr</td>
+        <td><strong>&#x1F4DD; Assessment 12: R3.3 + R3.4 Exam</strong><br><span class="subtopics">Formative &rarr; Summative</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num assess-col">2.6</td>
+        <td class="num content-col">2.6</td>
+        <td class="notes">Organic mechanisms exam. Formative: curly arrow practice. Summative: <strong>70% R3.3+R3.4 (new), 30% R3.1+R3.2+earlier (old)</strong>. Final content assessment of the course.</td>
+    </tr>
+    <tr class="rev-block">
+        <td class="months">Late Apr &ndash; May</td>
+        <td><strong>IB Exam Revision</strong><br><span class="subtopics">All topics</span></td>
+        <td class="num"></td><td class="num"></td><td class="num"></td><td class="num"></td>
+        <td class="num"></td>
+        <td class="num content-col"></td>
+        <td class="notes">~10h targeted revision. Use mock exam results to prioritize weak areas. Past papers by topic, exam technique workshops.</td>
+    </tr>
+    <tr class="sem-total">
+        <td colspan="2"><strong>Semester 2 Total</strong></td>
+        <td class="num"></td>
+        <td class="num">16</td>
+        <td class="num">10</td>
+        <td class="num">2</td>
+        <td class="num">7.8</td>
+        <td class="num content-col">29.1</td>
+        <td class="notes"><span class="budget-ok">Available: ~40h &bull; Buffer: ~11h (IB revision)</span></td>
+    </tr>
+</tbody>
+</table>
+
+<!-- Grand Totals -->
+<h2>2-Year Summary</h2>
+<table>
+<thead><tr><th></th><th>Teaching</th><th>Flipped</th><th>Labs+IA</th><th>Assessment</th><th>Rev+Buffer</th><th>Total In-Class</th></tr></thead>
+<tbody>
+<tr><td><strong>Y1 Sem 1</strong></td><td class="num">24</td><td class="num">23</td><td class="num">5</td><td class="num">9.1</td><td class="num">~13</td><td class="num content-col">38.1 <span style="font-size:0.7rem;color:var(--green)">/ ~51h</span></td></tr>
+<tr><td><strong>Y1 Sem 2</strong></td><td class="num">33</td><td class="num">26</td><td class="num">7</td><td class="num">11.7</td><td class="num">~0.3</td><td class="num content-col">57.7 <span style="font-size:0.7rem;color:var(--green)">/ ~58h</span></td></tr>
+<tr style="border-top:2px solid var(--ib-blue);background:var(--ib-light)"><td><strong>Year 1</strong></td><td class="num"><strong>57</strong></td><td class="num"><strong>49</strong></td><td class="num"><strong>12</strong></td><td class="num"><strong>20.8</strong></td><td class="num"><strong>~13</strong></td><td class="num content-col"><strong>95.8 / ~109h</strong></td></tr>
+<tr><td><strong>Y2 Sem 1</strong></td><td class="num">19</td><td class="num">16</td><td class="num">11</td><td class="num">9.1</td><td class="num">~9</td><td class="num content-col">39.1 <span style="font-size:0.7rem;color:var(--green)">/ ~48h</span></td></tr>
+<tr><td><strong>Y2 Sem 2</strong></td><td class="num">16</td><td class="num">10</td><td class="num">2</td><td class="num">7.8</td><td class="num">~14</td><td class="num content-col">29.1 <span style="font-size:0.7rem;color:var(--green)">/ ~40h</span></td></tr>
+<tr style="border-top:2px solid var(--ib-blue);background:var(--ib-light)"><td><strong>Year 2</strong></td><td class="num"><strong>35</strong></td><td class="num"><strong>26</strong></td><td class="num"><strong>13</strong></td><td class="num"><strong>16.9</strong></td><td class="num"><strong>~23</strong></td><td class="num content-col"><strong>68.2 / ~88h</strong></td></tr>
+<tr style="border-top:3px solid var(--ib-blue);background:var(--ib-blue);color:white"><td><strong>TOTAL</strong></td><td class="num"><strong>92</strong></td><td class="num"><strong>75</strong></td><td class="num"><strong>25</strong></td><td class="num"><strong>37.7</strong></td><td class="num"><strong>~36</strong></td><td class="num"><strong>164 / ~197h</strong></td></tr>
+</tbody>
+</table>
+
+<div class="callout-blue" style="margin-top:0.5rem;">
+<strong>Programme total: 164h in-class content + 75h flipped = 239h</strong> (vs 240h IB HL requirement). The remaining ~33h of available class time becomes revision, practice, and buffer. IB experimental requirement (60h) is met through 25h in-class labs/IA + ~15h IA independent write-up + ~20h additional lab time available in Y1 Sem1/Y2 Sem1 buffers.
+</div>
+
+<!-- Homework Loading -->
+<h2>Weekly Homework Loading (~2h/wk chemistry)</h2>
+<p style="margin-bottom:0.8rem;font-size:0.85rem;color:var(--gray-600);">
+Students expected to do 3&ndash;4 nights/week &times; 30&ndash;45 min = <strong>1.5&ndash;3h/week</strong> of chemistry homework. Allocations below target ~2h/week average. Includes flipped content (NotebookLM audio + guided notes) and practice problems. No homework over DI week or breaks.
+</p>
+<table class="hw-table" style="max-width:750px;">
+<thead><tr><th>Period</th><th>Weeks</th><th>Flipped</th><th>Practice</th><th>Avg/wk</th><th>Loading</th></tr></thead>
+<tbody>
+<tr><td><strong>Y1 Sem1</strong> (Aug&ndash;Dec)</td><td class="num">~14</td><td class="num">23h</td><td class="num">~5h</td><td class="num">~2.0h</td><td><div class="hw-bar" style="width:130px;background:var(--ib-blue)"></div></td></tr>
+<tr><td style="font-size:0.75rem;padding-left:1.5rem">Weeks 1&ndash;3 (pre-DI, S1)</td><td class="num">3</td><td class="num">8h</td><td class="num">1h</td><td class="num">3.0h</td><td><div class="hw-bar" style="width:180px;background:var(--red)"></div> <span style="font-size:0.7rem;color:var(--red)">ramp-up</span></td></tr>
+<tr><td style="font-size:0.75rem;padding-left:1.5rem">Weeks 4&ndash;6 (S2 start + DI)</td><td class="num">3</td><td class="num">4h</td><td class="num">1h</td><td class="num">1.7h</td><td><div class="hw-bar" style="width:100px;background:var(--green)"></div></td></tr>
+<tr><td style="font-size:0.75rem;padding-left:1.5rem">Weeks 8&ndash;14 (S2 Pt1+Pt2)</td><td class="num">7</td><td class="num">11h</td><td class="num">3h</td><td class="num">2.0h</td><td><div class="hw-bar" style="width:130px;background:var(--ib-blue)"></div></td></tr>
+<tr><td><strong>Y1 Sem2</strong> (Jan&ndash;Jun)</td><td class="num">~20</td><td class="num">26h</td><td class="num">~10h</td><td class="num">~1.8h</td><td><div class="hw-bar" style="width:115px;background:var(--ib-blue)"></div></td></tr>
+<tr><td><strong>Y2 Sem1</strong> (Aug&ndash;Dec)</td><td class="num">~14</td><td class="num">16h</td><td class="num">~8h</td><td class="num">~1.7h</td><td><div class="hw-bar" style="width:110px;background:var(--ib-blue)"></div></td></tr>
+<tr><td><strong>Y2 Sem2</strong> (Jan&ndash;May)</td><td class="num">~16</td><td class="num">10h</td><td class="num">~12h</td><td class="num">~1.4h</td><td><div class="hw-bar" style="width:90px;background:var(--green)"></div> <span style="font-size:0.7rem;color:var(--green)">past papers</span></td></tr>
+</tbody>
+</table>
+<p style="font-size:0.82rem;color:var(--gray-600);margin-top:0.5rem;">
+<strong>Note:</strong> Y1 weeks 1&ndash;3 is the heaviest homework period (3h/wk) because S1 is the most aggressively flipped unit. This front-loads the flipped classroom habit while the content is accessible (S1.1 is MYP review). After DI, loading drops to ~2h/wk steady state.
+</p>
+
+<!-- NotebookLM -->
+<h2>Flipped Content Production: Google NotebookLM</h2>
+<div class="nlm-section">
+    <div class="nlm-grid">
+        <div class="nlm-card">
+            <h4>How It Works</h4>
+            <p>Upload IB guide sections, Kognity PDFs, your own notes to a NotebookLM notebook per unit. NotebookLM generates:</p>
+            <ul>
+                <li><strong>Audio Overviews</strong> &mdash; 8&ndash;12 min podcast-style summaries for pre-class prep</li>
+                <li><strong>Study Guides</strong> &mdash; AI-generated summaries with key concepts</li>
+                <li><strong>FAQ sections</strong> &mdash; Common student questions from source material</li>
+            </ul>
+        </div>
+        <div class="nlm-card">
+            <h4>Production Workflow</h4>
+            <ol>
+                <li>Create one NotebookLM notebook per unit (12 notebooks total)</li>
+                <li>Upload: IB guide pages, Kognity PDFs, lesson notes</li>
+                <li>Generate Audio Overview per subtopic with focus prompts</li>
+                <li>Create 1-page guided notes template (fill-in while listening)</li>
+                <li>Upload audio + notes + checkpoint quiz to Schoology</li>
+            </ol>
+            <p class="nlm-time"><strong>~30 min per assignment to produce. Total: ~25&ndash;30h production for 2-year library.</strong></p>
+        </div>
+        <div class="nlm-card">
+            <h4>What Still Needs Custom Screencasts</h4>
+            <ul>
+                <li>Step-by-step calculations (moles, enthalpy, pH, electrode potentials)</li>
+                <li>Drawing Lewis structures, VSEPR shapes, mechanisms</li>
+                <li>Lab technique demos</li>
+            </ul>
+            <p>~15&ndash;20 screencasts (3&ndash;5 min each). NotebookLM covers all conceptual/reading content.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Accountability -->
+<h2>Flipped Classroom Accountability System</h2>
+<div class="callout">
+<strong>Load-bearing strategy.</strong> With 75h of content flipped (~2h/wk) and no extra sessions or holiday work, the Schoology pre-class system must work consistently. The first 3 weeks are critical for establishing the habit.
+</div>
+<div class="acct-grid">
+    <div class="acct-card">
+        <h4>1. Pre-Class Checkpoint Quiz (5 min)</h4>
+        <p>3&ndash;5 auto-graded Schoology questions at the START of every class with assigned flipped content. Formative &mdash; tracked in gradebook.</p>
+        <div class="acct-why"><strong>Key:</strong> Immediate accountability. Pattern of zeros triggers a conversation, not a penalty.</div>
+    </div>
+    <div class="acct-card">
+        <h4>2. Entry Ticket Gate</h4>
+        <p>Below 60% on checkpoint &rarr; 5-min catch-up while prepared students begin practice. No full-class lecture bail-out.</p>
+        <div class="acct-why"><strong>Key:</strong> Natural consequence. Prepared students aren&rsquo;t held back.</div>
+    </div>
+    <div class="acct-card">
+        <h4>3. Audio + Guided Notes</h4>
+        <p>Each flipped assignment: NotebookLM audio (8&ndash;12 min) + guided notes template + checkpoint quiz. Due 11pm night before class. Total: 30&ndash;45 min.</p>
+        <div class="acct-why"><strong>Key:</strong> Audio format is accessible. Guided notes prove engagement. Fits in one homework session.</div>
+    </div>
+    <div class="acct-card">
+        <h4>4. Peer Groups (5 min)</h4>
+        <p>Groups of 3&ndash;4 compare checkpoint results at start of class. Social accountability is more effective than teacher pressure.</p>
+        <div class="acct-why"><strong>Key:</strong> Peer pressure for teens &gt; teacher pressure. Also serves as retrieval practice.</div>
+    </div>
+    <div class="acct-card">
+        <h4>5. Required vs. Recommended</h4>
+        <p>~70% of flipped content is &ldquo;Required&rdquo; (has checkpoint quiz). ~30% is &ldquo;Recommended&rdquo; (enrichment). Required = 2&ndash;3 assignments/wk within homework budget.</p>
+        <div class="acct-why"><strong>Key:</strong> Students take Required seriously. Keeps signal clear.</div>
+    </div>
+    <div class="acct-card">
+        <h4>6. No Homework Cliff</h4>
+        <p>No assignments over DI week, fall break, winter break, or spring break. Flipped content resumes the week before return with a &ldquo;warm-up&rdquo; assignment.</p>
+        <div class="acct-why"><strong>Key:</strong> Respects boundaries. Maintains trust in the system.</div>
+    </div>
+</div>
+
+<!-- Recovery -->
+<h2>HL Shortfall Recovery</h2>
+<div class="recovery-box">
+<table style="max-width:600px">
+<thead><tr><th>Strategy</th><th>Hours</th><th>Confidence</th></tr></thead>
+<tbody>
+<tr><td>Flipped content (NotebookLM + screencasts)</td><td class="num"><strong>75h</strong></td><td style="color:var(--green);font-weight:600">High</td></tr>
+<tr><td>Strategic compression (9 units)</td><td class="num"><strong>15h</strong></td><td style="color:var(--green);font-weight:600">High</td></tr>
+<tr><td>IA independent write-up</td><td class="num"><strong>10&ndash;15h</strong></td><td style="color:var(--green);font-weight:600">High</td></tr>
+<tr style="border-top:2px solid var(--ib-blue);background:var(--ib-light)"><td><strong>Total Recovery</strong></td><td class="num"><strong>100&ndash;105h</strong></td><td></td></tr>
+</tbody>
+</table>
+<div class="gap-note gap-ok">
+<strong>Gap: 47.3h</strong> &rarr; Recovery: <strong>100&ndash;105h</strong> &mdash; Covered with significant margin. All high-confidence strategies.
+</div>
+</div>
+
+<!-- Design Decisions -->
+<div class="strategy-box">
+<h3>Design Decisions (v5 changes)</h3>
+<div class="strategy-grid">
+    <div class="strategy">
+        <h4>3 Events Before DI (Both Years)</h4>
+        <p>S1/S3.2 gets a full formative&rarr;summative cycle in 4 weeks. Then 2&ndash;3 periods of the next unit before a formative as event #3. The formative-to-summative gap spans DI + fall break (~3 weeks), which is unusual but workable: students get feedback, a break to process, then a summative on return.</p>
+    </div>
+    <div class="strategy">
+        <h4>Mock = 2 Classes, Not 4</h4>
+        <p>P1A+P1B in one period, P2 in another = 2.6h total. Saves ~1.4h vs. full-length simulation. One week of dedicated revision precedes the mock. Mock covers all content through R3.2 (everything taught before it).</p>
+    </div>
+    <div class="strategy">
+        <h4>R3.3+R3.4 Taught After Mock</h4>
+        <p>Organic mechanisms are the final new content, taught March&ndash;April post-mock. Students have the motivation of just having seen the exam format. This also relieves pressure on the pre-mock schedule and gives more revision time. Assessment 12 is the last graded event before IB exams.</p>
+    </div>
+    <div class="strategy">
+        <h4>Spiral Assessment (70&ndash;80% / 20&ndash;30%)</h4>
+        <p>After the first unit, every unit assessment includes 20&ndash;30% from previously taught content. This builds cumulative retention and reduces the need for dedicated review time. Assessment 1 (S1) is 100% S1 since there&rsquo;s nothing prior.</p>
+    </div>
+    <div class="strategy">
+        <h4>Homework Budget: 2h/wk Steady State</h4>
+        <p>With 3&ndash;4 nights &times; 30&ndash;45 min = 1.5&ndash;3h/wk capacity. Y1 weeks 1&ndash;3 runs hot (~3h/wk) to front-load S1 flipped content and establish the habit. Settles to ~1.5&ndash;2h/wk thereafter. Y2 Sem2 shifts toward past paper practice as flipped content winds down.</p>
+    </div>
+    <div class="strategy">
+        <h4>Y1 Sem1 Buffer (~13h)</h4>
+        <p>The first semester has the largest buffer by design. This is the semester where you&rsquo;re establishing the flipped classroom routine, learning the students, and may need extra practice time. The buffer absorbs slower-than-expected pacing, additional labs, or deeper S2 practice.</p>
+    </div>
+</div>
+</div>
+
+<footer>
+<p>IB Chemistry 2-Year Course Plan v5 &middot; AISC Chennai &middot; April 2026</p>
+<p>Constraints: No HL extension sessions &middot; No holiday work &middot; 3+ summatives/semester &middot; 3 graded events pre-DI (both years) &middot; No HW over DI &middot; Mock = 2 classes mid-March Y2</p>
+<p>Assessments: 70&ndash;80% new / 20&ndash;30% old (spiral) &middot; Cumulative semester finals &middot; IA draft Nov Y2 &middot; IA final Jan Y2</p>
+<p>Based on IB Chemistry Guide 2025 &middot; AISC 2026&ndash;2027 Calendar &middot; Subject to A/B rotation confirmation</p>
+</footer>
+</body>
+</html>

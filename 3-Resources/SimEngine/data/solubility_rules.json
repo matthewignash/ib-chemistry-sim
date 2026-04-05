@@ -1,0 +1,199 @@
+{
+  "meta": {
+    "source": "IB Chemistry 2025 syllabus — general solubility rules for ionic compounds in water at 25°C",
+    "created": "2026-04-03",
+    "updated": "2026-04-04",
+    "notes": "Standard solubility rules as taught in IB Chemistry. These are generalizations with exceptions. Soluble = >1 g/100 mL, slightly soluble = 0.1–1 g/100 mL, insoluble = <0.1 g/100 mL.",
+    "fieldMapping": "Flat arrays (flame_ions, precip_cations, precip_anions, precip_matrix, unknowns) match SimEngine_QualitativeAnalysis.html inline data exactly"
+  },
+  "rules": [
+    {
+      "rule": 1,
+      "description": "All Group 1 (alkali metal) compounds are soluble",
+      "ions": ["Li⁺", "Na⁺", "K⁺", "Rb⁺", "Cs⁺"],
+      "soluble": true,
+      "exceptions": []
+    },
+    {
+      "rule": 2,
+      "description": "All ammonium (NH₄⁺) compounds are soluble",
+      "ions": ["NH₄⁺"],
+      "soluble": true,
+      "exceptions": []
+    },
+    {
+      "rule": 3,
+      "description": "All nitrate (NO₃⁻) compounds are soluble",
+      "ions": ["NO₃⁻"],
+      "soluble": true,
+      "exceptions": []
+    },
+    {
+      "rule": 4,
+      "description": "All chlorides, bromides, and iodides are soluble",
+      "ions": ["Cl⁻", "Br⁻", "I⁻"],
+      "soluble": true,
+      "exceptions": ["AgCl", "PbCl₂", "AgBr", "PbBr₂", "AgI", "PbI₂"]
+    },
+    {
+      "rule": 5,
+      "description": "All sulfates are soluble",
+      "ions": ["SO₄²⁻"],
+      "soluble": true,
+      "exceptions": ["BaSO₄", "PbSO₄", "CaSO₄", "SrSO₄"]
+    },
+    {
+      "rule": 6,
+      "description": "All hydroxides are insoluble",
+      "ions": ["OH⁻"],
+      "soluble": false,
+      "exceptions": ["NaOH", "KOH", "Ba(OH)₂", "Ca(OH)₂ (slightly soluble)"]
+    },
+    {
+      "rule": 7,
+      "description": "All oxides are insoluble",
+      "ions": ["O²⁻"],
+      "soluble": false,
+      "exceptions": ["Na₂O (reacts)", "K₂O (reacts)", "BaO (soluble)", "CaO (slightly soluble)"]
+    },
+    {
+      "rule": 8,
+      "description": "All carbonates are insoluble",
+      "ions": ["CO₃²⁻"],
+      "soluble": false,
+      "exceptions": ["Na₂CO₃", "K₂CO₃", "(NH₄)₂CO₃"]
+    },
+    {
+      "rule": 9,
+      "description": "All phosphates are insoluble",
+      "ions": ["PO₄³⁻"],
+      "soluble": false,
+      "exceptions": ["Na₃PO₄", "K₃PO₄", "(NH₄)₃PO₄"]
+    },
+    {
+      "rule": 10,
+      "description": "All sulfides are insoluble",
+      "ions": ["S²⁻"],
+      "soluble": false,
+      "exceptions": ["Na₂S", "K₂S", "(NH₄)₂S", "CaS", "BaS"]
+    }
+  ],
+  "quick_reference": {
+    "_note": "Solubility matrix: common cation/anion combinations. S = soluble, I = insoluble, SS = slightly soluble, R = reacts with water",
+    "anions": ["Cl⁻", "Br⁻", "I⁻", "NO₃⁻", "SO₄²⁻", "OH⁻", "CO₃²⁻", "PO₄³⁻", "S²⁻", "O²⁻"],
+    "cations": {
+      "Na⁺":  ["S", "S", "S", "S", "S", "S", "S", "S", "S", "R"],
+      "K⁺":   ["S", "S", "S", "S", "S", "S", "S", "S", "S", "R"],
+      "NH₄⁺": ["S", "S", "S", "S", "S", "S", "S", "S", "S", "—"],
+      "Ca²⁺": ["S", "S", "S", "S", "SS", "SS", "I", "I", "SS", "SS"],
+      "Ba²⁺": ["S", "S", "S", "S", "I", "S", "I", "I", "S", "S"],
+      "Mg²⁺": ["S", "S", "S", "S", "S", "I", "I", "I", "I", "I"],
+      "Al³⁺": ["S", "S", "S", "S", "S", "I", "—", "I", "—", "I"],
+      "Fe²⁺": ["S", "S", "S", "S", "S", "I", "I", "I", "I", "—"],
+      "Fe³⁺": ["S", "S", "S", "S", "S", "I", "—", "I", "—", "—"],
+      "Cu²⁺": ["S", "S", "—", "S", "S", "I", "I", "I", "I", "I"],
+      "Zn²⁺": ["S", "S", "S", "S", "S", "I", "I", "I", "I", "I"],
+      "Ag⁺":  ["I", "I", "I", "S", "SS", "—", "I", "I", "I", "—"],
+      "Pb²⁺": ["I", "I", "I", "S", "I", "I", "I", "I", "I", "I"]
+    }
+  },
+  "flame_test_colors": {
+    "_note": "Flame test colors for metal ion identification — commonly tested in IB Chemistry",
+    "Li⁺": { "color": "Crimson red", "wavelength": "670 nm" },
+    "Na⁺": { "color": "Yellow", "wavelength": "589 nm" },
+    "K⁺": { "color": "Lilac / violet", "wavelength": "766 nm" },
+    "Ca²⁺": { "color": "Orange-red", "wavelength": "622 nm" },
+    "Sr²⁺": { "color": "Red", "wavelength": "640 nm" },
+    "Ba²⁺": { "color": "Apple green", "wavelength": "554 nm" },
+    "Cu²⁺": { "color": "Blue-green", "wavelength": "510 nm" }
+  },
+  "flame_ions": [
+    {"ion":"Li\u207A","name":"Lithium","color":"Crimson red","hex":"#DC143C","wavelength":670,"rgb":[220,20,60],"glow":"rgba(220,20,60,0.4)"},
+    {"ion":"Na\u207A","name":"Sodium","color":"Yellow","hex":"#FFD700","wavelength":589,"rgb":[255,215,0],"glow":"rgba(255,215,0,0.5)"},
+    {"ion":"K\u207A","name":"Potassium","color":"Lilac/violet","hex":"#C8A2C8","wavelength":766,"rgb":[200,162,200],"glow":"rgba(200,162,200,0.4)"},
+    {"ion":"Ca\u00B2\u207A","name":"Calcium","color":"Orange-red","hex":"#FF4500","wavelength":622,"rgb":[255,69,0],"glow":"rgba(255,69,0,0.4)"},
+    {"ion":"Sr\u00B2\u207A","name":"Strontium","color":"Red","hex":"#FF0000","wavelength":640,"rgb":[255,0,0],"glow":"rgba(255,0,0,0.4)"},
+    {"ion":"Ba\u00B2\u207A","name":"Barium","color":"Apple green","hex":"#8DB600","wavelength":554,"rgb":[141,182,0],"glow":"rgba(141,182,0,0.4)"},
+    {"ion":"Cu\u00B2\u207A","name":"Copper","color":"Blue-green","hex":"#00CED1","wavelength":510,"rgb":[0,206,209],"glow":"rgba(0,206,209,0.4)"}
+  ],
+  "precip_cations": [
+    {"ion":"Na\u207A","name":"Sodium","formula":"Na\u207A"},
+    {"ion":"Ca\u00B2\u207A","name":"Calcium","formula":"Ca\u00B2\u207A"},
+    {"ion":"Ba\u00B2\u207A","name":"Barium","formula":"Ba\u00B2\u207A"},
+    {"ion":"Fe\u00B2\u207A","name":"Iron(II)","formula":"Fe\u00B2\u207A"},
+    {"ion":"Fe\u00B3\u207A","name":"Iron(III)","formula":"Fe\u00B3\u207A"},
+    {"ion":"Cu\u00B2\u207A","name":"Copper(II)","formula":"Cu\u00B2\u207A"},
+    {"ion":"Ag\u207A","name":"Silver","formula":"Ag\u207A"},
+    {"ion":"Pb\u00B2\u207A","name":"Lead(II)","formula":"Pb\u00B2\u207A"}
+  ],
+  "precip_anions": [
+    {"ion":"Cl\u207B","name":"Chloride","formula":"Cl\u207B"},
+    {"ion":"SO\u2084\u00B2\u207B","name":"Sulfate","formula":"SO\u2084\u00B2\u207B"},
+    {"ion":"OH\u207B","name":"Hydroxide","formula":"OH\u207B"},
+    {"ion":"CO\u2083\u00B2\u207B","name":"Carbonate","formula":"CO\u2083\u00B2\u207B"},
+    {"ion":"I\u207B","name":"Iodide","formula":"I\u207B"},
+    {"ion":"NO\u2083\u207B","name":"Nitrate","formula":"NO\u2083\u207B"}
+  ],
+  "precip_matrix": {
+    "Na\u207A+Cl\u207B":{"result":"S","ppt":null},
+    "Na\u207A+SO\u2084\u00B2\u207B":{"result":"S","ppt":null},
+    "Na\u207A+OH\u207B":{"result":"S","ppt":null},
+    "Na\u207A+CO\u2083\u00B2\u207B":{"result":"S","ppt":null},
+    "Na\u207A+I\u207B":{"result":"S","ppt":null},
+    "Na\u207A+NO\u2083\u207B":{"result":"S","ppt":null},
+    "Ca\u00B2\u207A+Cl\u207B":{"result":"S","ppt":null},
+    "Ca\u00B2\u207A+SO\u2084\u00B2\u207B":{"result":"SS","ppt":{"name":"CaSO\u2084","color":"#FFFFFF","desc":"White precipitate (slightly soluble)"}},
+    "Ca\u00B2\u207A+OH\u207B":{"result":"SS","ppt":{"name":"Ca(OH)\u2082","color":"#FFFFFF","desc":"White precipitate (slightly soluble)"}},
+    "Ca\u00B2\u207A+CO\u2083\u00B2\u207B":{"result":"I","ppt":{"name":"CaCO\u2083","color":"#FFFFFF","desc":"White precipitate"}},
+    "Ca\u00B2\u207A+I\u207B":{"result":"S","ppt":null},
+    "Ca\u00B2\u207A+NO\u2083\u207B":{"result":"S","ppt":null},
+    "Ba\u00B2\u207A+Cl\u207B":{"result":"S","ppt":null},
+    "Ba\u00B2\u207A+SO\u2084\u00B2\u207B":{"result":"I","ppt":{"name":"BaSO\u2084","color":"#FFFFFF","desc":"White precipitate (very insoluble)"}},
+    "Ba\u00B2\u207A+OH\u207B":{"result":"S","ppt":null},
+    "Ba\u00B2\u207A+CO\u2083\u00B2\u207B":{"result":"I","ppt":{"name":"BaCO\u2083","color":"#FFFFFF","desc":"White precipitate"}},
+    "Ba\u00B2\u207A+I\u207B":{"result":"S","ppt":null},
+    "Ba\u00B2\u207A+NO\u2083\u207B":{"result":"S","ppt":null},
+    "Fe\u00B2\u207A+Cl\u207B":{"result":"S","ppt":null},
+    "Fe\u00B2\u207A+SO\u2084\u00B2\u207B":{"result":"S","ppt":null},
+    "Fe\u00B2\u207A+OH\u207B":{"result":"I","ppt":{"name":"Fe(OH)\u2082","color":"#556B2F","desc":"Dark green (dirty green) precipitate"}},
+    "Fe\u00B2\u207A+CO\u2083\u00B2\u207B":{"result":"I","ppt":{"name":"FeCO\u2083","color":"#8B8B83","desc":"Off-white precipitate (decomposes)"}},
+    "Fe\u00B2\u207A+I\u207B":{"result":"S","ppt":null},
+    "Fe\u00B2\u207A+NO\u2083\u207B":{"result":"S","ppt":null},
+    "Fe\u00B3\u207A+Cl\u207B":{"result":"S","ppt":null},
+    "Fe\u00B3\u207A+SO\u2084\u00B2\u207B":{"result":"S","ppt":null},
+    "Fe\u00B3\u207A+OH\u207B":{"result":"I","ppt":{"name":"Fe(OH)\u2083","color":"#8B4513","desc":"Rust brown precipitate"}},
+    "Fe\u00B3\u207A+CO\u2083\u00B2\u207B":{"result":"I","ppt":{"name":"Fe\u2082(CO\u2083)\u2083","color":"#8B4513","desc":"Brown precipitate (decomposes)"}},
+    "Fe\u00B3\u207A+I\u207B":{"result":"S","ppt":null},
+    "Fe\u00B3\u207A+NO\u2083\u207B":{"result":"S","ppt":null},
+    "Cu\u00B2\u207A+Cl\u207B":{"result":"S","ppt":null},
+    "Cu\u00B2\u207A+SO\u2084\u00B2\u207B":{"result":"S","ppt":null},
+    "Cu\u00B2\u207A+OH\u207B":{"result":"I","ppt":{"name":"Cu(OH)\u2082","color":"#4169E1","desc":"Blue precipitate"}},
+    "Cu\u00B2\u207A+CO\u2083\u00B2\u207B":{"result":"I","ppt":{"name":"CuCO\u2083","color":"#2E8B57","desc":"Blue-green precipitate"}},
+    "Cu\u00B2\u207A+I\u207B":{"result":"I","ppt":{"name":"CuI","color":"#FFFDD0","desc":"Cream/white precipitate + I\u2082 (brown)"}},
+    "Cu\u00B2\u207A+NO\u2083\u207B":{"result":"S","ppt":null},
+    "Ag\u207A+Cl\u207B":{"result":"I","ppt":{"name":"AgCl","color":"#FFFFFF","desc":"White precipitate (curdy)"}},
+    "Ag\u207A+SO\u2084\u00B2\u207B":{"result":"SS","ppt":{"name":"Ag\u2082SO\u2084","color":"#FFFFFF","desc":"White precipitate (slightly soluble)"}},
+    "Ag\u207A+OH\u207B":{"result":"I","ppt":{"name":"AgOH","color":"#8B4513","desc":"Brown precipitate (decomposes to Ag\u2082O)"}},
+    "Ag\u207A+CO\u2083\u00B2\u207B":{"result":"I","ppt":{"name":"Ag\u2082CO\u2083","color":"#FFFDD0","desc":"White/cream precipitate"}},
+    "Ag\u207A+I\u207B":{"result":"I","ppt":{"name":"AgI","color":"#FFFF99","desc":"Yellow precipitate"}},
+    "Ag\u207A+NO\u2083\u207B":{"result":"S","ppt":null},
+    "Pb\u00B2\u207A+Cl\u207B":{"result":"I","ppt":{"name":"PbCl\u2082","color":"#FFFFFF","desc":"White precipitate (soluble in hot water)"}},
+    "Pb\u00B2\u207A+SO\u2084\u00B2\u207B":{"result":"I","ppt":{"name":"PbSO\u2084","color":"#FFFFFF","desc":"White precipitate"}},
+    "Pb\u00B2\u207A+OH\u207B":{"result":"I","ppt":{"name":"Pb(OH)\u2082","color":"#FFFFFF","desc":"White precipitate"}},
+    "Pb\u00B2\u207A+CO\u2083\u00B2\u207B":{"result":"I","ppt":{"name":"PbCO\u2083","color":"#FFFFFF","desc":"White precipitate"}},
+    "Pb\u00B2\u207A+I\u207B":{"result":"I","ppt":{"name":"PbI\u2082","color":"#FFD700","desc":"Bright yellow precipitate"}},
+    "Pb\u00B2\u207A+NO\u2083\u207B":{"result":"S","ppt":null}
+  },
+  "unknowns": [
+    {"cation":0,"anion":0,"compound":"NaCl","cationName":"Na\u207A","anionName":"Cl\u207B","flameIdx":1},
+    {"cation":3,"anion":2,"compound":"FeSO\u2084","cationName":"Fe\u00B2\u207A","anionName":"SO\u2084\u00B2\u207B","flameIdx":null},
+    {"cation":5,"anion":1,"compound":"CuSO\u2084","cationName":"Cu\u00B2\u207A","anionName":"SO\u2084\u00B2\u207B","flameIdx":6},
+    {"cation":6,"anion":4,"compound":"AgNO\u2083","cationName":"Ag\u207A","anionName":"NO\u2083\u207B","flameIdx":null},
+    {"cation":2,"anion":0,"compound":"BaCl\u2082","cationName":"Ba\u00B2\u207A","anionName":"Cl\u207B","flameIdx":5},
+    {"cation":1,"anion":3,"compound":"CaCO\u2083","cationName":"Ca\u00B2\u207A","anionName":"CO\u2083\u00B2\u207B","flameIdx":3},
+    {"cation":7,"anion":5,"compound":"Pb(NO\u2083)\u2082","cationName":"Pb\u00B2\u207A","anionName":"NO\u2083\u207B","flameIdx":null},
+    {"cation":4,"anion":0,"compound":"FeCl\u2083","cationName":"Fe\u00B3\u207A","anionName":"Cl\u207B","flameIdx":null},
+    {"cation":0,"anion":3,"compound":"Na\u2082CO\u2083","cationName":"Na\u207A","anionName":"CO\u2083\u00B2\u207B","flameIdx":1},
+    {"cation":5,"anion":0,"compound":"CuCl\u2082","cationName":"Cu\u00B2\u207A","anionName":"Cl\u207B","flameIdx":6}
+  ]
+}

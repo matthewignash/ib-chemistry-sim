@@ -1,0 +1,112 @@
+{
+  "meta": {
+    "source": "SimEngine_EnergyFromFuels.html",
+    "extracted": "2026-04-03",
+    "updated": "2026-04-04",
+    "count": 10,
+    "notes": "Organic compounds with combustion data for IB Chemistry. dHc in kJ/mol, density in g/cm3. Formulas use Unicode subscripts for display.",
+    "fieldMapping": "Matches SimEngine_EnergyFromFuels.html FUELS object. dHc = enthalpy of combustion (kJ/mol), cat = fuel category, color = chart color hex"
+  },
+  "compounds": [
+    {
+      "id": "methanol",
+      "name": "Methanol",
+      "formula": "CH\u2083OH",
+      "Mr": 32.04,
+      "dHc": -726,
+      "density": 0.792,
+      "cat": "alcohol",
+      "color": "#0D9488"
+    },
+    {
+      "id": "ethanol",
+      "name": "Ethanol",
+      "formula": "C\u2082H\u2085OH",
+      "Mr": 46.07,
+      "dHc": -1367,
+      "density": 0.789,
+      "cat": "alcohol",
+      "color": "#0D9488"
+    },
+    {
+      "id": "propanol",
+      "name": "Propan-1-ol",
+      "formula": "C\u2083H\u2087OH",
+      "Mr": 60.10,
+      "dHc": -2021,
+      "density": 0.803,
+      "cat": "alcohol",
+      "color": "#0D9488"
+    },
+    {
+      "id": "butanol",
+      "name": "Butan-1-ol",
+      "formula": "C\u2084H\u2089OH",
+      "Mr": 74.12,
+      "dHc": -2676,
+      "density": 0.810,
+      "cat": "alcohol",
+      "color": "#0D9488"
+    },
+    {
+      "id": "methane",
+      "name": "Methane",
+      "formula": "CH\u2084",
+      "Mr": 16.04,
+      "dHc": -890,
+      "density": 0.000656,
+      "cat": "alkane",
+      "color": "#2563EB"
+    },
+    {
+      "id": "propane",
+      "name": "Propane",
+      "formula": "C\u2083H\u2088",
+      "Mr": 44.10,
+      "dHc": -2220,
+      "density": 0.493,
+      "cat": "alkane",
+      "color": "#2563EB"
+    },
+    {
+      "id": "octane",
+      "name": "Octane",
+      "formula": "C\u2088H\u2081\u2088",
+      "Mr": 114.23,
+      "dHc": -5471,
+      "density": 0.703,
+      "cat": "alkane",
+      "color": "#2563EB"
+    },
+    {
+      "id": "hydrogen",
+      "name": "Hydrogen",
+      "formula": "H\u2082",
+      "Mr": 2.016,
+      "dHc": -286,
+      "density": 0.0000824,
+      "cat": "other",
+      "color": "#D97706"
+    },
+    {
+      "id": "biodiesel",
+      "name": "Biodiesel",
+      "formula": "C\u2081\u2089H\u2083\u2086O\u2082",
+      "Mr": 296.5,
+      "dHc": -11900,
+      "density": 0.880,
+      "cat": "biofuel",
+      "color": "#059669"
+    },
+    {
+      "id": "bioethanol",
+      "name": "Bioethanol",
+      "formula": "C\u2082H\u2085OH",
+      "Mr": 46.07,
+      "dHc": -1367,
+      "density": 0.789,
+      "cat": "biofuel",
+      "color": "#059669"
+    }
+  ]
+}

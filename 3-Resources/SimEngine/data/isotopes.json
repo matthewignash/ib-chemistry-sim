@@ -1,0 +1,314 @@
+{
+  "meta": {
+    "source": "SimEngine_NuclearAtom.html ISOTOPE_DATA and MS_COMPOUNDS arrays",
+    "extracted": "2026-04-03",
+    "notes": "Isotope composition and mass spectrometry data for IB Chemistry. Abundances in %, exact masses in u, half-lives as strings. MS peak intensities relative to base peak (100).",
+    "fieldMapping": "Matches SimEngine_NuclearAtom.html ISOTOPE_DATA. cat = element category"
+  },
+  "elements": [
+    {
+      "symbol": "H", "z": 1, "name": "Hydrogen", "ram": 1.008, "cat": "nonmetal",
+      "isotopes": [
+        { "mass": 1, "exact": 1.00783, "abundance": 99.985, "name": "Protium" },
+        { "mass": 2, "exact": 2.01410, "abundance": 0.015, "name": "Deuterium" }
+      ]
+    },
+    {
+      "symbol": "He", "z": 2, "name": "Helium", "ram": 4.003, "cat": "noble-gas",
+      "isotopes": [
+        { "mass": 3, "exact": 3.01603, "abundance": 0.0001 },
+        { "mass": 4, "exact": 4.00260, "abundance": 99.9999 }
+      ]
+    },
+    {
+      "symbol": "Li", "z": 3, "name": "Lithium", "ram": 6.941, "cat": "alkali-metal",
+      "isotopes": [
+        { "mass": 6, "exact": 6.01512, "abundance": 7.59 },
+        { "mass": 7, "exact": 7.01600, "abundance": 92.41 }
+      ]
+    },
+    {
+      "symbol": "B", "z": 5, "name": "Boron", "ram": 10.81, "cat": "nonmetal",
+      "isotopes": [
+        { "mass": 10, "exact": 10.01294, "abundance": 19.9 },
+        { "mass": 11, "exact": 11.00931, "abundance": 80.1 }
+      ]
+    },
+    {
+      "symbol": "C", "z": 6, "name": "Carbon", "ram": 12.011, "cat": "nonmetal",
+      "isotopes": [
+        { "mass": 12, "exact": 12.00000, "abundance": 98.93 },
+        { "mass": 13, "exact": 13.00335, "abundance": 1.07 }
+      ],
+      "radioactive": [
+        { "mass": 14, "halfLife": "5730 years", "decay": "β⁻", "use": "Carbon dating" }
+      ]
+    },
+    {
+      "symbol": "N", "z": 7, "name": "Nitrogen", "ram": 14.007, "cat": "nonmetal",
+      "isotopes": [
+        { "mass": 14, "exact": 14.00307, "abundance": 99.636 },
+        { "mass": 15, "exact": 15.00011, "abundance": 0.364 }
+      ]
+    },
+    {
+      "symbol": "O", "z": 8, "name": "Oxygen", "ram": 15.999, "cat": "nonmetal",
+      "isotopes": [
+        { "mass": 16, "exact": 15.99491, "abundance": 99.757 },
+        { "mass": 17, "exact": 16.99913, "abundance": 0.038 },
+        { "mass": 18, "exact": 17.99916, "abundance": 0.205 }
+      ]
+    },
+    {
+      "symbol": "Ne", "z": 10, "name": "Neon", "ram": 20.180, "cat": "noble-gas",
+      "isotopes": [
+        { "mass": 20, "exact": 19.99244, "abundance": 90.48 },
+        { "mass": 21, "exact": 20.99385, "abundance": 0.27 },
+        { "mass": 22, "exact": 21.99139, "abundance": 9.25 }
+      ]
+    },
+    {
+      "symbol": "Na", "z": 11, "name": "Sodium", "ram": 22.990, "cat": "alkali-metal",
+      "isotopes": [
+        { "mass": 23, "exact": 22.98977, "abundance": 100.0 }
+      ]
+    },
+    {
+      "symbol": "Mg", "z": 12, "name": "Magnesium", "ram": 24.305, "cat": "alkaline-earth",
+      "isotopes": [
+        { "mass": 24, "exact": 23.98504, "abundance": 78.99 },
+        { "mass": 25, "exact": 24.98584, "abundance": 10.00 },
+        { "mass": 26, "exact": 25.98259, "abundance": 11.01 }
+      ]
+    },
+    {
+      "symbol": "Si", "z": 14, "name": "Silicon", "ram": 28.085, "cat": "nonmetal",
+      "isotopes": [
+        { "mass": 28, "exact": 27.97693, "abundance": 92.223 },
+        { "mass": 29, "exact": 28.97649, "abundance": 4.685 },
+        { "mass": 30, "exact": 29.97377, "abundance": 3.092 }
+      ]
+    },
+    {
+      "symbol": "S", "z": 16, "name": "Sulfur", "ram": 32.065, "cat": "nonmetal",
+      "isotopes": [
+        { "mass": 32, "exact": 31.97207, "abundance": 94.99 },
+        { "mass": 33, "exact": 32.97146, "abundance": 0.75 },
+        { "mass": 34, "exact": 33.96787, "abundance": 4.25 },
+        { "mass": 36, "exact": 35.96708, "abundance": 0.01 }
+      ]
+    },
+    {
+      "symbol": "Cl", "z": 17, "name": "Chlorine", "ram": 35.45, "cat": "halogen",
+      "isotopes": [
+        { "mass": 35, "exact": 34.96885, "abundance": 75.76 },
+        { "mass": 37, "exact": 36.96590, "abundance": 24.24 }
+      ]
+    },
+    {
+      "symbol": "Ar", "z": 18, "name": "Argon", "ram": 39.948, "cat": "noble-gas",
+      "isotopes": [
+        { "mass": 36, "exact": 35.96755, "abundance": 0.3365 },
+        { "mass": 38, "exact": 37.96273, "abundance": 0.0632 },
+        { "mass": 40, "exact": 39.96238, "abundance": 99.6003 }
+      ]
+    },
+    {
+      "symbol": "K", "z": 19, "name": "Potassium", "ram": 39.098, "cat": "alkali-metal",
+      "isotopes": [
+        { "mass": 39, "exact": 38.96371, "abundance": 93.258 },
+        { "mass": 40, "exact": 39.96400, "abundance": 0.012 },
+        { "mass": 41, "exact": 40.96183, "abundance": 6.730 }
+      ],
+      "radioactive": [
+        { "mass": 40, "halfLife": "1.25 × 10⁹ years", "decay": "β⁻ / EC", "use": "K-Ar dating of rocks" }
+      ]
+    },
+    {
+      "symbol": "Ca", "z": 20, "name": "Calcium", "ram": 40.078, "cat": "alkaline-earth",
+      "isotopes": [
+        { "mass": 40, "exact": 39.96259, "abundance": 96.941 },
+        { "mass": 42, "exact": 41.95862, "abundance": 0.647 },
+        { "mass": 43, "exact": 42.95877, "abundance": 0.135 },
+        { "mass": 44, "exact": 43.95548, "abundance": 2.086 },
+        { "mass": 46, "exact": 45.95369, "abundance": 0.004 },
+        { "mass": 48, "exact": 47.95253, "abundance": 0.187 }
+      ]
+    },
+    {
+      "symbol": "Fe", "z": 26, "name": "Iron", "ram": 55.845, "cat": "transition-metal",
+      "isotopes": [
+        { "mass": 54, "exact": 53.93961, "abundance": 5.845 },
+        { "mass": 56, "exact": 55.93494, "abundance": 91.754 },
+        { "mass": 57, "exact": 56.93540, "abundance": 2.119 },
+        { "mass": 58, "exact": 57.93328, "abundance": 0.282 }
+      ]
+    },
+    {
+      "symbol": "Cu", "z": 29, "name": "Copper", "ram": 63.546, "cat": "transition-metal",
+      "isotopes": [
+        { "mass": 63, "exact": 62.92960, "abundance": 69.17 },
+        { "mass": 65, "exact": 64.92779, "abundance": 30.83 }
+      ]
+    },
+    {
+      "symbol": "Zn", "z": 30, "name": "Zinc", "ram": 65.38, "cat": "transition-metal",
+      "isotopes": [
+        { "mass": 64, "exact": 63.92914, "abundance": 49.17 },
+        { "mass": 66, "exact": 65.92603, "abundance": 27.73 },
+        { "mass": 67, "exact": 66.92713, "abundance": 4.04 },
+        { "mass": 68, "exact": 67.92484, "abundance": 18.45 },
+        { "mass": 70, "exact": 69.92532, "abundance": 0.61 }
+      ]
+    },
+    {
+      "symbol": "Br", "z": 35, "name": "Bromine", "ram": 79.904, "cat": "halogen",
+      "isotopes": [
+        { "mass": 79, "exact": 78.91834, "abundance": 50.69 },
+        { "mass": 81, "exact": 80.91629, "abundance": 49.31 }
+      ]
+    },
+    {
+      "symbol": "Kr", "z": 36, "name": "Krypton", "ram": 83.798, "cat": "noble-gas",
+      "isotopes": [
+        { "mass": 78, "exact": 77.92040, "abundance": 0.355 },
+        { "mass": 80, "exact": 79.91638, "abundance": 2.286 },
+        { "mass": 82, "exact": 81.91348, "abundance": 11.593 },
+        { "mass": 83, "exact": 82.91414, "abundance": 11.500 },
+        { "mass": 84, "exact": 83.91151, "abundance": 56.987 },
+        { "mass": 86, "exact": 85.91062, "abundance": 17.279 }
+      ]
+    },
+    {
+      "symbol": "Zr", "z": 40, "name": "Zirconium", "ram": 91.224, "cat": "transition-metal",
+      "isotopes": [
+        { "mass": 90, "exact": 89.90470, "abundance": 51.45 },
+        { "mass": 91, "exact": 90.90564, "abundance": 11.22 },
+        { "mass": 92, "exact": 91.90504, "abundance": 17.15 },
+        { "mass": 94, "exact": 93.90632, "abundance": 17.38 },
+        { "mass": 96, "exact": 95.90828, "abundance": 2.80 }
+      ]
+    },
+    {
+      "symbol": "Ag", "z": 47, "name": "Silver", "ram": 107.868, "cat": "transition-metal",
+      "isotopes": [
+        { "mass": 107, "exact": 106.90509, "abundance": 51.839 },
+        { "mass": 109, "exact": 108.90476, "abundance": 48.161 }
+      ]
+    }
+  ],
+  "mass_spectrometry": {
+    "_note": "Reference mass spectra for IB Chemistry. Intensities relative to base peak (100). Peak types: molecular, fragment, isotope.",
+    "categories": [
+      { "id": "elements", "name": "Elements" },
+      { "id": "organic", "name": "Simple Organic" },
+      { "id": "hl-frag", "name": "HL: Fragmentation", "hlOnly": true }
+    ],
+    "compounds": [
+      {
+        "id": "ms-ne", "cat": "elements", "name": "Ne", "formula": "Ne", "Mr": 20.180, "difficulty": "Easy",
+        "peaks": [
+          { "mz": 20, "intensity": 100, "label": "M⁺ (²⁰Ne⁺)", "type": "molecular" },
+          { "mz": 21, "intensity": 0.3, "label": "²¹Ne⁺", "type": "isotope" },
+          { "mz": 22, "intensity": 10.2, "label": "²²Ne⁺", "type": "isotope" }
+        ],
+        "info": "Neon shows three isotope peaks. The base peak at m/z = 20 corresponds to the most abundant isotope ²⁰Ne."
+      },
+      {
+        "id": "ms-cl2", "cat": "elements", "name": "Cl₂", "formula": "Cl₂", "Mr": 70.906, "difficulty": "Medium",
+        "peaks": [
+          { "mz": 35, "intensity": 100, "label": "³⁵Cl⁺ (base peak)", "type": "fragment" },
+          { "mz": 37, "intensity": 32, "label": "³⁷Cl⁺", "type": "fragment" },
+          { "mz": 70, "intensity": 60, "label": "M⁺ (³⁵Cl₂⁺)", "type": "molecular" },
+          { "mz": 72, "intensity": 39, "label": "M+2 (³⁵Cl³⁷Cl⁺)", "type": "isotope" },
+          { "mz": 74, "intensity": 6, "label": "M+4 (³⁷Cl₂⁺)", "type": "isotope" }
+        ],
+        "info": "Cl₂ shows the characteristic 3:2:1 isotope pattern for M, M+2, M+4 (binomial distribution from two Cl atoms)."
+      },
+      {
+        "id": "ms-br2", "cat": "elements", "name": "Br₂", "formula": "Br₂", "Mr": 159.808, "difficulty": "Medium",
+        "peaks": [
+          { "mz": 79, "intensity": 98, "label": "⁷⁹Br⁺", "type": "fragment" },
+          { "mz": 81, "intensity": 100, "label": "⁸¹Br⁺ (base peak)", "type": "fragment" },
+          { "mz": 158, "intensity": 51, "label": "M⁺ (⁷⁹Br₂⁺)", "type": "molecular" },
+          { "mz": 160, "intensity": 100, "label": "M+2 (⁷⁹Br⁸¹Br⁺)", "type": "isotope" },
+          { "mz": 162, "intensity": 49, "label": "M+4 (⁸¹Br₂⁺)", "type": "isotope" }
+        ],
+        "info": "Br₂ shows a 1:2:1 isotope pattern for M, M+2, M+4 because ⁷⁹Br and ⁸¹Br have nearly equal abundance."
+      },
+      {
+        "id": "ms-zr", "cat": "elements", "name": "Zr", "formula": "Zr", "Mr": 91.224, "difficulty": "Medium",
+        "peaks": [
+          { "mz": 90, "intensity": 100, "label": "⁹⁰Zr⁺ (base peak)", "type": "molecular" },
+          { "mz": 91, "intensity": 21.8, "label": "⁹¹Zr⁺", "type": "isotope" },
+          { "mz": 92, "intensity": 33.4, "label": "⁹²Zr⁺", "type": "isotope" },
+          { "mz": 94, "intensity": 33.8, "label": "⁹⁴Zr⁺", "type": "isotope" },
+          { "mz": 96, "intensity": 5.4, "label": "⁹⁶Zr⁺", "type": "isotope" }
+        ],
+        "info": "Zirconium has five stable isotopes. The isotope pattern from mass spectrometry directly reflects their natural abundances."
+      },
+      {
+        "id": "ms-ch4", "cat": "organic", "name": "CH₄", "formula": "CH₄", "Mr": 16.043, "difficulty": "Easy",
+        "peaks": [
+          { "mz": 12, "intensity": 3, "label": "C⁺", "type": "fragment" },
+          { "mz": 13, "intensity": 7, "label": "CH⁺", "type": "fragment" },
+          { "mz": 14, "intensity": 16, "label": "CH₂⁺", "type": "fragment" },
+          { "mz": 15, "intensity": 85, "label": "CH₃⁺", "type": "fragment" },
+          { "mz": 16, "intensity": 100, "label": "M⁺ (CH₄⁺)", "type": "molecular" }
+        ],
+        "info": "Methane fragments by successive loss of H atoms. The molecular ion at m/z = 16 is the base peak."
+      },
+      {
+        "id": "ms-etoh", "cat": "organic", "name": "C₂H₅OH", "formula": "C₂H₅OH", "Mr": 46.068, "difficulty": "Medium",
+        "peaks": [
+          { "mz": 15, "intensity": 7, "label": "CH₃⁺", "type": "fragment" },
+          { "mz": 27, "intensity": 14, "label": "CHO⁺", "type": "fragment" },
+          { "mz": 29, "intensity": 24, "label": "CHO⁺ / C₂H₅⁺", "type": "fragment" },
+          { "mz": 31, "intensity": 100, "label": "CH₂OH⁺ (base peak)", "type": "fragment" },
+          { "mz": 45, "intensity": 52, "label": "M-1 (CHO₂⁺ / C₂H₅O⁺)", "type": "fragment" },
+          { "mz": 46, "intensity": 33, "label": "M⁺ (C₂H₅OH⁺)", "type": "molecular" }
+        ],
+        "info": "Ethanol fragments primarily at the C–O bond giving CH₂OH⁺ (m/z = 31) as the base peak. Loss of H gives M-1 at m/z = 45."
+      },
+      {
+        "id": "ms-acoh", "cat": "organic", "name": "CH₃COOH", "formula": "CH₃COOH", "Mr": 60.052, "difficulty": "Medium",
+        "peaks": [
+          { "mz": 15, "intensity": 26, "label": "CH₃⁺", "type": "fragment" },
+          { "mz": 28, "intensity": 6, "label": "CO⁺", "type": "fragment" },
+          { "mz": 43, "intensity": 100, "label": "CH₃CO⁺ (base peak)", "type": "fragment" },
+          { "mz": 45, "intensity": 62, "label": "COOH⁺", "type": "fragment" },
+          { "mz": 60, "intensity": 57, "label": "M⁺ (CH₃COOH⁺)", "type": "molecular" }
+        ],
+        "info": "Acetic acid cleaves at the C–C bond between the methyl and carboxyl groups, giving CH₃CO⁺ (m/z = 43) as the base peak."
+      },
+      {
+        "id": "ms-c3h8", "cat": "hl-frag", "name": "C₃H₈", "formula": "C₃H₈", "Mr": 44.096, "difficulty": "Hard",
+        "peaks": [
+          { "mz": 15, "intensity": 14, "label": "CH₃⁺", "type": "fragment" },
+          { "mz": 26, "intensity": 5, "label": "C₂H₂⁺", "type": "fragment" },
+          { "mz": 27, "intensity": 32, "label": "C₂H₃⁺", "type": "fragment" },
+          { "mz": 28, "intensity": 22, "label": "C₂H₄⁺", "type": "fragment" },
+          { "mz": 29, "intensity": 100, "label": "C₂H₅⁺ (base peak)", "type": "fragment" },
+          { "mz": 39, "intensity": 8, "label": "C₃H₃⁺", "type": "fragment" },
+          { "mz": 43, "intensity": 14, "label": "C₃H₇⁺", "type": "fragment" },
+          { "mz": 44, "intensity": 34, "label": "M⁺ (C₃H₈⁺)", "type": "molecular" }
+        ],
+        "info": "Propane fragments primarily by C–C bond cleavage. Loss of CH₃ gives C₂H₅⁺ (m/z = 29) as the base peak."
+      },
+      {
+        "id": "ms-c4h10", "cat": "hl-frag", "name": "C₄H₁₀", "formula": "C₄H₁₀", "Mr": 58.122, "difficulty": "Hard",
+        "peaks": [
+          { "mz": 15, "intensity": 8, "label": "CH₃⁺", "type": "fragment" },
+          { "mz": 27, "intensity": 28, "label": "C₂H₃⁺", "type": "fragment" },
+          { "mz": 28, "intensity": 14, "label": "C₂H₄⁺", "type": "fragment" },
+          { "mz": 29, "intensity": 56, "label": "C₂H₅⁺", "type": "fragment" },
+          { "mz": 39, "intensity": 9, "label": "C₃H₃⁺", "type": "fragment" },
+          { "mz": 41, "intensity": 18, "label": "C₃H₅⁺", "type": "fragment" },
+          { "mz": 43, "intensity": 100, "label": "C₃H₇⁺ (base peak)", "type": "fragment" },
+          { "mz": 58, "intensity": 22, "label": "M⁺ (C₄H₁₀⁺)", "type": "molecular" }
+        ],
+        "info": "Butane fragments by C–C bond cleavage. The base peak at m/z = 43 (C₃H₇⁺) results from loss of CH₃."
+      }
+    ]
+  }
+}

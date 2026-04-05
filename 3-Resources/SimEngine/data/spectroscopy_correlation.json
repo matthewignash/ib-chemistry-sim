@@ -1,0 +1,453 @@
+{
+  "meta": {
+    "source": "SimEngine_FunctionalGroups.html GROUPS array",
+    "extracted": "2026-04-03",
+    "updated": "2026-04-04",
+    "count": 16,
+    "notes": "Spectroscopy correlation data for IB Chemistry functional groups. IR ranges in cm⁻¹, NMR chemical shifts in δ (ppm), MS fragmentation patterns. SL groups (12) and HL-only groups (4: ester, amide, nitrile, acyl chloride).",
+    "fieldMapping": "Flat arrays (ir_peaks, ir_groups, nmr_regions, ms_compounds) match SimEngine_SpectroscopyLab.html inline data exactly"
+  },
+  "functional_groups": [
+    {
+      "id": "alkane",
+      "name": "Alkane",
+      "generalFormula": "CₙH₂ₙ₊₂",
+      "category": "hydrocarbon",
+      "hlOnly": false,
+      "suffix": "-ane",
+      "prefix": "",
+      "spectroscopy": {
+        "ir": "2850–2960 cm⁻¹ (C–H stretch)",
+        "ms": "Successive loss of 14 (CH₂)",
+        "nmr": "δ 0.8–1.0 (CH₃), δ 1.2–1.4 (CH₂)"
+      },
+      "properties": {
+        "polarity": "Nonpolar",
+        "hBonding": "None",
+        "solubility": "Insoluble in water",
+        "bpTrend": "Low (LDF only)",
+        "reactions": "Combustion, substitution"
+      }
+    },
+    {
+      "id": "alkene",
+      "name": "Alkene",
+      "generalFormula": "CₙH₂ₙ",
+      "category": "hydrocarbon",
+      "hlOnly": false,
+      "suffix": "-ene",
+      "prefix": "",
+      "spectroscopy": {
+        "ir": "1620–1680 cm⁻¹ (C=C stretch)",
+        "ms": "M⁺ at even mass (CₙH₂ₙ)",
+        "nmr": "δ 4.5–6.5 (vinyl H)"
+      },
+      "properties": {
+        "polarity": "Nonpolar (symmetrical)",
+        "hBonding": "None",
+        "solubility": "Insoluble in water",
+        "bpTrend": "Low (similar to alkanes)",
+        "reactions": "Addition (H₂, HX, X₂, H₂O)"
+      }
+    },
+    {
+      "id": "alkyne",
+      "name": "Alkyne",
+      "generalFormula": "CₙH₂ₙ₋₂",
+      "category": "hydrocarbon",
+      "hlOnly": false,
+      "suffix": "-yne",
+      "prefix": "",
+      "spectroscopy": {
+        "ir": "2100–2260 cm⁻¹ (C≡C), 3300 cm⁻¹ (≡C–H)",
+        "ms": "M⁺ at even mass",
+        "nmr": "δ 1.8–2.5 (≡C–H)"
+      },
+      "properties": {
+        "polarity": "Slightly polar (terminal)",
+        "hBonding": "None",
+        "solubility": "Insoluble in water",
+        "bpTrend": "Low",
+        "reactions": "Addition (H₂, HX, X₂)"
+      }
+    },
+    {
+      "id": "arene",
+      "name": "Arene",
+      "generalFormula": "C₆H₅R",
+      "category": "hydrocarbon",
+      "hlOnly": false,
+      "suffix": "-benzene",
+      "prefix": "phenyl-",
+      "spectroscopy": {
+        "ir": "3030 cm⁻¹ (aromatic C–H), 1450–1600 cm⁻¹ (C=C)",
+        "ms": "m/z 77 (C₆H₅⁺ phenyl cation)",
+        "nmr": "δ 6.5–8.0 (aromatic H)"
+      },
+      "properties": {
+        "polarity": "Nonpolar",
+        "hBonding": "None",
+        "solubility": "Insoluble in water",
+        "bpTrend": "Moderate (planar stacking)",
+        "reactions": "Electrophilic substitution"
+      }
+    },
+    {
+      "id": "alcohol",
+      "name": "Alcohol",
+      "generalFormula": "R–OH",
+      "category": "oxygen",
+      "hlOnly": false,
+      "suffix": "-ol",
+      "prefix": "hydroxy-",
+      "spectroscopy": {
+        "ir": "3200–3600 cm⁻¹ (O–H stretch, broad)",
+        "ms": "Loss of 17 (OH) or 18 (H₂O)",
+        "nmr": "δ 1.0–5.0 (O–H, variable)"
+      },
+      "properties": {
+        "polarity": "Polar",
+        "hBonding": "Donor + Acceptor",
+        "solubility": "Soluble (small R)",
+        "bpTrend": "High (H-bonding)",
+        "reactions": "Combustion, oxidation, esterification"
+      }
+    },
+    {
+      "id": "aldehyde",
+      "name": "Aldehyde",
+      "generalFormula": "R–CHO",
+      "category": "oxygen",
+      "hlOnly": false,
+      "suffix": "-al",
+      "prefix": "oxo-",
+      "spectroscopy": {
+        "ir": "1720–1740 cm⁻¹ (C=O stretch), 2720 cm⁻¹ (C–H of CHO)",
+        "ms": "Loss of 29 (CHO)",
+        "nmr": "δ 9.4–10.0 (aldehyde H)"
+      },
+      "properties": {
+        "polarity": "Polar",
+        "hBonding": "Acceptor only",
+        "solubility": "Soluble (small R)",
+        "bpTrend": "Moderate",
+        "reactions": "Oxidation to acid, reduction, nucleophilic addition"
+      }
+    },
+    {
+      "id": "ketone",
+      "name": "Ketone",
+      "generalFormula": "R–CO–R'",
+      "category": "oxygen",
+      "hlOnly": false,
+      "suffix": "-one",
+      "prefix": "oxo-",
+      "spectroscopy": {
+        "ir": "1705–1725 cm⁻¹ (C=O stretch)",
+        "ms": "Alpha cleavage beside C=O",
+        "nmr": "No aldehyde peak; δ 2.1–2.6 (CH next to C=O)"
+      },
+      "properties": {
+        "polarity": "Polar",
+        "hBonding": "Acceptor only",
+        "solubility": "Soluble (small R)",
+        "bpTrend": "Moderate",
+        "reactions": "Reduction, nucleophilic addition"
+      }
+    },
+    {
+      "id": "carboxylic_acid",
+      "name": "Carboxylic Acid",
+      "generalFormula": "R–COOH",
+      "category": "oxygen",
+      "hlOnly": false,
+      "suffix": "-oic acid",
+      "prefix": "",
+      "spectroscopy": {
+        "ir": "2500–3300 cm⁻¹ (O–H, very broad), 1700–1725 cm⁻¹ (C=O)",
+        "ms": "Loss of 45 (COOH) or 17 (OH)",
+        "nmr": "δ 10–12 (COOH, exchangeable)"
+      },
+      "properties": {
+        "polarity": "Very polar",
+        "hBonding": "Donor + Acceptor (dimers)",
+        "solubility": "Soluble (small R)",
+        "bpTrend": "High (H-bond dimers)",
+        "reactions": "Neutralization, esterification, reduction"
+      }
+    },
+    {
+      "id": "ether",
+      "name": "Ether",
+      "generalFormula": "R–O–R'",
+      "category": "oxygen",
+      "hlOnly": false,
+      "suffix": "",
+      "prefix": "-oxy-",
+      "spectroscopy": {
+        "ir": "1000–1300 cm⁻¹ (C–O–C stretch)",
+        "ms": "Alpha cleavage beside O",
+        "nmr": "δ 3.3–3.9 (CH next to O)"
+      },
+      "properties": {
+        "polarity": "Slightly polar",
+        "hBonding": "Acceptor only",
+        "solubility": "Slightly soluble",
+        "bpTrend": "Low (no H-bond donor)",
+        "reactions": "Relatively unreactive"
+      }
+    },
+    {
+      "id": "carboxylate",
+      "name": "Carboxylate Ion",
+      "generalFormula": "R–COO⁻",
+      "category": "oxygen",
+      "hlOnly": false,
+      "suffix": "-oate",
+      "prefix": "",
+      "spectroscopy": {
+        "ir": "1550–1610 cm⁻¹ (asymmetric COO⁻), 1400–1450 cm⁻¹ (symmetric)",
+        "ms": "Loss of 44 (CO₂)",
+        "nmr": "δ 2.0–2.2 (CH₃ adjacent to COO⁻)"
+      },
+      "properties": {
+        "polarity": "Ionic",
+        "hBonding": "Acceptor (ionic)",
+        "solubility": "Soluble (Na⁺/K⁺ salts)",
+        "bpTrend": "High (ionic)",
+        "reactions": "Formed by neutralization of carboxylic acid"
+      }
+    },
+    {
+      "id": "amine",
+      "name": "Amine",
+      "generalFormula": "R–NH₂",
+      "category": "nitrogen",
+      "hlOnly": false,
+      "suffix": "-amine",
+      "prefix": "amino-",
+      "spectroscopy": {
+        "ir": "3300–3500 cm⁻¹ (N–H stretch, two peaks)",
+        "ms": "Odd M⁺ (nitrogen rule)",
+        "nmr": "δ 0.5–3.0 (N–H, broad, exchangeable)"
+      },
+      "properties": {
+        "polarity": "Polar",
+        "hBonding": "Donor + Acceptor",
+        "solubility": "Soluble (small R)",
+        "bpTrend": "Moderate (weaker H-bonds than OH)",
+        "reactions": "Base behavior, nucleophilic substitution"
+      }
+    },
+    {
+      "id": "halogenoalkane",
+      "name": "Halogenoalkane",
+      "generalFormula": "R–X (X = F, Cl, Br, I)",
+      "category": "halogen",
+      "hlOnly": false,
+      "suffix": "",
+      "prefix": "halo-",
+      "spectroscopy": {
+        "ir": "500–1000 cm⁻¹ (C–X stretch, varies by halogen)",
+        "ms": "Isotope patterns: Cl (M, M+2), Br (M, M+2 equal)",
+        "nmr": "δ 3.0–4.0 (CH next to halogen)"
+      },
+      "properties": {
+        "polarity": "Polar (Cδ⁺–Xδ⁻)",
+        "hBonding": "None",
+        "solubility": "Insoluble in water",
+        "bpTrend": "Higher than alkanes (dipole)",
+        "reactions": "Nucleophilic substitution, elimination"
+      }
+    },
+    {
+      "id": "ester",
+      "name": "Ester",
+      "generalFormula": "R–COO–R'",
+      "category": "hl",
+      "hlOnly": true,
+      "suffix": "-oate",
+      "prefix": "",
+      "spectroscopy": {
+        "ir": "1735–1750 cm⁻¹ (C=O stretch), 1000–1300 cm⁻¹ (C–O)",
+        "ms": "Loss of OR' group",
+        "nmr": "δ 3.5–4.5 (OCH)"
+      },
+      "properties": {
+        "polarity": "Polar",
+        "hBonding": "Acceptor only",
+        "solubility": "Slightly soluble",
+        "bpTrend": "Moderate",
+        "reactions": "Hydrolysis (acid/base), condensation"
+      }
+    },
+    {
+      "id": "amide",
+      "name": "Amide",
+      "generalFormula": "R–CONH₂",
+      "category": "hl",
+      "hlOnly": true,
+      "suffix": "-amide",
+      "prefix": "",
+      "spectroscopy": {
+        "ir": "3350 + 3180 cm⁻¹ (N–H, two peaks), 1680 cm⁻¹ (C=O)",
+        "ms": "Loss of 44 (CONH₂)",
+        "nmr": "δ 6.0–8.0 (NH₂, broad, exchangeable)"
+      },
+      "properties": {
+        "polarity": "Very polar",
+        "hBonding": "Donor + Acceptor",
+        "solubility": "Soluble (small R)",
+        "bpTrend": "Very high (strong H-bonding)",
+        "reactions": "Hydrolysis, dehydration"
+      }
+    },
+    {
+      "id": "nitrile",
+      "name": "Nitrile",
+      "generalFormula": "R–C≡N",
+      "category": "hl",
+      "hlOnly": true,
+      "suffix": "-nitrile",
+      "prefix": "cyano-",
+      "spectroscopy": {
+        "ir": "2210–2260 cm⁻¹ (C≡N stretch, sharp)",
+        "ms": "Loss of 27 (HCN)",
+        "nmr": "δ 2.0–2.5 (CH next to CN)"
+      },
+      "properties": {
+        "polarity": "Polar",
+        "hBonding": "Acceptor only",
+        "solubility": "Slightly soluble",
+        "bpTrend": "Moderate–high",
+        "reactions": "Hydrolysis to acid, reduction to amine"
+      }
+    },
+    {
+      "id": "acyl_chloride",
+      "name": "Acyl Chloride",
+      "generalFormula": "R–COCl",
+      "category": "hl",
+      "hlOnly": true,
+      "suffix": "-oyl chloride",
+      "prefix": "",
+      "spectroscopy": {
+        "ir": "1770–1815 cm⁻¹ (C=O stretch, high)",
+        "ms": "Loss of 35/37 (Cl isotopes)",
+        "nmr": "δ 2.5–3.0 (CH next to COCl)"
+      },
+      "properties": {
+        "polarity": "Polar",
+        "hBonding": "None (reacts with water)",
+        "solubility": "Reacts with water",
+        "bpTrend": "Moderate",
+        "reactions": "Hydrolysis, esterification, amide formation"
+      }
+    }
+  ],
+  "ir_summary_table": {
+    "_note": "Quick-reference IR absorption ranges for IB Chemistry exam prep",
+    "O–H (alcohol)": "3200–3600 cm⁻¹ (broad)",
+    "O–H (carboxylic acid)": "2500–3300 cm⁻¹ (very broad)",
+    "N–H": "3300–3500 cm⁻¹ (two peaks for primary amine/amide)",
+    "C–H (alkane)": "2850–2960 cm⁻¹",
+    "C–H (aldehyde)": "2720 cm⁻¹",
+    "≡C–H": "3300 cm⁻¹",
+    "C≡N": "2210–2260 cm⁻¹",
+    "C≡C": "2100–2260 cm⁻¹",
+    "C=O (acyl chloride)": "1770–1815 cm⁻¹",
+    "C=O (ester)": "1735–1750 cm⁻¹",
+    "C=O (aldehyde)": "1720–1740 cm⁻¹",
+    "C=O (ketone)": "1705–1725 cm⁻¹",
+    "C=O (carboxylic acid)": "1700–1725 cm⁻¹",
+    "C=O (amide)": "1680 cm⁻¹",
+    "C=C (alkene)": "1620–1680 cm⁻¹",
+    "C=C (aromatic)": "1450–1600 cm⁻¹",
+    "C–O": "1000–1300 cm⁻¹",
+    "C–X (halogenoalkane)": "500–1000 cm⁻¹"
+  },
+  "ir_peaks": [
+    {"range":[3200,3600],"center":3400,"label":"O\u2013H (alcohol)","group":"alcohol","shape":"broad","cat":"sl"},
+    {"range":[2500,3300],"center":2900,"label":"O\u2013H (carboxylic acid)","group":"carboxylic_acid","shape":"very_broad","cat":"sl"},
+    {"range":[3300,3500],"center":3400,"label":"N\u2013H (amine)","group":"amine","shape":"two_peaks","cat":"sl"},
+    {"range":[2850,2960],"center":2920,"label":"C\u2013H (alkane)","group":"alkane","shape":"medium","cat":"sl"},
+    {"range":[2720,2720],"center":2720,"label":"C\u2013H (aldehyde)","group":"aldehyde","shape":"sharp","cat":"sl"},
+    {"range":[3300,3300],"center":3300,"label":"\u2261C\u2013H (alkyne)","group":"alkyne","shape":"sharp","cat":"sl"},
+    {"range":[2210,2260],"center":2235,"label":"C\u2261N (nitrile)","group":"nitrile","shape":"sharp","cat":"hl"},
+    {"range":[2100,2260],"center":2180,"label":"C\u2261C (alkyne)","group":"alkyne","shape":"sharp","cat":"sl"},
+    {"range":[1770,1815],"center":1790,"label":"C=O (acyl chloride)","group":"acyl_chloride","shape":"sharp","cat":"hl"},
+    {"range":[1735,1750],"center":1742,"label":"C=O (ester)","group":"ester","shape":"sharp","cat":"hl"},
+    {"range":[1720,1740],"center":1730,"label":"C=O (aldehyde)","group":"aldehyde","shape":"sharp","cat":"sl"},
+    {"range":[1705,1725],"center":1715,"label":"C=O (ketone)","group":"ketone","shape":"sharp","cat":"sl"},
+    {"range":[1700,1725],"center":1712,"label":"C=O (carboxylic acid)","group":"carboxylic_acid","shape":"sharp","cat":"sl"},
+    {"range":[1680,1680],"center":1680,"label":"C=O (amide)","group":"amide","shape":"sharp","cat":"hl"},
+    {"range":[1620,1680],"center":1650,"label":"C=C (alkene)","group":"alkene","shape":"medium","cat":"sl"},
+    {"range":[1450,1600],"center":1520,"label":"C=C (aromatic)","group":"arene","shape":"medium","cat":"sl"},
+    {"range":[1000,1300],"center":1150,"label":"C\u2013O (ether/ester)","group":"ether","shape":"broad","cat":"sl"},
+    {"range":[500,1000],"center":750,"label":"C\u2013X (halogenoalkane)","group":"halogenoalkane","shape":"medium","cat":"sl"}
+  ],
+  "ir_groups": [
+    {"id":"alcohol","name":"Alcohol","hl":false},
+    {"id":"carboxylic_acid","name":"Carboxylic Acid","hl":false},
+    {"id":"aldehyde","name":"Aldehyde","hl":false},
+    {"id":"ketone","name":"Ketone","hl":false},
+    {"id":"alkane","name":"Alkane","hl":false},
+    {"id":"alkene","name":"Alkene","hl":false},
+    {"id":"alkyne","name":"Alkyne","hl":false},
+    {"id":"arene","name":"Arene","hl":false},
+    {"id":"amine","name":"Amine","hl":false},
+    {"id":"ether","name":"Ether","hl":false},
+    {"id":"halogenoalkane","name":"Halogenoalkane","hl":false},
+    {"id":"ester","name":"Ester","hl":true},
+    {"id":"amide","name":"Amide","hl":true},
+    {"id":"nitrile","name":"Nitrile","hl":true},
+    {"id":"acyl_chloride","name":"Acyl Chloride","hl":true}
+  ],
+  "nmr_regions": [
+    {"range":[0.8,1.0],"label":"R\u2013CH\u2083 (alkane)","group":"alkane","color":"#0D9488"},
+    {"range":[1.2,1.4],"label":"R\u2013CH\u2082\u2013R (alkane)","group":"alkane","color":"#0D9488"},
+    {"range":[1.8,2.5],"label":"\u2261C\u2013H (alkyne)","group":"alkyne","color":"#3B82F6"},
+    {"range":[2.0,2.5],"label":"CH next to C\u2261N","group":"nitrile","color":"#7C3AED"},
+    {"range":[2.1,2.6],"label":"CH next to C=O (ketone)","group":"ketone","color":"#D97706"},
+    {"range":[2.5,3.0],"label":"CH next to COCl","group":"acyl_chloride","color":"#DC2626"},
+    {"range":[3.0,4.0],"label":"CH next to halogen","group":"halogenoalkane","color":"#059669"},
+    {"range":[3.3,3.9],"label":"CH next to O (ether)","group":"ether","color":"#6366F1"},
+    {"range":[3.5,4.5],"label":"O\u2013CH (ester)","group":"ester","color":"#7C3AED"},
+    {"range":[4.5,6.5],"label":"vinyl H (alkene)","group":"alkene","color":"#0EA5E9"},
+    {"range":[6.0,8.0],"label":"NH\u2082 (amide)","group":"amide","color":"#7C3AED"},
+    {"range":[6.5,8.0],"label":"aromatic H","group":"arene","color":"#EC4899"},
+    {"range":[9.4,10.0],"label":"CHO (aldehyde)","group":"aldehyde","color":"#F59E0B"},
+    {"range":[10.0,12.0],"label":"COOH (carboxylic acid)","group":"carboxylic_acid","color":"#DC2626"},
+    {"range":[0.5,3.0],"label":"N\u2013H (amine)","group":"amine","color":"#8B5CF6"},
+    {"range":[1.0,5.0],"label":"O\u2013H (alcohol)","group":"alcohol","color":"#14B8A6"}
+  ],
+  "ms_compounds": [
+    {"id":"ms-ne","cat":"elements","name":"Ne","formula":"Ne","Mr":20.180,"difficulty":"Easy",
+     "peaks":[{"mz":20,"int":100,"label":"M\u207a (\u00b2\u2070Ne\u207a)","type":"molecular"},{"mz":21,"int":0.3,"label":"\u00b2\u00b9Ne\u207a","type":"isotope"},{"mz":22,"int":10.2,"label":"\u00b2\u00b2Ne\u207a","type":"isotope"}],
+     "info":"Neon shows three isotope peaks. Base peak at m/z=20 corresponds to \u00b2\u2070Ne."},
+    {"id":"ms-cl2","cat":"elements","name":"Cl\u2082","formula":"Cl\u2082","Mr":70.906,"difficulty":"Medium",
+     "peaks":[{"mz":35,"int":100,"label":"\u00b3\u2075Cl\u207a (base)","type":"fragment"},{"mz":37,"int":32,"label":"\u00b3\u2077Cl\u207a","type":"fragment"},{"mz":70,"int":60,"label":"M\u207a (\u00b3\u2075Cl\u2082\u207a)","type":"molecular"},{"mz":72,"int":39,"label":"M+2","type":"isotope"},{"mz":74,"int":6,"label":"M+4","type":"isotope"}],
+     "info":"Cl\u2082 shows characteristic 3:2:1 isotope pattern from two Cl atoms."},
+    {"id":"ms-br2","cat":"elements","name":"Br\u2082","formula":"Br\u2082","Mr":159.808,"difficulty":"Medium",
+     "peaks":[{"mz":79,"int":98,"label":"\u2077\u2079Br\u207a","type":"fragment"},{"mz":81,"int":100,"label":"\u2078\u00b9Br\u207a (base)","type":"fragment"},{"mz":158,"int":51,"label":"M\u207a","type":"molecular"},{"mz":160,"int":100,"label":"M+2","type":"isotope"},{"mz":162,"int":49,"label":"M+4","type":"isotope"}],
+     "info":"Br\u2082 shows 1:2:1 isotope pattern."},
+    {"id":"ms-zr","cat":"elements","name":"Zr","formula":"Zr","Mr":91.224,"difficulty":"Medium",
+     "peaks":[{"mz":90,"int":100,"label":"\u2079\u2070Zr\u207a (base)","type":"molecular"},{"mz":91,"int":21.8,"label":"\u2079\u00b9Zr\u207a","type":"isotope"},{"mz":92,"int":33.4,"label":"\u2079\u00b2Zr\u207a","type":"isotope"},{"mz":94,"int":33.8,"label":"\u2079\u2074Zr\u207a","type":"isotope"},{"mz":96,"int":5.4,"label":"\u2079\u2076Zr\u207a","type":"isotope"}],
+     "info":"Zirconium has five stable isotopes."},
+    {"id":"ms-ch4","cat":"organic","name":"CH\u2084","formula":"CH\u2084","Mr":16.043,"difficulty":"Easy",
+     "peaks":[{"mz":12,"int":3,"label":"C\u207a","type":"fragment"},{"mz":13,"int":7,"label":"CH\u207a","type":"fragment"},{"mz":14,"int":16,"label":"CH\u2082\u207a","type":"fragment"},{"mz":15,"int":85,"label":"CH\u2083\u207a","type":"fragment"},{"mz":16,"int":100,"label":"M\u207a (CH\u2084\u207a)","type":"molecular"}],
+     "info":"Methane fragments by successive H loss. M\u207a at m/z=16 is the base peak."},
+    {"id":"ms-etoh","cat":"organic","name":"C\u2082H\u2085OH","formula":"C\u2082H\u2085OH","Mr":46.068,"difficulty":"Medium",
+     "peaks":[{"mz":15,"int":7,"label":"CH\u2083\u207a","type":"fragment"},{"mz":27,"int":14,"label":"CHO\u207a","type":"fragment"},{"mz":29,"int":24,"label":"C\u2082H\u2085\u207a","type":"fragment"},{"mz":31,"int":100,"label":"CH\u2082OH\u207a (base)","type":"fragment"},{"mz":45,"int":52,"label":"M-1","type":"fragment"},{"mz":46,"int":33,"label":"M\u207a","type":"molecular"}],
+     "info":"Ethanol base peak at m/z=31 (CH\u2082OH\u207a) from C\u2013O bond cleavage."},
+    {"id":"ms-acoh","cat":"organic","name":"CH\u2083COOH","formula":"CH\u2083COOH","Mr":60.052,"difficulty":"Medium",
+     "peaks":[{"mz":15,"int":26,"label":"CH\u2083\u207a","type":"fragment"},{"mz":28,"int":6,"label":"CO\u207a","type":"fragment"},{"mz":43,"int":100,"label":"CH\u2083CO\u207a (base)","type":"fragment"},{"mz":45,"int":62,"label":"COOH\u207a","type":"fragment"},{"mz":60,"int":57,"label":"M\u207a","type":"molecular"}],
+     "info":"Acetic acid base peak at m/z=43 from C\u2013C cleavage."},
+    {"id":"ms-c3h8","cat":"hl-frag","name":"C\u2083H\u2088","formula":"C\u2083H\u2088","Mr":44.096,"difficulty":"Hard",
+     "peaks":[{"mz":15,"int":14,"label":"CH\u2083\u207a","type":"fragment"},{"mz":26,"int":5,"label":"C\u2082H\u2082\u207a","type":"fragment"},{"mz":27,"int":32,"label":"C\u2082H\u2083\u207a","type":"fragment"},{"mz":28,"int":22,"label":"C\u2082H\u2084\u207a","type":"fragment"},{"mz":29,"int":100,"label":"C\u2082H\u2085\u207a (base)","type":"fragment"},{"mz":39,"int":8,"label":"C\u2083H\u2083\u207a","type":"fragment"},{"mz":43,"int":14,"label":"C\u2083H\u2087\u207a","type":"fragment"},{"mz":44,"int":34,"label":"M\u207a","type":"molecular"}],
+     "info":"Propane base peak at m/z=29 from loss of CH\u2083."},
+    {"id":"ms-c4h10","cat":"hl-frag","name":"C\u2084H\u2081\u2080","formula":"C\u2084H\u2081\u2080","Mr":58.122,"difficulty":"Hard",
+     "peaks":[{"mz":15,"int":8,"label":"CH\u2083\u207a","type":"fragment"},{"mz":27,"int":28,"label":"C\u2082H\u2083\u207a","type":"fragment"},{"mz":28,"int":14,"label":"C\u2082H\u2084\u207a","type":"fragment"},{"mz":29,"int":56,"label":"C\u2082H\u2085\u207a","type":"fragment"},{"mz":39,"int":9,"label":"C\u2083H\u2083\u207a","type":"fragment"},{"mz":41,"int":18,"label":"C\u2083H\u2085\u207a","type":"fragment"},{"mz":43,"int":100,"label":"C\u2083H\u2087\u207a (base)","type":"fragment"},{"mz":58,"int":22,"label":"M\u207a","type":"molecular"}],
+     "info":"Butane base peak at m/z=43 from loss of CH\u2083."}
+  ]
+}

@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>R3.2 Electrochemistry - What to Study Guide</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.1);
+            print-color-adjust: exact;
+            -webkit-print-color-adjust: exact;
+        }
+
+        header {
+            text-align: center;
+            border-bottom: 4px solid #1e40af;
+            padding-bottom: 15px;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            color: #1e40af;
+            font-size: 32px;
+            margin-bottom: 5px;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            font-style: italic;
+        }
+
+        h2 {
+            color: #1e40af;
+            font-size: 18px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #ddd;
+        }
+
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            padding: 10px;
+            background: #f9fafb;
+            border-radius: 3px;
+            border-left: 3px solid #1e40af;
+        }
+
+        .checkbox {
+            margin-right: 12px;
+            margin-top: 3px;
+            min-width: 18px;
+        }
+
+        .checkbox input {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: #1e40af;
+        }
+
+        .checkbox-label {
+            flex: 1;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .confidence-columns {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-left: 30px;
+            margin-bottom: 8px;
+            font-size: 12px;
+        }
+
+        .confidence-col {
+            padding: 6px;
+            text-align: center;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            background: #f0f0f0;
+            cursor: pointer;
+        }
+
+        .confidence-col input {
+            margin-right: 4px;
+            accent-color: #1e40af;
+            cursor: pointer;
+        }
+
+        .vocab-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        .vocab-item {
+            padding: 12px;
+            background: #f0f9ff;
+            border-left: 3px solid #0284c7;
+            border-radius: 3px;
+        }
+
+        .vocab-term {
+            font-weight: 700;
+            color: #0284c7;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .vocab-definition {
+            font-size: 13px;
+            color: #333;
+        }
+
+        .common-mistakes {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .common-mistakes h3 {
+            color: #d97706;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .mistake-item {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+            font-size: 13px;
+            color: #333;
+        }
+
+        .mistake-item:before {
+            content: "✗";
+            position: absolute;
+            left: 0;
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .resources {
+            background: #dcfce7;
+            border: 2px solid #22c55e;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .resources h3 {
+            color: #22c55e;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .resource-item {
+            margin-bottom: 8px;
+            font-size: 13px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .resource-item:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .resource-link {
+            color: #059669;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .resource-link:hover {
+            text-decoration: underline;
+        }
+
+        .practice-priority {
+            background: #ede9fe;
+            border: 2px solid #7c3aed;
+            border-radius: 5px;
+            padding: 15px;
+        }
+
+        .practice-priority h3 {
+            color: #7c3aed;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .priority-item {
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #333;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .priority-item:before {
+            content: "★";
+            position: absolute;
+            left: 0;
+            color: #7c3aed;
+        }
+
+        .priority-high {
+            background: #fce7f3;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-left: 3px solid #d946ef;
+            border-radius: 2px;
+            padding-left: 20px;
+        }
+
+        .priority-high:before {
+            content: "★★★";
+            position: absolute;
+            left: 8px;
+            color: #d946ef;
+            font-size: 12px;
+        }
+
+        .print-note {
+            background: #e0e7ff;
+            border-left: 3px solid #6366f1;
+            padding: 12px;
+            margin: 20px 0;
+            border-radius: 3px;
+            font-size: 12px;
+            color: #312e81;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            .two-column {
+                grid-template-columns: 1fr;
+            }
+
+            .vocab-list {
+                grid-template-columns: 1fr;
+            }
+
+            .confidence-columns {
+                flex-direction: column;
+            }
+
+            .confidence-col {
+                margin-bottom: 5px;
+            }
+        }
+
+        @media print {
+            body {
+                background: white;
+            }
+
+            .container {
+                max-width: 100%;
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+            }
+
+            .print-note {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+
+            .common-mistakes,
+            .resources,
+            .practice-priority {
+                print-color-adjust: exact;
+                -webkit-print-color-adjust: exact;
+            }
+        }
+
+        footer {
+            margin-top: 30px;
+            padding-top: 15px;
+            border-top: 1px solid #ddd;
+            font-size: 11px;
+            color: #666;
+            text-align: center;
+        }
+
+        .last-updated {
+            font-size: 11px;
+            color: #999;
+            text-align: right;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>R3.2 Electrochemistry</h1>
+            <p class="subtitle">What To Study Guide — IB Chemistry DP</p>
+        </header>
+
+        <div class="print-note">
+            <strong>How to use this guide:</strong> Go through each topic and mark your confidence level. Focus extra study time on topics marked "I don't understand." Print this page and keep it with your study notes.
+        </div>
+
+        <!-- SECTION 1: TOPIC CHECKLIST -->
+        <div class="section">
+            <h2>1. Topic Checklist — Self-Assessment</h2>
+            <p style="margin-bottom: 15px; font-size: 13px; color: #666;">Rate your confidence for each topic. Revisit all "I don't understand" topics before the exam.</p>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="topic1">
+                </div>
+                <label for="topic1" class="checkbox-label">
+                    <strong>Assign oxidation states</strong> to elements in compounds and ions
+                </label>
+            </div>
+            <div class="confidence-columns" style="margin-left: 30px;">
+                <label class="confidence-col">
+                    <input type="radio" name="topic1"> I can do this
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic1"> I need practice
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic1"> I don't understand
+                </label>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="topic2">
+                </div>
+                <label for="topic2" class="checkbox-label">
+                    <strong>Identify oxidizing and reducing agents</strong> in redox reactions
+                </label>
+            </div>
+            <div class="confidence-columns" style="margin-left: 30px;">
+                <label class="confidence-col">
+                    <input type="radio" name="topic2"> I can do this
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic2"> I need practice
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic2"> I don't understand
+                </label>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="topic3">
+                </div>
+                <label for="topic3" class="checkbox-label">
+                    <strong>Write half-equations</strong> for redox reactions (oxidation and reduction separately)
+                </label>
+            </div>
+            <div class="confidence-columns" style="margin-left: 30px;">
+                <label class="confidence-col">
+                    <input type="radio" name="topic3"> I can do this
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic3"> I need practice
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic3"> I don't understand
+                </label>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="topic4">
+                </div>
+                <label for="topic4" class="checkbox-label">
+                    <strong>Describe components of a voltaic cell</strong> (anode, cathode, salt bridge, electrolyte)
+                </label>
+            </div>
+            <div class="confidence-columns" style="margin-left: 30px;">
+                <label class="confidence-col">
+                    <input type="radio" name="topic4"> I can do this
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic4"> I need practice
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic4"> I don't understand
+                </label>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="topic5">
+                </div>
+                <label for="topic5" class="checkbox-label">
+                    <strong>Explain electron flow and ion movement</strong> in voltaic and electrolytic cells
+                </label>
+            </div>
+            <div class="confidence-columns" style="margin-left: 30px;">
+                <label class="confidence-col">
+                    <input type="radio" name="topic5"> I can do this
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic5"> I need practice
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic5"> I don't understand
+                </label>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="topic6">
+                </div>
+                <label for="topic6" class="checkbox-label">
+                    <strong>Write cell notation</strong> for voltaic cells (Zn(s) | Zn²⁺(aq) || Cu²⁺(aq) | Cu(s) format)
+                </label>
+            </div>
+            <div class="confidence-columns" style="margin-left: 30px;">
+                <label class="confidence-col">
+                    <input type="radio" name="topic6"> I can do this
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic6"> I need practice
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic6"> I don't understand
+                </label>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="topic7">
+                </div>
+                <label for="topic7" class="checkbox-label">
+                    <strong>Explain the role of the salt bridge</strong> in voltaic cells
+                </label>
+            </div>
+            <div class="confidence-columns" style="margin-left: 30px;">
+                <label class="confidence-col">
+                    <input type="radio" name="topic7"> I can do this
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic7"> I need practice
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic7"> I don't understand
+                </label>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="topic8">
+                </div>
+                <label for="topic8" class="checkbox-label">
+                    <strong>Distinguish between primary and secondary (rechargeable) cells</strong> and their applications
+                </label>
+            </div>
+            <div class="confidence-columns" style="margin-left: 30px;">
+                <label class="confidence-col">
+                    <input type="radio" name="topic8"> I can do this
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic8"> I need practice
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic8"> I don't understand
+                </label>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="topic9">
+                </div>
+                <label for="topic9" class="checkbox-label">
+                    <strong>Deduce charging reactions from discharge reactions</strong> (and vice versa)
+                </label>
+            </div>
+            <div class="confidence-columns" style="margin-left: 30px;">
+                <label class="confidence-col">
+                    <input type="radio" name="topic9"> I can do this
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic9"> I need practice
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic9"> I don't understand
+                </label>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="topic10">
+                </div>
+                <label for="topic10" class="checkbox-label">
+                    <strong>Describe electrolysis</strong> and predict products in aqueous and molten solutions
+                </label>
+            </div>
+            <div class="confidence-columns" style="margin-left: 30px;">
+                <label class="confidence-col">
+                    <input type="radio" name="topic10"> I can do this
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic10"> I need practice
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic10"> I don't understand
+                </label>
+            </div>
+
+            <div class="checklist-item">
+                <div class="checkbox">
+                    <input type="checkbox" id="topic11">
+                </div>
+                <label for="topic11" class="checkbox-label">
+                    <strong>Write half-equations for electrolysis</strong> reactions at anode and cathode
+                </label>
+            </div>
+            <div class="confidence-columns" style="margin-left: 30px;">
+                <label class="confidence-col">
+                    <input type="radio" name="topic11"> I can do this
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic11"> I need practice
+                </label>
+                <label class="confidence-col">
+                    <input type="radio" name="topic11"> I don't understand
+                </label>
+            </div>
+        </div>
+
+        <!-- SECTION 2: KEY VOCABULARY -->
+        <div class="section">
+            <h2>2. Key Vocabulary</h2>
+
+            <div class="vocab-list">
+                <div class="vocab-item">
+                    <div class="vocab-term">Oxidation</div>
+                    <div class="vocab-definition">Loss of electrons; increase in oxidation state</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Reduction</div>
+                    <div class="vocab-definition">Gain of electrons; decrease in oxidation state</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Redox reaction</div>
+                    <div class="vocab-definition">A reaction where both oxidation and reduction occur simultaneously</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Oxidizing agent</div>
+                    <div class="vocab-definition">Substance that is reduced; accepts electrons</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Reducing agent</div>
+                    <div class="vocab-definition">Substance that is oxidized; donates electrons</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Voltaic cell</div>
+                    <div class="vocab-definition">Electrochemical cell that produces electrical energy from spontaneous redox reactions</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Electrolytic cell</div>
+                    <div class="vocab-definition">Electrochemical cell that requires electrical energy to drive a non-spontaneous reaction</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Anode</div>
+                    <div class="vocab-definition">Electrode where oxidation occurs (negative in voltaic; positive in electrolytic)</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Cathode</div>
+                    <div class="vocab-definition">Electrode where reduction occurs (positive in voltaic; negative in electrolytic)</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Salt bridge</div>
+                    <div class="vocab-definition">Contains inert ions; allows ion flow to maintain charge neutrality in voltaic cells</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Half-equation</div>
+                    <div class="vocab-definition">Equation showing only oxidation or only reduction in a redox process</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Cell notation</div>
+                    <div class="vocab-definition">Shorthand representation of a voltaic cell: anode | solution || solution | cathode</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Primary cell</div>
+                    <div class="vocab-definition">Non-rechargeable battery; irreversible reactions</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Secondary cell</div>
+                    <div class="vocab-definition">Rechargeable battery; reversible reactions (e.g., Li-ion, lead-acid)</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Electrolysis</div>
+                    <div class="vocab-definition">Use of electrical current to drive non-spontaneous chemical reactions</div>
+                </div>
+
+                <div class="vocab-item">
+                    <div class="vocab-term">Spontaneous reaction</div>
+                    <div class="vocab-definition">Reaction that occurs naturally without external energy input (ΔG < 0)</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 3: COMMON EXAM MISTAKES -->
+        <div class="section">
+            <h2>3. Common Exam Mistakes (Avoid These!)</h2>
+
+            <div class="common-mistakes">
+                <h3>Mistake 1: Confusing anode and cathode polarity</h3>
+                <div class="mistake-item">
+                    <strong>The error:</strong> Saying the cathode is always negative and anode always positive (this is true for electrolytic cells but NOT for voltaic cells)
+                </div>
+                <div class="mistake-item">
+                    <strong>Why it happens:</strong> Students learn this rule from electrolysis first and apply it everywhere
+                </div>
+                <div class="mistake-item">
+                    <strong>The fix:</strong> Remember: In <strong>voltaic cells</strong>, cathode = positive, anode = negative. In <strong>electrolytic cells</strong>, cathode = negative, anode = positive. The definition is the same (anode = oxidation, cathode = reduction) but the polarity is opposite!
+                </div>
+            </div>
+
+            <div class="common-mistakes">
+                <h3>Mistake 2: Writing half-equations that don't balance</h3>
+                <div class="mistake-item">
+                    <strong>The error:</strong> Forgetting to balance electrons, atoms, or charge in half-equations
+                </div>
+                <div class="mistake-item">
+                    <strong>Why it happens:</strong> Students rush and don't check their work systematically
+                </div>
+                <div class="mistake-item">
+                    <strong>The fix:</strong> Always check: (1) atom balance, (2) charge balance, (3) electron count. Write electrons last. Make sure electrons are equal when combining half-equations.
+                </div>
+            </div>
+
+            <div class="common-mistakes">
+                <h3>Mistake 3: Wrong direction of ion movement in electrolytic cells</h3>
+                <div class="mistake-item">
+                    <strong>The error:</strong> Drawing anions moving toward the cathode or cations moving toward the anode
+                </div>
+                <div class="mistake-item">
+                    <strong>Why it happens:</strong> Confusion about which ions are positive/negative
+                </div>
+                <div class="mistake-item">
+                    <strong>The fix:</strong> <strong>Cations (positive ions) always move toward cathode. Anions (negative ions) always move toward anode.</strong> Think: opposite charges attract.
+                </div>
+            </div>
+
+            <div class="common-mistakes">
+                <h3>Mistake 4: Assuming electrolysis always produces the same products</h3>
+                <div class="mistake-item">
+                    <strong>The error:</strong> Predicting O₂ and H₂ from water without checking concentration and electrode material
+                </div>
+                <div class="mistake-item">
+                    <strong>Why it happens:</strong> Students memorize "water gives H₂ and O₂" but ignore context
+                </div>
+                <div class="mistake-item">
+                    <strong>The fix:</strong> Check: Is it molten or aqueous? What ions are present? What are the relative concentrations? Product prediction depends on these factors.
+                </div>
+            </div>
+
+            <div class="common-mistakes">
+                <h3>Mistake 5: Confusing discharge and charge reactions in rechargeable cells</h3>
+                <div class="mistake-item">
+                    <strong>The error:</strong> Writing the same half-equations for both discharge and charge, or reversing them incorrectly
+                </div>
+                <div class="mistake-item">
+                    <strong>Why it happens:</strong> Students don't understand that charging reverses the discharge reaction
+                </div>
+                <div class="mistake-item">
+                    <strong>The fix:</strong> Discharge and charge reactions are <strong>opposites</strong>. If discharge is A → B, then charge is B → A. Electrons flow in opposite directions too.
+                </div>
+            </div>
+
+            <div class="common-mistakes">
+                <h3>Mistake 6: Forgetting what the salt bridge does</h3>
+                <div class="mistake-item">
+                    <strong>The error:</strong> Saying the salt bridge conducts electrons (it doesn't!) or forgetting to mention charge balance
+                </div>
+                <div class="mistake-item">
+                    <strong>Why it happens:</strong> Confusion between electron flow and ion flow
+                </div>
+                <div class="mistake-item">
+                    <strong>The fix:</strong> <strong>The salt bridge allows ion flow only (not electrons).</strong> Purpose: prevent charge buildup and maintain electrical neutrality in both compartments.
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: RECOMMENDED STUDY RESOURCES -->
+        <div class="section">
+            <h2>4. Recommended Study Resources</h2>
+
+            <div class="resources">
+                <h3>Textbooks &amp; Study Materials</h3>
+                <div class="resource-item">
+                    <strong>Kognity R3.2 sections:</strong> Watch the interactive tutorials on oxidation states, voltaic cells, and electrolysis. Do the practice questions embedded in each section.
+                </div>
+                <div class="resource-item">
+                    <strong>IB Chemistry Data Booklet:</strong> Have this available when studying. Know which half-reactions and electrode potentials are provided.
+                </div>
+                <div class="resource-item">
+                    <strong>Past IB exam papers (R3.2 section):</strong> Complete at least 2-3 past papers. Mark them strictly using the mark scheme.
+                </div>
+            </div>
+
+            <div class="resources">
+                <h3>Interactive Simulations &amp; Tools</h3>
+                <div class="resource-item">
+                    <strong>Voltaic Cell Simulator:</strong> <a href="https://phet.colorado.edu/en/simulations/filter?subjects=chemistry&types=html,prototype" class="resource-link">PhET Interactive Simulations (Electrochemistry)</a> — Visualize electron and ion flow in real-time.
+                </div>
+                <div class="resource-item">
+                    <strong>Rechargeable Battery Animation:</strong> Search "Li-ion battery discharge charge animation" on YouTube. Seeing the process helps memory retention.
+                </div>
+                <div class="resource-item">
+                    <strong>Electrolysis Predictor:</strong> Use online tools to check your predicted electrolysis products before moving on.
+                </div>
+            </div>
+
+            <div class="resources">
+                <h3>Review &amp; Practice</h3>
+                <div class="resource-item">
+                    <strong>R3.2 Practice Question Bank:</strong> Work through the provided question sets systematically. Aim to complete all MCQs before moving to short-answer questions.
+                </div>
+                <div class="resource-item">
+                    <strong>Flashcards:</strong> Create or use pre-made flashcard sets for key vocabulary and half-equations.
+                </div>
+                <div class="resource-item">
+                    <strong>Study Group:</strong> Explain voltaic cell and electrolysis concepts to a peer. Teaching someone else reveals gaps in your understanding.
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 5: PRACTICE PRIORITY -->
+        <div class="section">
+            <h2>5. Practice Priority — Where to Focus Study Time</h2>
+
+            <p style="margin-bottom: 15px; font-size: 13px; color: #666;">
+                IB question bank analysis shows these topics appear most frequently in exams. Allocate study time accordingly.
+            </p>
+
+            <div class="priority-item priority-high">
+                <strong>Highest Priority (30-35% of exam questions):</strong>
+                <ul style="margin-top: 8px; margin-left: 30px; font-size: 13px;">
+                    <li>Writing and balancing half-equations for redox reactions</li>
+                    <li>Identifying oxidation states and oxidizing/reducing agents</li>
+                    <li>Predicting electrolysis products in molten salts and aqueous solutions</li>
+                    <li>Voltaic cell components and electron/ion flow</li>
+                </ul>
+            </div>
+
+            <div class="priority-item" style="background: #fef08a; border-left: 3px solid #eab308; padding: 8px; border-radius: 2px; padding-left: 20px; margin-bottom: 12px; font-size: 13px;">
+                <strong>★★</strong> Medium Priority (25-30% of questions):<br>
+                • Cell notation and voltaic cell diagrams<br>
+                • Reactivity series and displacement reactions<br>
+                • Li-ion and rechargeable battery reactions<br>
+                • Charge and discharge half-equations
+            </div>
+
+            <div class="priority-item" style="background: #e0f2fe; border-left: 3px solid #0284c7; padding: 8px; border-radius: 2px; padding-left: 20px; font-size: 13px;">
+                <strong>★</strong> Lower Priority (15-20% of questions):<br>
+                • Salt bridge function and design<br>
+                • Primary vs. secondary cell comparison<br>
+                • Non-standard electrode potentials (HL only)<br>
+                • Faraday calculations (appears less often in R3.2 assessments)
+            </div>
+
+            <div style="background: #f0fdf4; border-left: 3px solid #84cc16; padding: 12px; border-radius: 3px; margin-top: 15px; font-size: 13px; color: #333;">
+                <strong>Study Strategy:</strong> Complete all "Highest Priority" topics first until you can answer questions confidently. Then move to "Medium" and "Lower" priority. Revisit high-priority topics regularly throughout your study.
+            </div>
+        </div>
+
+        <footer>
+            <div class="last-updated">
+                Last updated: March 2026<br>
+                Use this guide alongside the R3.2 Homework Set and your class notes.
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

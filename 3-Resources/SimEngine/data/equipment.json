@@ -1,0 +1,1110 @@
+{
+  "meta": {
+    "source": "IB Chemistry SimEngine Equipment Database",
+    "created": "2026-04-04",
+    "count": 50,
+    "notes": "Lab equipment database for IB Chemistry simulations. Contains equipment specs, IB-specific guidance, confusion groups for trainer exercises, scenario-based selection problems, and precision calculation data."
+  },
+  "equipment": [
+    {
+      "id": "burette",
+      "name": "Burette",
+      "category": "volumetric",
+      "uncertainty": "\u00b10.05 cm\u00b3",
+      "uncertaintyVal": 0.05,
+      "unit": "cm\u00b3",
+      "precision": "High",
+      "typicalUse": "Accurate measurement of variable volumes in titrations",
+      "ibNotes": "Read bottom of meniscus. Record to 2 d.p. (e.g., 23.45 cm\u00b3). Two readings needed per titre so total uncertainty is \u00b10.10 cm\u00b3.",
+      "annotations": [],
+      "commonMistakes": [
+        "Forgetting to rinse with titrant before filling",
+        "Reading from top of meniscus",
+        "Not recording to 2 decimal places",
+        "Forgetting that total uncertainty = 2 \u00d7 reading uncertainty"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "vol_pipette",
+      "name": "Volumetric Pipette",
+      "category": "volumetric",
+      "uncertainty": "\u00b10.04 cm\u00b3",
+      "uncertaintyVal": 0.04,
+      "unit": "cm\u00b3",
+      "precision": "High",
+      "typicalUse": "Delivers a fixed, precise volume (e.g., 25.00 cm\u00b3)",
+      "ibNotes": "Touch tip to flask wall to deliver last drop. Do NOT blow out residual liquid.",
+      "annotations": [],
+      "commonMistakes": [
+        "Blowing out residual liquid",
+        "Not touching tip to wall",
+        "Using wrong size for required volume"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "grad_pipette",
+      "name": "Graduated Pipette",
+      "category": "volumetric",
+      "uncertainty": "\u00b10.1 cm\u00b3",
+      "uncertaintyVal": 0.1,
+      "unit": "cm\u00b3",
+      "precision": "Medium",
+      "typicalUse": "Measures variable small volumes with moderate precision",
+      "ibNotes": "Two readings required (initial and final) so total uncertainty is \u00b10.2 cm\u00b3. Use for volumes where a volumetric pipette is not available.",
+      "annotations": [],
+      "commonMistakes": [
+        "Forgetting that two readings double the uncertainty",
+        "Using when a volumetric pipette would be more precise"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "meas_cylinder",
+      "name": "Measuring Cylinder",
+      "category": "volumetric",
+      "uncertainty": "\u00b10.5 cm\u00b3",
+      "uncertaintyVal": 0.5,
+      "unit": "cm\u00b3",
+      "precision": "Low",
+      "typicalUse": "Measures approximate volumes of liquids",
+      "ibNotes": "Choose the smallest cylinder that fits the required volume to minimise percentage uncertainty. Read bottom of meniscus at eye level.",
+      "annotations": [],
+      "commonMistakes": [
+        "Using a large cylinder for a small volume (high % uncertainty)",
+        "Not reading at eye level (parallax error)"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "vol_flask",
+      "name": "Volumetric Flask",
+      "category": "volumetric",
+      "uncertainty": "\u00b10.3 cm\u00b3",
+      "uncertaintyVal": 0.3,
+      "unit": "cm\u00b3",
+      "precision": "High",
+      "typicalUse": "Prepares solutions of precise concentration",
+      "ibNotes": "Fill to calibration line with bottom of meniscus touching the mark. Invert several times to mix thoroughly.",
+      "annotations": [],
+      "commonMistakes": [
+        "Overfilling past the calibration mark",
+        "Not mixing thoroughly after making up to the mark",
+        "Dissolving solute directly in the flask instead of a beaker first"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "beaker",
+      "name": "Beaker",
+      "category": "glassware",
+      "uncertainty": "\u00b15 cm\u00b3",
+      "uncertaintyVal": 5,
+      "unit": "cm\u00b3",
+      "precision": "Low",
+      "typicalUse": "General purpose container for mixing and heating",
+      "ibNotes": "Graduations are approximate only. Never use a beaker for accurate volume measurement.",
+      "annotations": [],
+      "commonMistakes": [
+        "Using beaker graduations for accurate measurement",
+        "Heating without stirring"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "conical_flask",
+      "name": "Conical (Erlenmeyer) Flask",
+      "category": "glassware",
+      "uncertainty": "\u00b110 cm\u00b3",
+      "uncertaintyVal": 10,
+      "unit": "cm\u00b3",
+      "precision": "Low",
+      "typicalUse": "Titration receiving flask; swirling without spilling",
+      "ibNotes": "Used to receive titrant during titration. The conical shape allows swirling without splashing. Volume markings are not used for measurement.",
+      "annotations": [],
+      "commonMistakes": [
+        "Using the volume markings for measurement",
+        "Not swirling continuously during titration"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "round_flask",
+      "name": "Round-Bottom Flask",
+      "category": "glassware",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Even heating; used in distillation and reflux",
+      "ibNotes": "Round shape distributes heat evenly and resists thermal stress. Must be supported with a clamp on a retort stand.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not clamping securely (will roll)",
+        "Heating when sealed (pressure buildup)"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "test_tube",
+      "name": "Test Tube",
+      "category": "glassware",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Small-scale reactions and qualitative tests",
+      "ibNotes": "Point away from people when heating. Use a test tube holder, not fingers. Fill to about one-third for reactions.",
+      "annotations": [],
+      "commonMistakes": [
+        "Pointing towards people when heating",
+        "Overfilling before heating (bumping risk)"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "boiling_tube",
+      "name": "Boiling Tube",
+      "category": "glassware",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Heating larger volumes; vigorous reactions",
+      "ibNotes": "Wider than a standard test tube. Better for vigorous reactions or larger volumes that need heating.",
+      "annotations": [],
+      "commonMistakes": [
+        "Confusing with standard test tube",
+        "Overfilling before heating"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "watch_glass",
+      "name": "Watch Glass",
+      "category": "glassware",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Covering beakers; holding small solid samples",
+      "ibNotes": "Place over beaker to reduce evaporation or prevent splashing. Can also be used to weigh small solid samples.",
+      "annotations": [],
+      "commonMistakes": [
+        "Using to weigh volatile or hygroscopic substances without cover"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "evap_dish",
+      "name": "Evaporating Dish",
+      "category": "glassware",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Evaporating solutions to obtain solid crystals",
+      "ibNotes": "Heat gently to avoid spitting. For crystallisation, stop heating before all liquid has evaporated.",
+      "annotations": [],
+      "commonMistakes": [
+        "Heating too strongly (spitting/decomposition)",
+        "Evaporating to complete dryness when crystals are needed"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "bunsen",
+      "name": "Bunsen Burner",
+      "category": "heating",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Strong direct heating with adjustable flame",
+      "ibNotes": "Blue flame (air hole open) for strong heating. Yellow/safety flame (air hole closed) when not actively heating. Never use near flammable solvents.",
+      "annotations": [],
+      "commonMistakes": [
+        "Leaving air hole open when not heating (invisible blue flame)",
+        "Using near flammable solvents",
+        "Not tying back long hair"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "hot_plate",
+      "name": "Hot Plate",
+      "category": "heating",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Gentle, controlled heating without open flame",
+      "ibNotes": "Preferred over Bunsen burner when using flammable solvents. Temperature can be set and maintained.",
+      "annotations": [],
+      "commonMistakes": [
+        "Forgetting surface stays hot after switching off",
+        "Using for reactions requiring very high temperatures"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "balance",
+      "name": "Electronic Balance",
+      "category": "measurement",
+      "uncertainty": "\u00b10.01 g",
+      "uncertaintyVal": 0.01,
+      "unit": "g",
+      "precision": "High",
+      "typicalUse": "Accurate mass measurement",
+      "ibNotes": "Tare (zero) before each measurement. Record to the precision shown on display.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not taring before use",
+        "Not closing draught doors on analytical balance",
+        "Recording fewer decimal places than shown"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "thermometer",
+      "name": "Thermometer",
+      "category": "measurement",
+      "uncertainty": "\u00b10.5 \u00b0C",
+      "uncertaintyVal": 0.5,
+      "unit": "\u00b0C",
+      "precision": "Medium",
+      "typicalUse": "Measuring temperature of solutions",
+      "ibNotes": "Wait for reading to stabilise. Immerse bulb fully in liquid.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not waiting for equilibrium",
+        "Not immersing bulb fully",
+        "Parallax error when reading"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "filter_funnel",
+      "name": "Filter Funnel",
+      "category": "separation",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Gravity filtration to separate insoluble solids",
+      "ibNotes": "Use with fluted filter paper for faster flow. Pour down a glass rod to avoid splashing.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not using a glass rod to guide the liquid",
+        "Overfilling the filter paper cone"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "sep_funnel",
+      "name": "Separating Funnel",
+      "category": "separation",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Separating immiscible liquids by density",
+      "ibNotes": "Open stopcock at top to allow air in when draining. Drain lower layer first through the tap.",
+      "annotations": [],
+      "commonMistakes": [
+        "Forgetting to open the stopper when draining",
+        "Not inverting and venting during extraction",
+        "Draining too much of the lower layer"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "crucible",
+      "name": "Crucible",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Heating solids to very high temperatures",
+      "ibNotes": "Use with a pipe-clay triangle on a tripod. Heat to constant mass for gravimetric analysis.",
+      "annotations": [],
+      "commonMistakes": [
+        "Handling while hot without tongs",
+        "Not heating to constant mass"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "mortar_pestle",
+      "name": "Mortar and Pestle",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Grinding solids into fine powder",
+      "ibNotes": "Grinding increases surface area, which increases reaction rate. Use gentle circular motions.",
+      "annotations": [],
+      "commonMistakes": [
+        "Grinding too vigorously (sample loss)",
+        "Not cleaning between different samples"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "wash_bottle",
+      "name": "Wash Bottle",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Rinsing apparatus with distilled water",
+      "ibNotes": "Use distilled water to rinse walls of conical flask during titration. Adding rinse water does not affect titre result.",
+      "annotations": [],
+      "commonMistakes": [
+        "Using tap water instead of distilled water",
+        "Using too much water (dilutes solution unnecessarily)"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "dropper",
+      "name": "Dropping Pipette",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Adding small amounts of liquid drop by drop",
+      "ibNotes": "Used for adding indicator or small reagent quantities. Not suitable for accurate volume measurement.",
+      "annotations": [],
+      "commonMistakes": [
+        "Using for accurate volume measurement",
+        "Cross-contaminating by dipping into different solutions"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "stirring_rod",
+      "name": "Stirring Rod",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Stirring solutions and aiding dissolution",
+      "ibNotes": "Also used to guide liquid when pouring into a filter funnel or narrow vessel.",
+      "annotations": [],
+      "commonMistakes": [
+        "Stirring too vigorously (splashing)",
+        "Not rinsing between different solutions"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "tripod_gauze",
+      "name": "Tripod and Wire Gauze",
+      "category": "heating",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Supporting containers above a Bunsen burner",
+      "ibNotes": "Wire gauze with ceramic centre spreads heat evenly. Place beaker or evaporating dish on top.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not centring the gauze over the flame",
+        "Placing heavy apparatus without checking stability"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "retort_stand",
+      "name": "Retort Stand and Clamp",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Holding and supporting apparatus at height",
+      "ibNotes": "Use boss head and clamp to secure burettes, round-bottom flasks, and condensers at the required height.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not tightening clamp sufficiently",
+        "Placing base too far from apparatus (toppling risk)"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "goggles",
+      "name": "Safety Goggles",
+      "category": "safety",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Protecting eyes from chemical splashes",
+      "ibNotes": "Must be worn at all times during practical work. Required whenever chemicals, glassware, or heat sources are in use.",
+      "annotations": [],
+      "commonMistakes": [
+        "Removing during experiment",
+        "Wearing on forehead instead of over eyes"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "pipette_filler",
+      "name": "Pipette Filler",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Safely drawing liquid into pipettes",
+      "ibNotes": "Never pipette by mouth. Use filler bulb or wheel device.",
+      "annotations": [],
+      "commonMistakes": [
+        "Pipetting by mouth",
+        "Not releasing pressure slowly"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "analytical_balance",
+      "name": "Analytical Balance",
+      "category": "measurement",
+      "uncertainty": "\u00b10.001 g",
+      "uncertaintyVal": 0.001,
+      "unit": "g",
+      "precision": "High",
+      "typicalUse": "Precise mass measurement to 3 decimal places",
+      "ibNotes": "Close draught shield before reading. Tare before each measurement.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not closing draught shield",
+        "Not taring before use",
+        "Placing hot objects on pan"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "ph_meter",
+      "name": "pH Meter",
+      "category": "measurement",
+      "uncertainty": "\u00b10.01 pH",
+      "uncertaintyVal": 0.01,
+      "unit": "pH",
+      "precision": "High",
+      "typicalUse": "Accurate pH measurement of solutions",
+      "ibNotes": "Calibrate with buffer solutions before use. Rinse probe between samples.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not calibrating before use",
+        "Not rinsing between solutions"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "digital_thermometer",
+      "name": "Digital Thermometer",
+      "category": "measurement",
+      "uncertainty": "\u00b10.1 \u00b0C",
+      "uncertaintyVal": 0.1,
+      "unit": "\u00b0C",
+      "precision": "High",
+      "typicalUse": "Precise digital temperature reading",
+      "ibNotes": "More precise than glass thermometer. Often used with data loggers.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not waiting for reading to stabilise",
+        "Not immersing probe tip fully in liquid"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "stopwatch",
+      "name": "Stopwatch",
+      "category": "measurement",
+      "uncertainty": "\u00b10.01 s",
+      "uncertaintyVal": 0.01,
+      "unit": "s",
+      "precision": "High",
+      "typicalUse": "Timing reactions and processes",
+      "ibNotes": "Human reaction time (~0.3 s) usually dominates over instrument uncertainty.",
+      "annotations": [],
+      "commonMistakes": [
+        "Ignoring human reaction time uncertainty",
+        "Not practicing consistent start/stop technique"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "test_tube_rack",
+      "name": "Test Tube Rack",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Holding test tubes upright during reactions",
+      "ibNotes": "Keeps test tubes organised and upright. Label tubes to avoid mix-ups.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not labelling test tubes in the rack"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "buchner_funnel",
+      "name": "Buchner Funnel",
+      "category": "separation",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Vacuum filtration for faster solid separation",
+      "ibNotes": "Used with side-arm flask and vacuum pump. Faster than gravity filtration.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not wetting filter paper first",
+        "Not clamping flask securely"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "liebig_condenser",
+      "name": "Liebig Condenser",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Cooling vapours during distillation",
+      "ibNotes": "Water flows in at bottom, out at top (countercurrent). Used in distillation.",
+      "annotations": [],
+      "commonMistakes": [
+        "Running water in wrong direction",
+        "Not securing with clamp"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "reflux_condenser",
+      "name": "Reflux Condenser",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Condensing vapours back into reaction flask",
+      "ibNotes": "Vertical setup. Prevents loss of volatile reactants during heating.",
+      "annotations": [],
+      "commonMistakes": [
+        "Sealing the top (must remain open to prevent pressure buildup)",
+        "Not running cooling water"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "distillation_adapter",
+      "name": "Distillation Adapter",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Connecting flask to condenser in distillation setup",
+      "ibNotes": "Angled adapter directs vapours from flask down into the condenser.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not greasing joints (may seize)",
+        "Incorrect angle causing condensate to flow back"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "side_arm_flask",
+      "name": "Side-Arm Flask",
+      "category": "glassware",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Connects to vacuum for Buchner filtration",
+      "ibNotes": "Heavy-walled to withstand reduced pressure. Also called filter flask.",
+      "annotations": [],
+      "commonMistakes": [
+        "Using a regular flask under vacuum (implosion risk)",
+        "Not clamping securely"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "water_bath",
+      "name": "Water Bath",
+      "category": "heating",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Gentle, even heating at controlled temperature",
+      "ibNotes": "Preferred for flammable solvents. Max ~100\u00b0C at atmospheric pressure.",
+      "annotations": [],
+      "commonMistakes": [
+        "Using with Bunsen when flammable solvents present"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "heat_resistant_mat",
+      "name": "Heat-Resistant Mat",
+      "category": "safety",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Protecting bench from hot apparatus",
+      "ibNotes": "Place under hot beakers, tripods, and crucibles to prevent bench damage.",
+      "annotations": [],
+      "commonMistakes": [
+        "Placing hot glassware directly on bench"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "magnetic_stirrer",
+      "name": "Magnetic Stirrer",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Continuous stirring of solutions",
+      "ibNotes": "Drop stirrer bar into flask, place on magnetic stirrer plate.",
+      "annotations": [],
+      "commonMistakes": [
+        "Setting speed too high (splashing or vortex)",
+        "Forgetting to remove stirrer bar before pouring"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "lab_coat",
+      "name": "Lab Coat",
+      "category": "safety",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Protecting skin and clothing from chemical splashes",
+      "ibNotes": "Must be worn buttoned up during all practical work. Cotton preferred over synthetic.",
+      "annotations": [],
+      "commonMistakes": [
+        "Leaving unbuttoned",
+        "Wearing outside the laboratory"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "nitrile_gloves",
+      "name": "Nitrile Gloves",
+      "category": "safety",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Protecting hands from corrosive or toxic chemicals",
+      "ibNotes": "Use when handling concentrated acids/bases, organic solvents, or toxic substances.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not checking for tears before use",
+        "Touching face or phone while wearing gloves"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "fume_hood",
+      "name": "Fume Hood",
+      "category": "safety",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Ventilated workspace for reactions producing toxic fumes",
+      "ibNotes": "Keep sash low. Use for HCl gas, bromine, concentrated ammonia, etc.",
+      "annotations": [],
+      "commonMistakes": [
+        "Raising sash too high during reaction",
+        "Blocking airflow with equipment"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "waste_containers",
+      "name": "Waste Containers",
+      "category": "safety",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Proper disposal of chemical waste by category",
+      "ibNotes": "Separate aqueous, organic, and solid waste. Never pour organic solvents down sink.",
+      "annotations": [],
+      "commonMistakes": [
+        "Pouring organic solvents down the sink",
+        "Mixing incompatible waste types"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "filter_paper",
+      "name": "Filter Paper",
+      "category": "separation",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Trapping insoluble solids during filtration",
+      "ibNotes": "Fold into cone for gravity filtration, flat circle for Buchner.",
+      "annotations": [],
+      "commonMistakes": [
+        "Using wrong grade for the particle size",
+        "Tearing when wet"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "chromatography_paper",
+      "name": "Chromatography Paper",
+      "category": "separation",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Separating mixtures by differential migration",
+      "ibNotes": "Spot must be above solvent level. Pencil line (not pen) for origin.",
+      "annotations": [],
+      "commonMistakes": [
+        "Origin line below solvent level",
+        "Using pen instead of pencil for origin"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "desiccator",
+      "name": "Desiccator",
+      "category": "general",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Storing samples in dry atmosphere",
+      "ibNotes": "Contains desiccant (silica gel). Used to cool samples to constant mass.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not replacing lid quickly",
+        "Not checking desiccant colour"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "ph_sensor",
+      "name": "pH Sensor",
+      "category": "sensors",
+      "uncertainty": "\u00b10.01 pH",
+      "uncertaintyVal": 0.01,
+      "unit": "pH",
+      "precision": "High",
+      "typicalUse": "Digital pH probe for data logging",
+      "ibNotes": "Vernier/Pasco sensor for continuous pH monitoring. Calibrate with buffers.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not calibrating before use",
+        "Letting probe dry out"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "conductivity_probe",
+      "name": "Conductivity Probe",
+      "category": "sensors",
+      "uncertainty": "\u00b11 \u00b5S/cm",
+      "uncertaintyVal": 1,
+      "unit": "\u00b5S/cm",
+      "precision": "Medium",
+      "typicalUse": "Measuring solution conductivity",
+      "ibNotes": "Useful for monitoring ionic concentration changes in reactions.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not rinsing probe between solutions",
+        "Not calibrating with standard solution"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    },
+    {
+      "id": "drying_oven",
+      "name": "Drying Oven",
+      "category": "heating",
+      "uncertainty": "N/A",
+      "uncertaintyVal": null,
+      "unit": "",
+      "precision": "N/A",
+      "typicalUse": "Drying samples to constant mass",
+      "ibNotes": "Typically set to 100-110\u00b0C. Use with desiccator for cooling.",
+      "annotations": [],
+      "commonMistakes": [
+        "Not cooling in desiccator before weighing",
+        "Setting temperature too high for heat-sensitive samples"
+      ],
+      "properties": {},
+      "svgPath": null,
+      "photoPath": null
+    }
+  ],
+  "confusionGroups": {
+    "volumetric": ["burette", "vol_pipette", "grad_pipette", "meas_cylinder", "vol_flask"],
+    "glassware": ["beaker", "conical_flask", "round_flask", "test_tube", "boiling_tube", "watch_glass", "evap_dish"],
+    "heating": ["bunsen", "hot_plate", "tripod_gauze", "water_bath"],
+    "separation": ["filter_funnel", "sep_funnel", "buchner_funnel", "filter_paper", "chromatography_paper"],
+    "measurement": ["balance", "thermometer", "analytical_balance", "ph_meter", "digital_thermometer", "stopwatch"],
+    "tubes": ["test_tube", "boiling_tube", "stirring_rod", "dropper", "grad_pipette"],
+    "safety": ["goggles", "lab_coat", "nitrile_gloves", "fume_hood", "waste_containers", "heat_resistant_mat"]
+  },
+  "scenarios": [
+    {
+      "task": "Measure exactly 25.00 cm\u00b3 of a standard solution for a titration.",
+      "correct": "vol_pipette",
+      "options": ["vol_pipette", "meas_cylinder", "beaker", "grad_pipette"],
+      "explanation": "A volumetric pipette delivers a fixed, precise volume with low uncertainty (\u00b10.04 cm\u00b3)."
+    },
+    {
+      "task": "Accurately measure varying volumes of acid added during a titration.",
+      "correct": "burette",
+      "options": ["burette", "meas_cylinder", "grad_pipette", "vol_flask"],
+      "explanation": "A burette allows precise measurement of variable volumes (\u00b10.05 cm\u00b3 per reading)."
+    },
+    {
+      "task": "Prepare exactly 250 cm\u00b3 of a standard solution from a weighed solid.",
+      "correct": "vol_flask",
+      "options": ["vol_flask", "meas_cylinder", "beaker", "conical_flask"],
+      "explanation": "A volumetric flask is calibrated to contain an exact volume for solution preparation."
+    },
+    {
+      "task": "Separate two immiscible liquids (e.g., oil and water).",
+      "correct": "sep_funnel",
+      "options": ["sep_funnel", "filter_funnel", "conical_flask", "meas_cylinder"],
+      "explanation": "A separating funnel allows layers to be drained separately via the stopcock."
+    },
+    {
+      "task": "Remove an insoluble solid from a liquid by filtration.",
+      "correct": "filter_funnel",
+      "options": ["filter_funnel", "sep_funnel", "evap_dish", "beaker"],
+      "explanation": "Gravity filtration uses a filter funnel with paper to trap insoluble solids."
+    },
+    {
+      "task": "Heat a solution strongly and quickly over a direct flame.",
+      "correct": "bunsen",
+      "options": ["bunsen", "hot_plate", "tripod_gauze", "crucible"],
+      "explanation": "A Bunsen burner provides the highest temperature with an adjustable flame."
+    },
+    {
+      "task": "Evaporate a solution slowly to obtain salt crystals.",
+      "correct": "evap_dish",
+      "options": ["evap_dish", "beaker", "watch_glass", "crucible"],
+      "explanation": "An evaporating dish has a large surface area for controlled evaporation."
+    },
+    {
+      "task": "Weigh a sample of solid accurately to \u00b10.01 g.",
+      "correct": "balance",
+      "options": ["balance", "meas_cylinder", "thermometer", "vol_pipette"],
+      "explanation": "An electronic balance provides accurate mass readings with known uncertainty."
+    },
+    {
+      "task": "Grind a solid into a fine powder before dissolving it.",
+      "correct": "mortar_pestle",
+      "options": ["mortar_pestle", "crucible", "watch_glass", "evap_dish"],
+      "explanation": "A mortar and pestle is designed for grinding solids to increase surface area."
+    },
+    {
+      "task": "Receive the titrant during a titration (being swirled).",
+      "correct": "conical_flask",
+      "options": ["conical_flask", "beaker", "round_flask", "vol_flask"],
+      "explanation": "A conical flask can be swirled during titration without splashing."
+    },
+    {
+      "task": "Measure approximately 50 cm\u00b3 of water for a reaction.",
+      "correct": "meas_cylinder",
+      "options": ["meas_cylinder", "vol_pipette", "burette", "beaker"],
+      "explanation": "A measuring cylinder gives adequate precision for approximate volumes."
+    },
+    {
+      "task": "Add a few drops of indicator to a titration flask.",
+      "correct": "dropper",
+      "options": ["dropper", "wash_bottle", "grad_pipette", "burette"],
+      "explanation": "A dropping pipette allows controlled addition of small amounts of liquid."
+    },
+    {
+      "task": "Support a round-bottom flask above a heat source.",
+      "correct": "retort_stand",
+      "options": ["retort_stand", "tripod_gauze", "hot_plate", "beaker"],
+      "explanation": "A retort stand with clamp holds apparatus securely at the required height."
+    },
+    {
+      "task": "Rinse the walls of a conical flask during titration with distilled water.",
+      "correct": "wash_bottle",
+      "options": ["wash_bottle", "dropper", "meas_cylinder", "beaker"],
+      "explanation": "A wash bottle provides a controlled stream of distilled water for rinsing."
+    }
+  ],
+  "precisionData": [
+    {
+      "eq": "burette",
+      "volume": 50,
+      "unc": 0.05,
+      "note": "Burette: 2 readings needed for titre, total \u00b10.10 cm\u00b3"
+    },
+    {
+      "eq": "vol_pipette",
+      "volume": 25,
+      "unc": 0.04,
+      "note": "Volumetric pipette: fixed volume, single reading"
+    },
+    {
+      "eq": "grad_pipette",
+      "volume": 10,
+      "unc": 0.1,
+      "note": "Graduated pipette: variable volume, moderate precision"
+    },
+    {
+      "eq": "meas_cylinder",
+      "volume": 50,
+      "unc": 0.5,
+      "note": "Measuring cylinder: coarse graduations"
+    },
+    {
+      "eq": "meas_cylinder",
+      "volume": 10,
+      "unc": 0.1,
+      "note": "10 cm\u00b3 measuring cylinder: finer graduations"
+    },
+    {
+      "eq": "vol_flask",
+      "volume": 250,
+      "unc": 0.3,
+      "note": "Volumetric flask: calibrated at single mark"
+    },
+    {
+      "eq": "balance",
+      "volume": null,
+      "unc": 0.01,
+      "note": "Balance: \u00b10.01 g per reading"
+    },
+    {
+      "eq": "thermometer",
+      "volume": null,
+      "unc": 0.5,
+      "note": "Thermometer: \u00b10.5 \u00b0C per reading"
+    }
+  ]
+}

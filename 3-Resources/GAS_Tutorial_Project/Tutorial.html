@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <?!= include('Styles') ?>
+</head>
+<body>
+
+<!-- NAME GATE -->
+<div class="name-gate" id="nameGate">
+  <div class="name-box">
+    <h2>IB Chemistry Tutorial</h2>
+    <p>Enter your name to begin. Your responses will be recorded.</p>
+    <input type="text" class="name-input" id="nameInput" placeholder="First and Last Name" autocomplete="off">
+    <button class="name-submit" id="nameBtn" onclick="submitName()" disabled>Start Tutorial</button>
+  </div>
+</div>
+
+<!-- HEADER (populated by JS) -->
+<div class="header" id="pageHeader">
+  <h1 id="headerTitle">Loading...</h1>
+  <div class="subtitle" id="headerSubtitle"></div>
+  <div class="tags">
+    <span class="tag tag-teal" id="headerTag"></span>
+    <span class="tag tag-outline" id="headerCode"></span>
+  </div>
+  <div class="student-tag">Student: <span id="studentNameDisplay"></span></div>
+</div>
+
+<div class="container">
+  <!-- INTRO -->
+  <div class="intro-box">
+    <strong>How to use this tutorial:</strong> Try each question yourself first, then click
+    "Show Solution" to see a detailed walkthrough of the reasoning. Each solution explains
+    not just the correct answer, but <em>why</em> each distractor is wrong — a skill critical
+    for IB exam success.
+  </div>
+
+  <!-- LOADING SPINNER -->
+  <div class="loading" id="loadingSpinner">
+    <div class="spinner"></div>
+    Loading questions...
+  </div>
+
+  <!-- QUESTIONS CONTAINER -->
+  <div id="questionsContainer" style="display:none;"></div>
+</div>
+
+<div class="footer" id="pageFooter">IB Chemistry — Worked Tutorial</div>
+
+<?!= include('Scripts') ?>
+
+<script>
+  PAGE_TYPE = 'tutorial';
+
+  // ─── LOAD DATA & BUILD UI ───
+  document.addEventListener('DOMContentLoaded', function() {
+    initNameGate();
+
+    // Fetch config + questions in parallel
+    google.script.run
+      .withSuccessHandler(function(config) {
+        document.getElementById('headerTitle').textContent =
+          (config.topicCode || '') + ': ' + (config.topicName || '');
+        document.getElementById('headerSubtitle').textContent =
+          config.tutorialTitle + ' — ' + config.tutorialSubtitle;
+        document.getElementById('headerTag').textContent = config.topicTag || 'IB Chemistry';
+        document.getElementById('headerCode').textContent = 'Worked Tutorial';
+        document.getElementById('pageFooter').textContent =
+          'IB Chemistry — ' + (config.topicCode || '') + ' Worked Tutorial';
+      })
+      .getConfig();
+
+    google.script.run
+      .withSuccessHandler(buildTutorial)
+      .withFailureHandler(function(err) {
+        document.getElementById('loadingSpinner').innerHTML =
+          '<p style="color:#DC2626;">Error loading questions: ' + err.message + '</p>';
+      })
+      .getQuestions('tutorial');
+  });
+
+  // ─── BUILD TUTORIAL CARDS ───
+  function buildTutorial(questions) {
+    var container = document.getElementById('questionsContainer');
+    container.innerHTML = '';
+
+    questions.forEach(function(q) {
+      var letters = ['A', 'B', 'C', 'D'];
+      var card = document.createElement('div');
+      card.className = 'question-card';
+      card.id = 'q-' + q.id;
+      card.dataset.num = q.number;
+
+      // Header
+      var header = '<div class="q-header">' +
+        '<div class="q-number">' + q.number + '</div>' +
+        '<div class="q-title">' + esc(q.topic) + '</div>' +
+        (q.source ? '<div class="q-source">' + esc(q.source) + '</div>' : '') +
+        '</div>';
+
+      // Options
+      var optionsHtml = '<ul class="options">';
+      q.options.forEach(function(opt, i) {
+        optionsHtml += '<li data-val="' + letters[i] + '" onclick="selectOption(this)">' +
+          '<span class="opt-letter">' + letters[i] + '</span> ' + esc(opt) +
+          '</li>';
+      });
+      optionsHtml += '</ul>';
+
+      // Reveal button
+      var btnHtml = '<button class="reveal-btn" onclick="revealSolution(\'' +
+        q.id + '\', \'' + q.correctAnswer + '\')">Show Solution</button>';
+
+      // Solution
+      var solHtml = '<div class="solution">';
+
+      // Answer banner
+      var correctIdx = letters.indexOf(q.correctAnswer);
+      var correctText = correctIdx >= 0 && q.options[correctIdx] ? q.options[correctIdx] : '';
+      solHtml += '<div class="answer-banner correct-banner">Correct Answer: ' +
+        q.correctAnswer + ' — ' + esc(correctText) + '</div>';
+
+      // Steps walkthrough
+      if (q.steps && q.steps.length > 0) {
+        solHtml += '<div class="walkthrough"><h4>Step-by-step reasoning</h4>';
+        q.steps.forEach(function(step) {
+          solHtml += '<div class="step">' +
+            '<div class="step-num">Step ' + step.num + ' — ' + esc(step.title) + '</div>' +
+            '<p>' + step.text + '</p>' + // text may contain HTML
+            '</div>';
+        });
+        solHtml += '</div>';
+      }
+
+      // Distractor explanations
+      var hasDistractors = false;
+      var distHtml = '<div class="distractor-box"><h4>Why the other options are wrong</h4><ul>';
+      letters.forEach(function(letter, i) {
+        if (letter === q.correctAnswer) return;
+        var dText = q.distractors[letter];
+        if (dText) {
+          hasDistractors = true;
+          distHtml += '<li><strong>' + letter + ' — ' + esc(q.options[i]) + ':</strong> ' +
+            esc(dText) + '</li>';
+        }
+      });
+      distHtml += '</ul></div>';
+      if (hasDistractors) solHtml += distHtml;
+
+      // Key takeaway
+      if (q.keyTakeaway) {
+        solHtml += '<div class="key-point"><strong>Key IB takeaway:</strong> ' +
+          esc(q.keyTakeaway) + '</div>';
+      }
+
+      solHtml += '</div>'; // end solution
+
+      // Assemble
+      card.innerHTML = header +
+        '<div class="q-body">' +
+          '<div class="q-stem">' + esc(q.stem) + '</div>' +
+          optionsHtml + btnHtml + solHtml +
+        '</div>';
+
+      container.appendChild(card);
+    });
+
+    // Show container, hide spinner
+    document.getElementById('loadingSpinner').style.display = 'none';
+    container.style.display = 'block';
+  }
+
+  // ─── HTML ESCAPE ───
+  function esc(str) {
+    if (!str) return '';
+    // Allow HTML that was intentionally placed in the sheet (steps use <strong>, <em>, <br>)
+    // For safety, only escape in stem/option/distractor fields
+    return String(str);
+  }
+</script>
+
+</body>
+</html>
