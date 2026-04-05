@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Virtual Vernier Lab — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{--navy:#1E293B;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--red:#DC2626;--amber:#D97706;--text:#1E293B;--text-muted:#94A3B8;--border:#E2E8F0;--card-bg:#FFFFFF;--sim-canvas-bg:#F8FAFC;--blue-bg:#EFF6FF;--teal-bg:#F0FDFA;--amber-bg:#FFFBEB;--red-bg:#FEF2F2;--purple-bg:#F5F3FF;--toggle-on:#0D9488;--orange:#EA580C;--green:#16A34A;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
+  .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-right{display:flex;align-items:center;gap:.75rem;}
+  .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
+  .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
+  .sim-toggle-group{display:flex;align-items:center;gap:.35rem;}
+  .sim-toggle{position:relative;width:40px;height:22px;display:inline-block;}
+  .sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:11px;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.3s;}
+  .sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.72rem;font-weight:600;color:rgba(255,255,255,.8);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.25rem;background:none;border:none;border-bottom:3px solid transparent;font-size:.82rem;font-weight:500;color:var(--text-muted);cursor:pointer;transition:.2s;font-family:inherit;display:inline-flex;align-items:center;gap:.5rem;}
+  .tab-btn:hover{color:var(--text);} .tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);font-weight:600;}
+  .tab-btn .tab-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--border);font-size:.65rem;font-weight:700;color:var(--text-muted);}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .sim-container{max-width:1100px;margin:1.5rem auto;padding:0 1.5rem;}
+  .tab-content{display:none;} .tab-content.active{display:block;}
+  .sim-card{background:var(--card-bg);border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);overflow:hidden;margin-bottom:1.5rem;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-weight:600;font-size:.85rem;}
+  .sim-card-body{padding:1.25rem;}
+  .scenario-box{background:var(--blue-bg);border:1px solid #BFDBFE;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.88rem;line-height:1.7;}
+  .lab-layout{display:flex;gap:1.5rem;flex-wrap:wrap;}
+  .lab-controls{flex:0 0 280px;min-width:240px;}
+  .lab-canvas-area{flex:1;min-width:320px;}
+  .lab-canvas-area canvas{border:1px solid var(--border);border-radius:8px;background:var(--sim-canvas-bg);width:100%;cursor:crosshair;}
+  .control-group{margin-bottom:1rem;}
+  .control-group label{display:block;font-size:.78rem;font-weight:600;color:var(--text-muted);margin-bottom:.3rem;text-transform:uppercase;letter-spacing:.03em;}
+  .control-group select,.control-group input[type="number"]{width:100%;padding:.45rem .65rem;border:1px solid var(--border);border-radius:6px;font-size:.85rem;font-family:inherit;}
+  .control-group select:focus,.control-group input:focus{outline:none;border-color:var(--teal);box-shadow:0 0 0 3px rgba(13,148,136,.15);}
+  .checkbox-row{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem;}
+  .checkbox-row input[type="checkbox"]{width:16px;height:16px;accent-color:var(--teal);}
+  .checkbox-row label{font-size:.82rem;font-weight:500;cursor:pointer;}
+  .btn{padding:.5rem 1.25rem;border:none;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;}
+  .btn-teal{background:var(--teal);color:white;} .btn-teal:hover{background:#0F766E;}
+  .btn-teal:disabled{background:#CBD5E1;cursor:not-allowed;}
+  .btn-outline{background:white;color:var(--text);border:1px solid var(--border);} .btn-outline:hover{background:#F8FAFC;}
+  .btn-amber{background:var(--amber);color:white;} .btn-amber:hover{background:#B45309;}
+  .btn-red{background:var(--red);color:white;}
+  .btn-row{display:flex;gap:.75rem;margin-top:1rem;flex-wrap:wrap;}
+  .feedback{padding:.75rem 1rem;border-radius:8px;margin-top:1rem;font-size:.88rem;font-weight:500;}
+  .feedback.correct{background:#DCFCE7;color:#166534;border:1px solid #86EFAC;}
+  .feedback.incorrect{background:var(--red-bg);color:var(--red);border:1px solid #FECACA;}
+  .feedback.info{background:var(--blue-bg);color:#1E40AF;border:1px solid #BFDBFE;}
+  .teacher-panel{display:none;background:var(--amber-bg);border:1px solid #FDE68A;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.82rem;}
+  body.teacher-active .teacher-panel{display:block;}
+  .hl-panel{display:none;background:var(--purple-bg);border:1px solid #C4B5FD;border-radius:8px;padding:.75rem 1rem;margin-top:1rem;font-size:.82rem;}
+  body.hl-active .hl-panel{display:block;}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+  .sensor-card{background:var(--card-bg);border:2px solid var(--border);border-radius:12px;padding:1.25rem;display:flex;gap:1.25rem;align-items:center;}
+  .sensor-card.connected{border-color:var(--green);}
+  .sensor-status{display:inline-flex;align-items:center;gap:.35rem;font-size:.75rem;font-weight:600;padding:.25rem .75rem;border-radius:12px;}
+  .sensor-status.disconnected{background:var(--red-bg);color:var(--red);}
+  .sensor-status.connected{background:var(--teal-bg);color:var(--teal);}
+  .data-table-wrap{max-height:400px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;}
+  .data-table{width:100%;border-collapse:collapse;font-size:.8rem;font-family:'Fira Code',monospace;}
+  .data-table th{background:var(--navy);color:white;padding:.4rem .6rem;position:sticky;top:0;text-align:left;font-size:.72rem;}
+  .data-table td{padding:.3rem .6rem;border-bottom:1px solid var(--border);}
+  .data-table tr:nth-child(even){background:#F8FAFC;}
+  .data-table tr.highlight{background:var(--teal-bg);}
+  .collect-controls{display:flex;gap:.75rem;align-items:center;margin-bottom:1rem;padding:.75rem;background:var(--card-bg);border-radius:8px;border:1px solid var(--border);}
+  .collect-btn{padding:.5rem 1.25rem;border:none;border-radius:6px;font-family:inherit;font-weight:600;font-size:.82rem;cursor:pointer;transition:.2s;}
+  .collect-btn.start{background:var(--teal);color:white;}
+  .collect-btn.start:hover{background:#0F766E;}
+  .collect-btn.stop{background:var(--red);color:white;}
+  .collect-btn.reset{background:var(--border);color:var(--text);}
+  .speed-toggle{font-size:.72rem;padding:.25rem .5rem;border:1px solid var(--border);border-radius:4px;cursor:pointer;background:white;}
+  .speed-toggle.active{background:var(--teal);color:white;border-color:var(--teal);}
+  .analysis-toolbar{display:flex;gap:.5rem;margin-bottom:1rem;flex-wrap:wrap;}
+  .tool-btn{padding:.4rem .8rem;border:1px solid var(--border);border-radius:6px;background:white;font-size:.75rem;font-weight:500;cursor:pointer;font-family:inherit;transition:.2s;}
+  .tool-btn:hover{border-color:var(--teal);color:var(--teal);}
+  .tool-btn.active{background:var(--teal);color:white;border-color:var(--teal);}
+  .results-panel{background:var(--blue-bg);border:1px solid #BFDBFE;border-radius:8px;padding:1rem;margin-top:1rem;font-size:.85rem;}
+  .results-panel h4{font-size:.8rem;margin-bottom:.5rem;color:var(--navy);}
+  .result-row{display:flex;justify-content:space-between;padding:.25rem 0;border-bottom:1px solid rgba(0,0,0,.05);}
+  .result-label{color:var(--text-muted);font-size:.78rem;}
+  .result-value{font-family:'Fira Code',monospace;font-weight:600;font-size:.82rem;}
+  @media(max-width:700px){.lab-layout{flex-direction:column;}.lab-controls{flex:none;width:100%;}.tab-btn{padding:.6rem .7rem;font-size:.75rem;}}
+</style>
+</head>
+<body>
+<a href="#main-content" class="skip-link">Skip to content</a>
+
+<div class="header">
+  <div>
+    <h1>Virtual Vernier Lab<span class="subtitle">IB Chemistry — Practical Skills</span></h1>
+  </div>
+  <div class="header-right">
+    <span class="header-badge">Tool 1</span>
+    <span class="header-badge hl">HL</span>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="hlToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">HL</span>
+    </div>
+    <div class="sim-toggle-group">
+      <label class="sim-toggle"><input type="checkbox" id="teacherToggle"><span class="sim-toggle-slider"></span></label>
+      <span class="sim-toggle-label">Teacher</span>
+    </div>
+  </div>
+</div>
+
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" role="tab" aria-selected="true" data-tab="setup"><span class="tab-num">1</span>Sensor Setup</button>
+  <button class="tab-btn" role="tab" aria-selected="false" data-tab="collect"><span class="tab-num">2</span>Data Collection</button>
+  <button class="tab-btn" role="tab" aria-selected="false" data-tab="analysis"><span class="tab-num">3</span>Analysis</button>
+</div>
+
+<div class="sim-container" id="main-content">
+  <div class="tab-content active" role="tabpanel" id="tab-setup">
+    <p>Sensor Setup content</p>
+  </div>
+  <div class="tab-content" role="tabpanel" id="tab-collect">
+    <p>Data Collection content</p>
+  </div>
+  <div class="tab-content" role="tabpanel" id="tab-analysis">
+    <p>Analysis content</p>
+  </div>
+</div>
+
+<div class="keyboard-hint">
+  <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> Tabs &nbsp; <kbd>H</kbd> HL &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>Space</kbd> Start/Stop &nbsp; <kbd>R</kbd> Reset
+</div>
+
+<footer>SimEngine &mdash; Virtual Vernier Lab &bull; H=HL T=Teacher</footer>
+
+<script>
+(function(){
+'use strict';
+function clearChildren(el){ while(el.firstChild) el.removeChild(el.firstChild); }
+
+// ── Feedback helper ──
+function showFeedback(msg, type){
+  var existing = document.querySelector('.feedback');
+  if(existing) existing.parentNode.removeChild(existing);
+  var div = document.createElement('div');
+  div.className = 'feedback ' + (type || 'info');
+  div.setAttribute('aria-live','polite');
+  div.textContent = msg;
+  document.querySelector('.sim-container').appendChild(div);
+  setTimeout(function(){ if(div.parentNode) div.parentNode.removeChild(div); }, 3000);
+}
+
+// ── Sensor Database ──
+var SENSORS = {
+  temperature: {
+    id: 'temperature', name: 'Go Direct Temperature Probe',
+    range: '-40 to 135 °C', precision: '±0.5 °C (probe) / ±0.01 °C (resolution)',
+    uncertainty: '±0.5', unit: '°C', sampleRates: [1, 2, 5, 10],
+    ibNotes: 'IB uncertainty: ±0.5 °C for the probe. Record to 1 d.p. Resolution is 0.01 °C but accuracy is ±0.5 °C.',
+    calibration: 'Two-point calibration: ice water (0.0 °C) and warm water (checked with lab thermometer).',
+    commonErrors: ['Not waiting for thermal equilibrium','Reading before stabilisation','Not stirring solution']
+  },
+  ph: {
+    id: 'ph', name: 'Go Direct pH Sensor',
+    range: '0–14', precision: '±0.1 (after calibration)',
+    uncertainty: '±0.01', unit: '', sampleRates: [1, 2],
+    ibNotes: 'IB uncertainty: ±0.01 pH (resolution). Calibrate with pH 4 and pH 7 buffer solutions before each use.',
+    calibration: 'Two-point calibration: pH 4.00 buffer and pH 7.00 buffer. Rinse probe with distilled water between buffers.',
+    commonErrors: ['Not calibrating before use','Letting probe dry out','Not rinsing between solutions']
+  }
+};
+
+// ── Experiment Definitions ──
+var EXPERIMENTS = {
+  neutralization: {
+    id: 'neutralization',
+    name: 'Enthalpy of Neutralization',
+    sensor: 'temperature',
+    description: 'Measure the temperature change when 25.0 cm\u00B3 of 1.00 mol dm\u207B\u00B3 HCl reacts with 25.0 cm\u00B3 of 1.00 mol dm\u207B\u00B3 NaOH in a polystyrene cup calorimeter.',
+    xAxis: { label: 'Time', unit: 's' },
+    yAxis: { label: 'Temperature', unit: '\u00B0C' },
+    defaults: { duration: 180, sampleRate: 2 },
+    ibContext: {
+      equation: 'HCl(aq) + NaOH(aq) \u2192 NaCl(aq) + H\u2082O(l)',
+      expectedDeltaH: -57.1,
+      expectedDeltaT: 6.8,
+      formula: 'q = mc\u0394T, then \u0394H = \u2212q/n'
+    },
+    generate: function(settings){
+      var data = [];
+      var dt = 1 / settings.sampleRate;
+      var n = Math.round(settings.duration * settings.sampleRate);
+      var T0 = 22.0 + (Math.random() - 0.5) * 2;
+      var dT = 6.5 + Math.random() * 1.0;
+      var mixTime = 30;
+      var mixIdx = Math.round(mixTime * settings.sampleRate);
+      for(var i = 0; i < n; i++){
+        var t = i * dt;
+        var T;
+        if(i < mixIdx){
+          T = T0 + (Math.random() - 0.5) * 0.3;
+        } else {
+          var elapsed = t - mixTime;
+          T = T0 + dT * (1 - Math.exp(-elapsed / 8)) - elapsed * 0.008;
+          T += (Math.random() - 0.5) * 0.3;
+        }
+        data.push({ x: Math.round(t * 10) / 10, y: Math.round(T * 100) / 100 });
+      }
+      return data;
+    }
+  },
+  titration: {
+    id: 'titration',
+    name: 'Strong Acid-Base Titration',
+    sensor: 'ph',
+    description: 'Monitor pH as 0.100 mol dm\u207B\u00B3 NaOH is added dropwise from a burette to 25.0 cm\u00B3 of 0.100 mol dm\u207B\u00B3 HCl.',
+    xAxis: { label: 'Volume NaOH added', unit: 'cm\u00B3' },
+    yAxis: { label: 'pH', unit: '' },
+    defaults: { volumeIncrement: 1.0, totalVolume: 50.0 },
+    ibContext: {
+      equation: 'HCl(aq) + NaOH(aq) \u2192 NaCl(aq) + H\u2082O(l)',
+      expectedEquivVol: 25.0,
+      expectedEquivPH: 7.0,
+      formula: 'c(HCl) \u00D7 V(HCl) = c(NaOH) \u00D7 V(NaOH)'
+    },
+    generate: function(settings){
+      var data = [];
+      var cAcid = 0.100, vAcid = 25.0, cBase = 0.100;
+      var v = 0;
+      while(v <= settings.totalVolume + 0.01){
+        var molesAcid = cAcid * vAcid / 1000;
+        var molesBase = cBase * v / 1000;
+        var totalVol = (vAcid + v) / 1000;
+        var pH;
+        if(molesBase < molesAcid * 0.999){
+          var excessH = (molesAcid - molesBase) / totalVol;
+          pH = -Math.log10(excessH);
+        } else if(molesBase > molesAcid * 1.001){
+          var excessOH = (molesBase - molesAcid) / totalVol;
+          var pOH = -Math.log10(excessOH);
+          pH = 14 - pOH;
+        } else {
+          pH = 7.0;
+        }
+        pH = Math.max(0, Math.min(14, pH + (Math.random() - 0.5) * 0.08));
+        data.push({ x: Math.round(v * 100) / 100, y: Math.round(pH * 100) / 100 });
+        v += settings.volumeIncrement;
+      }
+      return data;
+    }
+  }
+};
+
+// ── State ──
+var _activeExperiment = 'neutralization';
+var _settings = {};
+var _sensorConnected = false;
+var _collectedData = [];
+var _collecting = false;
+var _collectionTimer = null;
+var _dataIndex = 0;
+var _generatedData = [];
+var _speed = 1;
+var _annotations = [];
+var _activeTool = null;
+var _selectionPoints = [];
+
+function getSettings(){
+  var exp = EXPERIMENTS[_activeExperiment];
+  if(exp.sensor === 'temperature'){
+    return { duration: exp.defaults.duration, sampleRate: exp.defaults.sampleRate };
+  } else {
+    return { volumeIncrement: exp.defaults.volumeIncrement, totalVolume: exp.defaults.totalVolume };
+  }
+}
+_settings = getSettings();
+
+// ── Sensor Drawing Functions ──
+function drawTemperatureProbe(ctx, cx, cy, s){
+  s = s || 1; ctx.save();
+  ctx.strokeStyle = '#64748B'; ctx.lineWidth = 1;
+  ctx.fillStyle = '#94A3B8';
+  ctx.fillRect(cx-6*s, cy-25*s, 12*s, 30*s);
+  ctx.strokeRect(cx-6*s, cy-25*s, 12*s, 30*s);
+  ctx.fillStyle = '#CBD5E1';
+  ctx.fillRect(cx-2*s, cy+5*s, 4*s, 25*s);
+  ctx.strokeRect(cx-2*s, cy+5*s, 4*s, 25*s);
+  ctx.fillStyle = '#64748B';
+  ctx.beginPath(); ctx.arc(cx, cy+32*s, 3*s, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#22C55E';
+  ctx.beginPath(); ctx.arc(cx, cy-20*s, 2*s, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawpHProbe(ctx, cx, cy, s){
+  s = s || 1; ctx.save();
+  ctx.strokeStyle = '#64748B'; ctx.lineWidth = 1;
+  ctx.fillStyle = '#475569';
+  ctx.fillRect(cx-7*s, cy-28*s, 14*s, 20*s);
+  ctx.strokeRect(cx-7*s, cy-28*s, 14*s, 20*s);
+  ctx.fillStyle = 'rgba(226,232,240,0.6)';
+  ctx.fillRect(cx-5*s, cy-8*s, 10*s, 30*s);
+  ctx.strokeRect(cx-5*s, cy-8*s, 10*s, 30*s);
+  ctx.fillStyle = '#94A3B8';
+  ctx.fillRect(cx-5*s, cy+2*s, 10*s, 3*s);
+  ctx.fillStyle = 'rgba(200,220,240,0.5)';
+  ctx.beginPath(); ctx.arc(cx, cy+24*s, 5*s, 0, Math.PI); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#22C55E';
+  ctx.beginPath(); ctx.arc(cx, cy-24*s, 2*s, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+// ── Helper: build a text line with bold label ──
+function appendLabeledLine(parent, label, text){
+  var p = document.createElement('p'); p.style.cssText = 'margin-bottom:.5rem;font-size:.82rem;';
+  var b = document.createElement('strong'); b.textContent = label + ': ';
+  p.appendChild(b); p.appendChild(document.createTextNode(text));
+  parent.appendChild(p);
+}
+
+// ── Build Setup Tab (Tab 1) ──
+function buildSetupTab(){
+  var container = document.getElementById('tab-setup');
+  clearChildren(container);
+  var exp = EXPERIMENTS[_activeExperiment];
+  var sensor = SENSORS[exp.sensor];
+
+  // Experiment selector card
+  var selCard = document.createElement('div'); selCard.className = 'sim-card';
+  var selH = document.createElement('div'); selH.className = 'sim-card-header'; selH.textContent = 'Select Experiment';
+  var selB = document.createElement('div'); selB.className = 'sim-card-body';
+  var cg = document.createElement('div'); cg.className = 'control-group';
+  var lbl = document.createElement('label'); lbl.textContent = 'Experiment'; lbl.setAttribute('for','expSelect');
+  var sel = document.createElement('select'); sel.id = 'expSelect'; sel.setAttribute('aria-label','Select experiment');
+  var keys = Object.keys(EXPERIMENTS);
+  for(var i=0;i<keys.length;i++){
+    var opt = document.createElement('option'); opt.value = keys[i]; opt.textContent = EXPERIMENTS[keys[i]].name;
+    if(keys[i] === _activeExperiment) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  sel.addEventListener('change', function(){
+    _activeExperiment = this.value;
+    _settings = getSettings();
+    _sensorConnected = false;
+    buildSetupTab();
+  });
+  cg.appendChild(lbl); cg.appendChild(sel);
+  var descP = document.createElement('div'); descP.className = 'scenario-box'; descP.textContent = exp.description;
+  selB.appendChild(cg); selB.appendChild(descP);
+  selCard.appendChild(selH); selCard.appendChild(selB);
+
+  // Sensor card with canvas probe
+  var sCard = document.createElement('div'); sCard.className = 'sensor-card' + (_sensorConnected ? ' connected' : ''); sCard.id = 'sensorCard';
+  var canvasWrap = document.createElement('div'); canvasWrap.style.cssText = 'flex:0 0 60px;';
+  var cv = document.createElement('canvas'); cv.width = 60; cv.height = 80; cv.setAttribute('aria-label', sensor.name + ' illustration'); cv.setAttribute('role','img');
+  var cvCtx = cv.getContext('2d');
+  if(exp.sensor === 'temperature') drawTemperatureProbe(cvCtx, 30, 35, 0.9);
+  else drawpHProbe(cvCtx, 30, 35, 0.9);
+  canvasWrap.appendChild(cv);
+
+  var infoDiv = document.createElement('div'); infoDiv.style.cssText = 'flex:1;';
+  var nameEl = document.createElement('div'); nameEl.style.cssText = 'font-weight:700;font-size:.92rem;margin-bottom:.25rem;'; nameEl.textContent = sensor.name;
+  var specLines = [
+    'Range: ' + sensor.range,
+    'Precision: ' + sensor.precision,
+    'Uncertainty: ' + sensor.uncertainty + (sensor.unit ? ' ' + sensor.unit : '')
+  ];
+  var specEl = document.createElement('div'); specEl.style.cssText = 'font-size:.78rem;color:var(--text-muted);line-height:1.6;';
+  specLines.forEach(function(line, idx){
+    specEl.appendChild(document.createTextNode(line));
+    if(idx < specLines.length - 1) specEl.appendChild(document.createElement('br'));
+  });
+  var statusEl = document.createElement('span'); statusEl.className = 'sensor-status ' + (_sensorConnected ? 'connected' : 'disconnected');
+  statusEl.textContent = _sensorConnected ? '\u25CF Connected' : '\u25CB Disconnected';
+  infoDiv.appendChild(nameEl); infoDiv.appendChild(specEl); infoDiv.appendChild(document.createElement('br')); infoDiv.appendChild(statusEl);
+  sCard.appendChild(canvasWrap); sCard.appendChild(infoDiv);
+
+  // Collection settings card
+  var setCard = document.createElement('div'); setCard.className = 'sim-card'; setCard.id = 'settingsCard';
+  var setH = document.createElement('div'); setH.className = 'sim-card-header'; setH.textContent = 'Collection Settings';
+  var setB = document.createElement('div'); setB.className = 'sim-card-body';
+  if(exp.sensor === 'temperature'){
+    var dg = document.createElement('div'); dg.className = 'control-group';
+    var dl = document.createElement('label'); dl.textContent = 'Duration (s)'; dl.setAttribute('for','durInput');
+    var di = document.createElement('input'); di.type = 'number'; di.id = 'durInput'; di.value = _settings.duration; di.min = 30; di.max = 600; di.step = 10;
+    di.setAttribute('aria-label','Collection duration in seconds');
+    di.addEventListener('change', function(){ _settings.duration = Math.max(30, Math.min(600, parseInt(this.value)||180)); });
+    dg.appendChild(dl); dg.appendChild(di); setB.appendChild(dg);
+
+    var sg = document.createElement('div'); sg.className = 'control-group';
+    var sl = document.createElement('label'); sl.textContent = 'Sample Rate (Hz)'; sl.setAttribute('for','rateSelect');
+    var ss = document.createElement('select'); ss.id = 'rateSelect'; ss.setAttribute('aria-label','Sample rate');
+    for(var r=0;r<sensor.sampleRates.length;r++){
+      var ro = document.createElement('option'); ro.value = sensor.sampleRates[r]; ro.textContent = sensor.sampleRates[r] + ' Hz';
+      if(sensor.sampleRates[r] === _settings.sampleRate) ro.selected = true;
+      ss.appendChild(ro);
+    }
+    ss.addEventListener('change', function(){ _settings.sampleRate = parseInt(this.value); });
+    sg.appendChild(sl); sg.appendChild(ss); setB.appendChild(sg);
+  } else {
+    var vg = document.createElement('div'); vg.className = 'control-group';
+    var vl = document.createElement('label'); vl.textContent = 'Volume Increment (cm\u00B3)'; vl.setAttribute('for','volInc');
+    var vi = document.createElement('input'); vi.type = 'number'; vi.id = 'volInc'; vi.value = _settings.volumeIncrement; vi.min = 0.5; vi.max = 5; vi.step = 0.5;
+    vi.setAttribute('aria-label','Volume increment in cubic centimetres');
+    vi.addEventListener('change', function(){ _settings.volumeIncrement = Math.max(0.5, Math.min(5, parseFloat(this.value)||1)); });
+    vg.appendChild(vl); vg.appendChild(vi); setB.appendChild(vg);
+
+    var tg = document.createElement('div'); tg.className = 'control-group';
+    var tl = document.createElement('label'); tl.textContent = 'Total Volume (cm\u00B3)'; tl.setAttribute('for','totVol');
+    var ti = document.createElement('input'); ti.type = 'number'; ti.id = 'totVol'; ti.value = _settings.totalVolume; ti.min = 20; ti.max = 100; ti.step = 5;
+    ti.setAttribute('aria-label','Total volume in cubic centimetres');
+    ti.addEventListener('change', function(){ _settings.totalVolume = Math.max(20, Math.min(100, parseFloat(this.value)||50)); });
+    tg.appendChild(tl); tg.appendChild(ti); setB.appendChild(tg);
+  }
+  setCard.appendChild(setH); setCard.appendChild(setB);
+
+  // Connect button
+  var connectBtn = document.createElement('button'); connectBtn.className = 'btn btn-teal'; connectBtn.style.cssText = 'width:100%;margin-bottom:1.5rem;padding:.75rem;font-size:.92rem;';
+  connectBtn.textContent = _sensorConnected ? 'Disconnect Sensor' : 'Connect Sensor';
+  connectBtn.addEventListener('click', function(){
+    _sensorConnected = !_sensorConnected;
+    buildSetupTab();
+    showFeedback(_sensorConnected ? 'Sensor connected successfully!' : 'Sensor disconnected.', _sensorConnected ? 'correct' : 'info');
+  });
+
+  // Teacher panel
+  var teacher = document.createElement('div'); teacher.className = 'teacher-panel';
+  var th = document.createElement('strong'); th.textContent = 'Teacher Notes'; th.style.cssText = 'display:block;margin-bottom:.5rem;';
+  teacher.appendChild(th);
+  appendLabeledLine(teacher, 'Calibration', sensor.calibration);
+  appendLabeledLine(teacher, 'Common errors', sensor.commonErrors.join('; '));
+  appendLabeledLine(teacher, 'IB Data', sensor.ibNotes);
+
+  container.appendChild(selCard);
+  container.appendChild(sCard);
+  container.appendChild(setCard);
+  container.appendChild(connectBtn);
+  container.appendChild(teacher);
+}
+
+// ── Build Data Collection Tab (Tab 2) ──
+function buildCollectTab(){
+  var container = document.getElementById('tab-collect');
+  clearChildren(container);
+  var exp = EXPERIMENTS[_activeExperiment];
+
+  // Controls bar
+  var controls = document.createElement('div'); controls.className = 'collect-controls';
+  var startBtn = document.createElement('button'); startBtn.className = 'collect-btn start'; startBtn.id = 'startBtn'; startBtn.textContent = 'Start';
+  startBtn.addEventListener('click', function(){ startCollection(); });
+  var stopBtn = document.createElement('button'); stopBtn.className = 'collect-btn stop'; stopBtn.id = 'stopBtn'; stopBtn.textContent = 'Stop'; stopBtn.disabled = true;
+  stopBtn.addEventListener('click', function(){ stopCollection(); });
+  var resetBtn = document.createElement('button'); resetBtn.className = 'collect-btn reset'; resetBtn.textContent = 'Reset';
+  resetBtn.addEventListener('click', function(){ resetExperiment(); });
+  controls.appendChild(startBtn); controls.appendChild(stopBtn); controls.appendChild(resetBtn);
+
+  // Speed toggles
+  var speedLabel = document.createElement('span'); speedLabel.style.cssText = 'font-size:.72rem;color:var(--text-muted);margin-left:auto;'; speedLabel.textContent = 'Speed:';
+  controls.appendChild(speedLabel);
+  [1,2,5].forEach(function(spd){
+    var sb = document.createElement('button'); sb.className = 'speed-toggle' + (_speed === spd ? ' active' : '');
+    sb.textContent = spd + 'x'; sb.setAttribute('aria-label', 'Speed ' + spd + 'x');
+    sb.addEventListener('click', function(){
+      _speed = spd;
+      controls.querySelectorAll('.speed-toggle').forEach(function(b){ b.classList.remove('active'); });
+      sb.classList.add('active');
+    });
+    controls.appendChild(sb);
+  });
+
+  // Status bar
+  var statusBar = document.createElement('div'); statusBar.id = 'collectStatus'; statusBar.setAttribute('aria-live','polite');
+  statusBar.style.cssText = 'font-size:.78rem;color:var(--text-muted);margin-bottom:.75rem;';
+  statusBar.textContent = 'Ready \u2014 connect sensor and press Start';
+
+  // Split layout
+  var layout = document.createElement('div'); layout.className = 'lab-layout';
+
+  // Data table (left)
+  var tableWrap = document.createElement('div'); tableWrap.className = 'data-table-wrap'; tableWrap.style.cssText = 'flex:0 0 35%;min-width:200px;';
+  var table = document.createElement('table'); table.className = 'data-table'; table.id = 'dataTable';
+  var thead = document.createElement('thead'); var hrow = document.createElement('tr');
+  var th1 = document.createElement('th'); th1.textContent = exp.xAxis.label + (exp.xAxis.unit ? ' / ' + exp.xAxis.unit : '');
+  var th2 = document.createElement('th'); th2.textContent = exp.yAxis.label + (exp.yAxis.unit ? ' / ' + exp.yAxis.unit : '');
+  hrow.appendChild(th1); hrow.appendChild(th2); thead.appendChild(hrow); table.appendChild(thead);
+  var tbody = document.createElement('tbody'); tbody.id = 'dataBody'; table.appendChild(tbody);
+  tableWrap.appendChild(table);
+
+  // Graph canvas (right)
+  var canvasWrap = document.createElement('div'); canvasWrap.style.cssText = 'flex:1;min-width:300px;';
+  var canvas = document.createElement('canvas'); canvas.id = 'collectGraph';
+  canvas.setAttribute('data-w','600'); canvas.setAttribute('data-h','400');
+  canvas.setAttribute('aria-label','Data collection graph'); canvas.setAttribute('role','img');
+  canvas.style.cssText = 'border:1px solid var(--border);border-radius:8px;background:var(--sim-canvas-bg);width:100%;';
+  canvasWrap.appendChild(canvas);
+
+  layout.appendChild(tableWrap); layout.appendChild(canvasWrap);
+  // Teacher panel for data collection
+  var teacher2 = document.createElement('div'); teacher2.className = 'teacher-panel';
+  var t2h = document.createElement('strong'); t2h.textContent = 'Teacher Notes \u2014 Data Collection'; t2h.style.cssText = 'display:block;margin-bottom:.5rem;';
+  teacher2.appendChild(t2h);
+  if(_activeExperiment === 'neutralization'){
+    appendLabeledLine(teacher2, 'Expected graph', 'Flat baseline ~22 \u00B0C for 30 s, then sharp exponential rise of ~6.8 \u00B0C, followed by slow cooling');
+    appendLabeledLine(teacher2, 'Key moment', 'Mixing at t = 30 s produces the temperature jump');
+    appendLabeledLine(teacher2, 'Marking point', 'Students should identify T\u2098\u2090\u2093 and calculate \u0394T correctly');
+  } else {
+    appendLabeledLine(teacher2, 'Expected graph', 'Sigmoidal curve: pH ~1 initially, steep rise near 25 cm\u00B3, plateau at pH ~13');
+    appendLabeledLine(teacher2, 'Key moment', 'Equivalence point at 25.0 cm\u00B3 where pH = 7.0');
+    appendLabeledLine(teacher2, 'Marking point', 'Students should identify the equivalence volume from the steepest part of the curve');
+  }
+
+  container.appendChild(controls); container.appendChild(statusBar); container.appendChild(layout);
+  container.appendChild(teacher2);
+  renderCollectGraph();
+}
+
+function addTableRow(d){
+  var tbody = document.getElementById('dataBody');
+  if(!tbody) return;
+  var tr = document.createElement('tr');
+  var td1 = document.createElement('td'); td1.textContent = d.x;
+  var td2 = document.createElement('td'); td2.textContent = d.y;
+  tr.appendChild(td1); tr.appendChild(td2); tbody.appendChild(tr);
+  var wrap = tbody.closest('.data-table-wrap');
+  if(wrap) wrap.scrollTop = wrap.scrollHeight;
+}
+
+function clearTable(){
+  var tbody = document.getElementById('dataBody');
+  if(tbody) clearChildren(tbody);
+}
+
+function updateCollectButtons(){
+  var startBtn = document.getElementById('startBtn');
+  var stopBtn = document.getElementById('stopBtn');
+  var status = document.getElementById('collectStatus');
+  if(startBtn) startBtn.disabled = _collecting;
+  if(stopBtn) stopBtn.disabled = !_collecting;
+  if(status){
+    if(_collecting) status.textContent = 'Collecting... (' + _dataIndex + ' / ' + _generatedData.length + ' points)';
+    else if(_collectedData.length > 0) status.textContent = 'Collection complete \u2014 ' + _collectedData.length + ' data points. Switch to Analysis tab.';
+    else status.textContent = 'Ready \u2014 connect sensor and press Start';
+  }
+}
+
+function startCollection(){
+  if(!_sensorConnected){ showFeedback('Connect the sensor first on the Setup tab!', 'incorrect'); return; }
+  var exp = EXPERIMENTS[_activeExperiment];
+  _generatedData = exp.generate(_settings);
+  _collectedData = [];
+  _dataIndex = 0;
+  clearTable();
+  _collecting = true;
+  updateCollectButtons();
+  collectNext();
+}
+
+function collectNext(){
+  if(!_collecting || _dataIndex >= _generatedData.length){
+    _collecting = false;
+    updateCollectButtons();
+    return;
+  }
+  _collectedData.push(_generatedData[_dataIndex]);
+  addTableRow(_generatedData[_dataIndex]);
+  _dataIndex++;
+  updateCollectButtons();
+  renderCollectGraph();
+  var delay = (_activeExperiment === 'titration') ? 300 : (1000 / _settings.sampleRate);
+  _collectionTimer = setTimeout(collectNext, delay / _speed);
+}
+
+function stopCollection(){
+  _collecting = false;
+  clearTimeout(_collectionTimer);
+  updateCollectButtons();
+}
+
+function resetExperiment(){
+  stopCollection();
+  _collectedData = [];
+  _dataIndex = 0;
+  _generatedData = [];
+  _annotations = [];
+  clearTable();
+  renderCollectGraph();
+  updateCollectButtons();
+}
+
+function toggleCollection(){
+  if(_collecting) stopCollection(); else startCollection();
+}
+
+// ── Render Collection Graph ──
+function renderCollectGraph(){
+  var canvas = document.getElementById('collectGraph');
+  if(!canvas) return;
+  var dpr = window.devicePixelRatio || 1;
+  var w = parseInt(canvas.getAttribute('data-w'));
+  var h = parseInt(canvas.getAttribute('data-h'));
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  var pad = { top: 30, right: 30, bottom: 50, left: 65 };
+  var pw = w - pad.left - pad.right;
+  var ph = h - pad.top - pad.bottom;
+  var exp = EXPERIMENTS[_activeExperiment];
+
+  ctx.fillStyle = '#FFFFFF';
+  ctx.fillRect(0, 0, w, h);
+
+  // Axis ranges
+  var xMin = 0, xMax, yMin, yMax;
+  if(_activeExperiment === 'titration'){
+    xMax = _settings.totalVolume || 50; yMin = 0; yMax = 14;
+  } else {
+    xMax = _settings.duration || 180; yMin = 15; yMax = 35;
+  }
+  if(_collectedData.length > 0){
+    var ys = _collectedData.map(function(d){ return d.y; });
+    var dataMin = Math.min.apply(null, ys);
+    var dataMax = Math.max.apply(null, ys);
+    var margin = (dataMax - dataMin) * 0.1 || 1;
+    yMin = Math.floor(dataMin - margin);
+    yMax = Math.ceil(dataMax + margin);
+  }
+
+  // Grid
+  ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 0.5;
+  var xTicks = 6, yTicks = 6;
+  for(var i = 0; i <= xTicks; i++){
+    var gx = pad.left + (i / xTicks) * pw;
+    ctx.beginPath(); ctx.moveTo(gx, pad.top); ctx.lineTo(gx, pad.top + ph); ctx.stroke();
+  }
+  for(var j = 0; j <= yTicks; j++){
+    var gy = pad.top + (j / yTicks) * ph;
+    ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(pad.left + pw, gy); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#1E293B'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, pad.top + ph); ctx.lineTo(pad.left + pw, pad.top + ph); ctx.stroke();
+
+  // Tick labels
+  ctx.fillStyle = '#64748B'; ctx.font = '11px Fira Code, monospace'; ctx.textAlign = 'center';
+  for(var i = 0; i <= xTicks; i++){
+    var val = xMin + (i / xTicks) * (xMax - xMin);
+    var gx = pad.left + (i / xTicks) * pw;
+    ctx.fillText(Math.round(val * 10) / 10, gx, pad.top + ph + 18);
+  }
+  ctx.textAlign = 'right';
+  for(var j = 0; j <= yTicks; j++){
+    var val = yMax - (j / yTicks) * (yMax - yMin);
+    var gy = pad.top + (j / yTicks) * ph;
+    ctx.fillText(Math.round(val * 10) / 10, pad.left - 8, gy + 4);
+  }
+
+  // Data line + points
+  if(_collectedData.length > 0){
+    ctx.strokeStyle = '#0D9488'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    _collectedData.forEach(function(d, i){
+      var px = pad.left + ((d.x - xMin) / (xMax - xMin)) * pw;
+      var py = pad.top + (1 - (d.y - yMin) / (yMax - yMin)) * ph;
+      if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+    ctx.fillStyle = '#0D9488';
+    _collectedData.forEach(function(d){
+      var px = pad.left + ((d.x - xMin) / (xMax - xMin)) * pw;
+      var py = pad.top + (1 - (d.y - yMin) / (yMax - yMin)) * ph;
+      ctx.beginPath(); ctx.arc(px, py, 2.5, 0, Math.PI*2); ctx.fill();
+    });
+  }
+
+  // Axis titles
+  ctx.fillStyle = '#1E293B'; ctx.font = '600 12px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(exp.xAxis.label + (exp.xAxis.unit ? ' / ' + exp.xAxis.unit : ''), pad.left + pw/2, h - 8);
+  ctx.save(); ctx.translate(14, pad.top + ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(exp.yAxis.label + (exp.yAxis.unit ? ' / ' + exp.yAxis.unit : ''), 0, 0);
+  ctx.restore();
+}
+
+// ── Analysis Helpers ──
+function linearRegression(pts){
+  var n = pts.length; if(n < 2) return {m:0, b:0, r2:0};
+  var sx=0,sy=0,sxx=0,sxy=0,syy=0;
+  for(var i=0;i<n;i++){ sx+=pts[i].x; sy+=pts[i].y; sxx+=pts[i].x*pts[i].x; sxy+=pts[i].x*pts[i].y; syy+=pts[i].y*pts[i].y; }
+  var denom = n*sxx - sx*sx; if(Math.abs(denom)<1e-12) return {m:0, b:sy/n, r2:0};
+  var m = (n*sxy - sx*sy) / denom;
+  var b = (sy - m*sx) / n;
+  var ssRes=0, ssTot=0, yMean=sy/n;
+  for(var i=0;i<n;i++){ var yhat=m*pts[i].x+b; ssRes+=(pts[i].y-yhat)*(pts[i].y-yhat); ssTot+=(pts[i].y-yMean)*(pts[i].y-yMean); }
+  var r2 = ssTot>0 ? 1 - ssRes/ssTot : 0;
+  return {m:m, b:b, r2:r2};
+}
+
+function quadraticRegression(pts){
+  var n = pts.length; if(n < 3) return {a:0,b:0,c:0,r2:0};
+  var sx=0,sx2=0,sx3=0,sx4=0,sy=0,sxy=0,sx2y=0;
+  for(var i=0;i<n;i++){
+    var x=pts[i].x, y=pts[i].y, x2=x*x;
+    sx+=x; sx2+=x2; sx3+=x2*x; sx4+=x2*x2; sy+=y; sxy+=x*y; sx2y+=x2*y;
+  }
+  var M=[[n,sx,sx2],[sx,sx2,sx3],[sx2,sx3,sx4]];
+  var V=[sy,sxy,sx2y];
+  // Solve 3x3 using Cramer's rule
+  function det3(m){return m[0][0]*(m[1][1]*m[2][2]-m[1][2]*m[2][1])-m[0][1]*(m[1][0]*m[2][2]-m[1][2]*m[2][0])+m[0][2]*(m[1][0]*m[2][1]-m[1][1]*m[2][0]);}
+  var D=det3(M); if(Math.abs(D)<1e-12) return {a:0,b:0,c:0,r2:0};
+  function rep(col,v){var r=M.map(function(row){return row.slice();}); for(var i=0;i<3;i++) r[i][col]=v[i]; return r;}
+  var c=det3(rep(0,V))/D, b=det3(rep(1,V))/D, a=det3(rep(2,V))/D;
+  var ssRes=0,ssTot=0,yMean=sy/n;
+  for(var i=0;i<n;i++){var yhat=a*pts[i].x*pts[i].x+b*pts[i].x+c; ssRes+=(pts[i].y-yhat)*(pts[i].y-yhat); ssTot+=(pts[i].y-yMean)*(pts[i].y-yMean);}
+  var r2=ssTot>0?1-ssRes/ssTot:0;
+  return {a:a,b:b,c:c,r2:r2};
+}
+
+function exponentialRegression(pts){
+  // Linearize: ln(y) = ln(A) + B*x => fit linear to (x, ln(y))
+  var valid = pts.filter(function(p){return p.y > 0;});
+  if(valid.length < 2) return {A:1,B:0,r2:0};
+  var lnPts = valid.map(function(p){return {x:p.x, y:Math.log(p.y)};});
+  var fit = linearRegression(lnPts);
+  return {A:Math.exp(fit.b), B:fit.m, r2:fit.r2};
+}
+
+function calcStats(pts){
+  if(!pts.length) return {};
+  var ys = pts.map(function(p){return p.y;});
+  var mean = ys.reduce(function(a,b){return a+b;},0) / ys.length;
+  var min = Math.min.apply(null,ys), max = Math.max.apply(null,ys);
+  var variance = ys.reduce(function(a,b){return a+(b-mean)*(b-mean);},0) / ys.length;
+  return {mean:mean, min:min, max:max, stddev:Math.sqrt(variance), count:ys.length};
+}
+
+// ── Build Analysis Tab (Tab 3) ──
+function buildAnalysisTab(){
+  var container = document.getElementById('tab-analysis');
+  clearChildren(container);
+  var exp = EXPERIMENTS[_activeExperiment];
+
+  if(_collectedData.length === 0){
+    var msg = document.createElement('div'); msg.className = 'scenario-box';
+    msg.textContent = 'No data collected yet. Go to the Data Collection tab, connect your sensor, and run the experiment first.';
+    container.appendChild(msg);
+    return;
+  }
+
+  // Toolbar
+  var toolbar = document.createElement('div'); toolbar.className = 'analysis-toolbar';
+  var tools = [
+    {id:'statistics', label:'Statistics'},
+    {id:'linearfit', label:'Linear Fit'},
+    {id:'curvefit', label:'Curve Fit'},
+    {id:'tangent', label:'Tangent'},
+    {id:'annotation', label:'Annotation'}
+  ];
+  tools.forEach(function(tool){
+    var btn = document.createElement('button'); btn.className = 'tool-btn' + (_activeTool === tool.id ? ' active' : '');
+    btn.textContent = tool.label; btn.setAttribute('data-tool', tool.id);
+    btn.addEventListener('click', function(){
+      _activeTool = (_activeTool === tool.id) ? null : tool.id;
+      _selectionPoints = [];
+      toolbar.querySelectorAll('.tool-btn').forEach(function(b){ b.classList.remove('active'); });
+      if(_activeTool) btn.classList.add('active');
+      renderAnalysisGraph();
+      updateToolInstructions();
+    });
+    toolbar.appendChild(btn);
+  });
+
+  // Curve fit type selector (hidden unless curvefit active)
+  var fitTypeWrap = document.createElement('div'); fitTypeWrap.id = 'fitTypeWrap'; fitTypeWrap.style.cssText = 'display:' + (_activeTool === 'curvefit' ? 'inline-block' : 'none') + ';margin-left:.5rem;';
+  var fitSel = document.createElement('select'); fitSel.id = 'fitType'; fitSel.setAttribute('aria-label','Curve fit type');
+  ['linear','quadratic','exponential'].forEach(function(t){
+    var o = document.createElement('option'); o.value = t; o.textContent = t.charAt(0).toUpperCase() + t.slice(1); fitSel.appendChild(o);
+  });
+  fitSel.addEventListener('change', function(){ renderAnalysisGraph(); updateResults(); });
+  fitTypeWrap.appendChild(fitSel); toolbar.appendChild(fitTypeWrap);
+
+  // Tool instructions
+  var instrEl = document.createElement('div'); instrEl.id = 'toolInstructions'; instrEl.style.cssText = 'font-size:.78rem;color:var(--text-muted);margin-bottom:.75rem;'; instrEl.setAttribute('aria-live','polite');
+  instrEl.textContent = 'Select a tool from the toolbar above, then interact with the graph.';
+
+  // Analysis canvas
+  var canvas = document.createElement('canvas'); canvas.id = 'analysisGraph';
+  canvas.setAttribute('data-w','700'); canvas.setAttribute('data-h','420');
+  canvas.setAttribute('aria-label','Analysis graph'); canvas.setAttribute('role','img');
+  canvas.style.cssText = 'border:1px solid var(--border);border-radius:8px;background:var(--sim-canvas-bg);width:100%;cursor:crosshair;';
+
+  // Canvas click handler
+  canvas.addEventListener('click', function(e){
+    if(!_activeTool) return;
+    var rect = canvas.getBoundingClientRect();
+    var scaleX = parseInt(canvas.getAttribute('data-w')) / rect.width;
+    var scaleY = parseInt(canvas.getAttribute('data-h')) / rect.height;
+    var mx = (e.clientX - rect.left) * scaleX;
+    var my = (e.clientY - rect.top) * scaleY;
+    handleAnalysisClick(mx, my);
+  });
+
+  // Results panel
+  var results = document.createElement('div'); results.className = 'results-panel'; results.id = 'resultsPanel';
+  results.style.display = 'none';
+
+  // IB context panel
+  var ibPanel = document.createElement('div'); ibPanel.className = 'results-panel'; ibPanel.id = 'ibContextPanel'; ibPanel.style.display = 'none';
+
+  // Copy data button
+  var copyBtn = document.createElement('button'); copyBtn.className = 'btn btn-outline'; copyBtn.style.cssText = 'margin-top:1rem;';
+  copyBtn.textContent = 'Copy Data to Clipboard';
+  copyBtn.addEventListener('click', function(){ copyData(); });
+
+  container.appendChild(toolbar);
+  container.appendChild(instrEl);
+  container.appendChild(canvas);
+  // Teacher panel for analysis
+  var teacher3 = document.createElement('div'); teacher3.className = 'teacher-panel';
+  var t3h = document.createElement('strong'); t3h.textContent = 'Teacher Notes \u2014 Expected Results'; t3h.style.cssText = 'display:block;margin-bottom:.5rem;';
+  teacher3.appendChild(t3h);
+  if(_activeExperiment === 'neutralization'){
+    appendLabeledLine(teacher3, 'Expected \u0394H', '\u221257.1 kJ mol\u207B\u00B9 (IB Data Booklet)');
+    appendLabeledLine(teacher3, 'Typical student result', '\u221254 to \u221256 kJ mol\u207B\u00B9 (heat loss accounts for discrepancy)');
+    appendLabeledLine(teacher3, 'Key skills', 'Graphical extrapolation to correct for heat loss; uncertainty propagation through q = mc\u0394T');
+  } else {
+    appendLabeledLine(teacher3, 'Expected equiv. vol', '25.0 cm\u00B3 (equimolar, equal concentrations)');
+    appendLabeledLine(teacher3, 'Equivalence pH', '7.0 (strong acid + strong base)');
+    appendLabeledLine(teacher3, 'Key skills', 'Identifying equivalence point from graph; calculating unknown concentration; understanding buffer regions');
+  }
+
+  // HL panel
+  var hlPanel = document.createElement('div'); hlPanel.className = 'hl-panel';
+  var hlH = document.createElement('strong'); hlH.textContent = 'HL \u2014 Uncertainty & Error Analysis'; hlH.style.cssText = 'display:block;margin-bottom:.5rem;';
+  hlPanel.appendChild(hlH);
+  if(_activeExperiment === 'neutralization'){
+    appendLabeledLine(hlPanel, 'Propagation', '\u0394q/q = \u221A[(\u0394m/m)\u00B2 + (\u0394T/\u0394T)\u00B2] where \u0394T uncertainty = \u221A(0.5\u00B2 + 0.5\u00B2) = \u00B10.71 \u00B0C');
+    appendLabeledLine(hlPanel, 'Systematic error', 'Heat loss to surroundings \u2192 measured \u0394T < actual \u0394T \u2192 |calculated \u0394H| < literature value');
+    appendLabeledLine(hlPanel, 'Random error', 'Temperature fluctuations (\u00B10.3 \u00B0C noise) visible in the baseline region');
+  } else {
+    appendLabeledLine(hlPanel, 'Propagation', 'Burette uncertainty: \u00B10.05 cm\u00B3 per reading, \u00B10.10 cm\u00B3 for titre (two readings)');
+    appendLabeledLine(hlPanel, 'Systematic error', 'Indicator choice (for manual titration) may cause systematic over/under-shoot of equivalence point');
+    appendLabeledLine(hlPanel, 'Random error', 'pH sensor noise (\u00B10.05 units) affects precision of equivalence point determination');
+  }
+
+  container.appendChild(results);
+  container.appendChild(ibPanel);
+  container.appendChild(teacher3);
+  container.appendChild(hlPanel);
+  container.appendChild(copyBtn);
+  renderAnalysisGraph();
+}
+
+function updateToolInstructions(){
+  var el = document.getElementById('toolInstructions');
+  var ftw = document.getElementById('fitTypeWrap');
+  if(!el) return;
+  var msgs = {
+    statistics: 'Click two points on the graph to select a range for statistics.',
+    linearfit: 'Click two points to define the range for linear regression.',
+    curvefit: 'Select fit type and click the graph to see the fitted curve for all data.',
+    tangent: 'Click on a data point to calculate the instantaneous rate (tangent slope).',
+    annotation: 'Click on the graph to add a text label.'
+  };
+  el.textContent = _activeTool ? msgs[_activeTool] : 'Select a tool from the toolbar above, then interact with the graph.';
+  if(ftw) ftw.style.display = (_activeTool === 'curvefit') ? 'inline-block' : 'none';
+}
+
+function handleAnalysisClick(mx, my){
+  var canvas = document.getElementById('analysisGraph');
+  var w = parseInt(canvas.getAttribute('data-w'));
+  var h = parseInt(canvas.getAttribute('data-h'));
+  var pad = {top:30, right:30, bottom:50, left:65};
+  var pw = w - pad.left - pad.right;
+  var ph = h - pad.top - pad.bottom;
+  var ranges = getAnalysisRanges();
+
+  // Convert pixel to data coords
+  var dataX = ranges.xMin + ((mx - pad.left) / pw) * (ranges.xMax - ranges.xMin);
+  var dataY = ranges.yMax - ((my - pad.top) / ph) * (ranges.yMax - ranges.yMin);
+
+  // Find nearest data point
+  var nearest = null, nearDist = Infinity;
+  _collectedData.forEach(function(d){
+    var dx = d.x - dataX, dy = d.y - dataY;
+    var normDx = dx / (ranges.xMax - ranges.xMin);
+    var normDy = dy / (ranges.yMax - ranges.yMin);
+    var dist = normDx*normDx + normDy*normDy;
+    if(dist < nearDist){ nearDist = dist; nearest = d; }
+  });
+
+  if(_activeTool === 'statistics' || _activeTool === 'linearfit'){
+    _selectionPoints.push(nearest);
+    if(_selectionPoints.length >= 2){
+      updateResults();
+      renderAnalysisGraph();
+    } else {
+      renderAnalysisGraph();
+    }
+  } else if(_activeTool === 'curvefit'){
+    updateResults();
+    renderAnalysisGraph();
+  } else if(_activeTool === 'tangent'){
+    _selectionPoints = [nearest];
+    updateResults();
+    renderAnalysisGraph();
+  } else if(_activeTool === 'annotation'){
+    var text = prompt('Enter annotation text:');
+    if(text){
+      _annotations.push({x: nearest.x, y: nearest.y, text: text});
+      renderAnalysisGraph();
+    }
+  }
+}
+
+function getAnalysisRanges(){
+  var exp = EXPERIMENTS[_activeExperiment];
+  var xMin = 0, xMax, yMin, yMax;
+  if(_activeExperiment === 'titration'){
+    xMax = _settings.totalVolume || 50; yMin = 0; yMax = 14;
+  } else {
+    xMax = _settings.duration || 180; yMin = 15; yMax = 35;
+  }
+  if(_collectedData.length > 0){
+    var ys = _collectedData.map(function(d){return d.y;});
+    var dataMin = Math.min.apply(null,ys), dataMax = Math.max.apply(null,ys);
+    var margin = (dataMax - dataMin) * 0.1 || 1;
+    yMin = Math.floor(dataMin - margin); yMax = Math.ceil(dataMax + margin);
+  }
+  return {xMin:xMin, xMax:xMax, yMin:yMin, yMax:yMax};
+}
+
+function updateResults(){
+  var panel = document.getElementById('resultsPanel');
+  if(!panel) return;
+  clearChildren(panel);
+
+  if(_activeTool === 'statistics' && _selectionPoints.length >= 2){
+    var x1 = Math.min(_selectionPoints[0].x, _selectionPoints[1].x);
+    var x2 = Math.max(_selectionPoints[0].x, _selectionPoints[1].x);
+    var subset = _collectedData.filter(function(d){ return d.x >= x1 && d.x <= x2; });
+    var stats = calcStats(subset);
+    panel.style.display = 'block';
+    var title = document.createElement('h4'); title.textContent = 'Statistics (x = ' + x1.toFixed(1) + ' to ' + x2.toFixed(1) + ')';
+    panel.appendChild(title);
+    var items = [['Points',stats.count],['Mean',stats.mean.toFixed(3)],['Min',stats.min.toFixed(3)],['Max',stats.max.toFixed(3)],['Std Dev',stats.stddev.toFixed(4)]];
+    items.forEach(function(item){
+      var row = document.createElement('div'); row.className = 'result-row';
+      var lbl = document.createElement('span'); lbl.className = 'result-label'; lbl.textContent = item[0];
+      var val = document.createElement('span'); val.className = 'result-value'; val.textContent = item[1];
+      row.appendChild(lbl); row.appendChild(val); panel.appendChild(row);
+    });
+  } else if(_activeTool === 'linearfit' && _selectionPoints.length >= 2){
+    var x1 = Math.min(_selectionPoints[0].x, _selectionPoints[1].x);
+    var x2 = Math.max(_selectionPoints[0].x, _selectionPoints[1].x);
+    var subset = _collectedData.filter(function(d){ return d.x >= x1 && d.x <= x2; });
+    var fit = linearRegression(subset);
+    panel.style.display = 'block';
+    var title = document.createElement('h4'); title.textContent = 'Linear Fit (x = ' + x1.toFixed(1) + ' to ' + x2.toFixed(1) + ')';
+    panel.appendChild(title);
+    var eqText = 'y = ' + fit.m.toFixed(4) + 'x + ' + fit.b.toFixed(4);
+    var items = [['Equation', eqText],['Slope (m)', fit.m.toFixed(4)],['Intercept (b)', fit.b.toFixed(4)],['R\u00B2', fit.r2.toFixed(6)]];
+    items.forEach(function(item){
+      var row = document.createElement('div'); row.className = 'result-row';
+      var lbl = document.createElement('span'); lbl.className = 'result-label'; lbl.textContent = item[0];
+      var val = document.createElement('span'); val.className = 'result-value'; val.textContent = item[1];
+      row.appendChild(lbl); row.appendChild(val); panel.appendChild(row);
+    });
+  } else if(_activeTool === 'curvefit'){
+    var fitType = (document.getElementById('fitType') || {}).value || 'linear';
+    var items = [];
+    panel.style.display = 'block';
+    var title = document.createElement('h4'); title.textContent = 'Curve Fit (' + fitType + ')';
+    panel.appendChild(title);
+    if(fitType === 'linear'){
+      var fit = linearRegression(_collectedData);
+      items = [['Equation','y = ' + fit.m.toFixed(4) + 'x + ' + fit.b.toFixed(4)],['R\u00B2',fit.r2.toFixed(6)]];
+    } else if(fitType === 'quadratic'){
+      var fit = quadraticRegression(_collectedData);
+      items = [['Equation','y = ' + fit.a.toFixed(6) + 'x\u00B2 + ' + fit.b.toFixed(4) + 'x + ' + fit.c.toFixed(4)],['R\u00B2',fit.r2.toFixed(6)]];
+    } else {
+      var fit = exponentialRegression(_collectedData);
+      items = [['Equation','y = ' + fit.A.toFixed(4) + 'e^(' + fit.B.toFixed(6) + 'x)'],['R\u00B2',fit.r2.toFixed(6)]];
+    }
+    items.forEach(function(item){
+      var row = document.createElement('div'); row.className = 'result-row';
+      var lbl = document.createElement('span'); lbl.className = 'result-label'; lbl.textContent = item[0];
+      var val = document.createElement('span'); val.className = 'result-value'; val.textContent = item[1];
+      row.appendChild(lbl); row.appendChild(val); panel.appendChild(row);
+    });
+  } else if(_activeTool === 'tangent' && _selectionPoints.length >= 1){
+    var pt = _selectionPoints[0];
+    var idx = -1;
+    for(var i = 0; i < _collectedData.length; i++){ if(_collectedData[i].x === pt.x && _collectedData[i].y === pt.y){ idx = i; break; } }
+    var slope;
+    if(idx <= 0) slope = (_collectedData[1].y - _collectedData[0].y) / (_collectedData[1].x - _collectedData[0].x);
+    else if(idx >= _collectedData.length - 1){ var n = _collectedData.length; slope = (_collectedData[n-1].y - _collectedData[n-2].y) / (_collectedData[n-1].x - _collectedData[n-2].x); }
+    else slope = (_collectedData[idx+1].y - _collectedData[idx-1].y) / (_collectedData[idx+1].x - _collectedData[idx-1].x);
+    panel.style.display = 'block';
+    var title = document.createElement('h4'); title.textContent = 'Tangent at x = ' + pt.x.toFixed(2);
+    panel.appendChild(title);
+    var exp = EXPERIMENTS[_activeExperiment];
+    var unit = exp.yAxis.unit ? exp.yAxis.unit + '/' + exp.xAxis.unit : 'per ' + exp.xAxis.unit;
+    var items = [['Point','(' + pt.x.toFixed(2) + ', ' + pt.y.toFixed(3) + ')'],['Slope (rate)',slope.toFixed(4) + ' ' + unit]];
+    items.forEach(function(item){
+      var row = document.createElement('div'); row.className = 'result-row';
+      var lbl = document.createElement('span'); lbl.className = 'result-label'; lbl.textContent = item[0];
+      var val = document.createElement('span'); val.className = 'result-value'; val.textContent = item[1];
+      row.appendChild(lbl); row.appendChild(val); panel.appendChild(row);
+    });
+  } else {
+    panel.style.display = 'none';
+  }
+
+  // IB Context
+  updateIBContext();
+}
+
+function updateIBContext(){
+  var ibPanel = document.getElementById('ibContextPanel');
+  if(!ibPanel) return;
+  clearChildren(ibPanel);
+  var exp = EXPERIMENTS[_activeExperiment];
+
+  if(_collectedData.length === 0){ ibPanel.style.display = 'none'; return; }
+  ibPanel.style.display = 'block';
+  var title = document.createElement('h4'); title.textContent = 'IB Context: ' + exp.name;
+  ibPanel.appendChild(title);
+
+  if(_activeExperiment === 'neutralization'){
+    var ys = _collectedData.map(function(d){return d.y;});
+    var T0 = ys[0], Tmax = Math.max.apply(null, ys);
+    var deltaT = Tmax - T0;
+    var mass = 0.050; // 50 cm3 = 50 g approx
+    var c = 4.18;
+    var q = mass * c * deltaT * 1000; // in J
+    var moles = 0.025; // 25cm3 of 1 mol/dm3
+    var deltaH = -q / moles / 1000; // kJ/mol
+    var items = [
+      ['Equation', exp.ibContext.equation],
+      ['\u0394T', deltaT.toFixed(2) + ' \u00B0C'],
+      ['q = mc\u0394T', (q).toFixed(1) + ' J'],
+      ['\u0394H = \u2212q/n', deltaH.toFixed(1) + ' kJ mol\u207B\u00B9'],
+      ['Expected \u0394H', exp.ibContext.expectedDeltaH + ' kJ mol\u207B\u00B9']
+    ];
+    items.forEach(function(item){
+      var row = document.createElement('div'); row.className = 'result-row';
+      var lbl = document.createElement('span'); lbl.className = 'result-label'; lbl.textContent = item[0];
+      var val = document.createElement('span'); val.className = 'result-value'; val.textContent = item[1];
+      row.appendChild(lbl); row.appendChild(val); ibPanel.appendChild(row);
+    });
+  } else {
+    // Titration: find equivalence point (steepest slope)
+    var maxSlope = 0, eqIdx = 0;
+    for(var i = 1; i < _collectedData.length; i++){
+      var slope = Math.abs((_collectedData[i].y - _collectedData[i-1].y) / (_collectedData[i].x - _collectedData[i-1].x));
+      if(slope > maxSlope){ maxSlope = slope; eqIdx = i; }
+    }
+    var eqVol = _collectedData[eqIdx] ? _collectedData[eqIdx].x : 25;
+    var cBase = 0.100, vAcid = 25.0;
+    var cAcid = (cBase * eqVol) / vAcid;
+    var items = [
+      ['Equation', exp.ibContext.equation],
+      ['Equivalence Volume', eqVol.toFixed(1) + ' cm\u00B3'],
+      ['Equivalence pH', _collectedData[eqIdx] ? _collectedData[eqIdx].y.toFixed(2) : '7.00'],
+      ['c(HCl) = c(NaOH)\u00D7V(NaOH)/V(HCl)', cAcid.toFixed(4) + ' mol dm\u207B\u00B3'],
+      ['Expected Equiv. Vol', exp.ibContext.expectedEquivVol + ' cm\u00B3']
+    ];
+    items.forEach(function(item){
+      var row = document.createElement('div'); row.className = 'result-row';
+      var lbl = document.createElement('span'); lbl.className = 'result-label'; lbl.textContent = item[0];
+      var val = document.createElement('span'); val.className = 'result-value'; val.textContent = item[1];
+      row.appendChild(lbl); row.appendChild(val); ibPanel.appendChild(row);
+    });
+  }
+}
+
+// ── Render Analysis Graph ──
+function renderAnalysisGraph(){
+  var canvas = document.getElementById('analysisGraph');
+  if(!canvas) return;
+  var dpr = window.devicePixelRatio || 1;
+  var w = parseInt(canvas.getAttribute('data-w'));
+  var h = parseInt(canvas.getAttribute('data-h'));
+  canvas.width = w * dpr; canvas.height = h * dpr;
+  canvas.style.width = w + 'px'; canvas.style.height = h + 'px';
+  var ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+
+  var pad = {top:30, right:30, bottom:50, left:65};
+  var pw = w - pad.left - pad.right;
+  var ph = h - pad.top - pad.bottom;
+  var ranges = getAnalysisRanges();
+  var exp = EXPERIMENTS[_activeExperiment];
+
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0, 0, w, h);
+
+  // Grid
+  ctx.strokeStyle = '#E2E8F0'; ctx.lineWidth = 0.5;
+  var xTicks = 6, yTicks = 6;
+  for(var i = 0; i <= xTicks; i++){
+    var gx = pad.left + (i / xTicks) * pw;
+    ctx.beginPath(); ctx.moveTo(gx, pad.top); ctx.lineTo(gx, pad.top + ph); ctx.stroke();
+  }
+  for(var j = 0; j <= yTicks; j++){
+    var gy = pad.top + (j / yTicks) * ph;
+    ctx.beginPath(); ctx.moveTo(pad.left, gy); ctx.lineTo(pad.left + pw, gy); ctx.stroke();
+  }
+
+  // Axes
+  ctx.strokeStyle = '#1E293B'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(pad.left, pad.top); ctx.lineTo(pad.left, pad.top + ph); ctx.lineTo(pad.left + pw, pad.top + ph); ctx.stroke();
+
+  // Tick labels
+  ctx.fillStyle = '#64748B'; ctx.font = '11px Fira Code, monospace'; ctx.textAlign = 'center';
+  for(var i = 0; i <= xTicks; i++){
+    var val = ranges.xMin + (i / xTicks) * (ranges.xMax - ranges.xMin);
+    ctx.fillText(Math.round(val * 10) / 10, pad.left + (i / xTicks) * pw, pad.top + ph + 18);
+  }
+  ctx.textAlign = 'right';
+  for(var j = 0; j <= yTicks; j++){
+    var val = ranges.yMax - (j / yTicks) * (ranges.yMax - ranges.yMin);
+    ctx.fillText(Math.round(val * 10) / 10, pad.left - 8, pad.top + (j / yTicks) * ph + 4);
+  }
+
+  function toPixelX(x){ return pad.left + ((x - ranges.xMin) / (ranges.xMax - ranges.xMin)) * pw; }
+  function toPixelY(y){ return pad.top + (1 - (y - ranges.yMin) / (ranges.yMax - ranges.yMin)) * ph; }
+
+  // Data line + points
+  if(_collectedData.length > 0){
+    ctx.strokeStyle = '#0D9488'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    _collectedData.forEach(function(d, i){
+      var px = toPixelX(d.x), py = toPixelY(d.y);
+      if(i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    });
+    ctx.stroke();
+    ctx.fillStyle = '#0D9488';
+    _collectedData.forEach(function(d){
+      ctx.beginPath(); ctx.arc(toPixelX(d.x), toPixelY(d.y), 3, 0, Math.PI*2); ctx.fill();
+    });
+  }
+
+  // Selection highlights
+  if(_selectionPoints.length > 0 && (_activeTool === 'statistics' || _activeTool === 'linearfit')){
+    _selectionPoints.forEach(function(sp){
+      ctx.fillStyle = '#DC2626';
+      ctx.beginPath(); ctx.arc(toPixelX(sp.x), toPixelY(sp.y), 5, 0, Math.PI*2); ctx.fill();
+    });
+    if(_selectionPoints.length >= 2){
+      var x1 = Math.min(_selectionPoints[0].x, _selectionPoints[1].x);
+      var x2 = Math.max(_selectionPoints[0].x, _selectionPoints[1].x);
+      ctx.fillStyle = 'rgba(13,148,136,0.1)';
+      ctx.fillRect(toPixelX(x1), pad.top, toPixelX(x2) - toPixelX(x1), ph);
+    }
+  }
+
+  // Linear fit line
+  if(_activeTool === 'linearfit' && _selectionPoints.length >= 2){
+    var x1 = Math.min(_selectionPoints[0].x, _selectionPoints[1].x);
+    var x2 = Math.max(_selectionPoints[0].x, _selectionPoints[1].x);
+    var subset = _collectedData.filter(function(d){ return d.x >= x1 && d.x <= x2; });
+    var fit = linearRegression(subset);
+    ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
+    ctx.beginPath(); ctx.moveTo(toPixelX(x1), toPixelY(fit.m * x1 + fit.b)); ctx.lineTo(toPixelX(x2), toPixelY(fit.m * x2 + fit.b)); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // Curve fit
+  if(_activeTool === 'curvefit' && _collectedData.length > 0){
+    var fitType = (document.getElementById('fitType') || {}).value || 'linear';
+    ctx.strokeStyle = '#7C3AED'; ctx.lineWidth = 2; ctx.setLineDash([6,4]);
+    ctx.beginPath();
+    var step = (ranges.xMax - ranges.xMin) / 200;
+    for(var x = ranges.xMin; x <= ranges.xMax; x += step){
+      var y;
+      if(fitType === 'linear'){ var f = linearRegression(_collectedData); y = f.m*x + f.b; }
+      else if(fitType === 'quadratic'){ var f = quadraticRegression(_collectedData); y = f.a*x*x + f.b*x + f.c; }
+      else { var f = exponentialRegression(_collectedData); y = f.A * Math.exp(f.B * x); }
+      var px = toPixelX(x), py = toPixelY(y);
+      if(x === ranges.xMin) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+    }
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  // Tangent line
+  if(_activeTool === 'tangent' && _selectionPoints.length >= 1){
+    var pt = _selectionPoints[0];
+    var idx = -1;
+    for(var i = 0; i < _collectedData.length; i++){ if(_collectedData[i].x === pt.x){ idx = i; break; } }
+    var slope;
+    if(idx <= 0) slope = (_collectedData[1].y - _collectedData[0].y) / (_collectedData[1].x - _collectedData[0].x);
+    else if(idx >= _collectedData.length - 1){ var n = _collectedData.length; slope = (_collectedData[n-1].y - _collectedData[n-2].y) / (_collectedData[n-1].x - _collectedData[n-2].x); }
+    else slope = (_collectedData[idx+1].y - _collectedData[idx-1].y) / (_collectedData[idx+1].x - _collectedData[idx-1].x);
+    var tangentLen = (ranges.xMax - ranges.xMin) * 0.15;
+    ctx.strokeStyle = '#D97706'; ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(toPixelX(pt.x - tangentLen), toPixelY(pt.y - slope * tangentLen));
+    ctx.lineTo(toPixelX(pt.x + tangentLen), toPixelY(pt.y + slope * tangentLen));
+    ctx.stroke();
+    ctx.fillStyle = '#D97706';
+    ctx.beginPath(); ctx.arc(toPixelX(pt.x), toPixelY(pt.y), 5, 0, Math.PI*2); ctx.fill();
+  }
+
+  // Annotations
+  _annotations.forEach(function(a){
+    ctx.fillStyle = '#1E293B'; ctx.font = '600 11px Inter, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText(a.text, toPixelX(a.x) + 6, toPixelY(a.y) - 6);
+    ctx.fillStyle = '#7C3AED';
+    ctx.beginPath(); ctx.arc(toPixelX(a.x), toPixelY(a.y), 4, 0, Math.PI*2); ctx.fill();
+  });
+
+  // Axis titles
+  ctx.fillStyle = '#1E293B'; ctx.font = '600 12px Inter, sans-serif'; ctx.textAlign = 'center';
+  ctx.fillText(exp.xAxis.label + (exp.xAxis.unit ? ' / ' + exp.xAxis.unit : ''), pad.left + pw/2, h - 8);
+  ctx.save(); ctx.translate(14, pad.top + ph/2); ctx.rotate(-Math.PI/2);
+  ctx.fillText(exp.yAxis.label + (exp.yAxis.unit ? ' / ' + exp.yAxis.unit : ''), 0, 0);
+  ctx.restore();
+}
+
+function copyData(){
+  var exp = EXPERIMENTS[_activeExperiment];
+  var header = exp.xAxis.label + (exp.xAxis.unit ? ' (' + exp.xAxis.unit + ')' : '') + '\t' + exp.yAxis.label + (exp.yAxis.unit ? ' (' + exp.yAxis.unit + ')' : '') + '\n';
+  var rows = _collectedData.map(function(d){ return d.x + '\t' + d.y; }).join('\n');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(header + rows).then(function(){
+      showFeedback('Data copied to clipboard!', 'correct');
+    });
+  } else {
+    showFeedback('Clipboard not available (try HTTPS or localhost).', 'incorrect');
+  }
+}
+
+// ── Initialize Tabs ──
+buildSetupTab();
+buildCollectTab();
+
+// Tab switching
+document.querySelectorAll('.tab-btn').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var target = btn.getAttribute('data-tab');
+    document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); b.setAttribute('aria-selected','false'); });
+    document.querySelectorAll('.tab-content').forEach(function(c){ c.classList.remove('active'); });
+    btn.classList.add('active'); btn.setAttribute('aria-selected','true');
+    document.getElementById('tab-'+target).classList.add('active');
+    if(target === 'analysis') buildAnalysisTab();
+    if(target === 'collect') buildCollectTab();
+  });
+});
+
+// HL / Teacher toggles
+document.getElementById('hlToggle').addEventListener('change', function(){ document.body.classList.toggle('hl-active', this.checked); });
+document.getElementById('teacherToggle').addEventListener('change', function(){ document.body.classList.toggle('teacher-active', this.checked); });
+
+// Keyboard shortcuts
+document.addEventListener('keydown', function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT') return;
+  var k = e.key.toLowerCase();
+  if(k==='h') document.getElementById('hlToggle').click();
+  if(k==='t') document.getElementById('teacherToggle').click();
+  if(k==='1'||k==='2'||k==='3') document.querySelectorAll('.tab-btn')[parseInt(k)-1].click();
+  if(k==='r') resetExperiment();
+  if(k===' '){ e.preventDefault(); toggleCollection(); }
+});
+
+// resetExperiment and toggleCollection are defined above
+
+})();
+</script>
+</body>
+</html>

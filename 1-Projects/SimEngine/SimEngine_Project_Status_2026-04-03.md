@@ -2,11 +2,11 @@
 
 ## Executive Summary
 
-**36 interactive HTML simulations** have been built, covering all 18 IB Chemistry 2025 syllabus subtopics — **100% syllabus coverage achieved**. The original architecture planned ~82 simulation modules across 7 phases. **Phases 1–4 and 7 are COMPLETE.** Phase 4 Lab Builder has 6 guided assembly templates and 37 canvas-drawn equipment items. A comprehensive polish pass has been applied: IB content accuracy fixes, full ARIA accessibility attributes across all sims, and normalized CSS styling. Phases 5–6 (Vernier Sensors, Advanced IA) remain not started.
+**38 interactive HTML simulations** have been built, covering all 18 IB Chemistry 2025 syllabus subtopics — **100% syllabus coverage achieved**. The original architecture planned ~82 simulation modules across 7 phases. **Phases 1–5 and 7 are COMPLETE.** Phase 4 Lab Builder has 6 guided assembly templates and 37 canvas-drawn equipment items. Phase 5 Virtual Vernier Lab has 2 sensor experiments with full data collection and Graphical Analysis-style tools. A comprehensive polish pass has been applied: IB content accuracy fixes, full ARIA accessibility attributes across all sims, and normalized CSS styling. Phase 6 (Advanced IA) remains not started.
 
 ---
 
-## What Has Been Built (36 Simulations)
+## What Has Been Built (38 Simulations)
 
 ### Structure 1: Models of the Particulate Nature of Matter
 
@@ -82,6 +82,8 @@
 | `SimEngine_GraphTrainer.html` | Tool 1 / IA Skills | Both | Complete | 4 tabs: Reading Graphs (6 graph types: calibration, heating, Charles's Law, titration, equivalence, conc-time), Gradients & Rates (step-by-step gradient, tangent, order MCQ, rate constant), Graph Analysis HL (Arrhenius Ea, linearization, integrated rate plots), Mixed Practice with score tracking |
 | `SimEngine_EquipmentTrainer.html` | Tool 1 / IA Skills | Both | Complete | 4 tabs: Equipment Identification (26 items, canvas drawings, confusion-group distractors), Equipment Selection (14 task scenarios, 2×2 grid), Measurement & Precision (uncertainty values, equipment comparison, % uncertainty), Mixed Practice with score tracking |
 | `SimEngine_IAScaffold.html` | Tool 1 / IA Skills | Both | Complete | 4-tab IA scaffold: Research Design (RQ builder, variables table, method outline, rubric self-check), Data Analysis (raw data table builder, uncertainty guidance, graph checklist), Conclusion (sentence starters, % error calculator, literature comparison), Evaluation (categorised weaknesses, linked improvements, extension). Lab-specific presets for Calorimetry, Titration, Gravimetric, Qualitative. Embedded IA Guide panels in 4 lab sims. |
+| `SimEngine_LabBuilder.html` | Tool 1 / Lab Skills | Both | Complete | 2-tab Virtual Lab Builder: Guided Assembly with 6 templates (Distillation, Titration, Recrystallization, Filtration, Calorimetry, Chromatography) and Sandbox with save/load. 37 canvas-drawn equipment items. |
+| `SimEngine_VernierLab.html` | Tool 1 / Lab Skills | Both | Complete | 3-tab Virtual Vernier Lab: Sensor Setup (experiment selector, probe drawing, collection settings), Data Collection (live graph + data table, speed controls), Analysis (5 tools: Statistics, Linear Fit, Curve Fit, Tangent, Annotation). 2 experiments: Enthalpy of Neutralization (temperature probe) and Strong Acid-Base Titration (pH sensor). IB context calculations, teacher + HL panels. |
 
 ### Additional (Outside SimEngine folder)
 
@@ -175,10 +177,12 @@ All planned topic-level simulations from the architecture doc have been built, c
 - Step-by-step validation, scoring, connection lines
 - Equipment photo library not yet collected
 
-### Phase 5: Vernier Sensor Simulation — NOT STARTED
-- No Vernier sensor integration
-- Graphical Analysis UI not built
-- Sensor configuration files not created
+### Phase 5: Vernier Sensor Simulation — COMPLETE (MVP)
+- Virtual Vernier Lab sim (`SimEngine_VernierLab.html`) with 2 experiments
+- Temperature probe (Enthalpy of Neutralization) + pH sensor (Strong Acid-Base Titration)
+- 3-tab workflow: Sensor Setup → Data Collection (live graph) → Analysis
+- 5 analysis tools: Statistics, Linear Fit, Curve Fit, Tangent, Annotation
+- IB context calculations (q=mcΔT, equivalence point), teacher + HL panels
 
 ### Phase 6: Advanced IA Workflow — NOT STARTED (IAScaffold is a partial MVP)
 - IAScaffold sim covers basic IA workflow (Research Design → Data Analysis → Conclusion → Evaluation)
@@ -244,12 +248,12 @@ All planned topic-level simulations from the architecture doc have been built, c
     - Wave 2: Added aria-label to all canvas/input elements, role=tablist/tab/tabpanel, aria-live regions, skip-to-content links
     - Wave 3: Normalized CSS palette (--text, --blue), added --orange/--green vars, standardized headers/footers/tab-bars
 19. ~~Extended LabBuilder templates~~ — **DONE** (April 5, 4 new templates: Recrystallization, Filtration & Evaporation, Coffee-Cup Calorimetry, Paper/TLC Chromatography + 6 new equipment items)
+20. ~~Phase 5: Virtual Vernier Lab~~ — **DONE** (April 5, SimEngine_VernierLab.html — 3 tabs, 2 experiments, 5 analysis tools, temperature + pH sensors, live data collection, IB context calculations)
 
 ### Long-term (summer/next year):
-20. Phase 5: Vernier Sensor Simulation
 21. Phase 6: Advanced IA Workflow (rubric alignment, deep linking)
 22. Equipment photo library for LabBuilder
 
 ---
 
-*Last updated: April 5, 2026. 36 sims, 100% syllabus coverage, Phases 1–4 and 7 complete, comprehensive accessibility + visual polish applied.*
+*Last updated: April 5, 2026. 38 sims, 100% syllabus coverage, Phases 1–5 and 7 complete, comprehensive accessibility + visual polish applied.*
