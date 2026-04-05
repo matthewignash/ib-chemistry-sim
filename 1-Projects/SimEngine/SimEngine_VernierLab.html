@@ -176,6 +176,95 @@ var SENSORS = {
   }
 };
 
+// ── pH Calculation Helpers ──
+function generateWeakAcidPH(v, cAcid, vAcid, cBase, Ka){
+  var molesAcid = cAcid * vAcid / 1000;
+  var molesBase = cBase * v / 1000;
+  var totalVol = (vAcid + v) / 1000;
+  var pKa = -Math.log10(Ka);
+  var pH;
+  if(v < 0.001){
+    // Initial pH: Ka = x^2/(Ca-x), approximate
+    var Ca = cAcid;
+    var x = Math.sqrt(Ka * Ca);
+    pH = -Math.log10(x);
+  } else if(molesBase < molesAcid * 0.999){
+    // Buffer region: Henderson-Hasselbalch
+    var concHA = (molesAcid - molesBase) / totalVol;
+    var concA = molesBase / totalVol;
+    pH = pKa + Math.log10(concA / concHA);
+  } else if(molesBase <= molesAcid * 1.001){
+    // Equivalence: hydrolysis of conjugate base
+    var Cb = molesAcid / totalVol;
+    var Kb = 1e-14 / Ka;
+    var OH = Math.sqrt(Kb * Cb);
+    pH = 14 + Math.log10(OH);
+  } else {
+    // Excess NaOH
+    var excessOH = (molesBase - molesAcid) / totalVol;
+    pH = 14 + Math.log10(excessOH);
+  }
+  return Math.max(0, Math.min(14, pH));
+}
+
+function generateDiproticPH(v, cAcid, vAcid, cBase, Ka1, Ka2){
+  var molesAcid = cAcid * vAcid / 1000;
+  var molesBase = cBase * v / 1000;
+  var totalVol = (vAcid + v) / 1000;
+  var eq1 = molesAcid;
+  var eq2 = 2 * molesAcid;
+  var pH;
+  if(v < 0.001){
+    // Initial: first dissociation
+    if(Ka1 > 1){
+      // Strong first acid (H2SO4)
+      var H = cAcid;
+      pH = -Math.log10(H);
+    } else {
+      var x = Math.sqrt(Ka1 * cAcid);
+      pH = -Math.log10(x);
+    }
+  } else if(molesBase < eq1 * 0.999){
+    // First buffer region: H2A / HA-
+    if(Ka1 > 1){
+      // H2SO4: first proton fully dissociated, remaining H+ from excess + HSO4- equilibrium
+      var excessH = (molesAcid - molesBase) / totalVol;
+      // Also consider Ka2 contribution from HSO4-
+      var concHSO4 = molesBase / totalVol; // HSO4- formed
+      // Quadratic: Ka2 = x(excessH + x) / (concHSO4 - x), approximate
+      pH = -Math.log10(excessH + Ka2 * concHSO4 / (excessH + Ka2));
+    } else {
+      var concHA = (molesAcid - molesBase) / totalVol;
+      var concA = molesBase / totalVol;
+      var pKa1 = -Math.log10(Ka1);
+      pH = pKa1 + Math.log10(concA / concHA);
+    }
+  } else if(molesBase <= eq1 * 1.001){
+    // First equivalence: amphoteric HA-
+    var pKa1 = -Math.log10(Ka1);
+    var pKa2 = -Math.log10(Ka2);
+    pH = 0.5 * (pKa1 + pKa2);
+    if(Ka1 > 1) pH = 0.5 * ((-Math.log10(Ka2)) + 0); // approximate for strong first acid
+  } else if(molesBase < eq2 * 0.999){
+    // Second buffer region: HA- / A2-
+    var molesHA = eq1 - (molesBase - eq1);  // = 2*molesAcid - molesBase
+    var molesA2 = molesBase - eq1;
+    var pKa2 = -Math.log10(Ka2);
+    pH = pKa2 + Math.log10(molesA2 / molesHA);
+  } else if(molesBase <= eq2 * 1.001){
+    // Second equivalence: hydrolysis of A2-
+    var concA2 = molesAcid / totalVol;
+    var Kb = 1e-14 / Ka2;
+    var OH = Math.sqrt(Kb * concA2);
+    pH = 14 + Math.log10(OH);
+  } else {
+    // Excess NaOH
+    var excessOH = (molesBase - eq2) / totalVol;
+    pH = 14 + Math.log10(excessOH);
+  }
+  return Math.max(0, Math.min(14, pH));
+}
+
 // ── Experiment Definitions ──
 var EXPERIMENTS = {
   neutralization: {
@@ -249,6 +338,193 @@ var EXPERIMENTS = {
           pH = 7.0;
         }
         pH = Math.max(0, Math.min(14, pH + (Math.random() - 0.5) * 0.08));
+        data.push({ x: Math.round(v * 100) / 100, y: Math.round(pH * 100) / 100 });
+        v += settings.volumeIncrement;
+      }
+      return data;
+    }
+  },
+  combustion: {
+    id: 'combustion',
+    name: 'Enthalpy of Combustion',
+    sensor: 'temperature',
+    description: 'Burn methanol in a spirit burner under a copper calorimeter containing 100.0 cm\u00B3 of water. Measure the temperature rise to determine the enthalpy of combustion.',
+    xAxis: { label: 'Time', unit: 's' },
+    yAxis: { label: 'Temperature', unit: '\u00B0C' },
+    defaults: { duration: 180, sampleRate: 2 },
+    ibContext: {
+      equation: '2CH\u2083OH(l) + 3O\u2082(g) \u2192 2CO\u2082(g) + 4H\u2082O(l)',
+      expectedDeltaH: -726,
+      formula: 'q = mc\u0394T, \u0394H = \u2212q/n(alcohol)'
+    },
+    generate: function(settings){
+      var data = [];
+      var dt = 1 / settings.sampleRate;
+      var n = Math.round(settings.duration * settings.sampleRate);
+      var T0 = 22.0 + (Math.random() - 0.5) * 2;
+      var dT = 8.0 + Math.random() * 3.0;
+      var lightTime = 10;
+      var lightIdx = Math.round(lightTime * settings.sampleRate);
+      for(var i = 0; i < n; i++){
+        var t = i * dt;
+        var T;
+        if(i < lightIdx){
+          T = T0 + (Math.random() - 0.5) * 0.3;
+        } else {
+          var elapsed = t - lightTime;
+          T = T0 + dT * (1 - Math.exp(-elapsed / 40));
+          T += (Math.random() - 0.5) * 0.5;
+        }
+        data.push({ x: Math.round(t * 10) / 10, y: Math.round(T * 100) / 100 });
+      }
+      return data;
+    }
+  },
+  dissolution: {
+    id: 'dissolution',
+    name: 'Enthalpy of Dissolution \u2014 NH\u2084NO\u2083',
+    sensor: 'temperature',
+    description: 'Dissolve 5.00 g of NH\u2084NO\u2083 in 50.0 cm\u00B3 of water in a polystyrene cup calorimeter. Measure the temperature drop (endothermic process).',
+    xAxis: { label: 'Time', unit: 's' },
+    yAxis: { label: 'Temperature', unit: '\u00B0C' },
+    defaults: { duration: 180, sampleRate: 2 },
+    ibContext: {
+      equation: 'NH\u2084NO\u2083(s) \u2192 NH\u2084\u207A(aq) + NO\u2083\u207B(aq)',
+      expectedDeltaH: 25.7,
+      formula: 'q = mc\u0394T (\u0394T is negative), \u0394H = \u2212q/n'
+    },
+    generate: function(settings){
+      var data = [];
+      var dt = 1 / settings.sampleRate;
+      var n = Math.round(settings.duration * settings.sampleRate);
+      var T0 = 22.0 + (Math.random() - 0.5) * 2;
+      var dT = 5.0 + Math.random() * 1.5;
+      var addTime = 20;
+      var addIdx = Math.round(addTime * settings.sampleRate);
+      for(var i = 0; i < n; i++){
+        var t = i * dt;
+        var T;
+        if(i < addIdx){
+          T = T0 + (Math.random() - 0.5) * 0.3;
+        } else {
+          var elapsed = t - addTime;
+          var drop = dT * (1 - Math.exp(-elapsed / 5));
+          var recovery = drop * (1 - Math.exp(-elapsed / 120)) * 0.4;
+          T = T0 - drop + recovery;
+          T += (Math.random() - 0.5) * 0.3;
+        }
+        data.push({ x: Math.round(t * 10) / 10, y: Math.round(T * 100) / 100 });
+      }
+      return data;
+    }
+  },
+  weakAcidTitration: {
+    id: 'weakAcidTitration',
+    name: 'Weak Acid Titration \u2014 CH\u2083COOH',
+    sensor: 'ph',
+    description: 'Monitor pH as 0.100 mol dm\u207B\u00B3 NaOH is added to 25.0 cm\u00B3 of 0.100 mol dm\u207B\u00B3 ethanoic acid (Ka = 1.74 \u00D7 10\u207B\u2075).',
+    xAxis: { label: 'Volume NaOH added', unit: 'cm\u00B3' },
+    yAxis: { label: 'pH', unit: '' },
+    defaults: { volumeIncrement: 0.5, totalVolume: 50.0 },
+    ibContext: {
+      equation: 'CH\u2083COOH(aq) + NaOH(aq) \u2192 CH\u2083COONa(aq) + H\u2082O(l)',
+      expectedEquivVol: 25.0,
+      expectedEquivPH: 8.7,
+      Ka: 1.74e-5,
+      formula: 'Henderson\u2013Hasselbalch: pH = pKa + log([A\u207B]/[HA])'
+    },
+    generate: function(settings){
+      var data = [];
+      var v = 0;
+      while(v <= settings.totalVolume + 0.01){
+        var pH = generateWeakAcidPH(v, 0.100, 25.0, 0.100, 1.74e-5);
+        pH += (Math.random() - 0.5) * 0.08;
+        pH = Math.max(0, Math.min(14, pH));
+        data.push({ x: Math.round(v * 100) / 100, y: Math.round(pH * 100) / 100 });
+        v += settings.volumeIncrement;
+      }
+      return data;
+    }
+  },
+  methanoicTitration: {
+    id: 'methanoicTitration',
+    name: 'Weak Acid Titration \u2014 HCOOH',
+    sensor: 'ph',
+    description: 'Monitor pH as 0.100 mol dm\u207B\u00B3 NaOH is added to 25.0 cm\u00B3 of 0.100 mol dm\u207B\u00B3 methanoic acid (Ka = 1.77 \u00D7 10\u207B\u2074).',
+    xAxis: { label: 'Volume NaOH added', unit: 'cm\u00B3' },
+    yAxis: { label: 'pH', unit: '' },
+    defaults: { volumeIncrement: 0.5, totalVolume: 50.0 },
+    ibContext: {
+      equation: 'HCOOH(aq) + NaOH(aq) \u2192 HCOONa(aq) + H\u2082O(l)',
+      expectedEquivVol: 25.0,
+      expectedEquivPH: 8.2,
+      Ka: 1.77e-4,
+      formula: 'Henderson\u2013Hasselbalch: pH = pKa + log([A\u207B]/[HA])'
+    },
+    generate: function(settings){
+      var data = [];
+      var v = 0;
+      while(v <= settings.totalVolume + 0.01){
+        var pH = generateWeakAcidPH(v, 0.100, 25.0, 0.100, 1.77e-4);
+        pH += (Math.random() - 0.5) * 0.08;
+        pH = Math.max(0, Math.min(14, pH));
+        data.push({ x: Math.round(v * 100) / 100, y: Math.round(pH * 100) / 100 });
+        v += settings.volumeIncrement;
+      }
+      return data;
+    }
+  },
+  diproticH2SO4: {
+    id: 'diproticH2SO4',
+    name: 'Diprotic Titration \u2014 H\u2082SO\u2084 (HL)',
+    sensor: 'ph',
+    description: 'Monitor pH as 0.100 mol dm\u207B\u00B3 NaOH is added to 25.0 cm\u00B3 of 0.050 mol dm\u207B\u00B3 sulfuric acid. Ka2 = 1.2 \u00D7 10\u207B\u00B2.',
+    xAxis: { label: 'Volume NaOH added', unit: 'cm\u00B3' },
+    yAxis: { label: 'pH', unit: '' },
+    defaults: { volumeIncrement: 0.5, totalVolume: 50.0 },
+    ibContext: {
+      equation: 'H\u2082SO\u2084(aq) + 2NaOH(aq) \u2192 Na\u2082SO\u2084(aq) + 2H\u2082O(l)',
+      expectedEquivVol1: 12.5,
+      expectedEquivVol2: 25.0,
+      Ka2: 1.2e-2,
+      formula: 'n(NaOH) = 2 \u00D7 n(H\u2082SO\u2084)'
+    },
+    generate: function(settings){
+      var data = [];
+      var v = 0;
+      while(v <= settings.totalVolume + 0.01){
+        var pH = generateDiproticPH(v, 0.050, 25.0, 0.100, 1000, 1.2e-2);
+        pH += (Math.random() - 0.5) * 0.08;
+        pH = Math.max(0, Math.min(14, pH));
+        data.push({ x: Math.round(v * 100) / 100, y: Math.round(pH * 100) / 100 });
+        v += settings.volumeIncrement;
+      }
+      return data;
+    }
+  },
+  diproticH2CO3: {
+    id: 'diproticH2CO3',
+    name: 'Diprotic Titration \u2014 H\u2082CO\u2083 (HL)',
+    sensor: 'ph',
+    description: 'Monitor pH as 0.100 mol dm\u207B\u00B3 NaOH is added to 25.0 cm\u00B3 of 0.050 mol dm\u207B\u00B3 carbonic acid. Ka1 = 4.3 \u00D7 10\u207B\u2077, Ka2 = 4.7 \u00D7 10\u207B\u00B9\u00B9. Relevant to ocean acidification.',
+    xAxis: { label: 'Volume NaOH added', unit: 'cm\u00B3' },
+    yAxis: { label: 'pH', unit: '' },
+    defaults: { volumeIncrement: 0.5, totalVolume: 75.0 },
+    ibContext: {
+      equation: 'H\u2082CO\u2083(aq) + 2NaOH(aq) \u2192 Na\u2082CO\u2083(aq) + 2H\u2082O(l)',
+      expectedEquivVol1: 25.0,
+      expectedEquivVol2: 50.0,
+      Ka1: 4.3e-7,
+      Ka2: 4.7e-11,
+      formula: 'Two buffer regions, two equivalence points'
+    },
+    generate: function(settings){
+      var data = [];
+      var v = 0;
+      while(v <= settings.totalVolume + 0.01){
+        var pH = generateDiproticPH(v, 0.050, 25.0, 0.100, 4.3e-7, 4.7e-11);
+        pH += (Math.random() - 0.5) * 0.08;
+        pH = Math.max(0, Math.min(14, pH));
         data.push({ x: Math.round(v * 100) / 100, y: Math.round(pH * 100) / 100 });
         v += settings.volumeIncrement;
       }
@@ -509,10 +785,34 @@ function buildCollectTab(){
     appendLabeledLine(teacher2, 'Expected graph', 'Flat baseline ~22 \u00B0C for 30 s, then sharp exponential rise of ~6.8 \u00B0C, followed by slow cooling');
     appendLabeledLine(teacher2, 'Key moment', 'Mixing at t = 30 s produces the temperature jump');
     appendLabeledLine(teacher2, 'Marking point', 'Students should identify T\u2098\u2090\u2093 and calculate \u0394T correctly');
-  } else {
+  } else if(_activeExperiment === 'titration'){
     appendLabeledLine(teacher2, 'Expected graph', 'Sigmoidal curve: pH ~1 initially, steep rise near 25 cm\u00B3, plateau at pH ~13');
     appendLabeledLine(teacher2, 'Key moment', 'Equivalence point at 25.0 cm\u00B3 where pH = 7.0');
     appendLabeledLine(teacher2, 'Marking point', 'Students should identify the equivalence volume from the steepest part of the curve');
+  } else if(_activeExperiment === 'combustion'){
+    appendLabeledLine(teacher2, 'Expected graph', 'Flat baseline ~22 \u00B0C for 10 s, then gradual asymptotic rise (~8\u201311 \u00B0C) as methanol burns, noisier than mixing experiments (\u00B10.5 \u00B0C flame flicker)');
+    appendLabeledLine(teacher2, 'Key moment', 'Spirit burner lit at t \u2248 10 s; temperature rise is slower than neutralization (\u03C4 \u2248 40 s)');
+    appendLabeledLine(teacher2, 'Marking point', 'Students should identify \u0394T and note heat loss as systematic error \u2192 |calculated \u0394H| < 726 kJ/mol');
+  } else if(_activeExperiment === 'dissolution'){
+    appendLabeledLine(teacher2, 'Expected graph', 'Flat baseline ~22 \u00B0C for 20 s, then rapid temperature DROP of 5\u20136 \u00B0C (endothermic), followed by slow partial recovery toward room temperature');
+    appendLabeledLine(teacher2, 'Key moment', 'NH\u2084NO\u2083 added at t \u2248 20 s; this is the only ENDOTHERMIC experiment \u2014 temperature goes DOWN');
+    appendLabeledLine(teacher2, 'Marking point', 'Students must use the correct sign convention: \u0394T is negative, \u0394H is positive');
+  } else if(_activeExperiment === 'weakAcidTitration'){
+    appendLabeledLine(teacher2, 'Expected graph', 'Initial pH ~2.9, gentle rise through buffer region (pH 3.7\u20135.7), steep rise near 25 cm\u00B3, equivalence pH ~8.7 (NOT 7 \u2014 weak acid!), then excess NaOH plateau');
+    appendLabeledLine(teacher2, 'Key moment', 'Half-equivalence at 12.5 cm\u00B3 where pH = pKa = 4.76');
+    appendLabeledLine(teacher2, 'Marking point', 'Equivalence pH \u2260 7; buffer region; comparison with strong acid titration');
+  } else if(_activeExperiment === 'methanoicTitration'){
+    appendLabeledLine(teacher2, 'Expected graph', 'Initial pH ~2.4, buffer region, steep rise near 25 cm\u00B3, equivalence pH ~8.2, then NaOH plateau. Compare with ethanoic acid \u2014 higher Ka means lower pKa and lower starting pH');
+    appendLabeledLine(teacher2, 'Key moment', 'Half-equivalence at 12.5 cm\u00B3 where pH = pKa = 3.75');
+    appendLabeledLine(teacher2, 'Marking point', 'Compare with ethanoic acid: stronger Ka \u2192 lower buffer region pH \u2192 lower equivalence pH');
+  } else if(_activeExperiment === 'diproticH2SO4'){
+    appendLabeledLine(teacher2, 'Expected graph', 'Start pH ~1.2 (strong first dissociation). First equivalence poorly separated near 12.5 cm\u00B3 (Ka2 = 0.012 is too large for a clear step). Clear second equivalence at 25.0 cm\u00B3');
+    appendLabeledLine(teacher2, 'Key moment', 'The "missing" first equivalence point \u2014 Ka2 is too close to Ka1 for distinct separation');
+    appendLabeledLine(teacher2, 'Marking point', 'Students should understand WHY there is no clear first step \u2014 Ka ratio determines separation');
+  } else if(_activeExperiment === 'diproticH2CO3'){
+    appendLabeledLine(teacher2, 'Expected graph', 'Start pH ~3.7, first buffer region, clear first equivalence at 25.0 cm\u00B3 (pH ~8.3), second buffer region, clear second equivalence at 50.0 cm\u00B3 (pH ~10.3)');
+    appendLabeledLine(teacher2, 'Key moment', 'Two clearly separated equivalence points \u2014 Ka values differ by 10\u2074');
+    appendLabeledLine(teacher2, 'Marking point', 'Link to ocean acidification: CO\u2082 + H\u2082O \u2192 H\u2082CO\u2083; each equivalence represents a proton removal step');
   }
 
   container.appendChild(controls); container.appendChild(statusBar); container.appendChild(layout);
@@ -572,7 +872,8 @@ function collectNext(){
   _dataIndex++;
   updateCollectButtons();
   renderCollectGraph();
-  var delay = (_activeExperiment === 'titration') ? 300 : (1000 / _settings.sampleRate);
+  var exp = EXPERIMENTS[_activeExperiment];
+  var delay = (exp.sensor === 'ph') ? 300 : (1000 / _settings.sampleRate);
   _collectionTimer = setTimeout(collectNext, delay / _speed);
 }
 
@@ -619,7 +920,7 @@ function renderCollectGraph(){
 
   // Axis ranges
   var xMin = 0, xMax, yMin, yMax;
-  if(_activeExperiment === 'titration'){
+  if(EXPERIMENTS[_activeExperiment].sensor === 'ph'){
     xMax = _settings.totalVolume || 50; yMin = 0; yMax = 14;
   } else {
     xMax = _settings.duration || 180; yMin = 15; yMax = 35;
@@ -831,10 +1132,34 @@ function buildAnalysisTab(){
     appendLabeledLine(teacher3, 'Expected \u0394H', '\u221257.1 kJ mol\u207B\u00B9 (IB Data Booklet)');
     appendLabeledLine(teacher3, 'Typical student result', '\u221254 to \u221256 kJ mol\u207B\u00B9 (heat loss accounts for discrepancy)');
     appendLabeledLine(teacher3, 'Key skills', 'Graphical extrapolation to correct for heat loss; uncertainty propagation through q = mc\u0394T');
-  } else {
+  } else if(_activeExperiment === 'titration'){
     appendLabeledLine(teacher3, 'Expected equiv. vol', '25.0 cm\u00B3 (equimolar, equal concentrations)');
     appendLabeledLine(teacher3, 'Equivalence pH', '7.0 (strong acid + strong base)');
     appendLabeledLine(teacher3, 'Key skills', 'Identifying equivalence point from graph; calculating unknown concentration; understanding buffer regions');
+  } else if(_activeExperiment === 'combustion'){
+    appendLabeledLine(teacher3, 'Expected \u0394H', '\u2212726 kJ mol\u207B\u00B9 (literature); students typically get \u2212400 to \u2212500 (heat loss)');
+    appendLabeledLine(teacher3, 'Typical student result', '|experimental \u0394H| significantly less than literature due to incomplete combustion and heat loss');
+    appendLabeledLine(teacher3, 'Key skills', 'q=mc\u0394T calculation, moles of fuel, understanding systematic error from heat loss');
+  } else if(_activeExperiment === 'dissolution'){
+    appendLabeledLine(teacher3, 'Expected \u0394H', '+25.7 kJ mol\u207B\u00B9 (endothermic)');
+    appendLabeledLine(teacher3, 'Typical student result', '+20 to +28 kJ mol\u207B\u00B9; heat gain from surroundings reduces apparent \u0394T');
+    appendLabeledLine(teacher3, 'Key skills', 'Sign convention (positive \u0394H = endothermic), understanding heat gain as systematic error');
+  } else if(_activeExperiment === 'weakAcidTitration'){
+    appendLabeledLine(teacher3, 'Expected equiv. vol', '25.0 cm\u00B3');
+    appendLabeledLine(teacher3, 'Equivalence pH', '~8.7 (basic because conjugate base CH\u2083COO\u207B hydrolyses)');
+    appendLabeledLine(teacher3, 'Key skills', 'Identifying buffer region, extracting pKa from half-equivalence, explaining why equiv pH \u2260 7');
+  } else if(_activeExperiment === 'methanoicTitration'){
+    appendLabeledLine(teacher3, 'Expected equiv. vol', '25.0 cm\u00B3');
+    appendLabeledLine(teacher3, 'Equivalence pH', '~8.2');
+    appendLabeledLine(teacher3, 'Key skills', 'Comparing Ka values between weak acids; stronger acid (HCOOH) \u2192 lower pKa \u2192 lower equiv pH');
+  } else if(_activeExperiment === 'diproticH2SO4'){
+    appendLabeledLine(teacher3, 'Expected equiv. vols', '12.5 cm\u00B3 and 25.0 cm\u00B3');
+    appendLabeledLine(teacher3, 'Key feature', 'Poorly separated first equivalence (Ka2 = 0.012)');
+    appendLabeledLine(teacher3, 'Key skills', 'Understanding stoichiometry of diprotic acids; n(NaOH) = 2 \u00D7 n(acid)');
+  } else if(_activeExperiment === 'diproticH2CO3'){
+    appendLabeledLine(teacher3, 'Expected equiv. vols', '25.0 cm\u00B3 and 50.0 cm\u00B3');
+    appendLabeledLine(teacher3, 'Key feature', 'Two well-separated equivalence points (Ka ratio ~10\u2074)');
+    appendLabeledLine(teacher3, 'Key skills', 'Identifying two equivalence points; ocean acidification context; carbonate chemistry');
   }
 
   // HL panel
@@ -845,10 +1170,34 @@ function buildAnalysisTab(){
     appendLabeledLine(hlPanel, 'Propagation', '\u0394q/q = \u221A[(\u0394m/m)\u00B2 + (\u0394T/\u0394T)\u00B2] where \u0394T uncertainty = \u221A(0.5\u00B2 + 0.5\u00B2) = \u00B10.71 \u00B0C');
     appendLabeledLine(hlPanel, 'Systematic error', 'Heat loss to surroundings \u2192 measured \u0394T < actual \u0394T \u2192 |calculated \u0394H| < literature value');
     appendLabeledLine(hlPanel, 'Random error', 'Temperature fluctuations (\u00B10.3 \u00B0C noise) visible in the baseline region');
-  } else {
+  } else if(_activeExperiment === 'titration'){
     appendLabeledLine(hlPanel, 'Propagation', 'Burette uncertainty: \u00B10.05 cm\u00B3 per reading, \u00B10.10 cm\u00B3 for titre (two readings)');
     appendLabeledLine(hlPanel, 'Systematic error', 'Indicator choice (for manual titration) may cause systematic over/under-shoot of equivalence point');
     appendLabeledLine(hlPanel, 'Random error', 'pH sensor noise (\u00B10.05 units) affects precision of equivalence point determination');
+  } else if(_activeExperiment === 'combustion'){
+    appendLabeledLine(hlPanel, 'Propagation', '\u0394q/q = \u221A[(\u0394m/m)\u00B2 + (\u0394T/\u0394T)\u00B2]; balance uncertainty \u00B10.01 g, thermometer \u00B10.5 \u00B0C');
+    appendLabeledLine(hlPanel, 'Systematic error', 'Incomplete combustion + heat loss \u2192 |experimental \u0394H| always < literature value; typical % error = 30\u201340%');
+    appendLabeledLine(hlPanel, 'Random error', 'Flame flicker noise \u00B10.5 \u00B0C is larger than mixing experiments');
+  } else if(_activeExperiment === 'dissolution'){
+    appendLabeledLine(hlPanel, 'Propagation', 'Same as neutralization: \u0394q/q = \u221A[(\u0394m/m)\u00B2 + (\u0394T/\u0394T)\u00B2]');
+    appendLabeledLine(hlPanel, 'Systematic error', 'Heat GAIN from surroundings \u2192 measured |\u0394T| < actual |\u0394T| \u2192 calculated \u0394H < actual \u0394H');
+    appendLabeledLine(hlPanel, 'Random error', 'Temperature fluctuations \u00B10.3 \u00B0C; dissolution is fast so less time for environmental drift');
+  } else if(_activeExperiment === 'weakAcidTitration'){
+    appendLabeledLine(hlPanel, 'Propagation', 'Burette uncertainty: \u00B10.05 cm\u00B3 per reading, \u00B10.10 cm\u00B3 for titre');
+    appendLabeledLine(hlPanel, 'Systematic error', 'At half-equivalence, pH = pKa; any deviation indicates impure acid or inaccurate Ka');
+    appendLabeledLine(hlPanel, 'Random error', 'pH noise \u00B10.05 in buffer region is suppressed (buffer action); noise larger near equivalence');
+  } else if(_activeExperiment === 'methanoicTitration'){
+    appendLabeledLine(hlPanel, 'Propagation', 'Same burette uncertainty as ethanoic acid titration');
+    appendLabeledLine(hlPanel, 'Systematic error', 'Compare pKa values: HCOOH pKa = 3.75, CH\u2083COOH pKa = 4.76; ensure these match literature within uncertainty');
+    appendLabeledLine(hlPanel, 'Random error', 'pH noise pattern same as ethanoic acid; buffer capacity higher due to larger Ka');
+  } else if(_activeExperiment === 'diproticH2SO4'){
+    appendLabeledLine(hlPanel, 'Propagation', 'Two equivalence volumes to determine; each has \u00B10.10 cm\u00B3 burette uncertainty');
+    appendLabeledLine(hlPanel, 'Systematic error', 'First equivalence may be unidentifiable due to poor Ka separation \u2014 this is a real analytical limitation');
+    appendLabeledLine(hlPanel, 'Random error', 'Greater pH noise near poorly-separated first equivalence makes identification uncertain');
+  } else if(_activeExperiment === 'diproticH2CO3'){
+    appendLabeledLine(hlPanel, 'Propagation', 'Two titre volumes; total NaOH = V(eq2); first titre = V(eq1); each \u00B10.10 cm\u00B3');
+    appendLabeledLine(hlPanel, 'Systematic error', 'CO\u2082 loss from solution may slightly shift pH values; freshly prepared solutions recommended');
+    appendLabeledLine(hlPanel, 'Random error', 'Clear equivalence points mean steepest-slope method works well; uncertainty in V(eq) is small');
   }
 
   container.appendChild(results);
@@ -924,7 +1273,7 @@ function handleAnalysisClick(mx, my){
 function getAnalysisRanges(){
   var exp = EXPERIMENTS[_activeExperiment];
   var xMin = 0, xMax, yMin, yMax;
-  if(_activeExperiment === 'titration'){
+  if(EXPERIMENTS[_activeExperiment].sensor === 'ph'){
     xMax = _settings.totalVolume || 50; yMin = 0; yMax = 14;
   } else {
     xMax = _settings.duration || 180; yMin = 15; yMax = 35;
@@ -1057,8 +1406,8 @@ function updateIBContext(){
       var val = document.createElement('span'); val.className = 'result-value'; val.textContent = item[1];
       row.appendChild(lbl); row.appendChild(val); ibPanel.appendChild(row);
     });
-  } else {
-    // Titration: find equivalence point (steepest slope)
+  } else if(_activeExperiment === 'titration'){
+    // Strong acid-base titration: find equivalence point (steepest slope)
     var maxSlope = 0, eqIdx = 0;
     for(var i = 1; i < _collectedData.length; i++){
       var slope = Math.abs((_collectedData[i].y - _collectedData[i-1].y) / (_collectedData[i].x - _collectedData[i-1].x));
@@ -1074,6 +1423,141 @@ function updateIBContext(){
       ['c(HCl) = c(NaOH)\u00D7V(NaOH)/V(HCl)', cAcid.toFixed(4) + ' mol dm\u207B\u00B3'],
       ['Expected Equiv. Vol', exp.ibContext.expectedEquivVol + ' cm\u00B3']
     ];
+    items.forEach(function(item){
+      var row = document.createElement('div'); row.className = 'result-row';
+      var lbl = document.createElement('span'); lbl.className = 'result-label'; lbl.textContent = item[0];
+      var val = document.createElement('span'); val.className = 'result-value'; val.textContent = item[1];
+      row.appendChild(lbl); row.appendChild(val); ibPanel.appendChild(row);
+    });
+  } else if(_activeExperiment === 'combustion'){
+    // Combustion: extract T0 and Tmax, calculate q=mcDT, DH=-q/n
+    var ys = _collectedData.map(function(d){return d.y;});
+    var T0 = ys[0], Tmax = Math.max.apply(null, ys);
+    var deltaT = Tmax - T0;
+    var mass = 0.100; // 100 cm3 water
+    var c = 4.18;
+    var q = mass * c * deltaT * 1000; // in J
+    var molarMass = 32.04; // CH3OH
+    var massFuel = 5.0; // grams
+    var moles = massFuel / molarMass;
+    var deltaH = -q / moles / 1000; // kJ/mol
+    var pctDiff = Math.abs((deltaH - exp.ibContext.expectedDeltaH) / Math.abs(exp.ibContext.expectedDeltaH) * 100);
+    var items = [
+      ['Equation', exp.ibContext.equation],
+      ['\u0394T', deltaT.toFixed(2) + ' \u00B0C'],
+      ['q = mc\u0394T', q.toFixed(1) + ' J'],
+      ['n(CH\u2083OH) = 5.0 / 32.04', moles.toFixed(4) + ' mol'],
+      ['\u0394H = \u2212q/n', deltaH.toFixed(1) + ' kJ mol\u207B\u00B9'],
+      ['Expected \u0394H', exp.ibContext.expectedDeltaH + ' kJ mol\u207B\u00B9'],
+      ['% difference', pctDiff.toFixed(1) + '%']
+    ];
+    items.forEach(function(item){
+      var row = document.createElement('div'); row.className = 'result-row';
+      var lbl = document.createElement('span'); lbl.className = 'result-label'; lbl.textContent = item[0];
+      var val = document.createElement('span'); val.className = 'result-value'; val.textContent = item[1];
+      row.appendChild(lbl); row.appendChild(val); ibPanel.appendChild(row);
+    });
+  } else if(_activeExperiment === 'dissolution'){
+    // Dissolution: extract T0 and Tmin (endothermic — temperature drops)
+    var ys = _collectedData.map(function(d){return d.y;});
+    var T0 = ys[0], Tmin = Math.min.apply(null, ys);
+    var deltaT = Tmin - T0; // negative
+    var mass = 0.050; // 50 cm3 water
+    var c = 4.18;
+    var q = mass * c * deltaT * 1000; // in J (negative)
+    var molarMass = 80.04; // NH4NO3
+    var massSolute = 5.00; // grams
+    var moles = massSolute / molarMass;
+    var deltaH = -q / moles / 1000; // kJ/mol (positive for endothermic)
+    var items = [
+      ['Equation', exp.ibContext.equation],
+      ['\u0394T', deltaT.toFixed(2) + ' \u00B0C (negative \u2014 endothermic)'],
+      ['q = mc\u0394T', q.toFixed(1) + ' J (negative)'],
+      ['n(NH\u2084NO\u2083) = 5.00 / 80.04', moles.toFixed(4) + ' mol'],
+      ['\u0394H = \u2212q/n', '+' + deltaH.toFixed(1) + ' kJ mol\u207B\u00B9 (positive \u2014 endothermic)'],
+      ['Expected \u0394H', '+' + exp.ibContext.expectedDeltaH + ' kJ mol\u207B\u00B9'],
+      ['Sign convention', '\u0394T < 0 \u2192 q < 0 \u2192 \u0394H = \u2212q/n > 0 (endothermic)']
+    ];
+    items.forEach(function(item){
+      var row = document.createElement('div'); row.className = 'result-row';
+      var lbl = document.createElement('span'); lbl.className = 'result-label'; lbl.textContent = item[0];
+      var val = document.createElement('span'); val.className = 'result-value'; val.textContent = item[1];
+      row.appendChild(lbl); row.appendChild(val); ibPanel.appendChild(row);
+    });
+  } else if(_activeExperiment === 'weakAcidTitration' || _activeExperiment === 'methanoicTitration'){
+    // Weak acid titration: find equivalence point, half-equivalence, pKa
+    var maxSlope = 0, eqIdx = 0;
+    for(var i = 1; i < _collectedData.length; i++){
+      var slope = Math.abs((_collectedData[i].y - _collectedData[i-1].y) / (_collectedData[i].x - _collectedData[i-1].x));
+      if(slope > maxSlope){ maxSlope = slope; eqIdx = i; }
+    }
+    var eqVol = _collectedData[eqIdx] ? _collectedData[eqIdx].x : 25;
+    var eqPH = _collectedData[eqIdx] ? _collectedData[eqIdx].y : exp.ibContext.expectedEquivPH;
+    var halfEqVol = eqVol / 2;
+    // Find pH at half-equivalence (nearest data point)
+    var halfIdx = 0, halfDist = Infinity;
+    for(var i = 0; i < _collectedData.length; i++){
+      var dist = Math.abs(_collectedData[i].x - halfEqVol);
+      if(dist < halfDist){ halfDist = dist; halfIdx = i; }
+    }
+    var halfEqPH = _collectedData[halfIdx] ? _collectedData[halfIdx].y : 0;
+    var expectedPKa = -Math.log10(exp.ibContext.Ka);
+    var items = [
+      ['Equation', exp.ibContext.equation],
+      ['Equivalence Volume', eqVol.toFixed(1) + ' cm\u00B3'],
+      ['Equivalence pH', eqPH.toFixed(2)],
+      ['Half-equivalence Volume', halfEqVol.toFixed(1) + ' cm\u00B3'],
+      ['pH at half-equivalence (\u2248 pKa)', halfEqPH.toFixed(2)],
+      ['Expected pKa (\u2212log Ka)', expectedPKa.toFixed(2)],
+      ['Expected Equiv. pH', exp.ibContext.expectedEquivPH.toFixed(1)],
+      ['Formula', exp.ibContext.formula]
+    ];
+    items.forEach(function(item){
+      var row = document.createElement('div'); row.className = 'result-row';
+      var lbl = document.createElement('span'); lbl.className = 'result-label'; lbl.textContent = item[0];
+      var val = document.createElement('span'); val.className = 'result-value'; val.textContent = item[1];
+      row.appendChild(lbl); row.appendChild(val); ibPanel.appendChild(row);
+    });
+  } else if(_activeExperiment === 'diproticH2SO4' || _activeExperiment === 'diproticH2CO3'){
+    // Diprotic titration: find TWO equivalence points
+    // First pass: find the steepest slope overall
+    var maxSlope1 = 0, eq1Idx = 0;
+    for(var i = 1; i < _collectedData.length; i++){
+      var slope = Math.abs((_collectedData[i].y - _collectedData[i-1].y) / (_collectedData[i].x - _collectedData[i-1].x));
+      if(slope > maxSlope1){ maxSlope1 = slope; eq1Idx = i; }
+    }
+    // Second pass: find steepest slope in the other half
+    var midX = _collectedData[eq1Idx] ? _collectedData[eq1Idx].x : 25;
+    var maxSlope2 = 0, eq2Idx = 0;
+    // Determine which half to search: if eq1 is in first half, search second half, and vice versa
+    var totalX = _collectedData[_collectedData.length - 1].x;
+    var searchFirst = (midX > totalX * 0.4); // steepest was in second half, search first
+    for(var i = 1; i < _collectedData.length; i++){
+      var inRange = searchFirst ? (_collectedData[i].x < midX * 0.7) : (_collectedData[i].x > midX * 1.3);
+      if(!inRange) continue;
+      var slope = Math.abs((_collectedData[i].y - _collectedData[i-1].y) / (_collectedData[i].x - _collectedData[i-1].x));
+      if(slope > maxSlope2){ maxSlope2 = slope; eq2Idx = i; }
+    }
+    // Ensure eq1 < eq2 by volume
+    var firstIdx = (eq1Idx < eq2Idx) ? eq1Idx : eq2Idx;
+    var secondIdx = (eq1Idx < eq2Idx) ? eq2Idx : eq1Idx;
+    var eq1Vol = _collectedData[firstIdx] ? _collectedData[firstIdx].x : exp.ibContext.expectedEquivVol1;
+    var eq1PH = _collectedData[firstIdx] ? _collectedData[firstIdx].y : 0;
+    var eq2Vol = _collectedData[secondIdx] ? _collectedData[secondIdx].x : exp.ibContext.expectedEquivVol2;
+    var eq2PH = _collectedData[secondIdx] ? _collectedData[secondIdx].y : 0;
+    var items = [
+      ['Equation', exp.ibContext.equation],
+      ['1st Equivalence Volume', eq1Vol.toFixed(1) + ' cm\u00B3'],
+      ['1st Equivalence pH', eq1PH.toFixed(2)],
+      ['2nd Equivalence Volume', eq2Vol.toFixed(1) + ' cm\u00B3'],
+      ['2nd Equivalence pH', eq2PH.toFixed(2)],
+      ['Expected 1st Equiv. Vol', exp.ibContext.expectedEquivVol1 + ' cm\u00B3'],
+      ['Expected 2nd Equiv. Vol', exp.ibContext.expectedEquivVol2 + ' cm\u00B3'],
+      ['Formula', exp.ibContext.formula]
+    ];
+    if(_activeExperiment === 'diproticH2SO4'){
+      items.push(['Note', 'First equivalence poorly separated \u2014 Ka2 = 0.012 is too large for a distinct step']);
+    }
     items.forEach(function(item){
       var row = document.createElement('div'); row.className = 'result-row';
       var lbl = document.createElement('span'); lbl.className = 'result-label'; lbl.textContent = item[0];
