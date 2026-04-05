@@ -44,8 +44,8 @@ SimEngine.Data = (function () {
   }
 
   function get(name) {
-    if (_cache[name]) return _cache[name];
-    if (_fallback[name]) return _fallback[name];
+    if (_cache[name] !== undefined) return _cache[name];
+    if (_fallback[name] !== undefined) return _fallback[name];
     return null;
   }
 
@@ -2672,7 +2672,7 @@ SimEngine.Titration = (function () {
     HCl:      { name: 'Hydrochloric acid', formula: 'HCl',      strong: true,  Ka: [Infinity],                   hl: false },
     H2SO4:    { name: 'Sulfuric acid',     formula: 'H\u2082SO\u2084', strong: true, Ka: [Infinity, 0.012],       hl: true  },
     HNO3:     { name: 'Nitric acid',       formula: 'HNO\u2083',  strong: true,  Ka: [Infinity],                   hl: false },
-    CH3COOH:  { name: 'Acetic acid',       formula: 'CH\u2083COOH', strong: false, Ka: [1.8e-5],                  hl: false },
+    CH3COOH:  { name: 'Ethanoic acid',      formula: 'CH\u2083COOH', strong: false, Ka: [1.74e-5],                 hl: false },
     H3PO4:    { name: 'Phosphoric acid',   formula: 'H\u2083PO\u2084', strong: false, Ka: [7.5e-3, 6.2e-8, 4.8e-13], hl: true },
     C6H8O7:   { name: 'Citric acid',       formula: 'C\u2086H\u2088O\u2087', strong: false, Ka: [7.4e-4, 1.7e-5, 4.0e-7], hl: true }
   };
@@ -3260,14 +3260,14 @@ SimEngine.Electrochem = (function () {
       halfReaction: 'Cl\u2082 + 2e\u207B \u2192 2Cl\u207B',
       E: +1.36, electrons: 2, state: 'gas', molarMass: 70.91,
       color: '#10B981' },
-    { key: 'MnO4',  ion: 'MnO\u2084\u207B', metal: 'Mn\u00B2\u207A', formula: 'MnO\u2084\u207B/Mn\u00B2\u207A',
-      halfReaction: 'MnO\u2084\u207B + 8H\u207A + 5e\u207B \u2192 Mn\u00B2\u207A + 4H\u2082O',
-      E: +1.51, electrons: 5, state: 'aqueous', molarMass: 54.94,
-      color: '#7C3AED' },
     { key: 'Au',    ion: 'Au\u00B3\u207A',  metal: 'Au',  formula: 'Au\u00B3\u207A/Au',
       halfReaction: 'Au\u00B3\u207A + 3e\u207B \u2192 Au',
       E: +1.50, electrons: 3, state: 'solid', molarMass: 196.97,
       color: '#F59E0B' },
+    { key: 'MnO4',  ion: 'MnO\u2084\u207B', metal: 'Mn\u00B2\u207A', formula: 'MnO\u2084\u207B/Mn\u00B2\u207A',
+      halfReaction: 'MnO\u2084\u207B + 8H\u207A + 5e\u207B \u2192 Mn\u00B2\u207A + 4H\u2082O',
+      E: +1.51, electrons: 5, state: 'aqueous', molarMass: 54.94,
+      color: '#7C3AED' },
     { key: 'F2',    ion: 'F\u207B',         metal: 'F\u2082', formula: 'F\u2082/F\u207B',
       halfReaction: 'F\u2082 + 2e\u207B \u2192 2F\u207B',
       E: +2.87, electrons: 2, state: 'gas', molarMass: 38.00,

@@ -296,7 +296,7 @@
   },
   "lattice_enthalpies": {
     "_unit": "kJ mol⁻¹",
-    "_note": "Lattice dissociation enthalpies (endothermic, positive values). Source: IB Data Booklet 2025.",
+    "_note": "Lattice dissociation enthalpies (endothermic, positive values). Source: IB Data Booklet 2025 for Group 1/2 halides and oxides. Al2O3 and Na2O from Pearson IB Chemistry HL textbook — not in official Data Booklet, verify before student use.",
     "NaCl":  787,
     "NaBr":  747,
     "NaI":   704,
