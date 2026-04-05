@@ -1927,7 +1927,10 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
 
   function updateQuizScore() {
     var scoreEl = document.getElementById('quizScore');
-    if (_quizActive && _quizTotal > 0) scoreEl.textContent = _quizCorrect + ' / ' + _quizTotal;
+    if (_quizActive && _quizTotal > 0) {
+      scoreEl.textContent = _quizCorrect + ' / ' + _quizTotal;
+      try{localStorage.setItem('simengine_scores_OrganicMechanisms',JSON.stringify({correct:_quizCorrect,total:_quizTotal,lastUpdated:new Date().toISOString()}));}catch(e){}
+    }
     else scoreEl.textContent = '';
   }
 

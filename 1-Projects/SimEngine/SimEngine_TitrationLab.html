@@ -1441,6 +1441,7 @@
 
   /* ── Tab switching ── */
   function switchTab(tabId){
+    try{var _k='simengine_progress_TitrationLab',_p=JSON.parse(localStorage.getItem(_k)||'{"tabs":{}}');if(!Object.keys(_p.tabs).length)document.querySelectorAll('.tab-btn').forEach(function(b){_p.tabs[b.getAttribute('data-tab')]=false;});_p.tabs[tabId]=true;_p.complete=Object.keys(_p.tabs).every(function(k){return _p.tabs[k];});_p.lastActivity=new Date().toISOString();localStorage.setItem(_k,JSON.stringify(_p));}catch(e){}
     $$('.tab-btn').forEach(function(btn){ btn.classList.toggle('active', btn.dataset.tab === tabId); });
     $$('.tab-content').forEach(function(tc){ tc.classList.toggle('active', tc.id === 'tab-' + tabId); });
   }

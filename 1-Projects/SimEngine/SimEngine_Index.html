@@ -81,13 +81,49 @@
     .jump-bar{justify-content:center;}
     .card-grid{grid-template-columns:1fr;padding:.75rem;}
   }
+  @media(max-width:700px){
+    .student-strip{padding:0 .75rem;}
+    .student-strip-card{flex:0 0 170px;padding:.6rem;}
+    .student-strip-card .strip-card-name{font-size:.78rem;}
+  }
   @media print{
-    .search-bar,.jump-bar{display:none!important;}
+    .search-bar,.jump-bar,.student-strip{display:none!important;}
     .sim-card{box-shadow:none;border:1px solid #ccc;break-inside:avoid;}
     .card-grid{display:block;}
     .sim-card{margin-bottom:.5rem;}
   }
   footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+
+  /* Student Experience Strips */
+  .student-strip{max-width:1100px;margin:.75rem auto 0;padding:0 1.5rem;}
+  .student-strip-heading{font-size:.78rem;font-weight:700;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.5rem;display:flex;align-items:center;gap:.5rem;}
+  .student-strip-heading .strip-count{font-weight:500;opacity:.7;font-family:'Fira Code',monospace;font-size:.7rem;}
+  .student-strip-scroll{display:flex;gap:.75rem;overflow-x:auto;padding-bottom:.5rem;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;}
+  .student-strip-scroll::-webkit-scrollbar{height:4px;}
+  .student-strip-scroll::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+  .student-strip-card{flex:0 0 210px;background:white;border:2px solid var(--border);border-radius:10px;padding:.75rem;cursor:pointer;transition:.2s;scroll-snap-align:start;position:relative;}
+  .student-strip-card:hover{box-shadow:0 4px 12px rgba(0,0,0,.1);transform:translateY(-2px);border-color:var(--teal);}
+  .student-strip-card .strip-card-topic{display:inline-block;padding:.1rem .4rem;border-radius:4px;font-size:.64rem;font-weight:700;background:var(--teal);color:white;font-family:'Fira Code',monospace;margin-bottom:.3rem;}
+  .student-strip-card .strip-card-name{font-size:.82rem;font-weight:600;color:var(--navy);line-height:1.3;}
+
+  /* Favourite Button */
+  .fav-btn{background:none;border:none;cursor:pointer;font-size:.95rem;padding:0 .15rem;line-height:1;color:var(--border);transition:.15s;vertical-align:middle;}
+  .fav-btn:hover{color:var(--red);transform:scale(1.15);}
+  .fav-btn.active{color:var(--red);}
+  .detail-fav-btn{font-size:1.3rem;margin-left:.5rem;}
+
+  /* Progress & Score Indicators */
+  .sim-card{position:relative;}
+  .card-progress{height:3px;background:var(--border);border-radius:0 0 8px 8px;margin:-1rem -1rem 0;overflow:hidden;margin-top:auto;}
+  .card-progress-fill{height:100%;background:var(--teal);border-radius:0 0 8px 8px;transition:width .3s;}
+  .card-score-badge{position:absolute;top:.6rem;right:.6rem;padding:.15rem .45rem;border-radius:10px;font-size:.68rem;font-weight:700;font-family:'Fira Code',monospace;color:white;}
+  .card-score-badge.good{background:var(--teal);}
+  .card-score-badge.low{background:var(--amber);}
+  .card-complete-check{position:absolute;top:.55rem;right:.55rem;width:20px;height:20px;border-radius:50%;background:var(--green);color:white;font-size:.7rem;display:flex;align-items:center;justify-content:center;font-weight:700;}
+
+  /* Clear Data */
+  .clear-data-link{cursor:pointer;text-decoration:underline;opacity:.6;transition:.2s;}
+  .clear-data-link:hover{opacity:1;color:var(--red);}
 
   /* Detail Panel */
   .detail-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .3s;z-index:200;}
@@ -138,6 +174,8 @@
     <button class="filter-btn active" data-level="all">All</button>
     <button class="filter-btn" data-level="sl">SL</button>
     <button class="filter-btn" data-level="hl">HL Only</button>
+    <span style="width:1px;height:1.2rem;background:var(--border);margin:0 .25rem;"></span>
+    <button class="filter-btn" id="favFilterBtn" data-filter="favs">&#9733; Favourites</button>
   </div>
   <div class="jump-bar" id="jumpBar"></div>
 </div>
@@ -281,10 +319,10 @@
       tabs:[],
       slContent:'Recognition and naming of alcohols, aldehydes, ketones, carboxylic acids, esters, amines, and amides.',
       hlContent:'HL groups (esters, amides, nitriles, acyl chlorides) with spectroscopy data panel.' },
-    { file:'SimEngine_OrganicMechanisms.html', name:'Organic Mechanisms', section:'S3', topic:'S3.2', level:'both',
+    { file:'SimEngine_OrganicMechanisms.html', name:'Organic Mechanisms', section:'R3', topic:'R3.3', level:'both',
       desc:'SN1, SN2, elimination, addition, and free radical substitution',
       keywords:'SN1 SN2 E1 E2 electrophilic nucleophilic free radical mechanism curly arrow',
-      guideStatement:'S3.2: Functional Groups',
+      guideStatement:'R3.3: Electron Sharing Reactions',
       objectives:['Draw curly-arrow mechanisms for free radical substitution.','Distinguish between SN1 and SN2 nucleophilic substitution mechanisms.','Apply mechanism knowledge to predict reaction products.'],
       tabs:['Mechanisms','Pathway Decision'],
       slContent:'Free radical substitution and electrophilic addition mechanisms with curly-arrow notation.',
@@ -493,12 +531,191 @@
 
   var _levelFilter = 'all';
   var _searchTerm = '';
+  var _favFilter = false;
+  var _favourites = [];
+  var _currentDetailIdx = -1;
+
+  /* === Storage Utilities === */
+  function getSimKey(sim) {
+    return sim.file.replace(/^SimEngine_/, '').replace(/\.html$/, '');
+  }
+  function loadJSON(key, fallback) {
+    try { var v = localStorage.getItem(key); return v ? JSON.parse(v) : fallback; } catch(e) { return fallback; }
+  }
+  function saveJSON(key, value) {
+    try { localStorage.setItem(key, JSON.stringify(value)); } catch(e) {}
+  }
+
+  /* === Recently Used === */
+  function trackRecent(simKey) {
+    var arr = loadJSON('simengine_recent', []);
+    arr = arr.filter(function(k) { return k !== simKey; });
+    arr.unshift(simKey);
+    if (arr.length > 8) arr = arr.slice(0, 8);
+    saveJSON('simengine_recent', arr);
+  }
+  function findSimByKey(simKey) {
+    for (var i = 0; i < SIMS.length; i++) {
+      if (getSimKey(SIMS[i]) === simKey) return { sim: SIMS[i], idx: i };
+    }
+    return null;
+  }
+  function buildStripCard(sim, idx) {
+    var card = document.createElement('div');
+    card.className = 'student-strip-card';
+    card.addEventListener('click', function() { openDetail(idx); });
+    var topic = document.createElement('span');
+    topic.className = 'strip-card-topic';
+    topic.textContent = sim.topic;
+    var name = document.createElement('div');
+    name.className = 'strip-card-name';
+    name.textContent = sim.name;
+    card.appendChild(topic);
+    card.appendChild(name);
+    // Score badge if available
+    var scores = readScores(getSimKey(sim));
+    if (scores) {
+      var badge = document.createElement('span');
+      badge.className = 'card-score-badge ' + (scores.correct / scores.total >= 0.7 ? 'good' : 'low');
+      badge.textContent = scores.correct + '/' + scores.total;
+      badge.style.position = 'absolute'; badge.style.top = '.5rem'; badge.style.right = '.5rem';
+      card.appendChild(badge);
+    }
+    return card;
+  }
+  function renderRecentStrip() {
+    var existing = document.getElementById('recentStrip');
+    if (existing) existing.remove();
+    var arr = loadJSON('simengine_recent', []);
+    if (arr.length === 0) return;
+    var strip = document.createElement('div');
+    strip.className = 'student-strip';
+    strip.id = 'recentStrip';
+    var heading = document.createElement('div');
+    heading.className = 'student-strip-heading';
+    heading.innerHTML = '&#128337; Recently Used <span class="strip-count">' + arr.length + '</span>';
+    var scroll = document.createElement('div');
+    scroll.className = 'student-strip-scroll';
+    arr.forEach(function(key) {
+      var found = findSimByKey(key);
+      if (found) scroll.appendChild(buildStripCard(found.sim, found.idx));
+    });
+    strip.appendChild(heading);
+    strip.appendChild(scroll);
+    var container = document.getElementById('simContainer');
+    container.parentNode.insertBefore(strip, container);
+  }
+
+  /* === Favourites === */
+  function loadFavourites() {
+    _favourites = loadJSON('simengine_favourites', []);
+  }
+  function isFavourite(simKey) {
+    return _favourites.indexOf(simKey) !== -1;
+  }
+  function toggleFavourite(simKey) {
+    var idx = _favourites.indexOf(simKey);
+    if (idx === -1) { _favourites.push(simKey); } else { _favourites.splice(idx, 1); }
+    saveJSON('simengine_favourites', _favourites);
+    // Update all heart buttons for this sim
+    document.querySelectorAll('.fav-btn[data-simkey="' + simKey + '"]').forEach(function(btn) {
+      btn.classList.toggle('active', isFavourite(simKey));
+      btn.innerHTML = isFavourite(simKey) ? '&#9829;' : '&#9825;';
+    });
+    renderFavouritesStrip();
+    if (_favFilter) filterCards();
+  }
+  function createFavButton(simKey, size) {
+    var btn = document.createElement('button');
+    btn.className = 'fav-btn' + (size === 'large' ? ' detail-fav-btn' : '');
+    btn.setAttribute('data-simkey', simKey);
+    btn.innerHTML = isFavourite(simKey) ? '&#9829;' : '&#9825;';
+    if (isFavourite(simKey)) btn.classList.add('active');
+    btn.title = 'Toggle favourite';
+    btn.addEventListener('click', function(e) {
+      e.preventDefault();
+      e.stopPropagation();
+      toggleFavourite(simKey);
+    });
+    return btn;
+  }
+  function renderFavouritesStrip() {
+    var existing = document.getElementById('favsStrip');
+    if (existing) existing.remove();
+    if (_favourites.length === 0) return;
+    var strip = document.createElement('div');
+    strip.className = 'student-strip';
+    strip.id = 'favsStrip';
+    var heading = document.createElement('div');
+    heading.className = 'student-strip-heading';
+    heading.innerHTML = '&#9733; Favourites <span class="strip-count">' + _favourites.length + '</span>';
+    var scroll = document.createElement('div');
+    scroll.className = 'student-strip-scroll';
+    _favourites.forEach(function(key) {
+      var found = findSimByKey(key);
+      if (found) scroll.appendChild(buildStripCard(found.sim, found.idx));
+    });
+    strip.appendChild(heading);
+    strip.appendChild(scroll);
+    // Insert after recent strip or before container
+    var recent = document.getElementById('recentStrip');
+    var container = document.getElementById('simContainer');
+    if (recent && recent.nextSibling) {
+      recent.parentNode.insertBefore(strip, recent.nextSibling);
+    } else {
+      container.parentNode.insertBefore(strip, container);
+    }
+  }
+
+  /* === Progress & Scores (read-only) === */
+  function readProgress(simKey) {
+    var data = loadJSON('simengine_progress_' + simKey, null);
+    if (!data || !data.tabs) return null;
+    var keys = Object.keys(data.tabs);
+    var done = keys.filter(function(k) { return data.tabs[k]; }).length;
+    return { completedTabs: done, totalTabs: keys.length, complete: !!data.complete };
+  }
+  function readScores(simKey) {
+    var data = loadJSON('simengine_scores_' + simKey, null);
+    if (!data || typeof data.correct !== 'number') return null;
+    return { correct: data.correct, total: data.total };
+  }
+
+  /* === Clear Data === */
+  function clearStudentData(includeProgress) {
+    try { localStorage.removeItem('simengine_recent'); } catch(e) {}
+    try { localStorage.removeItem('simengine_favourites'); } catch(e) {}
+    if (includeProgress) {
+      var keys = [];
+      for (var i = 0; i < localStorage.length; i++) {
+        var k = localStorage.key(i);
+        if (k && (k.indexOf('simengine_progress_') === 0 || k.indexOf('simengine_scores_') === 0)) keys.push(k);
+      }
+      keys.forEach(function(k) { try { localStorage.removeItem(k); } catch(e) {} });
+    }
+    _favourites = [];
+    _favFilter = false;
+    var favBtn = document.getElementById('favFilterBtn');
+    if (favBtn) favBtn.classList.remove('active');
+    renderRecentStrip();
+    renderFavouritesStrip();
+    // Re-render cards to clear progress/score badges
+    SECTIONS.forEach(function(sec) {
+      var grid = document.getElementById('grid-' + sec.id);
+      if (grid) while (grid.firstChild) grid.removeChild(grid.firstChild);
+    });
+    renderCards();
+    filterCards();
+  }
 
   function init() {
+    loadFavourites();
     buildJumpBar();
     renderSections();
     renderCards();
     bindEvents();
+    renderRecentStrip();
+    renderFavouritesStrip();
   }
 
   function buildJumpBar() {
@@ -551,12 +768,14 @@
       var grid = document.getElementById('grid-' + sim.section);
       if (!grid) return;
 
+      var simKey = getSimKey(sim);
       var card = document.createElement('a');
       card.className = 'sim-card';
       card.href = '#';
       card.setAttribute('data-idx', String(i));
       card.setAttribute('data-level', sim.level);
       card.setAttribute('data-section', sim.section);
+      card.setAttribute('data-simkey', simKey);
       card.setAttribute('data-search', (sim.name + ' ' + sim.topic + ' ' + sim.desc + ' ' + sim.keywords).toLowerCase());
       card.addEventListener('click', function(e) {
         e.preventDefault();
@@ -580,6 +799,7 @@
         levelBadge.textContent = 'SL + HL';
       }
       badges.appendChild(levelBadge);
+      badges.appendChild(createFavButton(simKey, 'small'));
 
       var title = document.createElement('div');
       title.className = 'card-title';
@@ -592,6 +812,34 @@
       card.appendChild(badges);
       card.appendChild(title);
       card.appendChild(desc);
+
+      // Score badge
+      var scores = readScores(simKey);
+      if (scores) {
+        var scoreBadge = document.createElement('span');
+        scoreBadge.className = 'card-score-badge ' + (scores.correct / scores.total >= 0.7 ? 'good' : 'low');
+        scoreBadge.textContent = scores.correct + '/' + scores.total;
+        card.appendChild(scoreBadge);
+      }
+
+      // Progress bar
+      var progress = readProgress(simKey);
+      if (progress && progress.totalTabs > 0) {
+        var pct = Math.round(progress.completedTabs / progress.totalTabs * 100);
+        var pBar = document.createElement('div');
+        pBar.className = 'card-progress';
+        var pFill = document.createElement('div');
+        pFill.className = 'card-progress-fill';
+        pFill.style.width = pct + '%';
+        pBar.appendChild(pFill);
+        card.appendChild(pBar);
+      } else if (progress && progress.complete) {
+        var check = document.createElement('div');
+        check.className = 'card-complete-check';
+        check.textContent = '\u2713';
+        card.appendChild(check);
+      }
+
       grid.appendChild(card);
     });
 
@@ -605,9 +853,11 @@
   function openDetail(index) {
     var sim = SIMS[index];
     if (!sim) return;
+    _currentDetailIdx = index;
 
     var panel = document.getElementById('detailPanel');
     var overlay = document.getElementById('detailOverlay');
+    var simKey = getSimKey(sim);
 
     // Badges
     var badgesEl = document.getElementById('detailBadges');
@@ -625,6 +875,7 @@
       levelBadge.textContent = 'SL + HL';
     }
     badgesEl.appendChild(levelBadge);
+    badgesEl.appendChild(createFavButton(simKey, 'large'));
 
     // Title & description
     document.getElementById('detailTitle').textContent = sim.name;
@@ -689,8 +940,38 @@
       contentSection.style.display = 'none';
     }
 
+    // Progress/score summary in detail
+    var detailProgress = document.getElementById('detailProgress');
+    if (detailProgress) detailProgress.remove();
+    var prog = readProgress(simKey);
+    var sc = readScores(simKey);
+    if (prog || sc) {
+      var pDiv = document.createElement('div');
+      pDiv.className = 'detail-section';
+      pDiv.id = 'detailProgress';
+      var pLabel = document.createElement('div');
+      pLabel.className = 'detail-label';
+      pLabel.textContent = 'Your Progress';
+      pDiv.appendChild(pLabel);
+      var pInfo = document.createElement('div');
+      pInfo.style.cssText = 'font-size:.88rem;color:var(--text);line-height:1.6;';
+      if (prog && prog.totalTabs > 0) {
+        pInfo.innerHTML += '<div>' + prog.completedTabs + ' of ' + prog.totalTabs + ' sections completed' + (prog.complete ? ' &#10003;' : '') + '</div>';
+      } else if (prog && prog.complete) {
+        pInfo.innerHTML += '<div>Completed &#10003;</div>';
+      }
+      if (sc) {
+        pInfo.innerHTML += '<div>Score: ' + sc.correct + '/' + sc.total + ' (' + Math.round(sc.correct / sc.total * 100) + '%)</div>';
+      }
+      pDiv.appendChild(pInfo);
+      var openBtn = document.getElementById('detailOpenBtn');
+      openBtn.parentNode.insertBefore(pDiv, openBtn);
+    }
+
     // Open button
-    document.getElementById('detailOpenBtn').href = sim.file;
+    var openLink = document.getElementById('detailOpenBtn');
+    openLink.href = sim.file;
+    openLink.onclick = function() { trackRecent(simKey); };
 
     // Show panel
     overlay.classList.add('open');
@@ -711,6 +992,7 @@
     cards.forEach(function(card) {
       var matchLevel = true;
       var matchSearch = true;
+      var matchFav = true;
       var cardLevel = card.getAttribute('data-level');
 
       if (_levelFilter === 'sl') {
@@ -724,7 +1006,12 @@
         matchSearch = searchData.indexOf(term) !== -1;
       }
 
-      if (matchLevel && matchSearch) {
+      if (_favFilter) {
+        var sk = card.getAttribute('data-simkey');
+        matchFav = isFavourite(sk);
+      }
+
+      if (matchLevel && matchSearch && matchFav) {
         card.classList.remove('hidden');
         visibleCount++;
       } else {
@@ -760,6 +1047,10 @@
     } else {
       simCountEl.textContent = visibleCount + ' of ' + SIMS.length + ' Simulations';
     }
+
+    // Hide student strips during active search
+    var strips = document.querySelectorAll('.student-strip');
+    strips.forEach(function(s) { s.style.display = term ? 'none' : ''; });
   }
 
   function updateCounts() {
@@ -797,6 +1088,27 @@
         filterCards();
       });
     });
+
+    // Favourites filter
+    var favBtn = document.getElementById('favFilterBtn');
+    if (favBtn) {
+      favBtn.addEventListener('click', function() {
+        _favFilter = !_favFilter;
+        favBtn.classList.toggle('active', _favFilter);
+        filterCards();
+      });
+    }
+
+    // Clear student data
+    var clearLink = document.getElementById('clearDataLink');
+    if (clearLink) {
+      clearLink.addEventListener('click', function() {
+        var msg = 'Clear your recently used and favourites data?\n\nTo also clear progress and scores from individual sims, type "all".';
+        var answer = prompt(msg);
+        if (answer === null) return;
+        clearStudentData(answer.toLowerCase().trim() === 'all');
+      });
+    }
 
     // Detail panel close handlers
     document.getElementById('detailBack').addEventListener('click', closeDetail);
@@ -861,6 +1173,6 @@
   <a class="detail-open-btn" id="detailOpenBtn">Open Simulation &#8594;</a>
 </div>
 
-<footer>SimEngine &mdash; 38 Interactive Chemistry Simulations</footer>
+<footer>SimEngine &mdash; 38 Interactive Chemistry Simulations &nbsp;&middot;&nbsp; <span class="clear-data-link" id="clearDataLink">Clear student data</span></footer>
 </body>
 </html>

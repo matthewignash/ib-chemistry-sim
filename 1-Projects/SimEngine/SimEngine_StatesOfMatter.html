@@ -638,6 +638,7 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   // TAB SWITCHING
   // ═══════════════════════════════════════════════════
   function switchTab(tabName) {
+    try{var _k='simengine_progress_StatesOfMatter',_p=JSON.parse(localStorage.getItem(_k)||'{"tabs":{}}');if(!Object.keys(_p.tabs).length)document.querySelectorAll('.tab-btn').forEach(function(b){_p.tabs[b.getAttribute('data-tab')]=false;});_p.tabs[tabName]=true;_p.complete=Object.keys(_p.tabs).every(function(k){return _p.tabs[k];});_p.lastActivity=new Date().toISOString();localStorage.setItem(_k,JSON.stringify(_p));}catch(e){}
     _activeTab = tabName;
     document.querySelectorAll('.tab-btn').forEach(function(btn) {
       btn.classList.toggle('active', btn.getAttribute('data-tab') === tabName);

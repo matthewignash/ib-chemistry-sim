@@ -284,6 +284,7 @@ presetSelect.addEventListener('change',function(){
 var tabBtns=document.querySelectorAll('.tab-btn');
 function switchTab(id){
   if(id==='density'&&!document.body.classList.contains('hl-active'))return;
+  try{var _k='simengine_progress_EnergyFromFuels',_p=JSON.parse(localStorage.getItem(_k)||'{"tabs":{}}');if(!Object.keys(_p.tabs).length)document.querySelectorAll('.tab-btn').forEach(function(b){_p.tabs[b.getAttribute('data-tab')]=false;});_p.tabs[id]=true;_p.complete=Object.keys(_p.tabs).every(function(k){return _p.tabs[k];});_p.lastActivity=new Date().toISOString();localStorage.setItem(_k,JSON.stringify(_p));}catch(e){}
   stopAll();_activeTab=id;
   for(var i=0;i<tabBtns.length;i++)tabBtns[i].classList.toggle('active',tabBtns[i].getAttribute('data-tab')===id);
   document.querySelectorAll('.tab-content').forEach(function(tc){tc.classList.toggle('active',tc.id==='tab-'+id);});
