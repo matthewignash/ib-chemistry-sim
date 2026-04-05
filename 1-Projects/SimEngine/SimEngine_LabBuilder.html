@@ -706,6 +706,90 @@
     ctx.restore();
   }
 
+  function drawElectrode(ctx, cx, cy, s){
+    s = s || 1; ctx.save();
+    ctx.strokeStyle = STROKE; ctx.lineWidth = 1;
+    // Metal strip
+    ctx.fillStyle = '#94A3B8';
+    ctx.fillRect(cx-4*s, cy-20*s, 8*s, 35*s);
+    ctx.strokeRect(cx-4*s, cy-20*s, 8*s, 35*s);
+    // Terminal post
+    ctx.fillStyle = '#475569';
+    ctx.beginPath(); ctx.arc(cx, cy-20*s, 4*s, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawWire(ctx, cx, cy, s){
+    s = s || 1; ctx.save();
+    ctx.strokeStyle = '#DC2626'; ctx.lineWidth = 2*s;
+    ctx.beginPath(); ctx.moveTo(cx-18*s, cy); ctx.lineTo(cx+18*s, cy); ctx.stroke();
+    // Crocodile clips
+    ctx.fillStyle = '#475569'; ctx.strokeStyle = STROKE; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(cx-18*s,cy-4*s); ctx.lineTo(cx-25*s,cy);
+    ctx.lineTo(cx-18*s,cy+4*s); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(cx+18*s,cy-4*s); ctx.lineTo(cx+25*s,cy);
+    ctx.lineTo(cx+18*s,cy+4*s); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawSaltBridge(ctx, cx, cy, s){
+    s = s || 1; ctx.save();
+    ctx.strokeStyle = STROKE; ctx.lineWidth = 1.5;
+    ctx.fillStyle = '#E0E7FF';
+    // U-tube shape
+    ctx.beginPath();
+    ctx.moveTo(cx-15*s, cy-18*s); ctx.lineTo(cx-15*s, cy+8*s);
+    ctx.quadraticCurveTo(cx-15*s, cy+18*s, cx, cy+18*s);
+    ctx.quadraticCurveTo(cx+15*s, cy+18*s, cx+15*s, cy+8*s);
+    ctx.lineTo(cx+15*s, cy-18*s);
+    ctx.lineTo(cx+10*s, cy-18*s); ctx.lineTo(cx+10*s, cy+8*s);
+    ctx.quadraticCurveTo(cx+10*s, cy+13*s, cx, cy+13*s);
+    ctx.quadraticCurveTo(cx-10*s, cy+13*s, cx-10*s, cy+8*s);
+    ctx.lineTo(cx-10*s, cy-18*s); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    // Cotton plugs
+    ctx.fillStyle = '#F1F5F9';
+    ctx.fillRect(cx-15*s, cy-18*s, 5*s, 5*s); ctx.strokeRect(cx-15*s, cy-18*s, 5*s, 5*s);
+    ctx.fillRect(cx+10*s, cy-18*s, 5*s, 5*s); ctx.strokeRect(cx+10*s, cy-18*s, 5*s, 5*s);
+    ctx.restore();
+  }
+
+  function drawPowerSupply(ctx, cx, cy, s){
+    s = s || 1; ctx.save();
+    ctx.strokeStyle = STROKE; ctx.lineWidth = 1;
+    ctx.fillStyle = '#F1F5F9';
+    ctx.fillRect(cx-22*s, cy-14*s, 44*s, 28*s);
+    ctx.strokeRect(cx-22*s, cy-14*s, 44*s, 28*s);
+    // Label
+    ctx.fillStyle = '#334155'; ctx.font = (8*s)+'px Inter,sans-serif'; ctx.textAlign = 'center';
+    ctx.fillText('DC', cx, cy+3*s);
+    // Terminals
+    ctx.fillStyle = '#DC2626';
+    ctx.beginPath(); ctx.arc(cx-12*s, cy-14*s, 4*s, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1E293B';
+    ctx.beginPath(); ctx.arc(cx+12*s, cy-14*s, 4*s, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    // +/- labels
+    ctx.fillStyle = '#FFF'; ctx.font = 'bold '+(7*s)+'px Inter,sans-serif';
+    ctx.fillText('+', cx-12*s, cy-12*s); ctx.fillText('\u2013', cx+12*s, cy-12*s);
+    ctx.restore();
+  }
+
+  function drawSpatula(ctx, cx, cy, s){
+    s = s || 1; ctx.save();
+    ctx.strokeStyle = STROKE; ctx.lineWidth = 1;
+    // Handle
+    ctx.fillStyle = '#1E293B';
+    ctx.fillRect(cx-20*s, cy-1.5*s, 20*s, 3*s);
+    ctx.strokeRect(cx-20*s, cy-1.5*s, 20*s, 3*s);
+    // Blade
+    ctx.fillStyle = '#CBD5E1';
+    ctx.beginPath();
+    ctx.moveTo(cx, cy-3*s); ctx.lineTo(cx+20*s, cy-2*s);
+    ctx.quadraticCurveTo(cx+24*s, cy, cx+20*s, cy+2*s);
+    ctx.lineTo(cx, cy+3*s); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
   /* ── Equipment Database ── */
   var EQUIPMENT = [
     {id:'burette', name:'Burette', category:'volumetric', uncertainty:'\u00B10.05 cm\u00B3', uncertaintyVal:0.05, unit:'cm\u00B3', precision:'High',
@@ -781,7 +865,17 @@
     {id:'tlc_plate', name:'TLC Plate', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
      typicalUse:'Thin layer chromatography for separating and identifying compounds', ibNotes:'Draw pencil baseline 1 cm from bottom. Calculate Rf = distance moved by spot / distance moved by solvent front.', commonMistakes:['Using pen instead of pencil for baseline','Letting solvent reach the top'], draw:drawTlcPlate},
     {id:'pencil', name:'Pencil', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
-     typicalUse:'Drawing baselines on chromatography plates and marking filter paper', ibNotes:'Must use pencil (graphite), not pen. Ink would dissolve and interfere with the chromatogram.', commonMistakes:['Using pen instead of pencil'], draw:drawPencil}
+     typicalUse:'Drawing baselines on chromatography plates and marking filter paper', ibNotes:'Must use pencil (graphite), not pen. Ink would dissolve and interfere with the chromatogram.', commonMistakes:['Using pen instead of pencil'], draw:drawPencil},
+    {id:'electrode', name:'Metal Electrode', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Conducting electrode for electrochemical cells (galvanic or electrolysis)', ibNotes:'Choose appropriate metal for each half-cell. Clean with sandpaper before use.', commonMistakes:['Using wrong metal for half-cell','Not cleaning electrode surface'], draw:drawElectrode},
+    {id:'wire', name:'Wire & Crocodile Clips', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Connecting electrodes to external circuit in electrochemical cells', ibNotes:'Ensure secure connections. Use crocodile clips to attach to electrode terminals.', commonMistakes:['Loose connections giving intermittent readings','Wires touching electrolyte'], draw:drawWire},
+    {id:'salt_bridge', name:'Salt Bridge', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Connecting two half-cells while maintaining electrical neutrality', ibNotes:'Usually KNO\u2083 or KCl in agar gel or soaked filter paper. Ions migrate to balance charge.', commonMistakes:['Forgetting salt bridge (no circuit)','Using reactive salt that precipitates with electrolyte'], draw:drawSaltBridge},
+    {id:'power_supply', name:'DC Power Supply', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Providing direct current for electrolysis experiments', ibNotes:'Connect positive terminal to anode, negative to cathode. Start at low voltage.', commonMistakes:['Reversing polarity','Using AC instead of DC'], draw:drawPowerSupply},
+    {id:'spatula', name:'Spatula', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
+     typicalUse:'Transferring solid chemicals from reagent bottles to weighing vessels', ibNotes:'Use a clean, dry spatula for each chemical. Never return excess to the bottle.', commonMistakes:['Contaminating reagent bottle by returning excess','Not cleaning between chemicals'], draw:drawSpatula}
   ];
 
   var EQ_MAP = {};
@@ -1006,6 +1100,122 @@
         {text: 'Saturated atmosphere', x: 0.62, y: 0.3}
       ],
       successMessage: 'Chromatography setup complete! The mobile phase rises by capillary action, separating components based on their relative affinity for the stationary and mobile phases. Calculate Rf values to identify compounds.'
+    },
+    solution_preparation: {
+      id: 'solution_preparation', name: 'Standard Solution Preparation', description: 'Prepare a standard solution of known concentration from a solid solute using a volumetric flask.',
+      steps: [
+        { instruction: 'Place an electronic balance on the bench.', equipment: 'balance',
+          target: {x:0.2, y:0.55}, tolerance: 55, hint: 'The balance is used to weigh the solute accurately.' },
+        { instruction: 'Use a spatula to transfer solid to the balance.', equipment: 'spatula',
+          target: {x:0.2, y:0.42}, tolerance: 50, hint: 'Transfer solute from reagent bottle to weighing vessel on balance.' },
+        { instruction: 'Place a beaker for dissolving the solid.', equipment: 'beaker',
+          target: {x:0.45, y:0.55}, tolerance: 55, hint: 'Dissolve the weighed solid in a small amount of distilled water.' },
+        { instruction: 'Add a stirring rod to help dissolve.', equipment: 'stirring_rod',
+          target: {x:0.45, y:0.4}, tolerance: 45, hint: 'Stir to ensure all solid dissolves completely.' },
+        { instruction: 'Place a volumetric flask for the final solution.', equipment: 'vol_flask',
+          target: {x:0.72, y:0.55}, tolerance: 55, hint: 'Transfer the dissolved solution to the volumetric flask.' },
+        { instruction: 'Place a wash bottle for rinsing.', equipment: 'wash_bottle',
+          target: {x:0.72, y:0.35}, tolerance: 50, hint: 'Rinse the beaker with distilled water into the flask to ensure complete transfer, then fill to the mark.' }
+      ],
+      connections: [
+        {from: {x:0.29, y:0.55}, to: {x:0.37, y:0.55}, label: 'transfer'},
+        {from: {x:0.53, y:0.55}, to: {x:0.64, y:0.55}, label: 'pour + rinse'}
+      ],
+      annotations: [
+        {text: 'Weigh to \u00B10.01 g', x: 0.2, y: 0.7},
+        {text: 'Dissolve fully', x: 0.45, y: 0.7},
+        {text: 'Fill to mark', x: 0.72, y: 0.7}
+      ],
+      successMessage: 'Standard solution prepared! You weighed the solute accurately, dissolved it completely, transferred it to the volumetric flask, rinsed the beaker to ensure quantitative transfer, and made up to the graduation mark with distilled water.'
+    },
+    serial_dilution: {
+      id: 'serial_dilution', name: 'Serial Dilution', description: 'Prepare a series of solutions with decreasing concentration by successive dilution of a stock solution.',
+      steps: [
+        { instruction: 'Place a beaker containing the stock solution.', equipment: 'beaker',
+          target: {x:0.15, y:0.5}, tolerance: 55, hint: 'This beaker holds your concentrated stock solution.' },
+        { instruction: 'Place a volumetric pipette for accurate transfer.', equipment: 'vol_pipette',
+          target: {x:0.15, y:0.3}, tolerance: 50, hint: 'Use the pipette to transfer exact volumes from the stock.' },
+        { instruction: 'Add a pipette filler.', equipment: 'pipette_filler',
+          target: {x:0.15, y:0.18}, tolerance: 45, hint: 'Never pipette by mouth! Always use a filler.' },
+        { instruction: 'Place the first volumetric flask (most concentrated dilution).', equipment: 'vol_flask',
+          target: {x:0.4, y:0.5}, tolerance: 55, hint: 'Pipette stock solution into this flask, then dilute to the mark.' },
+        { instruction: 'Place the second volumetric flask (medium dilution).', equipment: 'vol_flask',
+          target: {x:0.6, y:0.5}, tolerance: 55, hint: 'Take solution from the first flask and dilute again.' },
+        { instruction: 'Place a wash bottle for making up to the mark.', equipment: 'wash_bottle',
+          target: {x:0.82, y:0.5}, tolerance: 50, hint: 'Use distilled water to fill each flask to the graduation mark.' }
+      ],
+      connections: [
+        {from: {x:0.23, y:0.5}, to: {x:0.32, y:0.5}, label: 'pipette'},
+        {from: {x:0.48, y:0.5}, to: {x:0.52, y:0.5}, label: 'pipette'},
+        {from: {x:0.68, y:0.5}, to: {x:0.74, y:0.5}, label: 'dilute'}
+      ],
+      annotations: [
+        {text: 'Stock solution', x: 0.15, y: 0.65},
+        {text: 'Dilution 1', x: 0.4, y: 0.65},
+        {text: 'Dilution 2', x: 0.6, y: 0.65}
+      ],
+      successMessage: 'Serial dilution complete! Each flask contains a progressively more dilute solution. The concentration decreases by the same factor at each step (e.g., \u00D710 dilution). Label each flask with its concentration.'
+    },
+    galvanic_cell: {
+      id: 'galvanic_cell', name: 'Galvanic Cell Builder', description: 'Construct a galvanic (voltaic) cell with two half-cells to generate electrical energy from a spontaneous redox reaction.',
+      steps: [
+        { instruction: 'Place the first beaker (half-cell 1).', equipment: 'beaker',
+          target: {x:0.25, y:0.6}, tolerance: 55, hint: 'This beaker holds the electrolyte for the first half-cell (e.g., ZnSO\u2084).' },
+        { instruction: 'Place a metal electrode in half-cell 1.', equipment: 'electrode',
+          target: {x:0.25, y:0.4}, tolerance: 45, hint: 'The metal electrode (e.g., Zn) is the anode where oxidation occurs.' },
+        { instruction: 'Place the second beaker (half-cell 2).', equipment: 'beaker',
+          target: {x:0.65, y:0.6}, tolerance: 55, hint: 'This beaker holds the electrolyte for the second half-cell (e.g., CuSO\u2084).' },
+        { instruction: 'Place a metal electrode in half-cell 2.', equipment: 'electrode',
+          target: {x:0.65, y:0.4}, tolerance: 45, hint: 'The metal electrode (e.g., Cu) is the cathode where reduction occurs.' },
+        { instruction: 'Connect the half-cells with a salt bridge.', equipment: 'salt_bridge',
+          target: {x:0.45, y:0.45}, tolerance: 55, hint: 'The salt bridge allows ion migration to maintain electrical neutrality in both half-cells.' },
+        { instruction: 'Connect the electrodes with a wire.', equipment: 'wire',
+          target: {x:0.45, y:0.25}, tolerance: 50, hint: 'The wire carries electrons from anode to cathode through the external circuit.' },
+        { instruction: 'Place a thermometer as a voltmeter to measure EMF.', equipment: 'thermometer',
+          target: {x:0.45, y:0.15}, tolerance: 45, hint: 'A voltmeter (high resistance) measures the cell potential E\u00B0cell.' }
+      ],
+      connections: [
+        {from: {x:0.25, y:0.38}, to: {x:0.38, y:0.25}, label: 'e\u207B flow'},
+        {from: {x:0.52, y:0.25}, to: {x:0.65, y:0.38}, label: 'e\u207B flow'},
+        {from: {x:0.32, y:0.55}, to: {x:0.38, y:0.55}, label: 'ions'},
+        {from: {x:0.52, y:0.55}, to: {x:0.58, y:0.55}, label: 'ions'}
+      ],
+      annotations: [
+        {text: 'Anode (\u2013)', x: 0.25, y: 0.75},
+        {text: 'Cathode (+)', x: 0.65, y: 0.75},
+        {text: 'Salt bridge', x: 0.45, y: 0.58},
+        {text: 'Voltmeter', x: 0.45, y: 0.08}
+      ],
+      successMessage: 'Galvanic cell constructed! Electrons flow from the anode (oxidation) through the external wire to the cathode (reduction). The salt bridge maintains electrical neutrality. E\u00B0cell = E\u00B0cathode \u2013 E\u00B0anode.'
+    },
+    electrolysis: {
+      id: 'electrolysis', name: 'Electrolysis Setup', description: 'Set up an electrolysis apparatus to drive a non-spontaneous redox reaction using electrical energy from a DC power supply.',
+      steps: [
+        { instruction: 'Place a beaker containing the electrolyte.', equipment: 'beaker',
+          target: {x:0.45, y:0.6}, tolerance: 55, hint: 'The beaker holds the molten or aqueous electrolyte to be electrolysed.' },
+        { instruction: 'Place a retort stand to support the electrodes.', equipment: 'retort_stand',
+          target: {x:0.45, y:0.35}, tolerance: 50, hint: 'The stand and clamp hold the electrodes in position in the electrolyte.' },
+        { instruction: 'Place the first electrode (anode).', equipment: 'electrode',
+          target: {x:0.32, y:0.5}, tolerance: 45, hint: 'The anode is connected to the positive (+) terminal. Oxidation occurs here.' },
+        { instruction: 'Place the second electrode (cathode).', equipment: 'electrode',
+          target: {x:0.58, y:0.5}, tolerance: 45, hint: 'The cathode is connected to the negative (\u2013) terminal. Reduction occurs here.' },
+        { instruction: 'Place a DC power supply.', equipment: 'power_supply',
+          target: {x:0.45, y:0.15}, tolerance: 55, hint: 'The power supply provides the energy to drive the non-spontaneous reaction.' },
+        { instruction: 'Connect the anode to the positive terminal with a wire.', equipment: 'wire',
+          target: {x:0.35, y:0.3}, tolerance: 50, hint: 'Red wire from + terminal to anode. Remember: PANIC \u2014 Positive Anode, Negative Is Cathode.' },
+        { instruction: 'Connect the cathode to the negative terminal with a wire.', equipment: 'wire',
+          target: {x:0.55, y:0.3}, tolerance: 50, hint: 'Black wire from \u2013 terminal to cathode.' }
+      ],
+      connections: [
+        {from: {x:0.38, y:0.15}, to: {x:0.32, y:0.35}, label: '+ to anode'},
+        {from: {x:0.52, y:0.15}, to: {x:0.58, y:0.35}, label: '\u2013 to cathode'}
+      ],
+      annotations: [
+        {text: 'Anode (+): oxidation', x: 0.22, y: 0.65},
+        {text: 'Cathode (\u2013): reduction', x: 0.62, y: 0.65},
+        {text: 'DC Power Supply', x: 0.45, y: 0.08}
+      ],
+      successMessage: 'Electrolysis apparatus complete! The DC power supply forces electrons from anode to cathode. At the anode: oxidation (anions lose electrons). At the cathode: reduction (cations gain electrons). Use Faraday\'s law to calculate product mass: m = MIt/zF.'
     }
   };
 
