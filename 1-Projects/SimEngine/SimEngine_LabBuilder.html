@@ -734,7 +734,7 @@
 
   function drawSaltBridge(ctx, cx, cy, s){
     s = s || 1; ctx.save();
-    ctx.strokeStyle = STROKE; ctx.lineWidth = 1.5;
+    ctx.strokeStyle = STROKE; ctx.lineWidth = 1.5*s;
     ctx.fillStyle = '#E0E7FF';
     // U-tube shape
     ctx.beginPath();
@@ -787,6 +787,23 @@
     ctx.moveTo(cx, cy-3*s); ctx.lineTo(cx+20*s, cy-2*s);
     ctx.quadraticCurveTo(cx+24*s, cy, cx+20*s, cy+2*s);
     ctx.lineTo(cx, cy+3*s); ctx.closePath(); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawVoltmeter(ctx, cx, cy, s){
+    s = s || 1; ctx.save();
+    ctx.strokeStyle = STROKE; ctx.lineWidth = 1*s;
+    // Body (circle)
+    ctx.fillStyle = '#F1F5F9';
+    ctx.beginPath(); ctx.arc(cx, cy, 16*s, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    // V label
+    ctx.fillStyle = '#334155'; ctx.font = 'bold '+(12*s)+'px Inter,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('V', cx, cy);
+    // Terminals
+    ctx.fillStyle = '#DC2626';
+    ctx.beginPath(); ctx.arc(cx-8*s, cy+16*s, 3*s, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#1E293B';
+    ctx.beginPath(); ctx.arc(cx+8*s, cy+16*s, 3*s, 0, Math.PI*2); ctx.fill(); ctx.stroke();
     ctx.restore();
   }
 
@@ -867,15 +884,17 @@
     {id:'pencil', name:'Pencil', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
      typicalUse:'Drawing baselines on chromatography plates and marking filter paper', ibNotes:'Must use pencil (graphite), not pen. Ink would dissolve and interfere with the chromatogram.', commonMistakes:['Using pen instead of pencil'], draw:drawPencil},
     {id:'electrode', name:'Metal Electrode', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
-     typicalUse:'Conducting electrode for electrochemical cells (galvanic or electrolysis)', ibNotes:'Choose appropriate metal for each half-cell. Clean with sandpaper before use.', commonMistakes:['Using wrong metal for half-cell','Not cleaning electrode surface'], draw:drawElectrode},
+     typicalUse:'Conducting electrode for electrochemical cells (galvanic or electrolysis)', ibNotes:'Choose appropriate metal for each half-cell. Clean with sandpaper before use.', commonMistakes:['Using wrong metal for half-cell','Not cleaning electrode surface'], hitR:35, draw:drawElectrode},
     {id:'wire', name:'Wire & Crocodile Clips', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
      typicalUse:'Connecting electrodes to external circuit in electrochemical cells', ibNotes:'Ensure secure connections. Use crocodile clips to attach to electrode terminals.', commonMistakes:['Loose connections giving intermittent readings','Wires touching electrolyte'], draw:drawWire},
     {id:'salt_bridge', name:'Salt Bridge', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
-     typicalUse:'Connecting two half-cells while maintaining electrical neutrality', ibNotes:'Usually KNO\u2083 or KCl in agar gel or soaked filter paper. Ions migrate to balance charge.', commonMistakes:['Forgetting salt bridge (no circuit)','Using reactive salt that precipitates with electrolyte'], draw:drawSaltBridge},
+     typicalUse:'Connecting two half-cells while maintaining electrical neutrality', ibNotes:'Usually KNO\u2083 or KCl in agar gel or soaked filter paper. Ions migrate to balance charge.', commonMistakes:['Forgetting salt bridge (no circuit)','Using reactive salt that precipitates with electrolyte'], hitR:40, draw:drawSaltBridge},
     {id:'power_supply', name:'DC Power Supply', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
-     typicalUse:'Providing direct current for electrolysis experiments', ibNotes:'Connect positive terminal to anode, negative to cathode. Start at low voltage.', commonMistakes:['Reversing polarity','Using AC instead of DC'], draw:drawPowerSupply},
+     typicalUse:'Providing direct current for electrolysis experiments', ibNotes:'Connect positive terminal to anode, negative to cathode. Start at low voltage.', commonMistakes:['Reversing polarity','Using AC instead of DC'], hitR:40, draw:drawPowerSupply},
     {id:'spatula', name:'Spatula', category:'general', uncertainty:'N/A', uncertaintyVal:null, unit:'', precision:'N/A',
-     typicalUse:'Transferring solid chemicals from reagent bottles to weighing vessels', ibNotes:'Use a clean, dry spatula for each chemical. Never return excess to the bottle.', commonMistakes:['Contaminating reagent bottle by returning excess','Not cleaning between chemicals'], draw:drawSpatula}
+     typicalUse:'Transferring solid chemicals from reagent bottles to weighing vessels', ibNotes:'Use a clean, dry spatula for each chemical. Never return excess to the bottle.', commonMistakes:['Contaminating reagent bottle by returning excess','Not cleaning between chemicals'], draw:drawSpatula},
+    {id:'voltmeter', name:'Voltmeter / Multimeter', category:'measurement', uncertainty:'\u00B10.01 V', uncertaintyVal:0.01, unit:'V', precision:'High',
+     typicalUse:'Measuring potential difference (EMF) across a galvanic cell or electrolysis circuit', ibNotes:'Set to DC voltage mode. Connect in parallel across the cell. High internal resistance minimises current draw.', commonMistakes:['Connecting in series instead of parallel','Using AC mode instead of DC'], hitR:40, draw:drawVoltmeter}
   ];
 
   var EQ_MAP = {};
@@ -1118,8 +1137,8 @@
           target: {x:0.72, y:0.35}, tolerance: 50, hint: 'Rinse the beaker with distilled water into the flask to ensure complete transfer, then fill to the mark.' }
       ],
       connections: [
-        {from: {x:0.29, y:0.55}, to: {x:0.37, y:0.55}, label: 'transfer'},
-        {from: {x:0.53, y:0.55}, to: {x:0.64, y:0.55}, label: 'pour + rinse'}
+        {from: 0, to: 2, label: 'transfer'},
+        {from: 2, to: 4, label: 'pour + rinse'}
       ],
       annotations: [
         {text: 'Weigh to \u00B10.01 g', x: 0.2, y: 0.7},
@@ -1145,9 +1164,9 @@
           target: {x:0.82, y:0.5}, tolerance: 50, hint: 'Use distilled water to fill each flask to the graduation mark.' }
       ],
       connections: [
-        {from: {x:0.23, y:0.5}, to: {x:0.32, y:0.5}, label: 'pipette'},
-        {from: {x:0.48, y:0.5}, to: {x:0.52, y:0.5}, label: 'pipette'},
-        {from: {x:0.68, y:0.5}, to: {x:0.74, y:0.5}, label: 'dilute'}
+        {from: 0, to: 3, label: 'pipette'},
+        {from: 3, to: 4, label: 'pipette'},
+        {from: 5, to: 4, label: 'dilute'}
       ],
       annotations: [
         {text: 'Stock solution', x: 0.15, y: 0.65},
@@ -1171,14 +1190,14 @@
           target: {x:0.45, y:0.45}, tolerance: 55, hint: 'The salt bridge allows ion migration to maintain electrical neutrality in both half-cells.' },
         { instruction: 'Connect the electrodes with a wire.', equipment: 'wire',
           target: {x:0.45, y:0.25}, tolerance: 50, hint: 'The wire carries electrons from anode to cathode through the external circuit.' },
-        { instruction: 'Place a thermometer as a voltmeter to measure EMF.', equipment: 'thermometer',
-          target: {x:0.45, y:0.15}, tolerance: 45, hint: 'A voltmeter (high resistance) measures the cell potential E\u00B0cell.' }
+        { instruction: 'Place a voltmeter to measure the cell EMF.', equipment: 'voltmeter',
+          target: {x:0.45, y:0.15}, tolerance: 45, hint: 'A voltmeter (high resistance) measures the cell potential E\u00B0cell. Connect in parallel across the cell.' }
       ],
       connections: [
-        {from: {x:0.25, y:0.38}, to: {x:0.38, y:0.25}, label: 'e\u207B flow'},
-        {from: {x:0.52, y:0.25}, to: {x:0.65, y:0.38}, label: 'e\u207B flow'},
-        {from: {x:0.32, y:0.55}, to: {x:0.38, y:0.55}, label: 'ions'},
-        {from: {x:0.52, y:0.55}, to: {x:0.58, y:0.55}, label: 'ions'}
+        {from: 1, to: 5, label: 'e\u207B flow'},
+        {from: 5, to: 3, label: 'e\u207B flow'},
+        {from: 0, to: 4, label: 'ions'},
+        {from: 4, to: 2, label: 'ions'}
       ],
       annotations: [
         {text: 'Anode (\u2013)', x: 0.25, y: 0.75},
@@ -1207,8 +1226,8 @@
           target: {x:0.55, y:0.3}, tolerance: 50, hint: 'Black wire from \u2013 terminal to cathode.' }
       ],
       connections: [
-        {from: {x:0.38, y:0.15}, to: {x:0.32, y:0.35}, label: '+ to anode'},
-        {from: {x:0.52, y:0.15}, to: {x:0.58, y:0.35}, label: '\u2013 to cathode'}
+        {from: 4, to: 2, label: '+ to anode'},
+        {from: 4, to: 3, label: '\u2013 to cathode'}
       ],
       annotations: [
         {text: 'Anode (+): oxidation', x: 0.22, y: 0.65},
