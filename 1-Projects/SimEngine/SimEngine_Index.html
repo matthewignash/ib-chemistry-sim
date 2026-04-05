@@ -88,6 +88,36 @@
     .sim-card{margin-bottom:.5rem;}
   }
   footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+
+  /* Detail Panel */
+  .detail-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.3);opacity:0;pointer-events:none;transition:opacity .3s;z-index:200;}
+  .detail-overlay.open{opacity:1;pointer-events:auto;}
+  .detail-panel{position:fixed;right:0;top:0;height:100vh;width:420px;background:white;transform:translateX(100%);transition:transform .3s ease;z-index:201;overflow-y:auto;padding:1.5rem;box-shadow:-4px 0 24px rgba(0,0,0,.12);}
+  .detail-panel.open{transform:translateX(0);}
+  .detail-back{display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .8rem;border:1px solid var(--border);border-radius:8px;background:white;font-size:.82rem;font-weight:500;cursor:pointer;font-family:inherit;color:var(--text-muted);transition:.2s;margin-bottom:.75rem;}
+  .detail-back:hover{color:var(--teal);border-color:var(--teal);background:var(--teal-bg);}
+  .detail-badges{display:flex;gap:.4rem;margin-bottom:.25rem;}
+  .detail-title{font-size:1.3rem;font-weight:700;color:var(--navy);margin:0 0 .4rem;line-height:1.3;}
+  .detail-desc{font-size:.88rem;color:var(--text-muted);margin:0 0 1rem;line-height:1.5;}
+  .detail-section{margin-bottom:1.25rem;}
+  .detail-label{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--text-muted);margin-bottom:.5rem;}
+  .detail-guide{background:var(--teal-bg);border-left:3px solid var(--teal);padding:.65rem 1rem;border-radius:0 8px 8px 0;font-size:.88rem;color:var(--text);line-height:1.5;}
+  .detail-objectives{margin:0;padding:0 0 0 1.2rem;list-style:none;}
+  .detail-objectives li{position:relative;font-size:.85rem;color:var(--text);margin-bottom:.4rem;line-height:1.5;padding-left:.2rem;}
+  .detail-objectives li::before{content:'';position:absolute;left:-1rem;top:.55rem;width:6px;height:6px;border-radius:50%;background:var(--teal);}
+  .detail-tab-chip{display:inline-block;padding:.2rem .65rem;border-radius:6px;background:#F1F5F9;border:1px solid var(--border);font-size:.78rem;font-weight:500;margin:.15rem;color:var(--text);}
+  .detail-content-row{display:flex;gap:.75rem;}
+  .detail-content-block{flex:1;padding:.75rem;border-radius:8px;font-size:.82rem;line-height:1.5;}
+  .detail-content-heading{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;margin-bottom:.3rem;}
+  .sl-block{background:#E0F2FE;border:1px solid #BAE6FD;}.sl-block .detail-content-heading{color:#0369A1;}
+  .hl-block{background:#F5F3FF;border:1px solid rgba(124,58,237,.2);}.hl-block .detail-content-heading{color:#7C3AED;}
+  .detail-open-btn{display:block;margin-top:1.5rem;padding:.75rem;background:var(--teal);color:white;text-align:center;border-radius:10px;font-weight:600;font-size:.95rem;text-decoration:none;transition:.2s;}
+  .detail-open-btn:hover{background:#0B7A70;}
+  @media(max-width:700px){
+    .detail-panel{width:100%;height:80vh;top:auto;bottom:0;border-radius:16px 16px 0 0;transform:translateY(100%);}
+    .detail-panel.open{transform:translateY(0);}
+    .detail-content-row{flex-direction:column;}
+  }
 </style>
 </head>
 <body>
@@ -120,7 +150,7 @@
 </div>
 
 <div class="keyboard-hint">
-  <kbd>/</kbd> Search &nbsp; <kbd>Esc</kbd> Clear
+  <kbd>/</kbd> Search &nbsp; <kbd>Esc</kbd> Close / Clear
 </div>
 
 <div class="footer">
@@ -145,130 +175,320 @@
     // S1
     { file:'SimEngine_StatesOfMatter.html', name:'States of Matter', section:'S1', topic:'S1.1', level:'both',
       desc:'Particle visualization, phase transitions, and heating curves',
-      keywords:'kinetic solid liquid gas boiling melting' },
+      keywords:'kinetic solid liquid gas boiling melting',
+      guideStatement:'S1.1: Introduction to the Particulate Nature of Matter',
+      objectives:['Describe the arrangement and motion of particles in solids, liquids, and gases.','Interpret heating curves in terms of kinetic energy and phase changes.','Compare kinetic energy distributions at different temperatures using Maxwell-Boltzmann curves.'],
+      tabs:['Particle View','Heating Curve','KE Distribution'],
+      slContent:'Particle models of three states, phase transitions, and heating/cooling curve interpretation.',
+      hlContent:'' },
     { file:'SimEngine_NuclearAtom.html', name:'Nuclear Atom', section:'S1', topic:'S1.2', level:'both',
       desc:'Mass spectra, emission spectra, and isotope explorer',
-      keywords:'isotope proton neutron electron mass spectrum emission' },
+      keywords:'isotope proton neutron electron mass spectrum emission',
+      guideStatement:'S1.2: The Nuclear Atom',
+      objectives:['Calculate relative atomic mass from isotopic abundance data.','Interpret mass spectra to determine isotopic composition.','Construct mass spectra from given isotopic data.','Relate emission spectra to electron energy transitions.'],
+      tabs:['Isotope Explorer','Mass Spec: Analyze','Mass Spec: Build','Emission Spectra'],
+      slContent:'Isotope notation, RAM calculations, mass spectra interpretation, and emission spectra basics.',
+      hlContent:'' },
     { file:'SimEngine_ElectronConfig.html', name:'Electron Configurations', section:'S1', topic:'S1.3', level:'both',
       desc:'Orbital builder, notation, periodic map, and IE trends',
-      keywords:'orbital aufbau hund subshell ionization energy 1s 2s 2p' },
+      keywords:'orbital aufbau hund subshell ionization energy 1s 2s 2p',
+      guideStatement:'S1.3: Electron Configurations',
+      objectives:['Apply the aufbau principle, Hund\'s rule, and the Pauli exclusion principle to write electron configurations.','Write full and condensed electron configurations for atoms and ions.','Relate electron configuration to position on the periodic table.','Explain trends in successive ionization energies.'],
+      tabs:['Orbital Builder','Notation & Ions','Periodic Table','IE Trends'],
+      slContent:'Electron configurations for elements up to Z=36, orbital diagrams, and periodic table mapping.',
+      hlContent:'Successive ionization energy trends and their relation to electron shells and subshells.' },
     { file:'SimEngine_Stoichiometry.html', name:'Mole Concept & Stoichiometry', section:'S1', topic:'S1.4', level:'both',
       desc:'Particle diagrams, ICE tables, and limiting reagent',
-      keywords:'mole avogadro molar mass limiting excess yield' },
+      keywords:'mole avogadro molar mass limiting excess yield',
+      guideStatement:'S1.4: Counting Particles by Mass: The Mole',
+      objectives:['Convert between mass, moles, and number of particles using Avogadro\'s constant.','Determine limiting and excess reagents from stoichiometric calculations.','Use mole ratios to predict amounts of products and reactants.'],
+      tabs:['Stoichiometry','Limiting Reagent','Titration Lab','Gravimetric Analysis'],
+      slContent:'Mole conversions, stoichiometric calculations, and limiting reagent identification.',
+      hlContent:'Gravimetric analysis calculations and back-titration stoichiometry.' },
     { file:'SimEngine_GasLaws.html', name:'Ideal Gas Laws', section:'S1', topic:'S1.5', level:'both',
       desc:'P-V-T relationships, particle animation, and PV=nRT solver',
-      keywords:'pressure volume temperature ideal gas equation' },
+      keywords:'pressure volume temperature ideal gas equation',
+      guideStatement:'S1.5: Ideal Gases',
+      objectives:['Explain the relationships between pressure, volume, and temperature for an ideal gas.','Solve problems using the ideal gas equation PV=nRT.','Relate particle behaviour to macroscopic gas properties.'],
+      tabs:[],
+      slContent:'P-V-T relationships, gas law simulations, and ideal gas equation problem solving.',
+      hlContent:'' },
     { file:'SimEngine_GasLawsLab.html', name:'Gas Laws Lab', section:'S1', topic:'S1.5', level:'both',
       desc:"Boyle's, Charles's, and Gay-Lussac's law experiments",
-      keywords:'boyle charles gay-lussac pressure volume temperature lab' },
+      keywords:'boyle charles gay-lussac pressure volume temperature lab',
+      guideStatement:'S1.5: Ideal Gases',
+      objectives:['Verify Boyle\'s, Charles\'s, and Gay-Lussac\'s laws through virtual experiments.','Collect and graph data to establish proportional gas law relationships.','Compare experimental results to ideal gas predictions.'],
+      tabs:['Gas Law Labs','Ideal Gas Calculator','Real vs Ideal'],
+      slContent:'Hands-on gas law experiments with data collection and graphing for Boyle\'s and Charles\'s laws.',
+      hlContent:'Real vs ideal gas behaviour and deviations from ideality.' },
 
     // S2
     { file:'SimEngine_IonicBonding.html', name:'Ionic Bonding', section:'S2', topic:'S2.1', level:'both',
       desc:'3D lattice models and drag-drop atom builder',
-      keywords:'ionic lattice NaCl electron transfer cation anion' },
+      keywords:'ionic lattice NaCl electron transfer cation anion',
+      guideStatement:'S2.1: The Ionic Model',
+      objectives:['Describe the formation of ionic bonds through electron transfer.','Represent ionic compounds using 3D lattice models.','Explain the physical properties of ionic compounds in terms of structure.','Relate lattice energy to ionic charge and radius.'],
+      tabs:['Electron Transfer','Crystal Lattice','Properties Lab','Lattice Energy'],
+      slContent:'Electron transfer, ionic lattice structures, and physical properties of ionic compounds.',
+      hlContent:'Lattice energy trends and their relationship to ionic charge and radius.' },
     { file:'SimEngine_MetallicBonding.html', name:'Metallic Bonding', section:'S2', topic:'S2.2', level:'both',
       desc:'Sea of electrons, alloys, and band theory (HL)',
-      keywords:'metallic delocalized alloy conductivity malleability band theory' },
+      keywords:'metallic delocalized alloy conductivity malleability band theory',
+      guideStatement:'S2.2: The Metallic Model',
+      objectives:['Describe metallic bonding as a lattice of cations in a sea of delocalized electrons.','Explain malleability, conductivity, and other metallic properties.','Compare the structures of pure metals and alloys.','Apply band theory to explain conductivity in metals and semiconductors.'],
+      tabs:['Sea of Electrons','Properties','Alloys','Band Theory'],
+      slContent:'Sea-of-electrons model, physical properties, and alloy structures.',
+      hlContent:'Band theory for metals, semiconductors, and insulators.' },
     { file:'SimEngine_CovalentBonding.html', name:'Covalent Bonding', section:'S2', topic:'S2.3', level:'both',
       desc:'Lewis structures, bonding modes, and electronegativity',
-      keywords:'covalent sigma pi bond polar nonpolar lewis dot' },
+      keywords:'covalent sigma pi bond polar nonpolar lewis dot',
+      guideStatement:'S2.3: The Covalent Model',
+      objectives:['Draw Lewis structures for molecules and polyatomic ions.','Distinguish between sigma and pi bonds.','Predict bond polarity using electronegativity differences.'],
+      tabs:['Bond Explorer','Orbital Overlap','Bond Comparison'],
+      slContent:'Lewis structures, single/double/triple bonds, and bond polarity predictions.',
+      hlContent:'Sigma and pi bond formation through orbital overlap.' },
     { file:'SimEngine_VSEPR.html', name:'Molecular Geometry (VSEPR)', section:'S2', topic:'S2.4', level:'both',
       desc:'3D molecule builder, electron pair geometry, and bond angles',
-      keywords:'VSEPR shape tetrahedral trigonal linear bent lone pair' },
+      keywords:'VSEPR shape tetrahedral trigonal linear bent lone pair',
+      guideStatement:'S2.4: From Molecules to Materials',
+      objectives:['Predict molecular geometries using VSEPR theory.','Determine bond angles for molecules with up to six electron domains.','Distinguish between electron-pair geometry and molecular geometry.'],
+      tabs:[],
+      slContent:'VSEPR predictions for common molecular shapes, bond angles, and 3D visualization.',
+      hlContent:'' },
     { file:'SimEngine_IMFComparison.html', name:'IMF & Materials', section:'S2', topic:'S2.4', level:'both',
       desc:'IMF type selector, boiling point predictor, and polarity',
-      keywords:'intermolecular forces hydrogen bond van der waals dipole london dispersion' },
+      keywords:'intermolecular forces hydrogen bond van der waals dipole london dispersion',
+      guideStatement:'S2.4: From Molecules to Materials',
+      objectives:['Identify the types of intermolecular forces present in a substance.','Predict relative boiling points based on IMF type and strength.','Explain how molecular polarity affects physical properties.'],
+      tabs:[],
+      slContent:'IMF identification, boiling point trends, and polarity analysis for common substances.',
+      hlContent:'' },
 
     // S3
     { file:'SimEngine_PeriodicTrends.html', name:'Periodic Table Trends', section:'S3', topic:'S3.1', level:'both',
       desc:'Interactive graphs for IE, atomic radius, and EN',
-      keywords:'periodic trend ionization energy electronegativity radius group period' },
+      keywords:'periodic trend ionization energy electronegativity radius group period',
+      guideStatement:'S3.1: The Periodic Table',
+      objectives:['Describe and explain trends in ionization energy across periods and down groups.','Describe and explain trends in atomic radius and electronegativity.','Use periodic trends to predict properties of elements.'],
+      tabs:[],
+      slContent:'Interactive graphing of IE, atomic radius, and EN trends across periods and groups.',
+      hlContent:'' },
     { file:'SimEngine_FunctionalGroups.html', name:'Functional Groups', section:'S3', topic:'S3.2', level:'both',
       desc:'Functional group explorer and structure builder',
-      keywords:'organic alcohol aldehyde ketone carboxylic acid ester amine amide' },
+      keywords:'organic alcohol aldehyde ketone carboxylic acid ester amine amide',
+      guideStatement:'S3.2: Functional Groups',
+      objectives:['Identify common functional groups in organic molecules.','Name organic compounds using IUPAC nomenclature.','Relate functional groups to characteristic chemical reactions.'],
+      tabs:[],
+      slContent:'Recognition and naming of alcohols, aldehydes, ketones, carboxylic acids, esters, amines, and amides.',
+      hlContent:'' },
     { file:'SimEngine_OrganicMechanisms.html', name:'Organic Mechanisms', section:'S3', topic:'S3.2', level:'both',
       desc:'SN1, SN2, elimination, addition, and free radical substitution',
-      keywords:'SN1 SN2 E1 E2 electrophilic nucleophilic free radical mechanism curly arrow' },
+      keywords:'SN1 SN2 E1 E2 electrophilic nucleophilic free radical mechanism curly arrow',
+      guideStatement:'S3.2: Functional Groups',
+      objectives:['Draw curly-arrow mechanisms for free radical substitution.','Distinguish between SN1 and SN2 nucleophilic substitution mechanisms.','Apply mechanism knowledge to predict reaction products.'],
+      tabs:['Mechanisms','Pathway Decision'],
+      slContent:'Free radical substitution and electrophilic addition mechanisms with curly-arrow notation.',
+      hlContent:'SN1 vs SN2 pathway decision-making based on substrate, nucleophile, and solvent.' },
     { file:'SimEngine_SpectroscopyLab.html', name:'Spectroscopy Lab', section:'S3', topic:'S3.2', level:'both',
       desc:'IR, MS, and NMR (HL) viewers with 12-unknown ID challenge',
-      keywords:'IR infrared mass spectrometry NMR spectroscopy analytical identification' },
+      keywords:'IR infrared mass spectrometry NMR spectroscopy analytical identification',
+      guideStatement:'S3.2: Functional Groups',
+      objectives:['Interpret IR spectra to identify functional groups.','Determine molecular formula and structure from mass spectra.','Use H-NMR spectra to deduce molecular structure.','Combine spectroscopic data to identify unknown compounds.'],
+      tabs:['IR Viewer','MS Viewer','NMR Viewer','ID Challenge'],
+      slContent:'IR and MS spectrum interpretation for functional group identification.',
+      hlContent:'H-NMR spectrum analysis including chemical shift, splitting patterns, and integration.' },
 
     // R1
     { file:'SimEngine_EnthalpyProfiles.html', name:'Enthalpy Profiles', section:'R1', topic:'R1.1', level:'both',
       desc:'Exo/endothermic energy diagrams with activation energy',
-      keywords:'enthalpy exothermic endothermic activation energy Ea profile diagram' },
+      keywords:'enthalpy exothermic endothermic activation energy Ea profile diagram',
+      guideStatement:'R1.1: Measuring Enthalpy Changes',
+      objectives:['Draw and interpret enthalpy profile diagrams for exo- and endothermic reactions.','Identify activation energy on an enthalpy profile.','Explain the effect of a catalyst on activation energy using enthalpy profiles.'],
+      tabs:[],
+      slContent:'Enthalpy profile diagrams, activation energy, and catalyst effects for exo/endothermic reactions.',
+      hlContent:'' },
     { file:'SimEngine_HessLaw.html', name:"Hess's Law", section:'R1', topic:'R1.2', level:'both',
       desc:"Enthalpy cycle builder with step-by-step construction",
-      keywords:'hess law enthalpy cycle formation combustion calculation' },
+      keywords:'hess law enthalpy cycle formation combustion calculation',
+      guideStatement:'R1.2: Energy Cycles in Reactions',
+      objectives:['Apply Hess\'s law to construct enthalpy cycles.','Calculate enthalpy changes using standard enthalpies of formation and combustion.','Use bond enthalpies to estimate enthalpy changes.'],
+      tabs:["Hess's Law",'Bond Enthalpies','Born-Haber Cycles'],
+      slContent:'Hess\'s law cycles, enthalpy of formation/combustion calculations, and bond enthalpy estimates.',
+      hlContent:'Born-Haber cycle construction for ionic compounds.' },
     { file:'SimEngine_BornHaber.html', name:'Born-Haber Cycles', section:'R1', topic:'R1.2', level:'hl',
       desc:'Lattice enthalpy cycles, theoretical vs. experimental',
-      keywords:'born haber lattice enthalpy ionization electron affinity atomization' },
+      keywords:'born haber lattice enthalpy ionization electron affinity atomization',
+      guideStatement:'R1.2: Energy Cycles in Reactions',
+      objectives:['Construct Born-Haber cycles for ionic compounds.','Calculate lattice enthalpies from Born-Haber cycle data.','Compare theoretical and experimental lattice enthalpies to assess covalent character.'],
+      tabs:['Cycle Builder','Lattice Enthalpy Calculator','Theoretical vs Experimental'],
+      slContent:'',
+      hlContent:'Full Born-Haber cycle construction, lattice enthalpy calculation, and covalent character analysis.' },
     { file:'SimEngine_EnergyFromFuels.html', name:'Energy from Fuels', section:'R1', topic:'R1.3', level:'both',
       desc:'Combustion calorimetry, fuel comparison, and energy density',
-      keywords:'combustion calorimetry fuel ethanol methane hydrogen energy density' },
+      keywords:'combustion calorimetry fuel ethanol methane hydrogen energy density',
+      guideStatement:'R1.3: Energy from Fuels',
+      objectives:['Calculate enthalpy of combustion from calorimetry data.','Compare the energy content of different fuels.','Evaluate fuels based on energy density and environmental impact.'],
+      tabs:['Calorimetry','Fuel Comparison','Incomplete Combustion','Energy Density'],
+      slContent:'Combustion calorimetry calculations and fuel energy comparisons.',
+      hlContent:'Energy density analysis and incomplete combustion products.' },
     { file:'SimEngine_EntropyGibbs.html', name:'Entropy & Gibbs Energy', section:'R1', topic:'R1.4', level:'hl',
       desc:'Delta-G calculation, spontaneity, and temperature effects',
-      keywords:'entropy gibbs free energy spontaneous delta G delta S delta H' },
+      keywords:'entropy gibbs free energy spontaneous delta G delta S delta H',
+      guideStatement:'R1.4: Entropy and Spontaneity (HL)',
+      objectives:['Calculate entropy changes for chemical reactions.','Determine Gibbs free energy change and predict spontaneity.','Analyse the effect of temperature on spontaneity using delta-G = delta-H - T*delta-S.'],
+      tabs:['Entropy Visualizer','Gibbs Calculator','Spontaneity Predictor','delta-G from delta-Gf'],
+      slContent:'',
+      hlContent:'Entropy calculations, Gibbs free energy, spontaneity prediction, and temperature dependence.' },
 
     // R2
     { file:'SimEngine_StoichiometryLab.html', name:'Amounts in Reactions', section:'R2', topic:'R2.1', level:'both',
       desc:'Percentage yield, atom economy (HL), and back-titration',
-      keywords:'yield atom economy back titration stoichiometry amounts' },
+      keywords:'yield atom economy back titration stoichiometry amounts',
+      guideStatement:'R2.1: How Much? The Amount of Chemical Change',
+      objectives:['Calculate percentage yield from experimental data.','Design experiments to maximise product yield.','Calculate atom economy for different synthetic routes.','Solve back-titration problems.'],
+      tabs:['Percentage Yield','Experimental Design','Atom Economy','Back-Titration'],
+      slContent:'Percentage yield calculations and experimental design to improve yield.',
+      hlContent:'Atom economy comparisons and back-titration calculations.' },
     { file:'SimEngine_CollisionTheory.html', name:'Collision Theory', section:'R2', topic:'R2.2', level:'both',
       desc:'Particle collision animation and KE distribution curves',
-      keywords:'collision theory kinetic energy maxwell boltzmann activation concentration temperature catalyst' },
+      keywords:'collision theory kinetic energy maxwell boltzmann activation concentration temperature catalyst',
+      guideStatement:'R2.2: How Fast? The Rate of Chemical Change',
+      objectives:['Explain reaction rates using collision theory.','Describe how concentration, temperature, and catalysts affect rate.','Interpret Maxwell-Boltzmann distribution curves to explain temperature and catalyst effects.'],
+      tabs:[],
+      slContent:'Collision theory animations, factor effects on rate, and Maxwell-Boltzmann distributions.',
+      hlContent:'' },
     { file:'SimEngine_RateLaw.html', name:'Rate Laws', section:'R2', topic:'R2.2', level:'both',
       desc:'Rate law determination and order-finding experiments',
-      keywords:'rate law order zero first second rate constant k reaction' },
+      keywords:'rate law order zero first second rate constant k reaction',
+      guideStatement:'R2.2: How Fast? The Rate of Chemical Change',
+      objectives:['Determine the order of reaction from experimental data.','Write rate expressions and calculate the rate constant.','Distinguish between zero, first, and second order reactions graphically.'],
+      tabs:[],
+      slContent:'Rate expression fundamentals and graphical identification of reaction order.',
+      hlContent:'' },
     { file:'SimEngine_Equilibrium.html', name:'Equilibrium', section:'R2', topic:'R2.3', level:'both',
       desc:'Concentration vs. time, forward/reverse rates, and K builder',
-      keywords:'equilibrium le chatelier Kc forward reverse concentration pressure' },
+      keywords:'equilibrium le chatelier Kc forward reverse concentration pressure',
+      guideStatement:'R2.3: How Far? The Extent of Chemical Change',
+      objectives:['Describe the characteristics of dynamic equilibrium.','Apply Le Chatelier\'s principle to predict the effect of changes in conditions.','Write and calculate equilibrium constant expressions.'],
+      tabs:[],
+      slContent:'Dynamic equilibrium concept, Le Chatelier\'s principle, and Kc expression writing.',
+      hlContent:'' },
 
     // R3
     { file:'SimEngine_AcidBase.html', name:'Acid-Base Chemistry', section:'R3', topic:'R3.1', level:'both',
       desc:'Titration simulation, pH graphs, and Henderson-Hasselbalch',
-      keywords:'acid base pH titration buffer Ka Kb pKa Henderson indicator' },
+      keywords:'acid base pH titration buffer Ka Kb pKa Henderson indicator',
+      guideStatement:'R3.1: Proton Transfer Reactions',
+      objectives:['Distinguish between strong and weak acids and bases.','Interpret pH titration curves for different acid-base combinations.','Calculate pH, Ka, and buffer capacity.','Select appropriate indicators for acid-base titrations.'],
+      tabs:[],
+      slContent:'Strong/weak acid-base titration curves, pH calculations, and indicator selection.',
+      hlContent:'' },
     { file:'SimEngine_Electrochem.html', name:'Electrochemistry', section:'R3', topic:'R3.2', level:'both',
       desc:'Galvanic and electrolytic cells, electrode potentials',
-      keywords:'galvanic voltaic electrolysis anode cathode electrode potential cell EMF' },
+      keywords:'galvanic voltaic electrolysis anode cathode electrode potential cell EMF',
+      guideStatement:'R3.2: Electron Transfer Reactions',
+      objectives:['Describe the components and operation of galvanic cells.','Describe the components and operation of electrolytic cells.','Calculate cell EMF from standard electrode potentials.'],
+      tabs:['Galvanic Cell','Electrolysis'],
+      slContent:'Galvanic and electrolytic cell construction, half-equations, and EMF calculations.',
+      hlContent:'' },
     { file:'SimEngine_NucleophilicAddition.html', name:'Nucleophilic Addition', section:'R3', topic:'R3.4', level:'hl',
       desc:'HCN addition to carbonyls, condensation, and synthesis paths',
-      keywords:'nucleophilic addition carbonyl aldehyde ketone HCN condensation hydrolysis' },
+      keywords:'nucleophilic addition carbonyl aldehyde ketone HCN condensation hydrolysis',
+      guideStatement:'R3.4: Electron-Pair Sharing Reactions (HL)',
+      objectives:['Draw the mechanism for nucleophilic addition of HCN to carbonyls.','Describe condensation and hydrolysis reactions of organic compounds.','Design multi-step synthesis pathways using nucleophilic addition.'],
+      tabs:['Nucleophilic Addition','Condensation & Hydrolysis','Synthesis Pathways'],
+      slContent:'',
+      hlContent:'Nucleophilic addition mechanisms, condensation/hydrolysis reactions, and retrosynthetic analysis.' },
     { file:'SimEngine_LewisAcidBase.html', name:'Lewis Acids, Bases & Complex Ions', section:'R3', topic:'R3.4', level:'hl',
       desc:'Lewis acid-base theory, complex ion formation, coordinate bonds',
-      keywords:'lewis acid base complex ion ligand coordinate bond octahedral tetrahedral linear BF3 NH3' },
+      keywords:'lewis acid base complex ion ligand coordinate bond octahedral tetrahedral linear BF3 NH3',
+      guideStatement:'R3.4: Electron-Pair Sharing Reactions (HL)',
+      objectives:['Define Lewis acids and bases in terms of electron-pair acceptance and donation.','Describe the formation of complex ions through coordinate bonding.','Predict the geometry of complex ions based on coordination number.'],
+      tabs:['Lewis Explorer','Complex Ion Builder','Practice'],
+      slContent:'',
+      hlContent:'Lewis acid-base theory, complex ion formation, coordinate bonding, and geometry prediction.' },
 
     // Math Skills
     { file:'SimEngine_UncertaintyTrainer.html', name:'Uncertainty & Error Trainer', section:'Math', topic:'Tool 1', level:'both',
       desc:'Instrument readings, error propagation, and percentage error',
-      keywords:'uncertainty error propagation percentage absolute random systematic IA' },
+      keywords:'uncertainty error propagation percentage absolute random systematic IA',
+      guideStatement:'Tool 1: Practical & Mathematical Skills',
+      objectives:['Read instruments and state uncertainties correctly.','Propagate uncertainties through addition, subtraction, multiplication, and division.','Calculate percentage error and percentage uncertainty.'],
+      tabs:['Reading Uncertainty','Propagation','% Error','Practice'],
+      slContent:'Instrument reading, uncertainty notation, error propagation, and percentage error calculations.',
+      hlContent:'' },
     { file:'SimEngine_GraphTrainer.html', name:'Graph Interpretation Trainer', section:'Math', topic:'Tool 1', level:'both',
       desc:'Reading graphs, gradients, rates, and Arrhenius analysis (HL)',
-      keywords:'graph gradient tangent rate arrhenius intercept linearization calibration' },
+      keywords:'graph gradient tangent rate arrhenius intercept linearization calibration',
+      guideStatement:'Tool 1: Practical & Mathematical Skills',
+      objectives:['Read and interpret data from graphs accurately.','Calculate gradients and use them to determine rates.','Linearise data and use Arrhenius plots to determine activation energy.'],
+      tabs:['Reading Graphs','Gradients & Rates','Graph Analysis','Practice'],
+      slContent:'Graph reading, gradient calculation, and rate determination from plotted data.',
+      hlContent:'Arrhenius plot analysis and linearisation techniques for activation energy determination.' },
     { file:'SimEngine_EquipmentTrainer.html', name:'Equipment Recognition Trainer', section:'Math', topic:'Tool 1', level:'both',
       desc:'Identify lab equipment, select for tasks, and understand measurement precision',
-      keywords:'equipment apparatus burette pipette beaker flask funnel balance thermometer uncertainty precision' },
+      keywords:'equipment apparatus burette pipette beaker flask funnel balance thermometer uncertainty precision',
+      guideStatement:'Tool 1: Practical & Mathematical Skills',
+      objectives:['Identify common laboratory equipment by name and function.','Select appropriate equipment for specific experimental tasks.','Relate equipment precision to measurement uncertainty.'],
+      tabs:['Identification','Selection','Precision','Practice'],
+      slContent:'Equipment identification, selection for tasks, and understanding of measurement precision.',
+      hlContent:'' },
     { file:'SimEngine_CalorimetryLab.html', name:'Calorimetry Lab', section:'R1', topic:'R1.1', level:'both',
       desc:'Coffee-cup and combustion calorimetry with equipment choices affecting heat loss and accuracy',
-      keywords:'calorimetry enthalpy heat loss coffee cup combustion spirit lamp hess law q=mcdt temperature extrapolation' },
+      keywords:'calorimetry enthalpy heat loss coffee cup combustion spirit lamp hess law q=mcdt temperature extrapolation',
+      guideStatement:'R1.1: Measuring Enthalpy Changes',
+      objectives:['Perform coffee-cup calorimetry calculations using q=mc*delta-T.','Determine enthalpy of combustion using a spirit burner.','Evaluate sources of heat loss and their effect on accuracy.','Apply Hess\'s law to verify enthalpy data from calorimetry experiments.'],
+      tabs:['Coffee-Cup','Combustion','Hess\'s Law','Analysis'],
+      slContent:'Coffee-cup and combustion calorimetry with q=mc*delta-T calculations and error analysis.',
+      hlContent:'' },
     { file:'SimEngine_QualitativeAnalysis.html', name:'Qualitative Analysis Lab', section:'S3', topic:'S3.1', level:'both',
       desc:'Flame tests, precipitation reactions, and ion identification using solubility rules',
-      keywords:'qualitative analysis flame test precipitation ions cation anion solubility rules identification unknown compound' },
+      keywords:'qualitative analysis flame test precipitation ions cation anion solubility rules identification unknown compound',
+      guideStatement:'S3.1: The Periodic Table',
+      objectives:['Identify metal cations using flame test colours.','Predict precipitate formation using solubility rules.','Design a systematic scheme to identify unknown ions.'],
+      tabs:['Flame Tests','Precipitation','Ion ID Challenge','Practice'],
+      slContent:'Flame test identification, precipitation reactions, and systematic ion identification.',
+      hlContent:'' },
     { file:'SimEngine_TitrationLab.html', name:'Titration Lab', section:'R2', topic:'R2.1', level:'both',
       desc:'Acid-base, redox (KMnO₄), and back titrations with interactive burette and step-by-step calculations',
-      keywords:'titration burette endpoint indicator phenolphthalein methyl orange permanganate redox back titration concordant' },
+      keywords:'titration burette endpoint indicator phenolphthalein methyl orange permanganate redox back titration concordant',
+      guideStatement:'R2.1: How Much? The Amount of Chemical Change',
+      objectives:['Perform acid-base titrations with correct technique and endpoint detection.','Carry out redox titrations using KMnO4 as a self-indicating reagent.','Solve back-titration calculations step by step.','Analyse titration data to determine unknown concentrations.'],
+      tabs:['Acid-Base','Redox','Back Titration','Analysis'],
+      slContent:'Acid-base titration technique, endpoint detection, and concentration calculations.',
+      hlContent:'' },
     { file:'SimEngine_GravimetricLab.html', name:'Gravimetric Analysis Lab', section:'S1', topic:'S1.4', level:'both',
       desc:'Water of crystallisation, thermal decomposition, and precipitation gravimetry with step-by-step calculations',
-      keywords:'gravimetric analysis water crystallisation hydrate thermal decomposition carbonate mass loss precipitation baso4 constant mass' },
+      keywords:'gravimetric analysis water crystallisation hydrate thermal decomposition carbonate mass loss precipitation baso4 constant mass',
+      guideStatement:'S1.4: Counting Particles by Mass: The Mole',
+      objectives:['Determine the formula of a hydrated salt from mass loss data.','Calculate the moles of a substance from thermal decomposition data.','Apply precipitation gravimetry to determine the amount of an ion in solution.'],
+      tabs:['Water of Crystallisation','Thermal Decomposition','Precipitation','Analysis'],
+      slContent:'Water of crystallisation and thermal decomposition calculations with step-by-step guidance.',
+      hlContent:'' },
     { file:'SimEngine_IAScaffold.html', name:'IA Scaffold', section:'Math', topic:'Tool 1', level:'both',
       desc:'Guided Internal Assessment workflow: research design, data analysis, conclusion, and evaluation',
-      keywords:'IA internal assessment scaffold research question variables method data analysis conclusion evaluation rubric criteria' },
+      keywords:'IA internal assessment scaffold research question variables method data analysis conclusion evaluation rubric criteria',
+      guideStatement:'Tool 1: Practical & Mathematical Skills',
+      objectives:['Formulate a focused research question with clear variables.','Design a method with appropriate controls and data collection strategy.','Process and present data with correct uncertainty analysis.','Write a conclusion and evaluation linked to the research question.'],
+      tabs:['Research Design','Data Analysis','Conclusion','Evaluation'],
+      slContent:'Guided IA workflow covering all four assessment criteria with rubric-aligned prompts.',
+      hlContent:'' },
     { file:'SimEngine_LabBuilder.html', name:'Virtual Lab Builder', section:'Math', topic:'Tool 1', level:'both',
       desc:'Build lab apparatus step-by-step (6 setups: distillation, titration, recrystallization, filtration, calorimetry, chromatography) or explore freely in sandbox mode',
-      keywords:'lab builder apparatus equipment assembly distillation titration recrystallization filtration evaporation calorimetry chromatography TLC setup practical' },
+      keywords:'lab builder apparatus equipment assembly distillation titration recrystallization filtration evaporation calorimetry chromatography TLC setup practical',
+      guideStatement:'Tool 1: Practical & Mathematical Skills',
+      objectives:['Assemble common laboratory setups from individual components.','Identify the purpose of each piece of apparatus in a setup.','Practise building apparatus for distillation, titration, filtration, and chromatography.'],
+      tabs:['Guided Assembly','Sandbox'],
+      slContent:'Step-by-step guided assembly of 6 standard lab setups plus free-build sandbox mode.',
+      hlContent:'' },
     { file:'SimEngine_VernierLab.html', name:'Virtual Vernier Lab', section:'Math', topic:'Tool 1', level:'both',
       desc:'Simulate Vernier sensors and Graphical Analysis \u2014 8 experiments covering enthalpy (neutralization, combustion, dissolution), weak acid titrations (ethanoic, methanoic), and diprotic titrations (H\u2082SO\u2084, H\u2082CO\u2083)',
-      keywords:'vernier sensor probe temperature pH data collection graphical analysis titration calorimetry enthalpy combustion dissolution weak acid ethanoic methanoic diprotic sulfuric carbonic Henderson-Hasselbalch buffer equivalence' }
+      keywords:'vernier sensor probe temperature pH data collection graphical analysis titration calorimetry enthalpy combustion dissolution weak acid ethanoic methanoic diprotic sulfuric carbonic Henderson-Hasselbalch buffer equivalence',
+      guideStatement:'Tool 1: Practical & Mathematical Skills',
+      objectives:['Collect and analyse real-time sensor data for enthalpy experiments.','Interpret pH titration curves for weak acids and diprotic acids.','Use Graphical Analysis tools to process and present experimental data.'],
+      tabs:['Sensor Setup','Data Collection','Analysis'],
+      slContent:'Vernier sensor simulation with 8 experiments covering calorimetry and acid-base titrations.',
+      hlContent:'' }
   ];
 
   var _levelFilter = 'all';
@@ -327,16 +547,21 @@
   }
 
   function renderCards() {
-    SIMS.forEach(function(sim) {
+    SIMS.forEach(function(sim, i) {
       var grid = document.getElementById('grid-' + sim.section);
       if (!grid) return;
 
       var card = document.createElement('a');
       card.className = 'sim-card';
-      card.href = sim.file;
+      card.href = '#';
+      card.setAttribute('data-idx', String(i));
       card.setAttribute('data-level', sim.level);
       card.setAttribute('data-section', sim.section);
       card.setAttribute('data-search', (sim.name + ' ' + sim.topic + ' ' + sim.desc + ' ' + sim.keywords).toLowerCase());
+      card.addEventListener('click', function(e) {
+        e.preventDefault();
+        openDetail(parseInt(this.getAttribute('data-idx')));
+      });
 
       var badges = document.createElement('div');
       badges.className = 'card-badges';
@@ -371,6 +596,111 @@
     });
 
     updateCounts();
+  }
+
+  function clearChildren(el) {
+    while (el.firstChild) el.removeChild(el.firstChild);
+  }
+
+  function openDetail(index) {
+    var sim = SIMS[index];
+    if (!sim) return;
+
+    var panel = document.getElementById('detailPanel');
+    var overlay = document.getElementById('detailOverlay');
+
+    // Badges
+    var badgesEl = document.getElementById('detailBadges');
+    clearChildren(badgesEl);
+    var topicBadge = document.createElement('span');
+    topicBadge.className = 'topic-badge';
+    topicBadge.textContent = sim.topic;
+    badgesEl.appendChild(topicBadge);
+    var levelBadge = document.createElement('span');
+    if (sim.level === 'hl') {
+      levelBadge.className = 'level-badge hl';
+      levelBadge.textContent = 'HL Only';
+    } else {
+      levelBadge.className = 'level-badge both';
+      levelBadge.textContent = 'SL + HL';
+    }
+    badgesEl.appendChild(levelBadge);
+
+    // Title & description
+    document.getElementById('detailTitle').textContent = sim.name;
+    document.getElementById('detailDesc').textContent = sim.desc;
+
+    // Guide statement
+    var guideSection = document.getElementById('detailGuideSection');
+    if (sim.guideStatement) {
+      guideSection.style.display = '';
+      document.getElementById('detailGuide').textContent = sim.guideStatement;
+    } else {
+      guideSection.style.display = 'none';
+    }
+
+    // Learning objectives
+    var objSection = document.getElementById('detailObjSection');
+    var objList = document.getElementById('detailObjectives');
+    clearChildren(objList);
+    if (sim.objectives && sim.objectives.length > 0) {
+      objSection.style.display = '';
+      sim.objectives.forEach(function(obj) {
+        var li = document.createElement('li');
+        li.textContent = obj;
+        objList.appendChild(li);
+      });
+    } else {
+      objSection.style.display = 'none';
+    }
+
+    // Tabs
+    var tabsSection = document.getElementById('detailTabsSection');
+    var tabsEl = document.getElementById('detailTabs');
+    clearChildren(tabsEl);
+    if (sim.tabs && sim.tabs.length > 0) {
+      tabsSection.style.display = '';
+      sim.tabs.forEach(function(t) {
+        var chip = document.createElement('span');
+        chip.className = 'detail-tab-chip';
+        chip.textContent = t;
+        tabsEl.appendChild(chip);
+      });
+    } else {
+      tabsSection.style.display = 'none';
+    }
+
+    // Content coverage
+    var contentSection = document.getElementById('detailContentSection');
+    var slEl = document.getElementById('detailSL');
+    var hlEl = document.getElementById('detailHL');
+    var hlBlock = document.getElementById('detailHLBlock');
+
+    var hasSL = sim.slContent && sim.slContent.length > 0;
+    var hasHL = sim.hlContent && sim.hlContent.length > 0;
+
+    if (hasSL || hasHL) {
+      contentSection.style.display = '';
+      slEl.textContent = hasSL ? sim.slContent : '';
+      slEl.parentElement.style.display = hasSL ? '' : 'none';
+      hlEl.textContent = hasHL ? sim.hlContent : '';
+      hlBlock.style.display = hasHL ? '' : 'none';
+    } else {
+      contentSection.style.display = 'none';
+    }
+
+    // Open button
+    document.getElementById('detailOpenBtn').href = sim.file;
+
+    // Show panel
+    overlay.classList.add('open');
+    panel.classList.add('open');
+    panel.scrollTop = 0;
+  }
+
+  function closeDetail() {
+    document.getElementById('detailOverlay').classList.remove('open');
+    document.getElementById('detailPanel').classList.remove('open');
   }
 
   function filterCards() {
@@ -468,18 +798,30 @@
       });
     });
 
+    // Detail panel close handlers
+    document.getElementById('detailBack').addEventListener('click', closeDetail);
+    document.getElementById('detailOverlay').addEventListener('click', closeDetail);
+
     // Keyboard shortcuts
     document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        var panel = document.getElementById('detailPanel');
+        if (panel.classList.contains('open')) {
+          closeDetail();
+          return;
+        }
+        if (document.activeElement === searchInput) {
+          searchInput.value = '';
+          _searchTerm = '';
+          filterCards();
+          searchInput.blur();
+        }
+        return;
+      }
       if (e.key === '/' && document.activeElement !== searchInput) {
         e.preventDefault();
         searchInput.focus();
         searchInput.select();
-      }
-      if (e.key === 'Escape' && document.activeElement === searchInput) {
-        searchInput.value = '';
-        _searchTerm = '';
-        filterCards();
-        searchInput.blur();
       }
     });
   }
@@ -491,6 +833,34 @@
   }
 })();
 </script>
+<div class="detail-overlay" id="detailOverlay"></div>
+<div class="detail-panel" id="detailPanel" role="dialog" aria-modal="true" aria-label="Simulation details">
+  <button class="detail-back" id="detailBack">&#8592; Back to list</button>
+  <div class="detail-badges" id="detailBadges"></div>
+  <h2 class="detail-title" id="detailTitle"></h2>
+  <p class="detail-desc" id="detailDesc"></p>
+  <div class="detail-section" id="detailGuideSection">
+    <div class="detail-label">IB Guide Statement</div>
+    <div class="detail-guide" id="detailGuide"></div>
+  </div>
+  <div class="detail-section" id="detailObjSection">
+    <div class="detail-label">Learning Objectives</div>
+    <ul class="detail-objectives" id="detailObjectives"></ul>
+  </div>
+  <div class="detail-section" id="detailTabsSection">
+    <div class="detail-label">Simulation Features</div>
+    <div id="detailTabs"></div>
+  </div>
+  <div class="detail-section" id="detailContentSection">
+    <div class="detail-label">Content Coverage</div>
+    <div class="detail-content-row" id="detailContentRow">
+      <div class="detail-content-block sl-block"><div class="detail-content-heading">SL Content</div><div id="detailSL"></div></div>
+      <div class="detail-content-block hl-block" id="detailHLBlock"><div class="detail-content-heading">HL Content</div><div id="detailHL"></div></div>
+    </div>
+  </div>
+  <a class="detail-open-btn" id="detailOpenBtn">Open Simulation &#8594;</a>
+</div>
+
 <footer>SimEngine &mdash; 38 Interactive Chemistry Simulations</footer>
 </body>
 </html>

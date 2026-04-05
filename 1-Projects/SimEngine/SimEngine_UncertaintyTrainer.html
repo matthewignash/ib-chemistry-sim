@@ -11,6 +11,8 @@
   body{font-family:'Inter',system-ui,sans-serif;background:#F1F5F9;color:var(--text);line-height:1.6;}
   .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;}
   .header h1{font-size:1.1rem;font-weight:700;} .header .subtitle{font-size:.78rem;opacity:.7;margin-left:.5rem;}
+  .header-home{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;border-radius:8px;color:rgba(255,255,255,.6);background:rgba(255,255,255,.08);text-decoration:none;transition:.2s;flex-shrink:0;}
+  .header-home:hover{color:#fff;background:rgba(255,255,255,.15);}
   .header-right{display:flex;align-items:center;gap:.75rem;}
   .header-badge{padding:.15rem .5rem;border-radius:4px;font-size:.7rem;font-weight:600;background:rgba(255,255,255,.15);}
   .header-badge.hl{background:var(--purple);display:none;} body.hl-active .header-badge.hl{display:inline-block;}
@@ -103,6 +105,7 @@
 <a href="#main-content" class="skip-link">Skip to content</a>
 
 <div class="header">
+  <a href="SimEngine_Index.html" class="header-home" title="Back to Index" aria-label="Back to simulation index"><svg width="18" height="18" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="12 16 6 10 12 4"/></svg></a>
   <div>
     <h1>Uncertainty &amp; Error Trainer<span class="subtitle">IB Chemistry — Tools &amp; IA Skills</span></h1>
   </div>
