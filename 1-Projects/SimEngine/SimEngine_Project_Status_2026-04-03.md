@@ -83,7 +83,7 @@
 | `SimEngine_EquipmentTrainer.html` | Tool 1 / IA Skills | Both | Complete | 4 tabs: Equipment Identification (26 items, canvas drawings, confusion-group distractors), Equipment Selection (14 task scenarios, 2×2 grid), Measurement & Precision (uncertainty values, equipment comparison, % uncertainty), Mixed Practice with score tracking |
 | `SimEngine_IAScaffold.html` | Tool 1 / IA Skills | Both | Complete | 4-tab IA scaffold: Research Design (RQ builder, variables table, method outline, rubric self-check), Data Analysis (raw data table builder, uncertainty guidance, graph checklist), Conclusion (sentence starters, % error calculator, literature comparison), Evaluation (categorised weaknesses, linked improvements, extension). Lab-specific presets for Calorimetry, Titration, Gravimetric, Qualitative. Embedded IA Guide panels in 4 lab sims. |
 | `SimEngine_LabBuilder.html` | Tool 1 / Lab Skills | Both | Complete | 2-tab Virtual Lab Builder: Guided Assembly with 6 templates (Distillation, Titration, Recrystallization, Filtration, Calorimetry, Chromatography) and Sandbox with save/load. 37 canvas-drawn equipment items. |
-| `SimEngine_VernierLab.html` | Tool 1 / Lab Skills | Both | Complete | 3-tab Virtual Vernier Lab: Sensor Setup (experiment selector, probe drawing, collection settings), Data Collection (live graph + data table, speed controls), Analysis (5 tools: Statistics, Linear Fit, Curve Fit, Tangent, Annotation). 2 experiments: Enthalpy of Neutralization (temperature probe) and Strong Acid-Base Titration (pH sensor). IB context calculations, teacher + HL panels. |
+| `SimEngine_VernierLab.html` | Tool 1 / Lab Skills | Both | Complete | 3-tab Virtual Vernier Lab: Sensor Setup (experiment selector, probe drawing, collection settings), Data Collection (live graph + data table, speed controls), Analysis (5 tools: Statistics, Linear Fit, Curve Fit, Tangent, Annotation). 8 experiments: Enthalpy of Neutralization, Enthalpy of Combustion, Enthalpy of Dissolution (NH₄NO₃), Strong Acid-Base Titration, Weak Acid Titrations (ethanoic + methanoic acid), Diprotic Titrations (H₂SO₄ + H₂CO₃, HL). IB context calculations, teacher + HL panels with experiment-specific content. |
 
 ### Additional (Outside SimEngine folder)
 
@@ -177,12 +177,13 @@ All planned topic-level simulations from the architecture doc have been built, c
 - Step-by-step validation, scoring, connection lines
 - Equipment photo library not yet collected
 
-### Phase 5: Vernier Sensor Simulation — COMPLETE (MVP)
-- Virtual Vernier Lab sim (`SimEngine_VernierLab.html`) with 2 experiments
-- Temperature probe (Enthalpy of Neutralization) + pH sensor (Strong Acid-Base Titration)
+### Phase 5: Vernier Sensor Simulation — COMPLETE
+- Virtual Vernier Lab sim (`SimEngine_VernierLab.html`) with 8 experiments
+- Temperature probe: Enthalpy of Neutralization, Enthalpy of Combustion, Enthalpy of Dissolution (NH₄NO₃)
+- pH sensor: Strong Acid-Base Titration, Weak Acid Titrations (ethanoic + methanoic acid), Diprotic Titrations (H₂SO₄ + H₂CO₃, HL)
 - 3-tab workflow: Sensor Setup → Data Collection (live graph) → Analysis
 - 5 analysis tools: Statistics, Linear Fit, Curve Fit, Tangent, Annotation
-- IB context calculations (q=mcΔT, equivalence point), teacher + HL panels
+- IB context calculations, experiment-specific teacher + HL panels
 
 ### Phase 6: Advanced IA Workflow — NOT STARTED (IAScaffold is a partial MVP)
 - IAScaffold sim covers basic IA workflow (Research Design → Data Analysis → Conclusion → Evaluation)
@@ -248,7 +249,8 @@ All planned topic-level simulations from the architecture doc have been built, c
     - Wave 2: Added aria-label to all canvas/input elements, role=tablist/tab/tabpanel, aria-live regions, skip-to-content links
     - Wave 3: Normalized CSS palette (--text, --blue), added --orange/--green vars, standardized headers/footers/tab-bars
 19. ~~Extended LabBuilder templates~~ — **DONE** (April 5, 4 new templates: Recrystallization, Filtration & Evaporation, Coffee-Cup Calorimetry, Paper/TLC Chromatography + 6 new equipment items)
-20. ~~Phase 5: Virtual Vernier Lab~~ — **DONE** (April 5, SimEngine_VernierLab.html — 3 tabs, 2 experiments, 5 analysis tools, temperature + pH sensors, live data collection, IB context calculations)
+20. ~~Phase 5: Virtual Vernier Lab~~ — **DONE** (April 5, SimEngine_VernierLab.html — 3 tabs, 8 experiments, 5 analysis tools, temperature + pH sensors, live data collection, IB context calculations)
+21. ~~Phase 5.1: Expanded Vernier Experiments~~ — **DONE** (April 5, added 6 experiments: combustion, dissolution, weak acid titrations ×2, diprotic titrations ×2; experiment-specific IB context, teacher notes, HL uncertainty analysis)
 
 ### Long-term (summer/next year):
 21. Phase 6: Advanced IA Workflow (rubric alignment, deep linking)
