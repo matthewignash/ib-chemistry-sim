@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lewis Acids, Bases &amp; Complex Ions — IB Chemistry SimEngine</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code&family=Caveat:wght@400;600&display=swap');
+  :root{--navy:#1B2A4A;--teal:#0D9488;--blue:#2563EB;--purple:#7C3AED;--light-bg:#F8FAFC;--card-bg:#FFFFFF;--text:#1E293B;--text-muted:#64748B;--border:#E2E8F0;--green:#059669;--red:#DC2626;--amber:#D97706;--teal-bg:#F0FDFA;--blue-bg:#EFF6FF;--red-bg:#FEF2F2;--green-bg:#F0FDF4;--amber-bg:#FFFBEB;--sim-canvas-bg:#FAFBFC;--hl-badge-bg:#7C3AED;--hl-border:rgba(124,58,237,0.2);--orange:#F59E0B;}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',-apple-system,sans-serif;background:var(--light-bg);color:var(--text);line-height:1.6;font-size:16px;}
+  body.hl-active {}
+  .header{background:var(--navy);color:white;padding:.75rem 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.75rem;}
+  .header h1{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;}.header .subtitle{font-size:.9rem;opacity:.85;}
+  .header-left{display:flex;flex-direction:column;gap:.25rem;}.header-right{display:flex;align-items:center;gap:1rem;}
+  .header-badge{display:inline-block;padding:.25rem .75rem;border-radius:999px;font-size:.75rem;font-weight:600;background:rgba(255,255,255,.15);color:white;}
+  .header-badge.hl{background:var(--hl-badge-bg);}
+  .sim-toggle-group{display:flex;align-items:center;gap:.5rem;}.sim-toggle{position:relative;display:inline-block;width:40px;height:22px;}.sim-toggle input{opacity:0;width:0;height:0;}
+  .sim-toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:#CBD5E1;border-radius:22px;transition:.2s;--toggle-on:var(--amber);}
+  .sim-toggle-slider::before{content:'';position:absolute;height:16px;width:16px;left:3px;bottom:3px;background:white;border-radius:50%;transition:.2s;}
+  .sim-toggle input:checked+.sim-toggle-slider{background:var(--toggle-on);}.sim-toggle input:checked+.sim-toggle-slider::before{transform:translateX(18px);}
+  .sim-toggle-label{font-size:.8rem;font-weight:500;color:rgba(255,255,255,.8);}
+  .sim-toggle-slider.hl-slider{--toggle-on:var(--purple);}
+  .tab-bar{background:white;border-bottom:2px solid var(--border);display:flex;gap:0;max-width:1100px;margin:0 auto;padding:0 1.5rem;}
+  .tab-btn{padding:.75rem 1.5rem;font-size:.85rem;font-weight:600;color:var(--text-muted);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;font-family:inherit;margin-bottom:-2px;}
+  .tab-btn:hover{color:var(--text);background:var(--teal-bg);}.tab-btn.active{color:var(--teal);border-bottom-color:var(--teal);}
+  .tab-btn .tab-num{display:inline-block;width:20px;height:20px;line-height:20px;text-align:center;border-radius:4px;font-size:.65rem;font-weight:700;background:var(--border);color:var(--text-muted);margin-right:.4rem;}
+  .tab-btn.active .tab-num{background:var(--teal);color:white;}
+  .sim-container{max-width:1200px;margin:0 auto;padding:1.5rem;}
+  .sim-top-row{display:grid;grid-template-columns:240px 1fr;gap:1.5rem;margin-bottom:1.5rem;}
+  .sim-card{background:var(--card-bg);border-radius:12px;border:1px solid var(--border);overflow:hidden;}
+  .sim-card-header{background:var(--navy);color:white;padding:.6rem 1rem;font-size:.85rem;font-weight:600;}
+  .sim-card-body{padding:1rem;}
+  .palette-panel{max-height:600px;display:flex;flex-direction:column;position:sticky;top:1rem;align-self:start;grid-column:1;grid-row:1;}
+  .tab-content{grid-column:2;grid-row:1;display:none;}.tab-content.active{display:block;}
+  .palette-panel .sim-card-body{padding:.5rem;overflow-y:auto;flex:1;}
+  .palette-category{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--text-muted);padding:.4rem .3rem .2rem;margin-top:.3rem;}
+  .palette-item{display:block;width:100%;text-align:left;padding:.3rem .5rem;margin:.15rem 0;border-radius:6px;font-size:.75rem;font-weight:500;cursor:pointer;border:1px solid var(--border);background:white;color:var(--text);transition:all .15s;font-family:inherit;}
+  .palette-item:hover{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);}
+  .palette-item.active{background:var(--teal-bg);border-color:var(--teal);color:var(--teal);font-weight:600;}
+  .palette-item.acid-selected{background:#FEF2F2;border-color:var(--red);color:var(--red);font-weight:600;}
+  .palette-item.base-selected{background:var(--blue-bg);border-color:var(--blue);color:var(--blue);font-weight:600;}
+  .palette-search{width:100%;padding:.35rem .5rem;border:1px solid var(--border);border-radius:6px;font-size:.75rem;font-family:inherit;margin-bottom:.3rem;}
+  .sim-canvas{display:block;width:100%;background:var(--sim-canvas-bg);border-radius:4px;}
+  .check-btn{display:inline-block;padding:.5rem 1.2rem;margin-top:.75rem;background:var(--teal);color:white;border:none;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;font-family:inherit;transition:background .2s;}
+  .check-btn:hover{background:#0B7C73;}
+  .check-btn.secondary{background:var(--text-muted);}
+  .check-btn.secondary:hover{background:#475569;}
+  .mode-btn{padding:.3rem .6rem;font-size:.72rem;font-weight:600;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;font-family:inherit;transition:all .15s;}
+  .mode-btn.active{background:var(--teal);color:white;border-color:var(--teal);}.mode-btn:hover:not(.active){background:var(--teal-bg);}
+  .teacher-panel{display:none;}body.teacher-active .teacher-panel{display:block;}
+  .calc-step{padding:.4rem .6rem;margin:.3rem 0;border-radius:6px;font-size:.8rem;font-family:'Fira Code',monospace;background:var(--blue-bg);border-left:3px solid var(--blue);}
+  .calc-step.green{background:var(--green-bg);border-left-color:var(--green);}
+  .calc-step.purple{background:#F5F3FF;border-left-color:var(--purple);}
+  .keyboard-hint{text-align:center;padding:.75rem;font-size:.7rem;color:var(--text-muted);margin-top:1rem;}
+  .keyboard-hint kbd{display:inline-block;padding:.1rem .4rem;border-radius:4px;background:white;border:1px solid var(--border);font-family:'Fira Code',monospace;font-size:.65rem;margin:0 .1rem;}
+  .preset-section{margin-top:.5rem;padding-top:.5rem;border-top:1px solid var(--border);display:none;}
+  .preset-section select{width:100%;padding:.35rem;border:1px solid var(--border);border-radius:6px;font-size:.75rem;font-family:inherit;cursor:pointer;}
+  body.teacher-active .preset-section{display:block;}
+  .metal-selector{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:.75rem;}
+  .metal-btn{width:48px;height:48px;border-radius:50%;border:3px solid var(--border);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:.65rem;font-weight:700;color:white;transition:all .15s;font-family:inherit;}
+  .metal-btn:hover{transform:scale(1.1);box-shadow:0 2px 8px rgba(0,0,0,.15);}
+  .metal-btn.active{border-color:var(--navy);box-shadow:0 0 0 3px rgba(27,42,74,.3);}
+  .complex-info{font-size:.8rem;line-height:1.7;}
+  .complex-info .label{font-weight:600;color:var(--text-muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;}
+  .color-swatch{display:inline-block;width:24px;height:24px;border-radius:6px;border:2px solid var(--border);vertical-align:middle;margin-left:.3rem;}
+  .bronsted-badge{display:inline-block;padding:.2rem .6rem;border-radius:999px;font-size:.7rem;font-weight:600;margin-top:.5rem;}
+  .bronsted-badge.yes{background:var(--green-bg);color:var(--green);border:1px solid var(--green);}
+  .bronsted-badge.no{background:var(--amber-bg);color:var(--amber);border:1px solid var(--amber);}
+  .score-display{font-size:.85rem;font-weight:600;color:white;font-family:'Fira Code',monospace;}
+  .problem-card{padding:1rem;background:var(--blue-bg);border-radius:8px;border-left:3px solid var(--blue);margin-bottom:.75rem;}
+  .problem-equation{font-family:'Fira Code',monospace;font-size:1rem;font-weight:600;margin:.5rem 0;}
+  .answer-select{padding:.35rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.8rem;font-family:inherit;margin:.2rem;}
+  .answer-select.correct{border-color:var(--green);background:var(--green-bg);}
+  .answer-select.incorrect{border-color:var(--red);background:var(--red-bg);}
+  .feedback-box{padding:.6rem;border-radius:8px;font-size:.8rem;margin-top:.5rem;display:none;}
+  .feedback-box.show-correct{display:block;background:var(--green-bg);border:1px solid var(--green);color:#065F46;}
+  .feedback-box.show-incorrect{display:block;background:var(--red-bg);border:1px solid var(--red);color:#991B1B;}
+  .hl-overlay{display:none;position:relative;padding:3rem 2rem;text-align:center;background:var(--card-bg);border-radius:12px;border:2px dashed var(--purple);margin:2rem 0;}
+  .hl-overlay h2{color:var(--purple);font-size:1.3rem;margin-bottom:.5rem;}
+  .hl-overlay p{color:var(--text-muted);font-size:.9rem;}
+  body:not(.hl-active) .hl-content{display:none !important;}
+  body:not(.hl-active) .hl-overlay{display:block !important;}
+  .preset-btn{padding:.3rem .5rem;font-size:.65rem;font-weight:600;border-radius:6px;border:1px solid var(--border);background:white;cursor:pointer;font-family:inherit;transition:all .15s;margin:.2rem;}
+  .preset-btn:hover{background:var(--teal-bg);border-color:var(--teal);}
+  .remove-lig-btn{display:inline-block;padding:.2rem .5rem;margin:.2rem;border-radius:6px;font-size:.7rem;font-weight:600;cursor:pointer;border:1px solid var(--border);background:white;font-family:inherit;transition:all .15s;}
+  .remove-lig-btn:hover{background:var(--red-bg);border-color:var(--red);color:var(--red);}
+  @media(max-width:900px){.sim-top-row{grid-template-columns:1fr;}.palette-panel{max-height:200px;position:static;}.tab-btn{padding:.6rem .8rem;font-size:.78rem;}}
+  .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
+  footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
+</style>
+</head>
+<body class="hl-active">
+<a href="#main-content" class="skip-link">Skip to content</a>
+<div class="header">
+  <div class="header-left"><h1>Lewis Acids, Bases &amp; Complex Ions</h1><span class="subtitle">IB Chemistry — R3.4 Electron-Pair Sharing (HL)</span></div>
+  <div class="header-right">
+    <span class="header-badge">R3.4</span>
+    <div class="sim-toggle-group"><span class="sim-toggle-label">SL</span><label class="sim-toggle"><input type="checkbox" checked aria-label="Toggle HL mode" id="hlToggle"><span class="sim-toggle-slider hl-slider"></span></label><span class="sim-toggle-label">HL</span></div>
+    <div class="sim-toggle-group"><span class="sim-toggle-label">Student</span><label class="sim-toggle"><input type="checkbox" aria-label="Toggle teacher mode" id="teacherToggle"><span class="sim-toggle-slider"></span></label><span class="sim-toggle-label">Teacher</span></div>
+  </div>
+</div>
+<div class="tab-bar" role="tablist">
+  <button class="tab-btn active" data-tab="lewis" role="tab" aria-label="Tab 1: Lewis Explorer"><span class="tab-num">1</span>Lewis Explorer</button>
+  <button class="tab-btn" data-tab="complex" role="tab" aria-label="Tab 2: Complex Ion Builder"><span class="tab-num">2</span>Complex Ion Builder</button>
+  <button class="tab-btn" data-tab="practice" role="tab" aria-label="Tab 3: Practice"><span class="tab-num">3</span>Practice</button>
+</div>
+<div class="sim-container" id="main-content">
+
+  <div class="hl-overlay" id="hlOverlay">
+    <h2>HL-Only Topic</h2>
+    <p>Lewis acids/bases and complex ions are part of the Higher Level (HL) syllabus only.<br>Toggle to HL mode to access this simulation.</p>
+  </div>
+
+  <div class="hl-content">
+  <div class="sim-top-row">
+  <div class="sim-card palette-panel">
+    <div class="sim-card-header" id="paletteHeader">Lewis Species</div>
+    <div class="sim-card-body">
+      <input type="text" class="palette-search" id="paletteSearch" placeholder="Search..." aria-label="Search species">
+      <div id="paletteList"></div>
+      <div class="preset-section" id="presetSection">
+        <select id="presetSelect" aria-label="Teacher presets">
+          <option value="">Teacher Presets...</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 1: Lewis Explorer -->
+  <div class="tab-content active" id="tab-lewis" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Lewis Acid-Base Reaction</div>
+      <div class="sim-card-body">
+        <canvas id="lewisCanvas" class="sim-canvas" height="320" role="img" aria-label="Lewis acid-base reaction visualization"></canvas>
+        <div id="lewisInfo" style="margin-top:.75rem;font-size:.8rem;line-height:1.7;"></div>
+        <div class="teacher-panel" id="lewisTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 2: Complex Ion Builder -->
+  <div class="tab-content" id="tab-complex" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header">Complex Ion Builder</div>
+      <div class="sim-card-body">
+        <div id="metalSelector" class="metal-selector" aria-label="Select metal ion"></div>
+        <div id="ligandPalette" style="margin-bottom:.75rem;" aria-label="Select ligands"></div>
+        <div id="presetButtons" style="margin-bottom:.75rem;"></div>
+        <canvas id="complexCanvas" class="sim-canvas" height="360" role="img" aria-label="Complex ion geometry visualization"></canvas>
+        <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
+          <button class="check-btn secondary" id="complexResetBtn" aria-label="Reset ligands">Reset Ligands</button>
+        </div>
+        <div id="complexInfo" class="complex-info" style="margin-top:.75rem;"></div>
+        <div id="ligandRemoveArea" style="margin-top:.3rem;"></div>
+        <div class="teacher-panel" id="complexTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB 3: Practice -->
+  <div class="tab-content" id="tab-practice" role="tabpanel">
+    <div class="sim-card">
+      <div class="sim-card-header" style="display:flex;justify-content:space-between;align-items:center;">
+        <span>Practice Problems</span>
+        <span class="score-display" id="scoreDisplay">0 / 0</span>
+      </div>
+      <div class="sim-card-body">
+        <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;">
+          <button class="mode-btn active" data-pmode="identify" id="modeIdentify">Identify Acid/Base</button>
+          <button class="mode-btn" data-pmode="predict" id="modePredict">Predict Complex</button>
+        </div>
+        <div id="problemArea"></div>
+        <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap;">
+          <button class="check-btn" id="checkBtn" aria-label="Check answer">Check Answer</button>
+          <button class="check-btn secondary" id="nextBtn" aria-label="Next problem">Next Problem</button>
+          <button class="check-btn secondary" id="resetScoreBtn" aria-label="Reset score">Reset Score</button>
+        </div>
+        <div id="feedbackBox" class="feedback-box"></div>
+        <div class="teacher-panel" id="practiceTeacher" style="margin-top:.75rem;padding:.6rem;background:var(--amber-bg);border-radius:8px;border:1px solid #FCD34D;font-size:.78rem;"></div>
+      </div>
+    </div>
+  </div>
+
+  </div>
+  </div>
+</div>
+<div class="keyboard-hint">
+  <kbd>H</kbd> HL Toggle &nbsp; <kbd>T</kbd> Teacher &nbsp; <kbd>1</kbd>-<kbd>3</kbd> Tabs &nbsp;
+  <kbd>R</kbd> Reset &nbsp; <kbd>N</kbd> Next Problem &nbsp; <kbd>Esc</kbd> Deselect
+</div>
+<footer>SimEngine &mdash; IB Chemistry Simulation Suite</footer>
+
+<script>
+if(!CanvasRenderingContext2D.prototype.roundRect){CanvasRenderingContext2D.prototype.roundRect=function(x,y,w,h,r){if(typeof r==='number')r=[r,r,r,r];this.beginPath();this.moveTo(x+(r[0]||0),y);this.lineTo(x+w-(r[1]||0),y);this.quadraticCurveTo(x+w,y,x+w,y+(r[1]||0));this.lineTo(x+w,y+h-(r[2]||0));this.quadraticCurveTo(x+w,y+h,x+w-(r[2]||0),y+h);this.lineTo(x+(r[3]||0),y+h);this.quadraticCurveTo(x,y+h,x,y+h-(r[3]||0));this.lineTo(x,y+(r[0]||0));this.quadraticCurveTo(x,y,x+(r[0]||0),y);this.closePath();return this;};}
+
+(function(){
+'use strict';
+
+/* Helpers */
+function elCreate(tag, cls, text) {
+  var e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text !== undefined && text !== null) e.textContent = text;
+  return e;
+}
+function setupCanvas(c) {
+  var d = window.devicePixelRatio || 1;
+  var w = c.offsetWidth;
+  if (!c.dataset.baseHeight) c.dataset.baseHeight = c.getAttribute('height') || '300';
+  var h = parseInt(c.dataset.baseHeight);
+  c.width = w * d;
+  c.height = h * d;
+  c.style.height = h + 'px';
+  var ctx = c.getContext('2d');
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+  return ctx;
+}
+
+/* ============================================================
+   DATA
+   ============================================================ */
+
+var LEWIS_ACIDS = [
+  { id: 'H+', formula: 'H\u207A', name: 'Hydrogen ion', type: 'cation', reason: 'Empty 1s orbital' },
+  { id: 'Ag+', formula: 'Ag\u207A', name: 'Silver ion', type: 'cation', reason: 'Empty d/s orbitals' },
+  { id: 'Fe3+', formula: 'Fe\u00B3\u207A', name: 'Iron(III) ion', type: 'cation', reason: 'Empty d orbitals' },
+  { id: 'Cu2+', formula: 'Cu\u00B2\u207A', name: 'Copper(II) ion', type: 'cation', reason: 'Empty d orbitals' },
+  { id: 'Al3+', formula: 'Al\u00B3\u207A', name: 'Aluminium ion', type: 'cation', reason: 'Empty s/p orbitals' },
+  { id: 'BF3', formula: 'BF\u2083', name: 'Boron trifluoride', type: 'molecule', reason: 'Empty p orbital on B (6 e\u207B)' },
+  { id: 'AlCl3', formula: 'AlCl\u2083', name: 'Aluminium chloride', type: 'molecule', reason: 'Empty p orbital on Al' },
+  { id: 'SO3', formula: 'SO\u2083', name: 'Sulfur trioxide', type: 'molecule', reason: 'S can expand octet' },
+  { id: 'CO2', formula: 'CO\u2082', name: 'Carbon dioxide', type: 'molecule', reason: '\u03B4\u207A C accepts e\u207B pair' }
+];
+
+var LEWIS_BASES = [
+  { id: 'OH-', formula: 'OH\u207B', name: 'Hydroxide ion', type: 'anion', lonePairs: 3, donorAtom: 'O' },
+  { id: 'CN-', formula: 'CN\u207B', name: 'Cyanide ion', type: 'anion', lonePairs: 1, donorAtom: 'C' },
+  { id: 'Cl-', formula: 'Cl\u207B', name: 'Chloride ion', type: 'anion', lonePairs: 4, donorAtom: 'Cl' },
+  { id: 'F-', formula: 'F\u207B', name: 'Fluoride ion', type: 'anion', lonePairs: 4, donorAtom: 'F' },
+  { id: 'NH3', formula: 'NH\u2083', name: 'Ammonia', type: 'molecule', lonePairs: 1, donorAtom: 'N' },
+  { id: 'H2O', formula: 'H\u2082O', name: 'Water', type: 'molecule', lonePairs: 2, donorAtom: 'O' },
+  { id: 'C2H5OH', formula: 'C\u2082H\u2085OH', name: 'Ethanol', type: 'molecule', lonePairs: 2, donorAtom: 'O' }
+];
+
+var REACTIONS = [
+  { acid: 'BF3', base: 'NH3', product: 'F\u2083B\u2190NH\u2083', equation: 'BF\u2083 + NH\u2083 \u2192 F\u2083B\u2013NH\u2083', bronsted: false,
+    note: 'Lewis-only reaction. BF\u2083 has empty p orbital on B; NH\u2083 donates its lone pair.' },
+  { acid: 'H+', base: 'NH3', product: 'NH\u2084\u207A', equation: 'H\u207A + NH\u2083 \u2192 NH\u2084\u207A', bronsted: true,
+    note: 'Both Lewis AND Br\u00F8nsted-Lowry. H\u207A accepts e\u207B pair (Lewis acid) and is donated to NH\u2083 (proton transfer).' },
+  { acid: 'H+', base: 'OH-', product: 'H\u2082O', equation: 'H\u207A + OH\u207B \u2192 H\u2082O', bronsted: true,
+    note: 'Both Lewis AND Br\u00F8nsted-Lowry. Neutralization reaction.' },
+  { acid: 'AlCl3', base: 'Cl-', product: 'AlCl\u2084\u207B', equation: 'AlCl\u2083 + Cl\u207B \u2192 AlCl\u2084\u207B', bronsted: false,
+    note: 'Lewis-only. Al expands coordination from 3 to 4. Friedel-Crafts catalyst.' },
+  { acid: 'Ag+', base: 'NH3', product: '[Ag(NH\u2083)\u2082]\u207A', equation: 'Ag\u207A + 2NH\u2083 \u2192 [Ag(NH\u2083)\u2082]\u207A', bronsted: false,
+    note: 'Lewis-only. Forms Tollens\' reagent. Ag\u207A accepts two lone pairs from NH\u2083.' },
+  { acid: 'Cu2+', base: 'NH3', product: '[Cu(NH\u2083)\u2084(H\u2082O)\u2082]\u00B2\u207A', equation: 'Cu\u00B2\u207A + 4NH\u2083 \u2192 [Cu(NH\u2083)\u2084]\u00B2\u207A', bronsted: false,
+    note: 'Lewis-only. Ligand exchange: NH\u2083 replaces H\u2082O. Solution turns deep blue.' },
+  { acid: 'Fe3+', base: 'CN-', product: '[Fe(CN)\u2086]\u00B3\u207B', equation: 'Fe\u00B3\u207A + 6CN\u207B \u2192 [Fe(CN)\u2086]\u00B3\u207B', bronsted: false,
+    note: 'Lewis-only. Forms hexacyanoferrate(III) \u2014 used in Prussian blue test.' },
+  { acid: 'CO2', base: 'OH-', product: 'HCO\u2083\u207B', equation: 'CO\u2082 + OH\u207B \u2192 HCO\u2083\u207B', bronsted: false,
+    note: 'Lewis-only. CO\u2082 accepts e\u207B pair at electrophilic C. Important in ocean chemistry.' },
+  { acid: 'SO3', base: 'H2O', product: 'H\u2082SO\u2084', equation: 'SO\u2083 + H\u2082O \u2192 H\u2082SO\u2084', bronsted: false,
+    note: 'Lewis-only at initial step. SO\u2083 accepts e\u207B pair from O in H\u2082O. Contact process final step.' },
+  { acid: 'H+', base: 'H2O', product: 'H\u2083O\u207A', equation: 'H\u207A + H\u2082O \u2192 H\u2083O\u207A', bronsted: true,
+    note: 'Both Lewis AND Br\u00F8nsted-Lowry. Shows hydronium ion formation.' },
+  { acid: 'Cu2+', base: 'H2O', product: '[Cu(H\u2082O)\u2086]\u00B2\u207A', equation: 'Cu\u00B2\u207A + 6H\u2082O \u2192 [Cu(H\u2082O)\u2086]\u00B2\u207A', bronsted: false,
+    note: 'Lewis-only. Aqua complex formation. Pale blue color in solution.' },
+  { acid: 'Fe3+', base: 'OH-', product: 'Fe(OH)\u2083', equation: 'Fe\u00B3\u207A + 3OH\u207B \u2192 Fe(OH)\u2083', bronsted: false,
+    note: 'Lewis-only. Forms rusty-brown precipitate. Common qualitative test.' }
+];
+
+var METALS = [
+  { id: 'Cu2+', formula: 'Cu\u00B2\u207A', name: 'Copper(II)', charge: 2, color: '#3B82F6', commonCN: [4,6] },
+  { id: 'Fe2+', formula: 'Fe\u00B2\u207A', name: 'Iron(II)', charge: 2, color: '#059669', commonCN: [6] },
+  { id: 'Fe3+', formula: 'Fe\u00B3\u207A', name: 'Iron(III)', charge: 3, color: '#D97706', commonCN: [6] },
+  { id: 'Cr3+', formula: 'Cr\u00B3\u207A', name: 'Chromium(III)', charge: 3, color: '#7C3AED', commonCN: [6] },
+  { id: 'Co2+', formula: 'Co\u00B2\u207A', name: 'Cobalt(II)', charge: 2, color: '#EC4899', commonCN: [4,6] },
+  { id: 'Ni2+', formula: 'Ni\u00B2\u207A', name: 'Nickel(II)', charge: 2, color: '#059669', commonCN: [4,6] },
+  { id: 'Ag+', formula: 'Ag\u207A', name: 'Silver(I)', charge: 1, color: '#94A3B8', commonCN: [2] },
+  { id: 'Zn2+', formula: 'Zn\u00B2\u207A', name: 'Zinc(II)', charge: 2, color: '#94A3B8', commonCN: [4,6] }
+];
+
+var LIGANDS = [
+  { id: 'H2O', formula: 'H\u2082O', name: 'Water', charge: 0, denticity: 1, abbrev: 'aqua' },
+  { id: 'NH3', formula: 'NH\u2083', name: 'Ammonia', charge: 0, denticity: 1, abbrev: 'ammine' },
+  { id: 'Cl-', formula: 'Cl\u207B', name: 'Chloride', charge: -1, denticity: 1, abbrev: 'chlorido' },
+  { id: 'CN-', formula: 'CN\u207B', name: 'Cyanide', charge: -1, denticity: 1, abbrev: 'cyanido' },
+  { id: 'OH-', formula: 'OH\u207B', name: 'Hydroxide', charge: -1, denticity: 1, abbrev: 'hydroxido' },
+  { id: 'SCN-', formula: 'SCN\u207B', name: 'Thiocyanate', charge: -1, denticity: 1, abbrev: 'thiocyanato' },
+  { id: 'en', formula: 'en', name: 'Ethylenediamine', charge: 0, denticity: 2, abbrev: 'en' },
+  { id: 'C2O42-', formula: 'C\u2082O\u2084\u00B2\u207B', name: 'Oxalate', charge: -2, denticity: 2, abbrev: 'oxalato' }
+];
+
+var COMPLEX_PRESETS = [
+  { metal: 'Cu2+', ligands: [{id:'H2O',count:6}], cn: 6, geometry: 'octahedral', color: '#ADD8E6', formula: '[Cu(H\u2082O)\u2086]\u00B2\u207A', name: 'Hexaaquacopper(II)' },
+  { metal: 'Cu2+', ligands: [{id:'NH3',count:4},{id:'H2O',count:2}], cn: 6, geometry: 'octahedral', color: '#1E3A8A', formula: '[Cu(NH\u2083)\u2084(H\u2082O)\u2082]\u00B2\u207A', name: 'Tetraamminediaquacopper(II)' },
+  { metal: 'Cu2+', ligands: [{id:'Cl-',count:4}], cn: 4, geometry: 'tetrahedral', color: '#84CC16', formula: '[CuCl\u2084]\u00B2\u207B', name: 'Tetrachloridocuprate(II)' },
+  { metal: 'Fe3+', ligands: [{id:'H2O',count:6}], cn: 6, geometry: 'octahedral', color: '#FBBF24', formula: '[Fe(H\u2082O)\u2086]\u00B3\u207A', name: 'Hexaaquairon(III)' },
+  { metal: 'Fe3+', ligands: [{id:'SCN-',count:1},{id:'H2O',count:5}], cn: 6, geometry: 'octahedral', color: '#991B1B', formula: '[Fe(SCN)(H\u2082O)\u2085]\u00B2\u207A', name: 'Thiocyanatopentaaquairon(III)' },
+  { metal: 'Ag+', ligands: [{id:'NH3',count:2}], cn: 2, geometry: 'linear', color: null, formula: '[Ag(NH\u2083)\u2082]\u207A', name: 'Diamminesilver(I)' },
+  { metal: 'Cr3+', ligands: [{id:'H2O',count:6}], cn: 6, geometry: 'octahedral', color: '#7C3AED', formula: '[Cr(H\u2082O)\u2086]\u00B3\u207A', name: 'Hexaaquachromium(III)' },
+  { metal: 'Ni2+', ligands: [{id:'NH3',count:6}], cn: 6, geometry: 'octahedral', color: '#6366F1', formula: '[Ni(NH\u2083)\u2086]\u00B2\u207A', name: 'Hexaamminenickel(II)' },
+  { metal: 'Fe3+', ligands: [{id:'CN-',count:6}], cn: 6, geometry: 'octahedral', color: '#DC2626', formula: '[Fe(CN)\u2086]\u00B3\u207B', name: 'Hexacyanidoferrate(III)' },
+  { metal: 'Co2+', ligands: [{id:'Cl-',count:4}], cn: 4, geometry: 'tetrahedral', color: '#2563EB', formula: '[CoCl\u2084]\u00B2\u207B', name: 'Tetrachloridocobaltate(II)' }
+];
+
+
+/* ============================================================
+   STATE
+   ============================================================ */
+var _activeTab = 'lewis';
+var _selectedAcid = null;
+var _selectedBase = null;
+var _selectedMetal = null;
+var _attachedLigands = [];
+var _practiceMode = 'identify';
+var _score = { correct: 0, total: 0 };
+var _currentProblem = null;
+var _problemAnswered = false;
+var _usedProblems = { identify: [], predict: [] };
+
+
+/* ============================================================
+   DOM REFS
+   ============================================================ */
+var paletteList = document.getElementById('paletteList');
+var paletteSearch = document.getElementById('paletteSearch');
+var paletteHeader = document.getElementById('paletteHeader');
+var presetSelect = document.getElementById('presetSelect');
+var hlToggle = document.getElementById('hlToggle');
+var teacherToggle = document.getElementById('teacherToggle');
+
+
+/* ============================================================
+   HL / TEACHER TOGGLES
+   ============================================================ */
+hlToggle.addEventListener('change', function () {
+  document.body.classList.toggle('hl-active', this.checked);
+});
+teacherToggle.addEventListener('change', function () {
+  document.body.classList.toggle('teacher-active', this.checked);
+  if (_activeTab === 'complex') buildComplexPresetButtons();
+});
+
+
+/* ============================================================
+   PALETTE SEARCH
+   ============================================================ */
+if (paletteSearch) paletteSearch.addEventListener('input', function () { filterPalette(this.value); });
+function filterPalette(q) {
+  q = q.toLowerCase();
+  var items = paletteList.querySelectorAll('.palette-item');
+  for (var i = 0; i < items.length; i++) {
+    var t = items[i].textContent.toLowerCase();
+    items[i].style.display = (!q || t.indexOf(q) !== -1) ? '' : 'none';
+  }
+}
+
+
+/* ============================================================
+   PALETTE BUILDER
+   ============================================================ */
+function buildPalette() {
+  while (paletteList.firstChild) paletteList.removeChild(paletteList.firstChild);
+  if (paletteSearch) paletteSearch.value = '';
+
+  if (_activeTab === 'lewis') {
+    paletteHeader.textContent = 'Lewis Species';
+    addPaletteCategory('Lewis Acids \u2014 Cations');
+    addAcidButtons(LEWIS_ACIDS.filter(function (a) { return a.type === 'cation'; }));
+    addPaletteCategory('Lewis Acids \u2014 Molecules');
+    addAcidButtons(LEWIS_ACIDS.filter(function (a) { return a.type === 'molecule'; }));
+    addPaletteCategory('Lewis Bases \u2014 Anions');
+    addBaseButtons(LEWIS_BASES.filter(function (b) { return b.type === 'anion'; }));
+    addPaletteCategory('Lewis Bases \u2014 Molecules');
+    addBaseButtons(LEWIS_BASES.filter(function (b) { return b.type === 'molecule'; }));
+  } else if (_activeTab === 'complex') {
+    paletteHeader.textContent = 'Ligands';
+    addPaletteCategory('Monodentate');
+    LIGANDS.filter(function (l) { return l.denticity === 1; }).forEach(function (l) {
+      var btn = elCreate('button', 'palette-item', l.formula + ' \u2014 ' + l.abbrev);
+      btn.setAttribute('data-lig', l.id);
+      btn.addEventListener('click', function () { addLigand(this.getAttribute('data-lig')); });
+      paletteList.appendChild(btn);
+    });
+    addPaletteCategory('Bidentate');
+    LIGANDS.filter(function (l) { return l.denticity === 2; }).forEach(function (l) {
+      var btn = elCreate('button', 'palette-item', l.formula + ' \u2014 ' + l.name + ' (bi)');
+      btn.setAttribute('data-lig', l.id);
+      btn.addEventListener('click', function () { addLigand(this.getAttribute('data-lig')); });
+      paletteList.appendChild(btn);
+    });
+  } else if (_activeTab === 'practice') {
+    paletteHeader.textContent = 'Practice';
+    addPaletteCategory('Problem Type');
+    var modes = [{ id: 'identify', name: 'Identify Acid/Base' }, { id: 'predict', name: 'Predict Complex' }];
+    modes.forEach(function (m) {
+      var btn = elCreate('button', 'palette-item' + (m.id === _practiceMode ? ' active' : ''), m.name);
+      btn.setAttribute('data-pm', m.id);
+      btn.addEventListener('click', function () {
+        _practiceMode = this.getAttribute('data-pm');
+        document.getElementById('modeIdentify').classList.toggle('active', _practiceMode === 'identify');
+        document.getElementById('modePredict').classList.toggle('active', _practiceMode === 'predict');
+        buildPalette();
+        generateProblem();
+      });
+      paletteList.appendChild(btn);
+    });
+  }
+  buildPresets();
+}
+
+function addPaletteCategory(text) {
+  paletteList.appendChild(elCreate('div', 'palette-category', text));
+}
+
+function addAcidButtons(acids) {
+  acids.forEach(function (a) {
+    var btn = elCreate('button', 'palette-item' + (_selectedAcid === a.id ? ' acid-selected' : ''), a.formula + ' \u2014 ' + a.name);
+    btn.setAttribute('data-acid', a.id);
+    btn.addEventListener('click', function () { selectAcid(this.getAttribute('data-acid')); });
+    paletteList.appendChild(btn);
+  });
+}
+
+function addBaseButtons(bases) {
+  bases.forEach(function (b) {
+    var btn = elCreate('button', 'palette-item' + (_selectedBase === b.id ? ' base-selected' : ''), b.formula + ' \u2014 ' + b.name);
+    btn.setAttribute('data-base', b.id);
+    btn.addEventListener('click', function () { selectBase(this.getAttribute('data-base')); });
+    paletteList.appendChild(btn);
+  });
+}
+
+function buildPresets() {
+  while (presetSelect.options.length > 1) presetSelect.remove(1);
+  if (_activeTab === 'lewis') {
+    REACTIONS.forEach(function (r, i) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = r.equation;
+      presetSelect.appendChild(opt);
+    });
+  } else if (_activeTab === 'complex') {
+    COMPLEX_PRESETS.forEach(function (p, i) {
+      var opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = p.formula + ' \u2014 ' + p.name;
+      presetSelect.appendChild(opt);
+    });
+  }
+}
+
+presetSelect.addEventListener('change', function () {
+  var v = this.value;
+  if (!v) return;
+  var idx = parseInt(v);
+  if (_activeTab === 'lewis') {
+    var r = REACTIONS[idx];
+    _selectedAcid = r.acid;
+    _selectedBase = r.base;
+    buildPalette();
+    renderLewis();
+  } else if (_activeTab === 'complex') {
+    loadPreset(idx);
+  }
+  this.value = '';
+});
+
+
+/* ============================================================
+   TAB SWITCHING
+   ============================================================ */
+var tabBtns = document.querySelectorAll('.tab-btn');
+function switchTab(id) {
+  _activeTab = id;
+  for (var i = 0; i < tabBtns.length; i++) tabBtns[i].classList.toggle('active', tabBtns[i].getAttribute('data-tab') === id);
+  document.querySelectorAll('.tab-content').forEach(function (tc) { tc.classList.toggle('active', tc.id === 'tab-' + id); });
+  buildPalette();
+  refreshTab();
+}
+for (var i = 0; i < tabBtns.length; i++) tabBtns[i].addEventListener('click', function () { switchTab(this.getAttribute('data-tab')); });
+
+function refreshTab() {
+  setTimeout(function () {
+    if (_activeTab === 'lewis') renderLewis();
+    else if (_activeTab === 'complex') { buildMetalSelector(); buildComplexPresetButtons(); renderComplex(); }
+    else if (_activeTab === 'practice') { if (!_currentProblem) generateProblem(); }
+  }, 20);
+}
+
+
+/* ============================================================
+   TAB 1: LEWIS ACID-BASE EXPLORER
+   ============================================================ */
+function getAcid(id) { for (var i = 0; i < LEWIS_ACIDS.length; i++) if (LEWIS_ACIDS[i].id === id) return LEWIS_ACIDS[i]; return null; }
+function getBase(id) { for (var i = 0; i < LEWIS_BASES.length; i++) if (LEWIS_BASES[i].id === id) return LEWIS_BASES[i]; return null; }
+function getReaction(acidId, baseId) {
+  for (var i = 0; i < REACTIONS.length; i++) if (REACTIONS[i].acid === acidId && REACTIONS[i].base === baseId) return REACTIONS[i];
+  return null;
+}
+
+function selectAcid(id) {
+  _selectedAcid = (_selectedAcid === id) ? null : id;
+  buildPalette();
+  renderLewis();
+}
+function selectBase(id) {
+  _selectedBase = (_selectedBase === id) ? null : id;
+  buildPalette();
+  renderLewis();
+}
+
+function renderLewis() {
+  var canvas = document.getElementById('lewisCanvas');
+  if (!canvas || !canvas.offsetWidth) return;
+  var ctx = setupCanvas(canvas);
+  var W = canvas.offsetWidth, H = parseInt(canvas.dataset.baseHeight || 320);
+  ctx.fillStyle = '#F8FAFC';
+  ctx.fillRect(0, 0, W, H);
+
+  var acid = getAcid(_selectedAcid);
+  var base = getBase(_selectedBase);
+  var rxn = (acid && base) ? getReaction(_selectedAcid, _selectedBase) : null;
+
+  if (!acid && !base) {
+    ctx.font = '500 14px Inter';
+    ctx.fillStyle = '#94A3B8';
+    ctx.textAlign = 'center';
+    ctx.fillText('Select a Lewis acid and a Lewis base from the palette', W / 2, H / 2 - 10);
+    ctx.font = '400 12px Inter';
+    ctx.fillText('Acids are highlighted in red, bases in blue', W / 2, H / 2 + 15);
+    updateLewisInfo(null, null, null);
+    return;
+  }
+
+  var leftX = W * 0.25, rightX = W * 0.75, cx = W / 2;
+  var speciesY = H * 0.35;
+
+  // Draw acid (left side)
+  if (acid) {
+    ctx.font = '600 11px Inter';
+    ctx.fillStyle = '#DC2626';
+    ctx.textAlign = 'center';
+    ctx.fillText('Lewis acid (e\u207B pair acceptor)', leftX, speciesY - 55);
+    drawSpeciesBox(ctx, leftX, speciesY, acid.formula, '#FEF2F2', '#DC2626');
+    ctx.font = '400 10px Inter';
+    ctx.fillStyle = '#94A3B8';
+    ctx.textAlign = 'center';
+    ctx.fillText(acid.reason, leftX, speciesY + 45);
+    drawEmptyOrbital(ctx, leftX, speciesY + 58);
+  }
+
+  // Draw base (right side)
+  if (base) {
+    ctx.font = '600 11px Inter';
+    ctx.fillStyle = '#2563EB';
+    ctx.textAlign = 'center';
+    ctx.fillText('Lewis base (e\u207B pair donor)', rightX, speciesY - 55);
+    drawSpeciesBox(ctx, rightX, speciesY, base.formula, '#EFF6FF', '#2563EB');
+    ctx.font = '400 10px Inter';
+    ctx.fillStyle = '#94A3B8';
+    ctx.textAlign = 'center';
+    ctx.fillText('Lone pair on ' + base.donorAtom, rightX, speciesY + 45);
+    drawLonePair(ctx, rightX - 6, speciesY + 58);
+  }
+
+  // If both selected, show reaction
+  if (acid && base) {
+    if (rxn) {
+      // Curved arrow from base to acid
+      drawCurvedArrow(ctx, rightX - 45, speciesY, leftX + 45, speciesY, '#0D9488');
+      ctx.font = '600 10px Inter';
+      ctx.fillStyle = '#0D9488';
+      ctx.textAlign = 'center';
+      ctx.fillText('e\u207B pair donation', cx, speciesY - 30);
+
+      // Product section
+      var prodY = H * 0.78;
+      ctx.font = '600 12px Inter';
+      ctx.fillStyle = '#1E293B';
+      ctx.textAlign = 'center';
+      ctx.fillText('Product:', cx, prodY - 28);
+      drawSpeciesBox(ctx, cx, prodY, rxn.product, '#F0FDFA', '#0D9488');
+
+      // Bronsted badge
+      if (rxn.bronsted) {
+        drawPillBadge(ctx, cx, prodY + 35, 'Also Br\u00F8nsted-Lowry', '#059669', '#F0FDF4');
+      } else {
+        drawPillBadge(ctx, cx, prodY + 35, 'Lewis only', '#D97706', '#FFFBEB');
+      }
+    } else {
+      ctx.font = '500 13px Inter';
+      ctx.fillStyle = '#94A3B8';
+      ctx.textAlign = 'center';
+      ctx.fillText('No reaction data for this combination', cx, H * 0.72);
+      ctx.font = '400 11px Inter';
+      ctx.fillText('Try a different acid-base pair', cx, H * 0.72 + 20);
+    }
+  }
+
+  updateLewisInfo(acid, base, rxn);
+}
+
+function drawSpeciesBox(ctx, x, y, formula, bgColor, borderColor) {
+  ctx.font = '600 16px "Fira Code", monospace';
+  var tw = ctx.measureText(formula).width;
+  var bw = Math.max(tw + 30, 60), bh = 36;
+  ctx.fillStyle = bgColor;
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.roundRect(x - bw / 2, y - bh / 2, bw, bh, 8);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = '#1E293B';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(formula, x, y);
+  ctx.textBaseline = 'alphabetic';
+}
+
+function drawEmptyOrbital(ctx, x, y) {
+  ctx.strokeStyle = '#DC2626';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 3]);
+  ctx.beginPath();
+  ctx.arc(x, y, 8, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+function drawLonePair(ctx, x, y) {
+  ctx.fillStyle = '#2563EB';
+  ctx.beginPath();
+  ctx.arc(x, y, 3, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(x + 12, y, 3, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawCurvedArrow(ctx, x1, y1, x2, y2, color) {
+  var cpx = (x1 + x2) / 2;
+  var cpy = Math.min(y1, y2) - 55;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.beginPath();
+  ctx.moveTo(x1, y1 - 18);
+  ctx.quadraticCurveTo(cpx, cpy, x2, y2 - 18);
+  ctx.stroke();
+  // Arrowhead
+  var t = 0.95;
+  var ax = (1 - t) * (1 - t) * x1 + 2 * (1 - t) * t * cpx + t * t * x2;
+  var ay = (1 - t) * (1 - t) * (y1 - 18) + 2 * (1 - t) * t * cpy + t * t * (y2 - 18);
+  var angle = Math.atan2((y2 - 18) - ay, x2 - ax);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(x2, y2 - 18);
+  ctx.lineTo(x2 - 10 * Math.cos(angle - 0.4), (y2 - 18) - 10 * Math.sin(angle - 0.4));
+  ctx.lineTo(x2 - 10 * Math.cos(angle + 0.4), (y2 - 18) - 10 * Math.sin(angle + 0.4));
+  ctx.closePath();
+  ctx.fill();
+}
+
+function drawPillBadge(ctx, x, y, text, textColor, bgColor) {
+  ctx.font = '600 11px Inter';
+  var tw = ctx.measureText(text).width;
+  var pw = tw + 16, ph = 22;
+  ctx.fillStyle = bgColor;
+  ctx.strokeStyle = textColor;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.roundRect(x - pw / 2, y - ph / 2, pw, ph, 11);
+  ctx.fill();
+  ctx.stroke();
+  ctx.fillStyle = textColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, y);
+  ctx.textBaseline = 'alphabetic';
+}
+
+function updateLewisInfo(acid, base, rxn) {
+  var info = document.getElementById('lewisInfo');
+  var teacher = document.getElementById('lewisTeacher');
+  if (!acid && !base) {
+    info.textContent = '';
+    teacher.textContent = '';
+    return;
+  }
+  // Build info using DOM
+  while (info.firstChild) info.removeChild(info.firstChild);
+
+  if (acid && !rxn) {
+    var d = elCreate('div', 'calc-step', acid.formula + ': ' + acid.reason);
+    d.style.borderLeftColor = '#DC2626';
+    d.style.background = '#FEF2F2';
+    info.appendChild(d);
+  }
+  if (base && !rxn) {
+    var d2 = elCreate('div', 'calc-step', base.formula + ': Lone pair on ' + base.donorAtom + ' (' + base.lonePairs + ' lone pair' + (base.lonePairs > 1 ? 's' : '') + ')');
+    d2.style.borderLeftColor = '#2563EB';
+    d2.style.background = '#EFF6FF';
+    info.appendChild(d2);
+  }
+
+  if (rxn) {
+    // Equation box
+    var eqDiv = elCreate('div', 'calc-step', rxn.equation);
+    eqDiv.style.fontSize = '.85rem';
+    eqDiv.style.fontWeight = '600';
+    info.appendChild(eqDiv);
+
+    // Bronsted badge
+    var badge = elCreate('span', 'bronsted-badge ' + (rxn.bronsted ? 'yes' : 'no'));
+    badge.textContent = rxn.bronsted ? 'Also Br\u00F8nsted-Lowry' : 'Lewis only (not Br\u00F8nsted-Lowry)';
+    info.appendChild(badge);
+
+    // Note
+    var noteP = elCreate('p', '', rxn.note);
+    noteP.style.marginTop = '.5rem';
+    info.appendChild(noteP);
+
+    teacher.textContent = 'Teaching note: ' + acid.formula + ' acts as Lewis acid because: ' + acid.reason + '. ' + base.formula + ' acts as Lewis base because it has a lone pair on ' + base.donorAtom + '.';
+  } else {
+    teacher.textContent = '';
+  }
+}
+
+
+/* ============================================================
+   TAB 2: COMPLEX ION BUILDER
+   ============================================================ */
+function getMetal(id) { for (var i = 0; i < METALS.length; i++) if (METALS[i].id === id) return METALS[i]; return null; }
+function getLigand(id) { for (var i = 0; i < LIGANDS.length; i++) if (LIGANDS[i].id === id) return LIGANDS[i]; return null; }
+
+function buildMetalSelector() {
+  var container = document.getElementById('metalSelector');
+  while (container.firstChild) container.removeChild(container.firstChild);
+  METALS.forEach(function (m) {
+    var btn = document.createElement('button');
+    btn.className = 'metal-btn' + (_selectedMetal === m.id ? ' active' : '');
+    btn.style.background = m.color;
+    btn.textContent = m.formula;
+    btn.title = m.name;
+    btn.setAttribute('aria-label', m.name);
+    btn.setAttribute('data-metal', m.id);
+    btn.addEventListener('click', function () {
+      _selectedMetal = this.getAttribute('data-metal');
+      _attachedLigands = [];
+      buildMetalSelector();
+      renderComplex();
+    });
+    container.appendChild(btn);
+  });
+}
+
+function buildComplexPresetButtons() {
+  var container = document.getElementById('presetButtons');
+  while (container.firstChild) container.removeChild(container.firstChild);
+  var isTeacher = document.body.classList.contains('teacher-active');
+  container.style.display = isTeacher ? 'block' : 'none';
+  if (!isTeacher) return;
+  container.appendChild(elCreate('div', 'palette-category', 'Quick-Load Presets'));
+  COMPLEX_PRESETS.forEach(function (p, i) {
+    var btn = elCreate('button', 'preset-btn', p.formula);
+    btn.title = p.name;
+    btn.addEventListener('click', function () { loadPreset(i); });
+    container.appendChild(btn);
+  });
+}
+
+function loadPreset(idx) {
+  var p = COMPLEX_PRESETS[idx];
+  _selectedMetal = p.metal;
+  _attachedLigands = p.ligands.map(function (l) { return { id: l.id, count: l.count }; });
+  buildMetalSelector();
+  buildPalette();
+  renderComplex();
+}
+
+function addLigand(ligId) {
+  if (!_selectedMetal) return;
+  var metal = getMetal(_selectedMetal);
+  var lig = getLigand(ligId);
+  if (!metal || !lig) return;
+  var maxCN = Math.max.apply(null, metal.commonCN);
+  var currentCN = getTotalCN();
+  if (currentCN + lig.denticity > maxCN) return;
+  var found = false;
+  for (var i = 0; i < _attachedLigands.length; i++) {
+    if (_attachedLigands[i].id === ligId) { _attachedLigands[i].count++; found = true; break; }
+  }
+  if (!found) _attachedLigands.push({ id: ligId, count: 1 });
+  renderComplex();
+}
+
+function removeLigand(ligId) {
+  for (var i = 0; i < _attachedLigands.length; i++) {
+    if (_attachedLigands[i].id === ligId) {
+      _attachedLigands[i].count--;
+      if (_attachedLigands[i].count <= 0) _attachedLigands.splice(i, 1);
+      break;
+    }
+  }
+  renderComplex();
+}
+
+function getTotalCN() {
+  var cn = 0;
+  for (var i = 0; i < _attachedLigands.length; i++) {
+    var lig = getLigand(_attachedLigands[i].id);
+    cn += _attachedLigands[i].count * (lig ? lig.denticity : 1);
+  }
+  return cn;
+}
+
+function getGeometry(cn) {
+  if (cn <= 0) return 'none';
+  if (cn === 2) return 'linear';
+  if (cn === 4) return 'tetrahedral';
+  if (cn === 6) return 'octahedral';
+  return cn + '-coordinate';
+}
+
+function calcComplexCharge() {
+  if (!_selectedMetal) return 0;
+  var metal = getMetal(_selectedMetal);
+  var ch = metal.charge;
+  for (var i = 0; i < _attachedLigands.length; i++) {
+    var lig = getLigand(_attachedLigands[i].id);
+    if (lig) ch += lig.charge * _attachedLigands[i].count;
+  }
+  return ch;
+}
+
+function subscript(n) {
+  var subs = { 0: '\u2080', 1: '\u2081', 2: '\u2082', 3: '\u2083', 4: '\u2084', 5: '\u2085', 6: '\u2086', 7: '\u2087', 8: '\u2088', 9: '\u2089' };
+  return String(n).split('').map(function (d) { return subs[d] || d; }).join('');
+}
+function superNum(n) {
+  var sups = { 0: '\u2070', 1: '\u00B9', 2: '\u00B2', 3: '\u00B3', 4: '\u2074', 5: '\u2075', 6: '\u2076', 7: '\u2077', 8: '\u2078', 9: '\u2079' };
+  return String(n).split('').map(function (d) { return sups[d] || d; }).join('');
+}
+
+function buildComplexFormula() {
+  if (!_selectedMetal || _attachedLigands.length === 0) return '';
+  var metal = getMetal(_selectedMetal);
+  var sorted = _attachedLigands.slice().sort(function (a, b) {
+    return getLigand(a.id).formula.localeCompare(getLigand(b.id).formula);
+  });
+  var formulaStr = metal.id.replace(/[0-9]+[\+\-]/g, '').replace(/[\+\-]/g, '');
+  for (var i = 0; i < sorted.length; i++) {
+    var lig = getLigand(sorted[i].id);
+    var f = lig.formula;
+    var c = sorted[i].count;
+    if (c > 1) {
+      if (f.length > 3 || lig.denticity > 1) formulaStr += '(' + f + ')' + subscript(c);
+      else formulaStr += f + subscript(c);
+    } else {
+      formulaStr += f;
+    }
+  }
+  var charge = calcComplexCharge();
+  var chargeStr = '';
+  if (charge > 0) chargeStr = (charge > 1 ? superNum(charge) : '') + '\u207A';
+  else if (charge < 0) chargeStr = (Math.abs(charge) > 1 ? superNum(Math.abs(charge)) : '') + '\u207B';
+  return '[' + formulaStr + ']' + chargeStr;
+}
+
+function getComplexColor() {
+  if (!_selectedMetal) return null;
+  for (var i = 0; i < COMPLEX_PRESETS.length; i++) {
+    var p = COMPLEX_PRESETS[i];
+    if (p.metal !== _selectedMetal) continue;
+    if (p.ligands.length !== _attachedLigands.length) continue;
+    var match = true;
+    for (var j = 0; j < p.ligands.length; j++) {
+      var found = false;
+      for (var k = 0; k < _attachedLigands.length; k++) {
+        if (_attachedLigands[k].id === p.ligands[j].id && _attachedLigands[k].count === p.ligands[j].count) { found = true; break; }
+      }
+      if (!found) { match = false; break; }
+    }
+    if (match) return p.color;
+  }
+  var metal = getMetal(_selectedMetal);
+  return metal ? metal.color + '80' : null;
+}
+
+function getMatchingPreset() {
+  if (!_selectedMetal) return null;
+  for (var i = 0; i < COMPLEX_PRESETS.length; i++) {
+    var p = COMPLEX_PRESETS[i];
+    if (p.metal !== _selectedMetal) continue;
+    if (p.ligands.length !== _attachedLigands.length) continue;
+    var match = true;
+    for (var j = 0; j < p.ligands.length; j++) {
+      var found = false;
+      for (var k = 0; k < _attachedLigands.length; k++) {
+        if (_attachedLigands[k].id === p.ligands[j].id && _attachedLigands[k].count === p.ligands[j].count) { found = true; break; }
+      }
+      if (!found) { match = false; break; }
+    }
+    if (match) return p;
+  }
+  return null;
+}
+
+document.getElementById('complexResetBtn').addEventListener('click', function () {
+  _attachedLigands = [];
+  renderComplex();
+});
+
+function renderComplex() {
+  var canvas = document.getElementById('complexCanvas');
+  if (!canvas || !canvas.offsetWidth) return;
+  var ctx = setupCanvas(canvas);
+  var W = canvas.offsetWidth, H = parseInt(canvas.dataset.baseHeight || 360);
+  ctx.fillStyle = '#F8FAFC';
+  ctx.fillRect(0, 0, W, H);
+
+  if (!_selectedMetal) {
+    ctx.font = '500 14px Inter';
+    ctx.fillStyle = '#94A3B8';
+    ctx.textAlign = 'center';
+    ctx.fillText('Select a metal ion above, then add ligands from the palette', W / 2, H / 2);
+    updateComplexInfo();
+    return;
+  }
+
+  var metal = getMetal(_selectedMetal);
+  var cx = W / 2, cy = H / 2 - 20;
+  var cn = getTotalCN();
+  var geom = getGeometry(cn);
+
+  // Metal ion at center
+  ctx.fillStyle = metal.color;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(0,0,0,.15)';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.font = '700 13px "Fira Code", monospace';
+  ctx.fillStyle = 'white';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(metal.formula, cx, cy);
+  ctx.textBaseline = 'alphabetic';
+
+  if (cn === 0) {
+    ctx.font = '400 12px Inter';
+    ctx.fillStyle = '#94A3B8';
+    ctx.textAlign = 'center';
+    ctx.fillText('Click ligands in the palette to add them', cx, cy + 55);
+    updateComplexInfo();
+    return;
+  }
+
+  // Calculate ligand positions
+  var positions = getLigandPositions(cx, cy, cn, geom, W, H);
+
+  // Expand attached ligands into individual entries
+  var expanded = [];
+  for (var i = 0; i < _attachedLigands.length; i++) {
+    var lig = getLigand(_attachedLigands[i].id);
+    for (var j = 0; j < _attachedLigands[i].count; j++) {
+      expanded.push(lig);
+    }
+  }
+
+  // Draw bonds and ligands
+  for (var i = 0; i < expanded.length && i < positions.length; i++) {
+    var pos = positions[i];
+    var lig = expanded[i];
+    drawCoordinateBond(ctx, pos.x, pos.y, cx, cy);
+    // Ligand circle
+    ctx.fillStyle = lig.charge < 0 ? '#DBEAFE' : '#F0FDF4';
+    ctx.strokeStyle = lig.charge < 0 ? '#2563EB' : '#059669';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(pos.x, pos.y, 20, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.font = '600 10px "Fira Code", monospace';
+    ctx.fillStyle = '#1E293B';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(lig.formula, pos.x, pos.y);
+    ctx.textBaseline = 'alphabetic';
+  }
+
+  // Formula
+  var formula = buildComplexFormula();
+  if (formula) {
+    ctx.font = '700 15px "Fira Code", monospace';
+    ctx.fillStyle = '#1E293B';
+    ctx.textAlign = 'center';
+    ctx.fillText(formula, cx, H - 30);
+  }
+
+  // Geometry label
+  if (geom !== 'none') {
+    ctx.font = '600 11px Inter';
+    ctx.fillStyle = '#7C3AED';
+    ctx.textAlign = 'center';
+    ctx.fillText(geom.charAt(0).toUpperCase() + geom.slice(1) + ' (CN = ' + cn + ')', cx, H - 10);
+  }
+
+  // Color swatch
+  var complexColor = getComplexColor();
+  if (complexColor) {
+    ctx.fillStyle = complexColor;
+    ctx.strokeStyle = '#CBD5E1';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.roundRect(W - 45, 10, 30, 30, 6);
+    ctx.fill();
+    ctx.stroke();
+    ctx.font = '400 8px Inter';
+    ctx.fillStyle = '#64748B';
+    ctx.textAlign = 'center';
+    ctx.fillText('Color', W - 30, 52);
+  }
+
+  updateComplexInfo();
+}
+
+function getLigandPositions(cx, cy, cn, geom, W, H) {
+  var r = Math.min(W * 0.35, H * 0.32);
+  var positions = [];
+  if (cn === 2) {
+    positions.push({ x: cx - r, y: cy });
+    positions.push({ x: cx + r, y: cy });
+  } else if (cn === 4) {
+    positions.push({ x: cx - r * 0.8, y: cy - r * 0.6 });
+    positions.push({ x: cx + r * 0.8, y: cy - r * 0.6 });
+    positions.push({ x: cx - r * 0.6, y: cy + r * 0.7 });
+    positions.push({ x: cx + r * 0.6, y: cy + r * 0.7 });
+  } else if (cn === 6) {
+    positions.push({ x: cx, y: cy - r });
+    positions.push({ x: cx + r, y: cy });
+    positions.push({ x: cx, y: cy + r });
+    positions.push({ x: cx - r, y: cy });
+    positions.push({ x: cx + r * 0.55, y: cy - r * 0.55 });
+    positions.push({ x: cx - r * 0.55, y: cy + r * 0.55 });
+  } else {
+    for (var i = 0; i < cn; i++) {
+      var angle = -Math.PI / 2 + (2 * Math.PI * i / cn);
+      positions.push({ x: cx + r * Math.cos(angle), y: cy + r * Math.sin(angle) });
+    }
+  }
+  return positions;
+}
+
+function drawCoordinateBond(ctx, x1, y1, x2, y2) {
+  var dx = x2 - x1, dy = y2 - y1;
+  var len = Math.sqrt(dx * dx + dy * dy);
+  var ux = dx / len, uy = dy / len;
+  var sx = x1 + ux * 22, sy = y1 + uy * 22;
+  var ex = x2 - ux * 30, ey = y2 - uy * 30;
+  ctx.strokeStyle = '#0D9488';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(sx, sy);
+  ctx.lineTo(ex, ey);
+  ctx.stroke();
+  var angle = Math.atan2(ey - sy, ex - sx);
+  ctx.fillStyle = '#0D9488';
+  ctx.beginPath();
+  ctx.moveTo(ex, ey);
+  ctx.lineTo(ex - 8 * Math.cos(angle - 0.4), ey - 8 * Math.sin(angle - 0.4));
+  ctx.lineTo(ex - 8 * Math.cos(angle + 0.4), ey - 8 * Math.sin(angle + 0.4));
+  ctx.closePath();
+  ctx.fill();
+}
+
+function updateComplexInfo() {
+  var info = document.getElementById('complexInfo');
+  var removeArea = document.getElementById('ligandRemoveArea');
+  var teacher = document.getElementById('complexTeacher');
+
+  while (info.firstChild) info.removeChild(info.firstChild);
+  while (removeArea.firstChild) removeArea.removeChild(removeArea.firstChild);
+  teacher.textContent = '';
+
+  if (!_selectedMetal) return;
+
+  var metal = getMetal(_selectedMetal);
+  var cn = getTotalCN();
+  var geom = getGeometry(cn);
+  var formula = buildComplexFormula();
+  var charge = calcComplexCharge();
+  var complexColor = getComplexColor();
+  var preset = getMatchingPreset();
+
+  // Build info grid using DOM
+  var grid = elCreate('div', '');
+  grid.style.cssText = 'display:grid;grid-template-columns:auto 1fr;gap:.3rem .75rem;align-items:center;';
+
+  function addRow(label, value) {
+    var l = elCreate('span', 'label', label);
+    var v = elCreate('span', '', '');
+    if (typeof value === 'string') v.textContent = value;
+    else v.appendChild(value);
+    grid.appendChild(l);
+    grid.appendChild(v);
+  }
+
+  addRow('Metal:', metal.formula + ' (' + metal.name + ')');
+  addRow('Coordination Number:', cn > 0 ? String(cn) : '\u2014');
+  addRow('Geometry:', cn > 0 ? geom.charAt(0).toUpperCase() + geom.slice(1) : '\u2014');
+
+  var formulaSpan = elCreate('span', '', formula || '\u2014');
+  formulaSpan.style.cssText = "font-family:'Fira Code',monospace;font-weight:600;";
+  addRow('Formula:', formulaSpan);
+
+  addRow('Charge:', charge > 0 ? '+' + charge : String(charge));
+
+  if (complexColor) {
+    var swatch = elCreate('span', '');
+    var sw = elCreate('span', 'color-swatch');
+    sw.style.background = complexColor;
+    swatch.appendChild(sw);
+    addRow('Color:', swatch);
+  }
+  if (preset) {
+    addRow('IUPAC Name:', preset.name);
+  }
+
+  info.appendChild(grid);
+
+  // Ligand remove buttons
+  if (_attachedLigands.length > 0) {
+    var hint = elCreate('div', '', 'Click to remove a ligand:');
+    hint.style.cssText = 'font-size:.75rem;color:var(--text-muted);margin-top:.5rem;margin-bottom:.3rem;';
+    removeArea.appendChild(hint);
+    _attachedLigands.forEach(function (al) {
+      var lig = getLigand(al.id);
+      var btn = elCreate('button', 'remove-lig-btn', lig.formula + ' \u00D7' + al.count);
+      btn.setAttribute('data-lig-remove', al.id);
+      btn.addEventListener('click', function () {
+        removeLigand(this.getAttribute('data-lig-remove'));
+      });
+      removeArea.appendChild(btn);
+    });
+  }
+
+  if (preset) {
+    teacher.textContent = 'IB Context: ' + preset.name + ' (' + preset.formula + ') is a common IB example. Color: ' + (preset.color ? preset.color : 'colorless') + '. Geometry: ' + preset.geometry + '.';
+  }
+}
+
+
+/* ============================================================
+   TAB 3: PRACTICE PROBLEMS
+   ============================================================ */
+document.getElementById('modeIdentify').addEventListener('click', function () {
+  _practiceMode = 'identify';
+  this.classList.add('active');
+  document.getElementById('modePredict').classList.remove('active');
+  buildPalette();
+  generateProblem();
+});
+document.getElementById('modePredict').addEventListener('click', function () {
+  _practiceMode = 'predict';
+  this.classList.add('active');
+  document.getElementById('modeIdentify').classList.remove('active');
+  buildPalette();
+  generateProblem();
+});
+
+document.getElementById('checkBtn').addEventListener('click', checkAnswer);
+document.getElementById('nextBtn').addEventListener('click', generateProblem);
+document.getElementById('resetScoreBtn').addEventListener('click', function () {
+  _score = { correct: 0, total: 0 };
+  _usedProblems = { identify: [], predict: [] };
+  updateScore();
+  generateProblem();
+});
+
+function updateScore() {
+  document.getElementById('scoreDisplay').textContent = _score.correct + ' / ' + _score.total;
+}
+
+function generateProblem() {
+  _problemAnswered = false;
+  var fb = document.getElementById('feedbackBox');
+  fb.className = 'feedback-box';
+  fb.textContent = '';
+  var area = document.getElementById('problemArea');
+  while (area.firstChild) area.removeChild(area.firstChild);
+  var teacher = document.getElementById('practiceTeacher');
+  teacher.textContent = '';
+
+  if (_practiceMode === 'identify') {
+    generateIdentifyProblem(area, teacher);
+  } else {
+    generatePredictProblem(area, teacher);
+  }
+}
+
+function generateIdentifyProblem(area, teacher) {
+  var pool = [];
+  for (var i = 0; i < REACTIONS.length; i++) {
+    if (_usedProblems.identify.indexOf(i) === -1) pool.push(i);
+  }
+  if (pool.length === 0) { _usedProblems.identify = []; for (var i = 0; i < REACTIONS.length; i++) pool.push(i); }
+  var idx = pool[Math.floor(Math.random() * pool.length)];
+  _usedProblems.identify.push(idx);
+  var rxn = REACTIONS[idx];
+  _currentProblem = { type: 'identify', rxnIdx: idx, acidAnswer: rxn.acid, baseAnswer: rxn.base };
+
+  var card = elCreate('div', 'problem-card');
+  var hint = elCreate('div', '', 'Identify the Lewis acid and Lewis base in this reaction:');
+  hint.style.cssText = 'font-size:.75rem;color:var(--text-muted);margin-bottom:.3rem;';
+  card.appendChild(hint);
+
+  var eq = elCreate('div', 'problem-equation', rxn.equation);
+  card.appendChild(eq);
+
+  // Build species options
+  var allSpecies = [];
+  LEWIS_ACIDS.forEach(function (a) { if (allSpecies.indexOf(a.formula) === -1) allSpecies.push(a.formula); });
+  LEWIS_BASES.forEach(function (b) { if (allSpecies.indexOf(b.formula) === -1) allSpecies.push(b.formula); });
+
+  // Acid selector
+  var acidDiv = elCreate('div', '');
+  acidDiv.style.cssText = 'margin:.4rem 0;';
+  var acidLabel = elCreate('span', '', 'Lewis acid: ');
+  acidLabel.style.cssText = 'font-size:.8rem;font-weight:600;margin-right:.5rem;';
+  acidDiv.appendChild(acidLabel);
+  var acidSel = document.createElement('select');
+  acidSel.className = 'answer-select';
+  acidSel.id = 'acidAnswer';
+  var defOpt = document.createElement('option');
+  defOpt.value = '';
+  defOpt.textContent = 'Select...';
+  acidSel.appendChild(defOpt);
+  allSpecies.forEach(function (s) {
+    var opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    acidSel.appendChild(opt);
+  });
+  acidDiv.appendChild(acidSel);
+  card.appendChild(acidDiv);
+
+  // Base selector
+  var baseDiv = elCreate('div', '');
+  baseDiv.style.cssText = 'margin:.4rem 0;';
+  var baseLabel = elCreate('span', '', 'Lewis base: ');
+  baseLabel.style.cssText = 'font-size:.8rem;font-weight:600;margin-right:.5rem;';
+  baseDiv.appendChild(baseLabel);
+  var baseSel = document.createElement('select');
+  baseSel.className = 'answer-select';
+  baseSel.id = 'baseAnswer';
+  var defOpt2 = document.createElement('option');
+  defOpt2.value = '';
+  defOpt2.textContent = 'Select...';
+  baseSel.appendChild(defOpt2);
+  allSpecies.forEach(function (s) {
+    var opt = document.createElement('option');
+    opt.value = s;
+    opt.textContent = s;
+    baseSel.appendChild(opt);
+  });
+  baseDiv.appendChild(baseSel);
+  card.appendChild(baseDiv);
+
+  area.appendChild(card);
+
+  var acidFormula = getAcid(rxn.acid) ? getAcid(rxn.acid).formula : rxn.acid;
+  var baseFormula = getBase(rxn.base) ? getBase(rxn.base).formula : rxn.base;
+  teacher.textContent = 'Answer: Acid = ' + acidFormula + ', Base = ' + baseFormula + (rxn.bronsted ? ' (Also Br\u00F8nsted-Lowry)' : ' (Lewis only)');
+}
+
+function generatePredictProblem(area, teacher) {
+  var pool = [];
+  for (var i = 0; i < COMPLEX_PRESETS.length; i++) {
+    if (_usedProblems.predict.indexOf(i) === -1) pool.push(i);
+  }
+  if (pool.length === 0) { _usedProblems.predict = []; for (var i = 0; i < COMPLEX_PRESETS.length; i++) pool.push(i); }
+  var idx = pool[Math.floor(Math.random() * pool.length)];
+  _usedProblems.predict.push(idx);
+  var preset = COMPLEX_PRESETS[idx];
+  _currentProblem = { type: 'predict', presetIdx: idx, cn: preset.cn, geometry: preset.geometry };
+
+  var metal = getMetal(preset.metal);
+  var ligDesc = preset.ligands.map(function (l) {
+    var lig = getLigand(l.id);
+    return l.count + ' ' + lig.formula;
+  }).join(' + ');
+
+  var card = elCreate('div', 'problem-card');
+  var hint = elCreate('div', '', 'Predict the coordination number and geometry of this complex:');
+  hint.style.cssText = 'font-size:.75rem;color:var(--text-muted);margin-bottom:.3rem;';
+  card.appendChild(hint);
+
+  var eq = elCreate('div', 'problem-equation', metal.formula + ' + ' + ligDesc);
+  card.appendChild(eq);
+
+  // CN input
+  var cnDiv = elCreate('div', '');
+  cnDiv.style.cssText = 'margin:.4rem 0;';
+  var cnLabel = elCreate('span', '', 'Coordination number: ');
+  cnLabel.style.cssText = 'font-size:.8rem;font-weight:600;margin-right:.5rem;';
+  cnDiv.appendChild(cnLabel);
+  var cnInput = document.createElement('input');
+  cnInput.type = 'number';
+  cnInput.min = '1';
+  cnInput.max = '12';
+  cnInput.className = 'answer-select';
+  cnInput.id = 'cnAnswer';
+  cnInput.style.width = '60px';
+  cnDiv.appendChild(cnInput);
+  card.appendChild(cnDiv);
+
+  // Geometry selector
+  var geomDiv = elCreate('div', '');
+  geomDiv.style.cssText = 'margin:.4rem 0;';
+  var geomLabel = elCreate('span', '', 'Geometry: ');
+  geomLabel.style.cssText = 'font-size:.8rem;font-weight:600;margin-right:.5rem;';
+  geomDiv.appendChild(geomLabel);
+  var geomSel = document.createElement('select');
+  geomSel.className = 'answer-select';
+  geomSel.id = 'geomAnswer';
+  var geomOptions = ['', 'linear', 'tetrahedral', 'square planar', 'octahedral'];
+  var geomLabels = ['Select...', 'Linear', 'Tetrahedral', 'Square Planar', 'Octahedral'];
+  for (var i = 0; i < geomOptions.length; i++) {
+    var opt = document.createElement('option');
+    opt.value = geomOptions[i];
+    opt.textContent = geomLabels[i];
+    geomSel.appendChild(opt);
+  }
+  geomDiv.appendChild(geomSel);
+  card.appendChild(geomDiv);
+
+  area.appendChild(card);
+
+  teacher.textContent = 'Answer: CN = ' + preset.cn + ', Geometry = ' + preset.geometry + ', Formula = ' + preset.formula;
+}
+
+function checkAnswer() {
+  if (!_currentProblem || _problemAnswered) return;
+  _problemAnswered = true;
+  var fb = document.getElementById('feedbackBox');
+
+  if (_currentProblem.type === 'identify') {
+    var acidSel = document.getElementById('acidAnswer');
+    var baseSel = document.getElementById('baseAnswer');
+    if (!acidSel || !baseSel) return;
+    var acidObj = getAcid(_currentProblem.acidAnswer);
+    var baseObj = getBase(_currentProblem.baseAnswer);
+    var correctAcid = acidObj ? acidObj.formula : '';
+    var correctBase = baseObj ? baseObj.formula : '';
+    var acidCorrect = (acidSel.value === correctAcid);
+    var baseCorrect = (baseSel.value === correctBase);
+
+    acidSel.className = 'answer-select ' + (acidCorrect ? 'correct' : 'incorrect');
+    baseSel.className = 'answer-select ' + (baseCorrect ? 'correct' : 'incorrect');
+
+    if (acidCorrect && baseCorrect) {
+      _score.correct++;
+      var rxn = REACTIONS[_currentProblem.rxnIdx];
+      fb.className = 'feedback-box show-correct';
+      fb.textContent = 'Correct! ' + rxn.note;
+    } else {
+      fb.className = 'feedback-box show-incorrect';
+      fb.textContent = 'Not quite. The Lewis acid is ' + correctAcid + ' (accepts e\u207B pair) and the Lewis base is ' + correctBase + ' (donates e\u207B pair).';
+    }
+    _score.total++;
+  } else if (_currentProblem.type === 'predict') {
+    var cnInput = document.getElementById('cnAnswer');
+    var geomSel = document.getElementById('geomAnswer');
+    if (!cnInput || !geomSel) return;
+    var cnCorrect = (parseInt(cnInput.value) === _currentProblem.cn);
+    var geomCorrect = (geomSel.value === _currentProblem.geometry);
+
+    cnInput.className = 'answer-select ' + (cnCorrect ? 'correct' : 'incorrect');
+    geomSel.className = 'answer-select ' + (geomCorrect ? 'correct' : 'incorrect');
+
+    var preset = COMPLEX_PRESETS[_currentProblem.presetIdx];
+    if (cnCorrect && geomCorrect) {
+      _score.correct++;
+      fb.className = 'feedback-box show-correct';
+      fb.textContent = 'Correct! ' + preset.formula + ' (' + preset.name + ') has coordination number ' + preset.cn + ' and ' + preset.geometry + ' geometry.';
+    } else {
+      fb.className = 'feedback-box show-incorrect';
+      fb.textContent = 'Not quite. ' + preset.formula + ' has CN = ' + preset.cn + ' and ' + preset.geometry + ' geometry.';
+    }
+    _score.total++;
+  }
+  updateScore();
+}
+
+
+/* ============================================================
+   KEYBOARD SHORTCUTS
+   ============================================================ */
+document.addEventListener('keydown', function (e) {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+  var k = e.key.toLowerCase();
+  if (k === 'h') { hlToggle.checked = !hlToggle.checked; hlToggle.dispatchEvent(new Event('change')); e.preventDefault(); }
+  else if (k === 't') { teacherToggle.checked = !teacherToggle.checked; teacherToggle.dispatchEvent(new Event('change')); e.preventDefault(); }
+  else if (k === '1') { switchTab('lewis'); e.preventDefault(); }
+  else if (k === '2') { switchTab('complex'); e.preventDefault(); }
+  else if (k === '3') { switchTab('practice'); e.preventDefault(); }
+  else if (k === 'r') {
+    if (_activeTab === 'lewis') { _selectedAcid = null; _selectedBase = null; buildPalette(); renderLewis(); }
+    else if (_activeTab === 'complex') { _attachedLigands = []; renderComplex(); }
+    e.preventDefault();
+  }
+  else if (k === 'n') {
+    if (_activeTab === 'practice') generateProblem();
+    e.preventDefault();
+  }
+  else if (k === 'escape') {
+    if (_activeTab === 'lewis') { _selectedAcid = null; _selectedBase = null; buildPalette(); renderLewis(); }
+    else if (_activeTab === 'complex') { _selectedMetal = null; _attachedLigands = []; buildMetalSelector(); renderComplex(); }
+    e.preventDefault();
+  }
+});
+
+
+/* ============================================================
+   RESIZE HANDLER
+   ============================================================ */
+var _resizeTimer;
+window.addEventListener('resize', function () {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(function () { refreshTab(); }, 100);
+});
+
+
+/* ============================================================
+   INIT
+   ============================================================ */
+buildPalette();
+buildMetalSelector();
+refreshTab();
+
+})();
+</script>
+</body>
+</html>
