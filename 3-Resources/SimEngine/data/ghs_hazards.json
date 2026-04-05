@@ -1,0 +1,553 @@
+{
+  "meta": {
+    "source": "PubChem PUG-REST API + IB Chemistry safety guidelines",
+    "created": "2026-04-04",
+    "count": 30,
+    "notes": "GHS hazard data for common IB Chemistry lab chemicals. H-codes = hazard statements, P-codes = precautionary statements. ib_safety field contains IB-specific guidance for student labs. Manual entries include IB-relevant concentration notes.",
+    "manual_entries": 9,
+    "fetched_entries": 0,
+    "pending": 21
+  },
+  "pictogram_key": {
+    "GHS01": "Exploding bomb (Explosives)",
+    "GHS02": "Flame (Flammable)",
+    "GHS03": "Flame over circle (Oxidizer)",
+    "GHS04": "Gas cylinder (Compressed gas)",
+    "GHS05": "Corrosion (Corrosive)",
+    "GHS06": "Skull and crossbones (Acute toxicity)",
+    "GHS07": "Exclamation mark (Irritant/harmful)",
+    "GHS08": "Health hazard (Serious health hazard)",
+    "GHS09": "Environment (Environmental hazard)"
+  },
+  "chemicals": [
+    {
+      "name": "Hydrochloric acid",
+      "formula": "HCl",
+      "cid": 313,
+      "concentration": "concentrated/dilute",
+      "signal": "Danger",
+      "pictograms": [
+        "GHS05",
+        "GHS07"
+      ],
+      "pictogramDescriptions": [
+        "Corrosion (Corrosive)",
+        "Exclamation mark (Irritant/harmful)"
+      ],
+      "h_codes": [
+        "H290",
+        "H314",
+        "H335"
+      ],
+      "p_codes": [
+        "P260",
+        "P280",
+        "P301+P330+P331",
+        "P305+P351+P338"
+      ],
+      "ib_safety": "Use in fume hood when concentrated. Wear goggles and gloves. Dilute solutions (<1 M) are irritants.",
+      "source": "manual (IB-specific)"
+    },
+    {
+      "name": "Sulfuric acid",
+      "formula": "H2SO4",
+      "cid": 1118,
+      "concentration": "concentrated/dilute",
+      "signal": "Danger",
+      "pictograms": [
+        "GHS05"
+      ],
+      "pictogramDescriptions": [
+        "Corrosion (Corrosive)"
+      ],
+      "h_codes": [
+        "H290",
+        "H314"
+      ],
+      "p_codes": [
+        "P260",
+        "P280",
+        "P301+P330+P331",
+        "P305+P351+P338"
+      ],
+      "ib_safety": "Always add acid to water, never reverse. Concentrated causes severe burns. Dilute (<1 M) is irritant.",
+      "source": "manual (IB-specific)"
+    },
+    {
+      "name": "Nitric acid",
+      "formula": "HNO3",
+      "cid": 944,
+      "concentration": "concentrated/dilute",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Ethanoic acid",
+      "formula": "CH3COOH",
+      "cid": 176,
+      "concentration": "glacial/dilute",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Sodium hydroxide",
+      "formula": "NaOH",
+      "cid": 14798,
+      "concentration": "pellets/solution",
+      "signal": "Danger",
+      "pictograms": [
+        "GHS05"
+      ],
+      "pictogramDescriptions": [
+        "Corrosion (Corrosive)"
+      ],
+      "h_codes": [
+        "H290",
+        "H314"
+      ],
+      "p_codes": [
+        "P260",
+        "P280",
+        "P301+P330+P331",
+        "P305+P351+P338"
+      ],
+      "ib_safety": "Causes severe burns. Pellets are very hygroscopic. Dissolving is exothermic.",
+      "source": "manual (IB-specific)"
+    },
+    {
+      "name": "Potassium hydroxide",
+      "formula": "KOH",
+      "cid": 14797,
+      "concentration": "pellets/solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Ammonia solution",
+      "formula": "NH3(aq)",
+      "cid": 222,
+      "concentration": "concentrated",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Ethanol",
+      "formula": "C2H5OH",
+      "cid": 702,
+      "concentration": "absolute/dilute",
+      "signal": "Danger",
+      "pictograms": [
+        "GHS02"
+      ],
+      "pictogramDescriptions": [
+        "Flame (Flammable)"
+      ],
+      "h_codes": [
+        "H225",
+        "H319"
+      ],
+      "p_codes": [
+        "P210",
+        "P233",
+        "P240",
+        "P305+P351+P338"
+      ],
+      "ib_safety": "Highly flammable. Use water bath, not Bunsen burner. Keep away from flames.",
+      "source": "manual (IB-specific)"
+    },
+    {
+      "name": "Methanol",
+      "formula": "CH3OH",
+      "cid": 887,
+      "concentration": "pure",
+      "signal": "Danger",
+      "pictograms": [
+        "GHS02",
+        "GHS06",
+        "GHS08"
+      ],
+      "pictogramDescriptions": [
+        "Flame (Flammable)",
+        "Skull and crossbones (Acute toxicity)",
+        "Health hazard (Serious health hazard)"
+      ],
+      "h_codes": [
+        "H225",
+        "H301+H311+H331",
+        "H370"
+      ],
+      "p_codes": [
+        "P210",
+        "P260",
+        "P280",
+        "P301+P310"
+      ],
+      "ib_safety": "TOXIC — do not ingest or inhale. Use in fume hood. More dangerous than ethanol.",
+      "source": "manual (IB-specific)"
+    },
+    {
+      "name": "Propanone (acetone)",
+      "formula": "CH3COCH3",
+      "cid": 180,
+      "concentration": "pure",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Copper(II) sulfate",
+      "formula": "CuSO4",
+      "cid": 24462,
+      "concentration": "solid/solution",
+      "signal": "Warning",
+      "pictograms": [
+        "GHS07",
+        "GHS09"
+      ],
+      "pictogramDescriptions": [
+        "Exclamation mark (Irritant/harmful)",
+        "Environment (Environmental hazard)"
+      ],
+      "h_codes": [
+        "H302",
+        "H315",
+        "H318",
+        "H410"
+      ],
+      "p_codes": [
+        "P264",
+        "P270",
+        "P273",
+        "P280"
+      ],
+      "ib_safety": "Harmful if swallowed. Environmental hazard — do not pour down sink.",
+      "source": "manual (IB-specific)"
+    },
+    {
+      "name": "Lead(II) nitrate",
+      "formula": "Pb(NO3)2",
+      "cid": 24924,
+      "concentration": "solid/solution",
+      "signal": "Danger",
+      "pictograms": [
+        "GHS03",
+        "GHS06",
+        "GHS08",
+        "GHS09"
+      ],
+      "pictogramDescriptions": [
+        "Flame over circle (Oxidizer)",
+        "Skull and crossbones (Acute toxicity)",
+        "Health hazard (Serious health hazard)",
+        "Environment (Environmental hazard)"
+      ],
+      "h_codes": [
+        "H272",
+        "H302+H332",
+        "H360Df",
+        "H373",
+        "H410"
+      ],
+      "p_codes": [
+        "P201",
+        "P220",
+        "P260",
+        "P273",
+        "P280"
+      ],
+      "ib_safety": "TOXIC — lead compound. Reproductive toxicant. Wear gloves. Dispose as heavy metal waste.",
+      "source": "manual (IB-specific)"
+    },
+    {
+      "name": "Silver nitrate",
+      "formula": "AgNO3",
+      "cid": 24470,
+      "concentration": "solid/solution",
+      "signal": "Danger",
+      "pictograms": [
+        "GHS03",
+        "GHS05"
+      ],
+      "pictogramDescriptions": [
+        "Flame over circle (Oxidizer)",
+        "Corrosion (Corrosive)"
+      ],
+      "h_codes": [
+        "H272",
+        "H290",
+        "H314",
+        "H410"
+      ],
+      "p_codes": [
+        "P220",
+        "P260",
+        "P280",
+        "P301+P330+P331"
+      ],
+      "ib_safety": "Stains skin and clothing permanently (black). Oxidiser. Corrosive.",
+      "source": "manual (IB-specific)"
+    },
+    {
+      "name": "Barium chloride",
+      "formula": "BaCl2",
+      "cid": 25204,
+      "concentration": "solid/solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Potassium permanganate",
+      "formula": "KMnO4",
+      "cid": 516875,
+      "concentration": "solid/solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Sodium carbonate",
+      "formula": "Na2CO3",
+      "cid": 10340,
+      "concentration": "solid/solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Iron(III) chloride",
+      "formula": "FeCl3",
+      "cid": 24380,
+      "concentration": "solid/solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Zinc granules",
+      "formula": "Zn",
+      "cid": 23994,
+      "concentration": "solid",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Magnesium ribbon",
+      "formula": "Mg",
+      "cid": 5462224,
+      "concentration": "solid",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Copper turnings",
+      "formula": "Cu",
+      "cid": 23978,
+      "concentration": "solid",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Sodium thiosulfate",
+      "formula": "Na2S2O3",
+      "cid": 24477,
+      "concentration": "solid/solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Hydrogen peroxide",
+      "formula": "H2O2",
+      "cid": 784,
+      "concentration": "3%/30%",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Phenolphthalein",
+      "formula": "C20H14O4",
+      "cid": 4764,
+      "concentration": "indicator solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Methyl orange",
+      "formula": "C14H14N3NaO3S",
+      "cid": 23673835,
+      "concentration": "indicator solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Bromothymol blue",
+      "formula": "C27H28Br2O5S",
+      "cid": 6450,
+      "concentration": "indicator solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Starch indicator",
+      "formula": "(C6H10O5)n",
+      "cid": 24749,
+      "concentration": "solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Bromine water",
+      "formula": "Br2(aq)",
+      "cid": 24408,
+      "concentration": "dilute",
+      "signal": "Danger",
+      "pictograms": [
+        "GHS05",
+        "GHS06",
+        "GHS09"
+      ],
+      "pictogramDescriptions": [
+        "Corrosion (Corrosive)",
+        "Skull and crossbones (Acute toxicity)",
+        "Environment (Environmental hazard)"
+      ],
+      "h_codes": [
+        "H314",
+        "H330",
+        "H400"
+      ],
+      "p_codes": [
+        "P260",
+        "P271",
+        "P280",
+        "P284"
+      ],
+      "ib_safety": "Use in fume hood ONLY. Causes severe burns. Toxic vapour. Bromine water is dilute but still hazardous.",
+      "source": "manual (IB-specific)"
+    },
+    {
+      "name": "Potassium iodide",
+      "formula": "KI",
+      "cid": 4875,
+      "concentration": "solid/solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Calcium chloride",
+      "formula": "CaCl2",
+      "cid": 5284359,
+      "concentration": "solid/solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    },
+    {
+      "name": "Sodium chloride",
+      "formula": "NaCl",
+      "cid": 5234,
+      "concentration": "solid/solution",
+      "signal": null,
+      "pictograms": [],
+      "pictogramDescriptions": [],
+      "h_codes": [],
+      "p_codes": [],
+      "ib_safety": "",
+      "source": "pending"
+    }
+  ]
+}

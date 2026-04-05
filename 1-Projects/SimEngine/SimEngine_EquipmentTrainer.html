@@ -1483,8 +1483,19 @@
     newIdentifyProblem();
   }
 
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',init);
-  else init();
+  // Try canonical JSON, fall back to inline data
+  function startInit() {
+    fetch('../../3-Resources/SimEngine/data/equipment.json')
+      .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+      .then(function(d) {
+        if (d.equipment) EQUIPMENT = d.equipment;
+      })
+      .catch(function() { /* file:// or offline — keep inline data */ })
+      .then(function() { init(); });
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',startInit);
+  else startInit();
 })();
 </script>
 <footer>SimEngine &mdash; Equipment Trainer &bull; H=HL T=Teacher</footer>

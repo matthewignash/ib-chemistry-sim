@@ -1668,10 +1668,24 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     selectGroup('alkane');
   }
 
+  // Try canonical JSON, fall back to inline data
+  function startInit() {
+    SimEngine.Data.load('spectroscopy')
+      .then(function(d) {
+        if (d.functional_groups) GROUPS = d.functional_groups;
+      })
+      .catch(function() { /* keep inline data */ })
+      .then(function() {
+        // Rebuild GRP_MAP from possibly-updated GROUPS
+        for (var i = 0; i < GROUPS.length; i++) GRP_MAP[GROUPS[i].id] = GROUPS[i];
+        init();
+      });
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
+    document.addEventListener('DOMContentLoaded', startInit);
   } else {
-    init();
+    startInit();
   }
 
 })();

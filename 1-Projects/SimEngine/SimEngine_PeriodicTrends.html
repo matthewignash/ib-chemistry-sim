@@ -1931,12 +1931,15 @@ var SUCCESSIVE_IE_DATA = {
   36: [1350.8, 2350.4, 3565.0, 5070.0, 6240.0, 7570.0, 10710.0, 12138.0, 22274.0, 25880.0, 29700.0, 33800.0, 37700.0, 43800.0, 47900.0, 52200.0, 57100.0, 61800.0, 75800.0, 80400.0, 85300.0, 92000.0, 96700.0, 101400.0, 111200.0, 116300.0, 282500.0, 296300.0, 311400.0, 329800.0, 345400.0, 361000.0, 382300.0, 395600.0, 1609800.0, 1673500.0]
 };
 
-// Map data into the ELEMENTS array format used by the simulation
-ELEMENTS = ELEMENTS_DATA;
-SUCCESSIVE_IE = SUCCESSIVE_IE_DATA;
-
-// Re-init now that data is loaded
-init();
+// Try canonical JSON first, fall back to inline data
+SimEngine.Data.load('elements').then(function(data) {
+  ELEMENTS = data.elements;
+}).catch(function() {
+  ELEMENTS = ELEMENTS_DATA;
+}).then(function() {
+  SUCCESSIVE_IE = SUCCESSIVE_IE_DATA;
+  init();
+});
 </script>
 
 <footer>SimEngine &mdash; Periodic Trends &bull; H=HL T=Teacher</footer>

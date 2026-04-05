@@ -756,9 +756,21 @@ document.getElementById('hlToggle').addEventListener('change',function(){documen
 document.getElementById('teacherToggle').addEventListener('change',function(){document.body.classList.toggle('teacher-active',this.checked);});
 window.addEventListener('resize',refreshTab);
 
-// ── INIT ──
-buildPalette();
-renderCalorimetry();
+// ── INIT — try canonical JSON, fall back to inline data ──
+fetch('../../3-Resources/SimEngine/data/compounds_organic.json')
+  .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+  .then(function(d) {
+    if (d.compounds) {
+      var obj = {};
+      d.compounds.forEach(function(c) { obj[c.id] = c; });
+      FUELS = obj;
+    }
+  })
+  .catch(function() { /* file:// or offline — keep inline data */ })
+  .then(function() {
+    buildPalette();
+    renderCalorimetry();
+  });
 })();
 </script>
 <footer>SimEngine &mdash; Energy from Fuels &bull; H=HL T=Teacher</footer>

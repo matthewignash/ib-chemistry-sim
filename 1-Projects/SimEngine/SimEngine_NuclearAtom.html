@@ -2831,10 +2831,32 @@ if (!CanvasRenderingContext2D.prototype.roundRect) {
   });
 
   // ═══════════════════════════════════════════════════
-  // INIT
+  // INIT — try canonical JSON, fall back to inline data
   // ═══════════════════════════════════════════════════
-  buildPalette();
-  renderIsotopeTab();
+  fetch('../../3-Resources/SimEngine/data/isotopes.json')
+    .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+    .then(function(d) {
+      // Convert elements array to object keyed by symbol
+      var obj = {};
+      d.elements.forEach(function(el) { obj[el.symbol] = el; });
+      ISOTOPE_DATA = obj;
+      // Load MS compounds (Mr → M for compatibility)
+      if (d.mass_spectrometry && d.mass_spectrometry.compounds) {
+        MS_COMPOUNDS = d.mass_spectrometry.compounds.map(function(c) {
+          var copy = Object.assign({}, c);
+          copy.M = copy.Mr; delete copy.Mr;
+          return copy;
+        });
+      }
+      if (d.mass_spectrometry && d.mass_spectrometry.categories) {
+        MS_CATEGORIES = d.mass_spectrometry.categories;
+      }
+    })
+    .catch(function() { /* file:// or offline — keep inline data */ })
+    .then(function() {
+      buildPalette();
+      renderIsotopeTab();
+    });
 
 })();
 </script>

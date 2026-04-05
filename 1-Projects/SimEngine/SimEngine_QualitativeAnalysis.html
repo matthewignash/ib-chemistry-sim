@@ -1198,7 +1198,15 @@ function init(){
   if(iaToggleBtn) iaToggleBtn.addEventListener('click', function(){ document.getElementById('iaPanel').classList.toggle('open'); });
 }
 
-init();
+// Try canonical JSON, fall back to inline data
+fetch('../../3-Resources/SimEngine/data/solubility_rules.json')
+  .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+  .then(function(d) {
+    if (d.flame_tests) FLAME_IONS = d.flame_tests;
+    if (d.precipitate_matrix) PRECIP_MATRIX = d.precipitate_matrix;
+  })
+  .catch(function() { /* file:// or offline — keep inline data */ })
+  .then(function() { init(); });
 
 })();
 </script>

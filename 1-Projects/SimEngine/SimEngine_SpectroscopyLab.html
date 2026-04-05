@@ -975,7 +975,19 @@ document.addEventListener('keydown',function(evt){
 });
 
 window.addEventListener('resize',function(){refreshTab();});
-buildPalette();refreshTab();updateChallengeNMR();
+// Try canonical JSON, fall back to inline data
+fetch('../../3-Resources/SimEngine/data/spectroscopy_correlation.json')
+  .then(function(r) { return r.ok ? r.json() : Promise.reject(); })
+  .then(function(d) {
+    if (d.ir_peaks) IR_PEAKS = d.ir_peaks;
+    if (d.ms_compounds) MS_COMPOUNDS = d.ms_compounds;
+    if (d.nmr_regions) NMR_REGIONS = d.nmr_regions;
+    if (d.ir_groups) IR_GROUPS = d.ir_groups;
+  })
+  .catch(function() { /* file:// or offline — keep inline data */ })
+  .then(function() {
+    buildPalette(); refreshTab(); updateChallengeNMR();
+  });
 })();
 </script>
 <footer>SimEngine &mdash; Spectroscopy Lab &bull; H=HL T=Teacher</footer>
