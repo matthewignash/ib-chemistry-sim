@@ -131,7 +131,42 @@
 
   .skip-link{position:absolute;top:-40px;left:0;background:var(--navy);color:white;padding:8px 16px;z-index:1000;transition:top 0.2s;}.skip-link:focus{top:0;}
 
+  .hl-only{display:none;} body.hl-active .hl-only{display:block;}
+  .teacher-only{display:none;} body.teacher-active .teacher-only{display:flex;}
+
+  /* Math Checkpoints */
+  .math-checkpoint .sim-card-header{display:flex;align-items:center;gap:.5rem;}
+  .checkpoint-icon{font-size:.9rem;}
+  .checkpoint-status{margin-left:auto;font-size:.7rem;font-weight:600;text-transform:uppercase;letter-spacing:.03em;}
+  .checkpoint-status.passed{color:#86EFAC;}
+  .checkpoint-status.failed{color:#FCA5A5;}
+  .check-item{display:flex;gap:.75rem;align-items:center;margin-bottom:.75rem;flex-wrap:wrap;}
+  .check-item label{font-size:.82rem;font-weight:600;color:var(--text-muted);min-width:140px;}
+  .check-item input{width:120px;padding:.4rem .6rem;border:1px solid var(--border);border-radius:6px;font-family:'Fira Code',monospace;font-size:.85rem;}
+  .check-item .unit{font-size:.78rem;color:var(--text-muted);font-family:'Fira Code',monospace;}
+  .check-item-feedback{font-size:.78rem;font-weight:600;margin-left:.25rem;}
+  .check-item-feedback.ok{color:var(--green);} .check-item-feedback.err{color:var(--red);}
+  .section-locked{opacity:.4;pointer-events:none;position:relative;}
+  .section-locked::after{content:'Complete checkpoints above to unlock';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--navy);color:white;padding:.5rem 1rem;border-radius:8px;font-size:.82rem;font-weight:600;pointer-events:none;}
+  .advisory-banner{background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:.6rem 1rem;font-size:.82rem;color:#92400E;margin-top:.75rem;display:none;}
+  .prop-step{display:flex;gap:.75rem;align-items:flex-start;margin-bottom:.75rem;padding:.75rem;background:#F8FAFC;border:1px solid var(--border);border-radius:8px;}
+  .prop-step-num{display:flex;align-items:center;justify-content:center;min-width:24px;height:24px;border-radius:50%;background:var(--navy);color:white;font-size:.7rem;font-weight:700;flex-shrink:0;}
+  .prop-step-label{flex:1;font-size:.82rem;}
+  .prop-step.done{border-color:#86EFAC;background:#F0FDF4;}
+  .prop-step.done .prop-step-num{background:var(--green);}
+  .save-indicator{font-size:.72rem;font-weight:600;color:var(--green);opacity:0;transition:opacity .3s;margin-left:.5rem;}
+  .save-indicator.visible{opacity:1;}
+  .save-indicator.saving{color:var(--amber);}
+
   @media(max-width:700px){.tab-btn{padding:.6rem .7rem;font-size:.75rem;}.ia-progress{flex-wrap:wrap;}.pct-error-calc{flex-direction:column;}}
+  @media print{
+    .header,.tab-bar,.ia-progress,.teacher-panel,.preset-section,.btn-row,.keyboard-hint,.sim-toggle-group,#labSelectorCard,.skip-link,footer{display:none!important;}
+    .tab-content{display:block!important;}
+    .sim-card{break-inside:avoid;page-break-inside:avoid;box-shadow:none;border:1px solid #ccc;}
+    .section-locked{opacity:1!important;pointer-events:auto!important;} .section-locked::after{display:none!important;}
+    .math-checkpoint,.advisory-banner,.hl-only{display:none!important;}
+    body{font-size:12px;background:white;} .sim-container{max-width:none;padding:0;}
+  }
   footer{text-align:center;padding:0.5rem;color:var(--text);opacity:0.5;font-size:0.75rem;margin-top:1rem;}
 </style>
 </head>
@@ -181,7 +216,11 @@
         </select>
       </div>
       <button class="btn btn-outline" id="openLabBtn">Open Lab Sim &#8599;</button>
+      <button class="btn btn-outline btn-sm" id="exportBtn">Export JSON</button>
+      <button class="btn btn-outline btn-sm" id="importBtn">Import JSON</button>
+      <input type="file" id="importFile" accept=".json" style="display:none;">
       <button class="btn btn-red btn-sm" id="resetBtn">Reset All</button>
+      <span class="save-indicator" id="saveIndicator">Saved &#10003;</span>
     </div>
   </div>
 
@@ -302,6 +341,35 @@
   <!-- TAB 2: DATA ANALYSIS -->
   <div class="tab-content" id="tab-analysis" role="tabpanel">
 
+    <!-- Teacher Checkpoint Controls -->
+    <div class="teacher-panel" id="teacherCheckControls" style="margin-bottom:1rem;">
+      <strong>Math Checkpoint Controls:</strong>
+      <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-top:.5rem;align-items:center;">
+        <label style="font-size:.78rem;"><input type="checkbox" checked data-check-toggle="uncertainty"> Uncertainty ID</label>
+        <label style="font-size:.78rem;"><input type="checkbox" checked data-check-toggle="conversion"> Conversion</label>
+        <label style="font-size:.78rem;"><input type="checkbox" checked data-check-toggle="propagation"> Propagation</label>
+        <span style="margin-left:auto;font-size:.72rem;color:#92400E;">|</span>
+        <div class="sim-toggle-group">
+          <label class="sim-toggle"><input type="checkbox" id="strictToggle"><span class="sim-toggle-slider"></span></label>
+          <span style="font-size:.72rem;font-weight:600;color:#92400E;">Strict Mode</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Checkpoint 1: Instrument Uncertainties -->
+    <div class="sim-card math-checkpoint" id="checkpoint-uncertainty" data-check="uncertainty">
+      <div class="sim-card-header"><span class="checkpoint-icon">&#x1F4CF;</span> Checkpoint: Instrument Uncertainties <span class="checkpoint-status" id="statusUncertainty"></span></div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Before recording data, identify the absolute uncertainty of each instrument you will use.</div>
+        <div id="uncertaintyCheckItems"></div>
+        <div class="feedback" id="uncertaintyFeedback" style="display:none;"></div>
+        <div class="btn-row">
+          <button class="btn btn-teal btn-sm" id="checkUncertaintyBtn">Check Answers</button>
+        </div>
+        <div class="advisory-banner" id="advisoryUncertainty">You haven't completed this checkpoint yet. Consider trying it before recording data.</div>
+      </div>
+    </div>
+
     <div class="sim-card">
       <div class="sim-card-header">Raw Data Table</div>
       <div class="sim-card-body">
@@ -343,6 +411,53 @@
         <div class="teacher-panel">
           <strong>Common mistakes:</strong> Forgetting to double burette uncertainty (2 readings), using wrong number of significant figures, confusing absolute and percentage uncertainty.
         </div>
+      </div>
+    </div>
+
+    <!-- HL: Standard Deviation -->
+    <div class="sim-card hl-only">
+      <div class="sim-card-header" style="background:var(--purple);">HL Extension: Standard Deviation</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">After calculating your mean, calculate the standard deviation of your repeat trials to assess precision.</div>
+        <div class="sentence-starter">
+          <div class="starter-label">Standard Deviation Formula</div>
+          <div style="font-family:'Fira Code',monospace;font-size:.85rem;background:white;padding:.75rem;border-radius:6px;border:1px solid var(--border);margin-bottom:.5rem;">
+            s = &radic;[ &Sigma;(x<sub>i</sub> &minus; x&#772;)&sup2; / (n &minus; 1) ]
+          </div>
+          <textarea id="hlStdDev" rows="4" aria-label="Standard deviation calculation" placeholder="Show your working:&#10;Trial values: ...&#10;Mean (x̄) = ...&#10;Σ(xi − x̄)² = ...&#10;s = √[... / (n−1)] = ..."></textarea>
+        </div>
+        <div class="sentence-starter">
+          <div class="starter-label">Range vs Instrument Uncertainty</div>
+          <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.25rem;">Compare the half-range of your trials to the instrument uncertainty. Use whichever is <strong>larger</strong> as your overall uncertainty.</div>
+          <textarea id="hlRangeVsInst" rows="3" aria-label="Range vs instrument uncertainty comparison" placeholder="Half-range = (max − min) / 2 = ...&#10;Instrument uncertainty = ...&#10;The larger uncertainty is ... so I will use ..."></textarea>
+        </div>
+        <div class="teacher-panel">
+          <strong>HL guidance:</strong> Students should recognise that random uncertainty is better estimated from the spread of data (half-range or standard deviation) than from instrument precision alone. If the half-range exceeds instrument uncertainty, it indicates significant random error.
+        </div>
+      </div>
+    </div>
+
+    <!-- Checkpoint 3: Unit Conversion -->
+    <div class="sim-card math-checkpoint" id="checkpoint-conversion" data-check="conversion">
+      <div class="sim-card-header"><span class="checkpoint-icon">&#x1F504;</span> Checkpoint: Unit Conversion <span class="checkpoint-status" id="statusConversion"></span></div>
+      <div class="sim-card-body">
+        <div id="conversionCheckContent"></div>
+        <div class="feedback" id="conversionFeedback" style="display:none;"></div>
+        <div class="btn-row">
+          <button class="btn btn-teal btn-sm" id="checkConversionBtn">Check Answer</button>
+        </div>
+        <div class="advisory-banner" id="advisoryConversion">Consider completing this unit conversion checkpoint before processing data.</div>
+      </div>
+    </div>
+
+    <!-- Checkpoint 4: Uncertainty Propagation -->
+    <div class="sim-card math-checkpoint" id="checkpoint-propagation" data-check="propagation">
+      <div class="sim-card-header"><span class="checkpoint-icon">&#x1F4CA;</span> Checkpoint: Uncertainty Propagation <span class="checkpoint-status" id="statusPropagation"></span></div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Work through these calculation steps. Show your working by entering the answer to each step.</div>
+        <div id="propagationSteps"></div>
+        <div class="feedback" id="propagationFeedback" style="display:none;"></div>
+        <div class="advisory-banner" id="advisoryPropagation">Consider completing the propagation steps before writing your sample calculation.</div>
       </div>
     </div>
 
@@ -393,6 +508,28 @@
         </div>
         <div class="teacher-panel">
           <strong>Common graph errors:</strong> Not starting axes at zero (when appropriate), connecting dots instead of best-fit line, missing units, using a line graph for non-continuous data.
+        </div>
+      </div>
+    </div>
+
+    <!-- Teacher: Checkpoint Analytics -->
+    <div class="teacher-panel" id="teacherCheckAnalytics" style="margin-bottom:1.5rem;">
+      <strong>Checkpoint Performance:</strong>
+      <div id="checkpointAnalytics" style="margin-top:.5rem;font-family:'Fira Code',monospace;font-size:.78rem;"></div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Rubric Self-Check &mdash; Criterion 2: Data Collection &amp; Processing (6 marks)</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Read each descriptor and select the one that best matches your current data collection and processing work.</div>
+        <div id="rubricDataProcessing">
+          <div class="rubric-card" data-mark="5-6"><div class="rubric-mark">5-6 Marks</div><div class="rubric-desc">Raw data is <strong>recorded appropriately</strong> with correct units and uncertainties. Data processing is <strong>carried out correctly</strong> and presentation is <strong>clear and appropriate</strong> (graphs with labelled axes, error bars, and best-fit lines).</div></div>
+          <div class="rubric-card" data-mark="3-4"><div class="rubric-mark">3-4 Marks</div><div class="rubric-desc">Raw data is recorded but with <strong>some errors</strong> in units or uncertainties. Processing is <strong>mostly correct</strong> but presentation has gaps (missing labels, no error bars).</div></div>
+          <div class="rubric-card" data-mark="1-2"><div class="rubric-mark">1-2 Marks</div><div class="rubric-desc">Data collection is <strong>limited</strong>. Processing contains significant errors or is incomplete. Presentation is unclear or inappropriate.</div></div>
+          <div class="rubric-card" data-mark="0"><div class="rubric-mark">0 Marks</div><div class="rubric-desc">No data or processing is present, or it is irrelevant to the investigation.</div></div>
+        </div>
+        <div class="teacher-panel">
+          <strong>Marking guidance:</strong> 5-6 requires appropriate raw data tables (units + uncertainties in headers), correct calculations with units at every step, and a well-constructed graph. Look for error bars and identification of anomalies.
         </div>
       </div>
     </div>
@@ -488,6 +625,42 @@
       </div>
     </div>
 
+    <!-- HL: Correlation & Linearisation -->
+    <div class="sim-card hl-only">
+      <div class="sim-card-header" style="background:var(--purple);">HL Extension: Correlation &amp; Linearisation</div>
+      <div class="sim-card-body">
+        <div class="sentence-starter">
+          <div class="starter-label">Correlation Coefficient (R&sup2;)</div>
+          <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.25rem;">If you used a line of best fit, estimate the R&sup2; value and assess the strength of correlation.</div>
+          <textarea id="hlCorrelation" rows="3" aria-label="Correlation coefficient analysis" placeholder="The R² value of my best-fit line is approximately ...&#10;This indicates a [strong/moderate/weak] [positive/negative] correlation because ..."></textarea>
+        </div>
+        <div class="sentence-starter">
+          <div class="starter-label">Linearisation</div>
+          <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.25rem;">If your relationship is non-linear, consider whether a logarithmic or reciprocal transformation would produce a linear graph.</div>
+          <textarea id="hlLinearisation" rows="3" aria-label="Linearisation analysis" placeholder="The relationship between [IV] and [DV] appears to be [exponential/inverse/power]...&#10;Plotting [ln(DV) / 1/IV / DV²] against [IV] should give a straight line because ..."></textarea>
+        </div>
+        <div class="teacher-panel">
+          <strong>HL guidance:</strong> R&sup2; &gt; 0.95 is typically considered a strong correlation. Linearisation is expected when the raw data shows a clear curve. Common transformations: ln(rate) vs 1/T for Arrhenius, ln[A] vs t for first-order, 1/[A] vs t for second-order.
+        </div>
+      </div>
+    </div>
+
+    <div class="sim-card">
+      <div class="sim-card-header">Rubric Self-Check &mdash; Criterion 3: Analysis &amp; Conclusion (6 marks)</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">Read each descriptor and select the one that best matches your conclusion and analysis quality.</div>
+        <div id="rubricConclusion">
+          <div class="rubric-card" data-mark="5-6"><div class="rubric-mark">5-6 Marks</div><div class="rubric-desc">The conclusion is <strong>justified and relevant</strong>, directly answering the RQ with specific data. A <strong>detailed</strong> scientific explanation is given with correct theory. Comparison to literature values is meaningful with a calculated percentage error.</div></div>
+          <div class="rubric-card" data-mark="3-4"><div class="rubric-mark">3-4 Marks</div><div class="rubric-desc">The conclusion answers the RQ but with <strong>limited data reference</strong>. Scientific explanation is <strong>mostly correct</strong> but lacks depth. Literature comparison is present but superficial.</div></div>
+          <div class="rubric-card" data-mark="1-2"><div class="rubric-mark">1-2 Marks</div><div class="rubric-desc">The conclusion is <strong>incomplete</strong> or does not clearly answer the RQ. Scientific context is vague or incorrect. No meaningful literature comparison.</div></div>
+          <div class="rubric-card" data-mark="0"><div class="rubric-mark">0 Marks</div><div class="rubric-desc">No conclusion is present, or it is irrelevant to the investigation.</div></div>
+        </div>
+        <div class="teacher-panel">
+          <strong>Marking guidance:</strong> 5-6 requires a conclusion that quotes specific data values with units, identifies the relationship type (linear, proportional, inverse), explains using correct chemical theory, and makes a meaningful comparison to accepted values with % error interpretation.
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- TAB 4: EVALUATION -->
@@ -578,6 +751,22 @@
       </div>
     </div>
 
+    <!-- HL: Statistical Testing -->
+    <div class="sim-card hl-only">
+      <div class="sim-card-header" style="background:var(--purple);">HL Extension: Statistical Significance</div>
+      <div class="sim-card-body">
+        <div class="scenario-box">For HL, consider whether your results are statistically significant. A t-test can determine if the difference between two data sets is meaningful or due to random variation.</div>
+        <div class="sentence-starter">
+          <div class="starter-label">t-test Analysis</div>
+          <div style="font-size:.82rem;color:var(--text-muted);margin-bottom:.25rem;">Compare two sets of results (e.g., two different IV values, or your result vs. literature).</div>
+          <textarea id="hlTTest" rows="5" aria-label="t-test analysis" placeholder="Data set 1: mean = ..., s = ..., n = ...&#10;Data set 2: mean = ..., s = ..., n = ...&#10;t = |mean₁ − mean₂| / √(s₁²/n₁ + s₂²/n₂) = ...&#10;Degrees of freedom = n₁ + n₂ − 2 = ...&#10;At 95% confidence, the critical t-value is ...&#10;Since t [is/is not] greater than t-critical, the difference [is/is not] statistically significant."></textarea>
+        </div>
+        <div class="teacher-panel">
+          <strong>HL guidance:</strong> Students should identify which data sets to compare, calculate t correctly, and interpret using a t-table at 95% confidence. The conclusion should state whether the null hypothesis (no significant difference) is accepted or rejected.
+        </div>
+      </div>
+    </div>
+
     <div class="sim-card">
       <div class="sim-card-header">Rubric Self-Check — Criterion 4: Evaluation (6 marks)</div>
       <div class="sim-card-body">
@@ -629,7 +818,21 @@
       theoryContext: 'q = mc\u0394T. Heat loss to surroundings is the main source of systematic error. Polystyrene is a better insulator than glass or metal, so less heat is lost. Enthalpy is a state function \u2014 the route does not matter (Hess\u2019s Law).',
       litValues: 'Neutralisation of strong acid + strong base: \u0394H = \u221257.1 kJ mol\u207b\u00b9 (literature). Combustion enthalpies vary by fuel \u2014 check IB data booklet.',
       weaknesses: { systematic: ['Heat loss to surroundings (calorimeter is not perfectly insulated)', 'Incomplete combustion of fuel (soot on calorimeter)'], random: ['Difficulty reading thermometer at exact time intervals', 'Variation in stirring consistency'], equipment: ['Glass thermometer only reads to \u00b10.5 \u00b0C', 'Measuring cylinder less precise than pipette'] },
-      extensions: 'Investigate how lid design (no lid, cardboard lid, polystyrene lid) affects heat loss. Or compare enthalpy of neutralisation for different acid\u2013base pairs.'
+      extensions: 'Investigate how lid design (no lid, cardboard lid, polystyrene lid) affects heat loss. Or compare enthalpy of neutralisation for different acid\u2013base pairs.',
+      mathChecks: {
+        uncertainties: [
+          { instrument: 'Digital probe', prompt: 'What is the absolute uncertainty of the digital temperature probe?', answer: 0.1, unit: '\u00b0C' },
+          { instrument: 'Measuring cylinder (50 cm\u00b3)', prompt: 'What is the absolute uncertainty of the 50 cm\u00b3 measuring cylinder?', answer: 0.5, unit: 'cm\u00b3' },
+          { instrument: 'Balance', prompt: 'What is the absolute uncertainty of the balance?', answer: 0.01, unit: 'g' }
+        ],
+        conversion: { prompt: 'Convert 50.0 cm\u00b3 of solution to a mass in grams (assume density of water = 1.00 g cm\u207b\u00b3).', answer: 50.0, unit: 'g', hint: 'mass = volume \u00d7 density' },
+        propagation: [
+          { label: 'Calculate q using q = mc\u0394T, where m = 50.0 g, c = 4.18 J g\u207b\u00b9 K\u207b\u00b9, \u0394T = 6.5 \u00b0C', answer: 1358.5, unit: 'J', tolerance: 0.02 },
+          { label: 'Convert q to kJ', answer: 1.359, unit: 'kJ', tolerance: 0.02 },
+          { label: 'Calculate moles if n = c \u00d7 V = 1.00 \u00d7 0.0500', answer: 0.0500, unit: 'mol', tolerance: 0.02 },
+          { label: 'Calculate \u0394H = \u2212q / n (in kJ mol\u207b\u00b9)', answer: -27.2, unit: 'kJ mol\u207b\u00b9', tolerance: 0.05 }
+        ]
+      }
     },
     titration: {
       name: 'Titration Lab', file: 'SimEngine_TitrationLab.html',
@@ -654,7 +857,21 @@
       theoryContext: 'At the equivalence point, moles of acid = moles of base (adjusted for stoichiometry). The indicator must change colour within the steep region of the pH curve. Strong-strong: any indicator works. Weak-strong: use phenolphthalein (pH 8\u201310). Strong-weak: use methyl orange (pH 3\u20134).',
       litValues: 'Concentration of unknown should match label within \u00b15%. Typical strong acid-base neutralisation: pH at equivalence = 7.0.',
       weaknesses: { systematic: ['Overshooting the endpoint (adding too much titrant)', 'Air bubbles in burette tip'], random: ['Judging exact colour change of indicator', 'Parallax error reading burette meniscus'], equipment: ['Burette reads to \u00b10.05 cm\u00b3 (\u00d72 readings)', 'Using a measuring cylinder instead of pipette'] },
-      extensions: 'Compare the accuracy of a pH meter vs. indicator for endpoint detection. Or investigate the effect of temperature on the equivalence point.'
+      extensions: 'Compare the accuracy of a pH meter vs. indicator for endpoint detection. Or investigate the effect of temperature on the equivalence point.',
+      mathChecks: {
+        uncertainties: [
+          { instrument: 'Burette (single reading)', prompt: 'What is the absolute uncertainty of a single burette reading?', answer: 0.05, unit: 'cm\u00b3' },
+          { instrument: 'Burette (titre = 2 readings)', prompt: 'What is the total uncertainty for a titre volume (2 burette readings)?', answer: 0.10, unit: 'cm\u00b3' },
+          { instrument: 'Pipette (25 cm\u00b3)', prompt: 'What is the absolute uncertainty of the 25 cm\u00b3 pipette?', answer: 0.06, unit: 'cm\u00b3' }
+        ],
+        conversion: { prompt: 'Convert 24.55 cm\u00b3 to dm\u00b3.', answer: 0.02455, unit: 'dm\u00b3', hint: 'Divide by 1000' },
+        propagation: [
+          { label: 'Calculate moles of NaOH: n = c \u00d7 V = 0.100 \u00d7 0.02455', answer: 0.002455, unit: 'mol', tolerance: 0.02 },
+          { label: '% uncertainty in titre: (0.10 / 24.55) \u00d7 100', answer: 0.407, unit: '%', tolerance: 0.15 },
+          { label: '% uncertainty in pipette: (0.06 / 25.00) \u00d7 100', answer: 0.240, unit: '%', tolerance: 0.15 },
+          { label: 'Total % uncertainty (add % uncertainties)', answer: 0.647, unit: '%', tolerance: 0.15 }
+        ]
+      }
     },
     gravimetric: {
       name: 'Gravimetric Analysis Lab', file: 'SimEngine_GravimetricLab.html',
@@ -679,7 +896,19 @@
       theoryContext: 'Hydrated salts contain water of crystallisation in a fixed molar ratio. Heating drives off the water: CuSO\u2084\u00b75H\u2082O \u2192 CuSO\u2084 + 5H\u2082O. The ratio x = moles of water / moles of anhydrous salt.',
       litValues: 'CuSO\u2084\u00b75H\u2082O: x = 5. MgSO\u2084\u00b77H\u2082O: x = 7. Na\u2082CO\u2083\u00b710H\u2082O: x = 10. CoCl\u2082\u00b76H\u2082O: x = 6.',
       weaknesses: { systematic: ['Incomplete removal of water (not heated to constant mass)', 'Salt splattering out of crucible during heating'], random: ['Reabsorption of moisture from air during cooling', 'Variation in balance readings'], equipment: ['Balance precision limits the accuracy of small mass differences', 'Uneven heating from Bunsen burner'] },
-      extensions: 'Investigate whether the rate of heating (gentle vs. strong flame) affects the accuracy of the x value. Or compare results using an oven at controlled temperature vs. Bunsen burner.'
+      extensions: 'Investigate whether the rate of heating (gentle vs. strong flame) affects the accuracy of the x value. Or compare results using an oven at controlled temperature vs. Bunsen burner.',
+      mathChecks: {
+        uncertainties: [
+          { instrument: 'Balance', prompt: 'What is the absolute uncertainty of the balance?', answer: 0.001, unit: 'g' },
+          { instrument: 'Mass difference (2 readings)', prompt: 'What is the uncertainty in a mass difference (2 balance readings)?', answer: 0.002, unit: 'g' }
+        ],
+        conversion: { prompt: 'Convert a mass loss of 0.563 g of water to moles (M\u1d63 of H\u2082O = 18.02 g mol\u207b\u00b9).', answer: 0.03125, unit: 'mol', hint: 'n = mass / molar mass' },
+        propagation: [
+          { label: 'Mass of anhydrous salt = 1.596 g. Molar mass CuSO\u2084 = 159.6 g mol\u207b\u00b9. Calculate moles of CuSO\u2084.', answer: 0.01000, unit: 'mol', tolerance: 0.02 },
+          { label: 'Ratio x = moles H\u2082O / moles CuSO\u2084 = 0.03125 / 0.01000', answer: 3.125, unit: '', tolerance: 0.05 },
+          { label: '% uncertainty in mass of water: (0.002 / 0.563) \u00d7 100', answer: 0.355, unit: '%', tolerance: 0.15 }
+        ]
+      }
     },
     qualitative: {
       name: 'Qualitative Analysis Lab', file: 'SimEngine_QualitativeAnalysis.html',
@@ -704,14 +933,16 @@
       theoryContext: 'Metal cations produce characteristic flame colours due to electron excitation and de-excitation. Precipitation reactions test for specific anions and cations based on solubility rules (IB data booklet). AgNO\u2083 tests: Cl\u207b gives white ppt, Br\u207b gives cream, I\u207b gives yellow.',
       litValues: 'Li\u207a: crimson. Na\u207a: yellow. K\u207a: lilac. Ca\u00b2\u207a: orange-red. Cu\u00b2\u207a: blue-green. Ba\u00b2\u207a: apple green.',
       weaknesses: { systematic: ['Sodium contamination masking other flame colours', 'Not cleaning wire between tests'], random: ['Subjectivity in colour perception', 'Variable amounts of sample on wire'], equipment: ['Nichrome wire retains traces between tests', 'Bunsen flame colour can interfere'] },
-      extensions: 'Develop a systematic testing flowchart for identifying mixtures of two unknown salts. Or compare flame test results viewed through blue glass (to filter sodium).'
+      extensions: 'Develop a systematic testing flowchart for identifying mixtures of two unknown salts. Or compare flame test results viewed through blue glass (to filter sodium).',
+      mathChecks: null
     },
     custom: {
       name: 'Custom Investigation', file: null,
       exampleRQ: '', iv: { name: '', measure: '', range: '' }, dv: { name: '', measure: '', range: '' },
       cvs: [{ name: '', measure: '', range: '' }],
       methodHints: [], safetyNotes: [], uncertainties: {},
-      theoryContext: '', litValues: '', weaknesses: { systematic: [], random: [], equipment: [] }, extensions: ''
+      theoryContext: '', litValues: '', weaknesses: { systematic: [], random: [], equipment: [] }, extensions: '',
+      mathChecks: null
     }
   };
 
@@ -733,8 +964,12 @@
     bindWeaknessButtons();
     bindResetBtn();
     bindPresets();
+    bindExportImport();
+    initCheckpoints();
     handleQueryParam();
     loadLab(_currentLab);
+    loadSaved();
+    bindAutoSave();
   }
 
   /* ── Tabs ── */
@@ -796,6 +1031,7 @@
   function bindLabSelector() {
     document.getElementById('labSelect').addEventListener('change', function() {
       loadLab(this.value);
+      loadSaved();
     });
     document.getElementById('openLabBtn').addEventListener('click', function() {
       var lab = LAB_DATA[_currentLab];
@@ -882,6 +1118,9 @@
 
     // Weaknesses — pre-populate
     loadWeaknesses(lab.weaknesses);
+
+    // Checkpoints
+    renderCheckpoints();
 
     // Extension teacher panel
     document.getElementById('teacherExtText').textContent = lab.extensions;
@@ -1275,6 +1514,7 @@
 
   function resetAll() {
     if (!confirm('Reset all IA Scaffold data? This cannot be undone.')) return;
+    clearSaved();
     document.querySelectorAll('.sim-container input[type="text"], .sim-container textarea').forEach(function(el) {
       el.value = '';
     });
@@ -1307,6 +1547,354 @@
     });
   }
 
+  /* ── Math Checkpoints ── */
+  var _checkMode = 'advisory'; // 'advisory' or 'strict'
+  var _checkState = { uncertainty: 'pending', conversion: 'pending', propagation: 'pending' };
+  var _checkStats = { uncertainty: {a:0,p:0}, conversion: {a:0,p:0}, propagation: {a:0,p:0} };
+
+  function approxEqual(a, b, tol) {
+    if (typeof tol === 'undefined') tol = 0.02;
+    return Math.abs(a - b) <= Math.max(tol * Math.abs(b), tol, 0.005);
+  }
+
+  function initCheckpoints() {
+    // Strict toggle
+    document.getElementById('strictToggle').addEventListener('change', function() {
+      _checkMode = this.checked ? 'strict' : 'advisory';
+      updateCheckpointGates();
+    });
+
+    // Per-checkpoint toggles
+    document.querySelectorAll('[data-check-toggle]').forEach(function(cb) {
+      cb.addEventListener('change', function() {
+        var checkId = cb.getAttribute('data-check-toggle');
+        var card = document.getElementById('checkpoint-' + checkId);
+        if (card) card.style.display = cb.checked ? '' : 'none';
+        if (!cb.checked) {
+          _checkState[checkId] = 'passed';
+        } else if (_checkState[checkId] === 'passed') {
+          _checkState[checkId] = 'pending';
+        }
+        updateCheckpointGates();
+      });
+    });
+
+    // Uncertainty check button
+    document.getElementById('checkUncertaintyBtn').addEventListener('click', validateUncertainty);
+
+    // Conversion check button
+    document.getElementById('checkConversionBtn').addEventListener('click', validateConversion);
+
+    renderCheckpoints();
+  }
+
+  function renderCheckpoints() {
+    var lab = LAB_DATA[_currentLab];
+    var checks = lab.mathChecks;
+
+    // Hide all checkpoints if no mathChecks
+    var allCheckpoints = document.querySelectorAll('.math-checkpoint');
+    allCheckpoints.forEach(function(cp) { cp.style.display = checks ? '' : 'none'; });
+    if (!checks) return;
+
+    // Render uncertainty items
+    var uncContainer = document.getElementById('uncertaintyCheckItems');
+    clearChildren(uncContainer);
+    checks.uncertainties.forEach(function(unc, i) {
+      var div = document.createElement('div');
+      div.className = 'check-item';
+      var lbl = document.createElement('label');
+      lbl.textContent = unc.instrument;
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.id = 'uncCheck_' + i;
+      inp.placeholder = '\u00b1 ?';
+      inp.setAttribute('aria-label', unc.prompt);
+      var unit = document.createElement('span');
+      unit.className = 'unit';
+      unit.textContent = unc.unit;
+      var fb = document.createElement('span');
+      fb.className = 'check-item-feedback';
+      fb.id = 'uncFb_' + i;
+      div.appendChild(lbl);
+      div.appendChild(inp);
+      div.appendChild(unit);
+      div.appendChild(fb);
+      uncContainer.appendChild(div);
+    });
+
+    // Render conversion
+    var convContainer = document.getElementById('conversionCheckContent');
+    clearChildren(convContainer);
+    if (checks.conversion) {
+      var scen = document.createElement('div');
+      scen.className = 'scenario-box';
+      scen.textContent = checks.conversion.prompt;
+      convContainer.appendChild(scen);
+      var div = document.createElement('div');
+      div.className = 'check-item';
+      div.style.marginTop = '.75rem';
+      var lbl = document.createElement('label');
+      lbl.textContent = 'Your answer';
+      var inp = document.createElement('input');
+      inp.type = 'text';
+      inp.id = 'convCheck';
+      inp.placeholder = '?';
+      var unit = document.createElement('span');
+      unit.className = 'unit';
+      unit.textContent = checks.conversion.unit;
+      var fb = document.createElement('span');
+      fb.className = 'check-item-feedback';
+      fb.id = 'convFb';
+      div.appendChild(lbl);
+      div.appendChild(inp);
+      div.appendChild(unit);
+      div.appendChild(fb);
+      convContainer.appendChild(div);
+      if (checks.conversion.hint) {
+        var hint = document.createElement('div');
+        hint.style.cssText = 'font-size:.78rem;color:var(--text-muted);margin-top:.5rem;font-style:italic;';
+        hint.textContent = 'Hint: ' + checks.conversion.hint;
+        convContainer.appendChild(hint);
+      }
+    }
+
+    // Render propagation steps
+    var propContainer = document.getElementById('propagationSteps');
+    clearChildren(propContainer);
+    if (checks.propagation) {
+      checks.propagation.forEach(function(step, i) {
+        var div = document.createElement('div');
+        div.className = 'prop-step';
+        div.id = 'propStep_' + i;
+        var num = document.createElement('div');
+        num.className = 'prop-step-num';
+        num.textContent = i + 1;
+        var content = document.createElement('div');
+        content.style.flex = '1';
+        var lbl = document.createElement('div');
+        lbl.className = 'prop-step-label';
+        lbl.textContent = step.label;
+        var row = document.createElement('div');
+        row.className = 'check-item';
+        row.style.marginTop = '.5rem';
+        row.style.marginBottom = '0';
+        var inp = document.createElement('input');
+        inp.type = 'text';
+        inp.id = 'propCheck_' + i;
+        inp.placeholder = '?';
+        inp.setAttribute('aria-label', 'Step ' + (i+1) + ' answer');
+        var unit = document.createElement('span');
+        unit.className = 'unit';
+        unit.textContent = step.unit || '';
+        var fb = document.createElement('span');
+        fb.className = 'check-item-feedback';
+        fb.id = 'propFb_' + i;
+        var checkBtn = document.createElement('button');
+        checkBtn.className = 'btn btn-teal btn-sm';
+        checkBtn.textContent = 'Check';
+        checkBtn.setAttribute('data-prop-step', String(i));
+        checkBtn.addEventListener('click', function() { validatePropStep(i); });
+        row.appendChild(inp);
+        row.appendChild(unit);
+        row.appendChild(checkBtn);
+        row.appendChild(fb);
+        content.appendChild(lbl);
+        content.appendChild(row);
+        div.appendChild(num);
+        div.appendChild(content);
+        propContainer.appendChild(div);
+      });
+    }
+
+    // Reset states
+    _checkState = { uncertainty: 'pending', conversion: 'pending', propagation: 'pending' };
+    updateCheckpointStatuses();
+    updateCheckpointGates();
+  }
+
+  function validateUncertainty() {
+    var lab = LAB_DATA[_currentLab];
+    if (!lab.mathChecks) return;
+    var checks = lab.mathChecks.uncertainties;
+    var allOK = true;
+    _checkStats.uncertainty.a++;
+
+    checks.forEach(function(unc, i) {
+      var inp = document.getElementById('uncCheck_' + i);
+      var fb = document.getElementById('uncFb_' + i);
+      var val = parseFloat(inp.value);
+      if (!isNaN(val) && approxEqual(val, unc.answer, 0.01)) {
+        fb.className = 'check-item-feedback ok';
+        fb.textContent = '\u2713';
+      } else {
+        fb.className = 'check-item-feedback err';
+        fb.textContent = '\u2717 Expected ' + unc.answer;
+        allOK = false;
+      }
+    });
+
+    var feedback = document.getElementById('uncertaintyFeedback');
+    feedback.style.display = '';
+    if (allOK) {
+      feedback.className = 'feedback correct';
+      feedback.textContent = 'All uncertainties correct! You can now record your data confidently.';
+      _checkState.uncertainty = 'passed';
+      _checkStats.uncertainty.p++;
+    } else {
+      feedback.className = 'feedback incorrect';
+      feedback.textContent = 'Some uncertainties are incorrect. Check your values against the equipment specifications.';
+      _checkState.uncertainty = 'failed';
+    }
+    updateCheckpointStatuses();
+    updateCheckpointGates();
+    updateCheckpointAnalytics();
+  }
+
+  function validateConversion() {
+    var lab = LAB_DATA[_currentLab];
+    if (!lab.mathChecks || !lab.mathChecks.conversion) return;
+    var conv = lab.mathChecks.conversion;
+    var inp = document.getElementById('convCheck');
+    var fb = document.getElementById('convFb');
+    var val = parseFloat(inp.value);
+    _checkStats.conversion.a++;
+
+    var feedback = document.getElementById('conversionFeedback');
+    feedback.style.display = '';
+
+    if (!isNaN(val) && approxEqual(val, conv.answer, 0.02)) {
+      fb.className = 'check-item-feedback ok';
+      fb.textContent = '\u2713';
+      feedback.className = 'feedback correct';
+      feedback.textContent = 'Correct! ' + conv.answer + ' ' + conv.unit;
+      _checkState.conversion = 'passed';
+      _checkStats.conversion.p++;
+    } else {
+      fb.className = 'check-item-feedback err';
+      fb.textContent = '\u2717';
+      feedback.className = 'feedback incorrect';
+      feedback.textContent = 'Not quite. Expected ' + conv.answer + ' ' + conv.unit + '.';
+      _checkState.conversion = 'failed';
+    }
+    updateCheckpointStatuses();
+    updateCheckpointGates();
+    updateCheckpointAnalytics();
+  }
+
+  function validatePropStep(i) {
+    var lab = LAB_DATA[_currentLab];
+    if (!lab.mathChecks || !lab.mathChecks.propagation) return;
+    var step = lab.mathChecks.propagation[i];
+    var inp = document.getElementById('propCheck_' + i);
+    var fb = document.getElementById('propFb_' + i);
+    var div = document.getElementById('propStep_' + i);
+    var val = parseFloat(inp.value);
+    var tol = step.tolerance || 0.05;
+    if (step.unit === '%') tol = Math.max(tol, 0.15);
+
+    _checkStats.propagation.a++;
+
+    if (!isNaN(val) && approxEqual(val, step.answer, tol)) {
+      fb.className = 'check-item-feedback ok';
+      fb.textContent = '\u2713 ' + step.answer + ' ' + step.unit;
+      div.classList.add('done');
+      _checkStats.propagation.p++;
+    } else {
+      fb.className = 'check-item-feedback err';
+      fb.textContent = '\u2717 Expected ' + step.answer + ' ' + step.unit;
+      _checkState.propagation = 'failed';
+    }
+
+    // Check if all prop steps are done
+    var lab2 = LAB_DATA[_currentLab];
+    var allDone = true;
+    if (lab2.mathChecks && lab2.mathChecks.propagation) {
+      lab2.mathChecks.propagation.forEach(function(s, j) {
+        var stepEl = document.getElementById('propStep_' + j);
+        if (!stepEl || !stepEl.classList.contains('done')) allDone = false;
+      });
+    }
+
+    var feedback = document.getElementById('propagationFeedback');
+    if (allDone) {
+      feedback.style.display = '';
+      feedback.className = 'feedback correct';
+      feedback.textContent = 'All propagation steps complete! You now have a model for your sample calculation.';
+      _checkState.propagation = 'passed';
+    }
+    updateCheckpointStatuses();
+    updateCheckpointGates();
+    updateCheckpointAnalytics();
+  }
+
+  function updateCheckpointStatuses() {
+    var ids = ['uncertainty', 'conversion', 'propagation'];
+    ids.forEach(function(id) {
+      var el = document.getElementById('status' + id.charAt(0).toUpperCase() + id.slice(1));
+      if (!el) return;
+      if (_checkState[id] === 'passed') {
+        el.className = 'checkpoint-status passed';
+        el.textContent = '\u2713 PASSED';
+      } else if (_checkState[id] === 'failed') {
+        el.className = 'checkpoint-status failed';
+        el.textContent = '\u2717 TRY AGAIN';
+      } else {
+        el.className = 'checkpoint-status';
+        el.textContent = '';
+      }
+    });
+  }
+
+  function updateCheckpointGates() {
+    if (_checkMode !== 'strict') {
+      // Advisory mode: show banners but don't lock
+      document.querySelectorAll('.section-locked').forEach(function(el) { el.classList.remove('section-locked'); });
+      ['uncertainty', 'conversion', 'propagation'].forEach(function(id) {
+        var banner = document.getElementById('advisory' + id.charAt(0).toUpperCase() + id.slice(1));
+        if (banner) banner.style.display = _checkState[id] === 'pending' ? 'block' : 'none';
+      });
+      return;
+    }
+
+    // Strict mode: hide advisory banners, lock downstream sections
+    document.querySelectorAll('.advisory-banner').forEach(function(b) { b.style.display = 'none'; });
+
+    // If uncertainty not passed, lock data table
+    var dataTableCard = document.querySelector('#tab-analysis > .sim-card:not(.math-checkpoint)');
+    // Actually, let's lock by specific sections
+    var cards = document.querySelectorAll('#tab-analysis > .sim-card:not(.math-checkpoint), #tab-analysis > .teacher-panel:not(#teacherCheckControls):not(#teacherCheckAnalytics)');
+    var uncPassed = _checkState.uncertainty === 'passed' || !isCheckEnabled('uncertainty');
+    cards.forEach(function(card) {
+      if (!uncPassed) {
+        card.classList.add('section-locked');
+      } else {
+        card.classList.remove('section-locked');
+      }
+    });
+  }
+
+  function isCheckEnabled(checkId) {
+    var toggle = document.querySelector('[data-check-toggle="' + checkId + '"]');
+    return toggle ? toggle.checked : true;
+  }
+
+  function updateCheckpointAnalytics() {
+    var container = document.getElementById('checkpointAnalytics');
+    if (!container) return;
+    clearChildren(container);
+    var ids = ['uncertainty', 'conversion', 'propagation'];
+    var labels = { uncertainty: 'Uncertainty ID', conversion: 'Unit Conversion', propagation: 'Propagation' };
+    ids.forEach(function(id) {
+      var s = _checkStats[id];
+      if (s.a === 0) return;
+      var line = document.createElement('div');
+      line.textContent = labels[id] + ': ' + s.p + '/' + s.a + ' attempts passed';
+      line.style.color = s.p > 0 ? 'var(--green)' : 'var(--red)';
+      container.appendChild(line);
+    });
+  }
+
   /* ── Query Parameter ── */
   function handleQueryParam() {
     try {
@@ -1316,7 +1904,316 @@
         document.getElementById('labSelect').value = labParam;
         _currentLab = labParam;
       }
+      var tabParam = params.get('tab');
+      if (tabParam && ['design','analysis','conclusion','evaluation'].indexOf(tabParam) !== -1) {
+        setTimeout(function() { switchTab(tabParam); }, 0);
+      }
+      if (params.get('teacher') === '1' || params.get('teacher') === 'true') {
+        document.getElementById('teacherToggle').checked = true;
+        document.body.classList.add('teacher-active');
+      }
+      if (params.get('hl') === '1' || params.get('hl') === 'true') {
+        document.getElementById('hlToggle').checked = true;
+        document.body.classList.add('hl-active');
+      }
+      if (params.get('strict') === '1') {
+        document.getElementById('strictToggle').checked = true;
+        _checkMode = 'strict';
+      }
     } catch(e) { /* file:// may not support URLSearchParams in all browsers */ }
+  }
+
+  /* ── Save / Load (localStorage) ── */
+  var _saveTimeout = null;
+  var _suppressAutoSave = false;
+
+  function getSaveKey() { return 'simengine_iascaffold_' + _currentLab; }
+
+  function gatherState() {
+    var state = { lab: _currentLab, version: 1, timestamp: new Date().toISOString() };
+
+    // Text inputs and textareas
+    var fields = {};
+    document.querySelectorAll('.sim-container input[type="text"], .sim-container input[type="number"], .sim-container textarea, .sim-container select').forEach(function(el) {
+      if (el.id && el.id !== 'labSelect' && el.id !== 'presetSelect' && el.id !== 'importFile') {
+        fields[el.id] = el.value;
+      }
+    });
+    state.fields = fields;
+
+    // CV rows (dynamic)
+    var cvRows = [];
+    document.querySelectorAll('#varTableBody tr').forEach(function(tr, i) {
+      if (i < 2) return; // skip IV and DV rows (have IDs)
+      var cells = tr.querySelectorAll('input');
+      cvRows.push({ name: cells[0] ? cells[0].value : '', measure: cells[1] ? cells[1].value : '', range: cells[2] ? cells[2].value : '' });
+    });
+    state.cvRows = cvRows;
+
+    // Method steps
+    var methodSteps = [];
+    document.querySelectorAll('#methodSteps textarea').forEach(function(ta) {
+      methodSteps.push(ta.value);
+    });
+    state.methodSteps = methodSteps;
+
+    // Checklists
+    var checkboxes = {};
+    document.querySelectorAll('.sim-container .checklist input[type="checkbox"]').forEach(function(cb, i) {
+      var list = cb.closest('.checklist');
+      var key = (list.id || 'checklist') + '_' + i;
+      checkboxes[key] = cb.checked;
+    });
+    state.checkboxes = checkboxes;
+
+    // Rubric selections
+    var rubrics = {};
+    ['rubricDesign', 'rubricDataProcessing', 'rubricConclusion', 'rubricEval'].forEach(function(id) {
+      var container = document.getElementById(id);
+      if (!container) return;
+      var selected = container.querySelector('.rubric-card.selected');
+      rubrics[id] = selected ? selected.getAttribute('data-mark') : null;
+    });
+    state.rubrics = rubrics;
+
+    // Weakness entries
+    var weaknesses = {};
+    ['systematic', 'random', 'equipment'].forEach(function(cat) {
+      var list = document.getElementById(cat + 'List');
+      var entries = [];
+      list.querySelectorAll('textarea').forEach(function(ta) { entries.push(ta.value); });
+      weaknesses[cat] = entries;
+    });
+    state.weaknesses = weaknesses;
+
+    // Improvement textareas
+    var improvements = [];
+    document.querySelectorAll('#improvementsList .improvement-pair').forEach(function(pair) {
+      var tas = pair.querySelectorAll('textarea');
+      improvements.push({ improvement: tas[0] ? tas[0].value : '', justification: tas[1] ? tas[1].value : '' });
+    });
+    state.improvements = improvements;
+
+    // Data table
+    var dataTable = { ivCount: parseInt(document.getElementById('ivCount').value) || 5, trialCount: parseInt(document.getElementById('trialCount').value) || 3, cells: [] };
+    document.querySelectorAll('.data-table tbody tr').forEach(function(tr, ri) {
+      var row = [];
+      tr.querySelectorAll('input').forEach(function(inp) { row.push(inp.value); });
+      dataTable.cells.push(row);
+    });
+    state.dataTable = dataTable;
+
+    // Graph type select
+    state.graphType = document.getElementById('graphType').value;
+
+    return state;
+  }
+
+  function applyState(state) {
+    _suppressAutoSave = true;
+
+    // Lab selection
+    if (state.lab && LAB_DATA[state.lab]) {
+      _currentLab = state.lab;
+      document.getElementById('labSelect').value = state.lab;
+    }
+
+    // Rebuild data table first (if data exists)
+    if (state.dataTable) {
+      document.getElementById('ivCount').value = state.dataTable.ivCount || 5;
+      document.getElementById('trialCount').value = state.dataTable.trialCount || 3;
+      buildDataTable();
+      // Fill data table cells
+      var rows = document.querySelectorAll('.data-table tbody tr');
+      if (state.dataTable.cells) {
+        state.dataTable.cells.forEach(function(rowData, ri) {
+          if (ri < rows.length) {
+            var inputs = rows[ri].querySelectorAll('input');
+            rowData.forEach(function(val, ci) { if (ci < inputs.length) inputs[ci].value = val; });
+          }
+        });
+        calcMeans();
+      }
+    }
+
+    // Restore text fields
+    if (state.fields) {
+      Object.keys(state.fields).forEach(function(id) {
+        var el = document.getElementById(id);
+        if (el) el.value = state.fields[id];
+      });
+    }
+
+    // CV rows — restore all (add extras beyond default 3 if needed)
+    if (state.cvRows) {
+      if (state.cvRows.length > 3) {
+        for (var i = 3; i < state.cvRows.length; i++) {
+          document.getElementById('addCVBtn').click();
+        }
+      }
+      var cvNames = document.querySelectorAll('.cvName');
+      var cvMeasures = document.querySelectorAll('.cvMeasure');
+      var cvRanges = document.querySelectorAll('.cvRange');
+      state.cvRows.forEach(function(cv, idx) {
+        if (idx < cvNames.length) {
+          cvNames[idx].value = cv.name;
+          cvMeasures[idx].value = cv.measure;
+          cvRanges[idx].value = cv.range;
+        }
+      });
+    }
+
+    // Method steps
+    if (state.methodSteps) {
+      var container = document.getElementById('methodSteps');
+      clearChildren(container);
+      state.methodSteps.forEach(function(text, i) {
+        addMethodStepDOM(container, i + 1, text);
+      });
+    }
+
+    // Checklists
+    if (state.checkboxes) {
+      document.querySelectorAll('.sim-container .checklist input[type="checkbox"]').forEach(function(cb, i) {
+        var list = cb.closest('.checklist');
+        var key = (list.id || 'checklist') + '_' + i;
+        if (state.checkboxes[key] !== undefined) {
+          cb.checked = state.checkboxes[key];
+          var li = cb.closest('li');
+          if (li) li.classList.toggle('checked', cb.checked);
+        }
+      });
+    }
+
+    // Rubric selections
+    if (state.rubrics) {
+      Object.keys(state.rubrics).forEach(function(id) {
+        var container = document.getElementById(id);
+        if (!container || !state.rubrics[id]) return;
+        container.querySelectorAll('.rubric-card').forEach(function(card) {
+          card.classList.toggle('selected', card.getAttribute('data-mark') === state.rubrics[id]);
+        });
+      });
+    }
+
+    // Weaknesses
+    if (state.weaknesses) {
+      ['systematic', 'random', 'equipment'].forEach(function(cat) {
+        var list = document.getElementById(cat + 'List');
+        clearChildren(list);
+        var entries = state.weaknesses[cat] || [];
+        entries.forEach(function(text) { addWeaknessDOM(cat, text); });
+      });
+      updateImprovements();
+
+      // Restore improvement text
+      if (state.improvements) {
+        var pairs = document.querySelectorAll('#improvementsList .improvement-pair');
+        state.improvements.forEach(function(imp, idx) {
+          if (idx < pairs.length) {
+            var tas = pairs[idx].querySelectorAll('textarea');
+            if (tas[0]) tas[0].value = imp.improvement;
+            if (tas[1]) tas[1].value = imp.justification;
+          }
+        });
+      }
+    }
+
+    // Graph type
+    if (state.graphType) document.getElementById('graphType').value = state.graphType;
+
+    // Update RQ preview and progress
+    updateRQPreview();
+    updateGraphProgress();
+    calcPctError();
+    updateProgress();
+
+    _suppressAutoSave = false;
+  }
+
+  function autoSave() {
+    if (_suppressAutoSave) return;
+    clearTimeout(_saveTimeout);
+    var indicator = document.getElementById('saveIndicator');
+    indicator.textContent = 'Saving...';
+    indicator.classList.add('visible', 'saving');
+    _saveTimeout = setTimeout(function() {
+      try {
+        var state = gatherState();
+        localStorage.setItem(getSaveKey(), JSON.stringify(state));
+        indicator.textContent = 'Saved \u2713';
+        indicator.classList.remove('saving');
+        setTimeout(function() { indicator.classList.remove('visible'); }, 2000);
+      } catch(e) {
+        indicator.textContent = 'Save failed';
+        indicator.classList.remove('saving');
+      }
+    }, 1000);
+  }
+
+  function loadSaved() {
+    try {
+      var data = localStorage.getItem(getSaveKey());
+      if (data) {
+        var state = JSON.parse(data);
+        if (state && state.lab === _currentLab) {
+          applyState(state);
+        }
+      }
+    } catch(e) { /* ignore parse errors */ }
+  }
+
+  function clearSaved() {
+    try { localStorage.removeItem(getSaveKey()); } catch(e) {}
+    var indicator = document.getElementById('saveIndicator');
+    indicator.classList.remove('visible');
+  }
+
+  function bindAutoSave() {
+    document.querySelector('.sim-container').addEventListener('input', autoSave);
+    document.querySelector('.sim-container').addEventListener('change', autoSave);
+  }
+
+  function bindExportImport() {
+    document.getElementById('exportBtn').addEventListener('click', function() {
+      var state = gatherState();
+      var json = JSON.stringify(state, null, 2);
+      var blob = new Blob([json], { type: 'application/json' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      var date = new Date().toISOString().slice(0, 10);
+      a.href = url;
+      a.download = 'IA_' + _currentLab + '_' + date + '.json';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('importBtn').addEventListener('click', function() {
+      document.getElementById('importFile').click();
+    });
+
+    document.getElementById('importFile').addEventListener('change', function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        try {
+          var state = JSON.parse(ev.target.result);
+          if (state && state.version) {
+            applyState(state);
+            autoSave();
+          } else {
+            alert('Invalid IA Scaffold file.');
+          }
+        } catch(err) {
+          alert('Could not read file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    });
   }
 
   /* ── Start ── */
