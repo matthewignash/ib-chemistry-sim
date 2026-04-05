@@ -254,8 +254,8 @@ var REACTIONS = [
     note: 'Lewis-only. Al expands coordination from 3 to 4. Friedel-Crafts catalyst.' },
   { acid: 'Ag+', base: 'NH3', product: '[Ag(NH\u2083)\u2082]\u207A', equation: 'Ag\u207A + 2NH\u2083 \u2192 [Ag(NH\u2083)\u2082]\u207A', bronsted: false,
     note: 'Lewis-only. Forms Tollens\' reagent. Ag\u207A accepts two lone pairs from NH\u2083.' },
-  { acid: 'Cu2+', base: 'NH3', product: '[Cu(NH\u2083)\u2084(H\u2082O)\u2082]\u00B2\u207A', equation: 'Cu\u00B2\u207A + 4NH\u2083 \u2192 [Cu(NH\u2083)\u2084]\u00B2\u207A', bronsted: false,
-    note: 'Lewis-only. Ligand exchange: NH\u2083 replaces H\u2082O. Solution turns deep blue.' },
+  { acid: 'Cu2+', base: 'NH3', product: '[Cu(NH\u2083)\u2084(H\u2082O)\u2082]\u00B2\u207A', equation: '[Cu(H\u2082O)\u2086]\u00B2\u207A + 4NH\u2083 \u2192 [Cu(NH\u2083)\u2084(H\u2082O)\u2082]\u00B2\u207A + 4H\u2082O', bronsted: false,
+    note: 'Lewis-only. Ligand exchange: 4 NH\u2083 replace 4 equatorial H\u2082O. Solution turns deep blue.' },
   { acid: 'Fe3+', base: 'CN-', product: '[Fe(CN)\u2086]\u00B3\u207B', equation: 'Fe\u00B3\u207A + 6CN\u207B \u2192 [Fe(CN)\u2086]\u00B3\u207B', bronsted: false,
     note: 'Lewis-only. Forms hexacyanoferrate(III) \u2014 used in Prussian blue test.' },
   { acid: 'CO2', base: 'OH-', product: 'HCO\u2083\u207B', equation: 'CO\u2082 + OH\u207B \u2192 HCO\u2083\u207B', bronsted: false,
@@ -475,7 +475,11 @@ presetSelect.addEventListener('change', function () {
 var tabBtns = document.querySelectorAll('.tab-btn');
 function switchTab(id) {
   _activeTab = id;
-  for (var i = 0; i < tabBtns.length; i++) tabBtns[i].classList.toggle('active', tabBtns[i].getAttribute('data-tab') === id);
+  for (var i = 0; i < tabBtns.length; i++) {
+    var isActive = tabBtns[i].getAttribute('data-tab') === id;
+    tabBtns[i].classList.toggle('active', isActive);
+    tabBtns[i].setAttribute('aria-selected', isActive ? 'true' : 'false');
+  }
   document.querySelectorAll('.tab-content').forEach(function (tc) { tc.classList.toggle('active', tc.id === 'tab-' + id); });
   buildPalette();
   refreshTab();
