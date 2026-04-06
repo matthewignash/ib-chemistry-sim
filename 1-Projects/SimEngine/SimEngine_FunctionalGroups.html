@@ -1675,7 +1675,26 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   function startInit() {
     SimEngine.Data.load('spectroscopy')
       .then(function(d) {
-        if (d.functional_groups) GROUPS = d.functional_groups;
+        // Merge JSON spectroscopy/properties into inline GROUPS without
+        // overwriting exampleMolecules/structures (which only exist inline).
+        if (d.functional_groups) {
+          var jsonMap = {};
+          for (var j = 0; j < d.functional_groups.length; j++) {
+            jsonMap[d.functional_groups[j].id] = d.functional_groups[j];
+          }
+          for (var k = 0; k < GROUPS.length; k++) {
+            var jg = jsonMap[GROUPS[k].id];
+            if (!jg) continue;
+            if (jg.spectroscopy) GROUPS[k].spectroscopy = jg.spectroscopy;
+            if (jg.properties) {
+              for (var pk in jg.properties) {
+                if (Object.prototype.hasOwnProperty.call(jg.properties, pk)) {
+                  GROUPS[k].properties[pk] = jg.properties[pk];
+                }
+              }
+            }
+          }
+        }
       })
       .catch(function() { /* keep inline data */ })
       .then(function() {
