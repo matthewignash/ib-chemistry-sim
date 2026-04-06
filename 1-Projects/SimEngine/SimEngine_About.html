@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>About SimEngine — Built by Matthew Ignash</title>
+<meta name="description" content="SimEngine is a free suite of 38 interactive chemistry simulations covering the full IB Chemistry 2025 syllabus. Built by Matthew Ignash, Head of Science at AISC Chennai.">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap');
+  :root{
+    --navy:#1E293B;
+    --teal:#0D9488;
+    --blue:#2563EB;
+    --purple:#7C3AED;
+    --text:#1E293B;
+    --text-muted:#64748B;
+    --border:#E2E8F0;
+    --card-bg:#FFFFFF;
+    --teal-bg:#F0FDFA;
+    --bg:#F1F5F9;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.65;}
+
+  .header{background:var(--navy);color:white;padding:1rem 1.5rem;text-align:center;}
+  .header h1{font-size:1.8rem;font-weight:700;margin-bottom:.25rem;}
+  .header .subtitle{font-size:.9rem;opacity:.7;}
+
+  .nav-bar{background:white;border-bottom:2px solid var(--border);padding:.75rem 1.5rem;text-align:center;}
+  .nav-bar a{display:inline-block;padding:.45rem .9rem;margin:0 .25rem;font-size:.85rem;font-weight:500;color:var(--text-muted);text-decoration:none;border-radius:6px;transition:.2s;}
+  .nav-bar a:hover{color:var(--teal);background:var(--teal-bg);}
+  .nav-bar a.current{color:var(--teal);background:var(--teal-bg);font-weight:600;}
+
+  .container{max-width:720px;margin:2rem auto;padding:0 1.5rem;}
+
+  .card{background:var(--card-bg);border:1px solid var(--border);border-radius:12px;padding:2rem 2.25rem;margin-bottom:1.5rem;}
+
+  h2{font-size:1.35rem;font-weight:700;color:var(--navy);margin-bottom:.9rem;padding-bottom:.5rem;border-bottom:2px solid var(--teal-bg);}
+  h3{font-size:1rem;font-weight:700;color:var(--navy);margin:1.25rem 0 .5rem;}
+
+  p{margin-bottom:1rem;font-size:.95rem;color:var(--text);}
+  p:last-child{margin-bottom:0;}
+
+  .intro-card{border-left:4px solid var(--teal);}
+  .intro-card p:first-child{font-size:1.05rem;color:var(--navy);font-weight:500;}
+
+  .link-grid{display:grid;grid-template-columns:1fr 1fr;gap:.9rem;margin-top:1rem;}
+  .link-card{display:block;padding:1.15rem 1.25rem;background:var(--teal-bg);border:1px solid var(--border);border-radius:10px;text-decoration:none;color:var(--text);transition:.2s;}
+  .link-card:hover{border-color:var(--teal);transform:translateY(-2px);box-shadow:0 4px 12px rgba(13,148,136,.12);}
+  .link-card-label{font-size:.68rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.35rem;font-family:'Fira Code',monospace;}
+  .link-card-title{font-size:1rem;font-weight:700;color:var(--navy);margin-bottom:.2rem;}
+  .link-card-desc{font-size:.8rem;color:var(--text-muted);line-height:1.45;}
+
+  .stat-row{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1rem;}
+  .stat{flex:1;min-width:140px;padding:.9rem 1rem;background:var(--teal-bg);border-radius:8px;text-align:center;}
+  .stat-value{font-size:1.6rem;font-weight:700;color:var(--teal);font-family:'Fira Code',monospace;}
+  .stat-label{font-size:.72rem;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.04em;margin-top:.2rem;}
+
+  ul.plain{list-style:none;padding:0;margin-top:.5rem;}
+  ul.plain li{padding:.45rem 0 .45rem 1.4rem;position:relative;font-size:.92rem;color:var(--text);}
+  ul.plain li::before{content:'';position:absolute;left:.3rem;top:.95rem;width:6px;height:6px;border-radius:50%;background:var(--teal);}
+
+  footer{text-align:center;padding:1.5rem 1rem 2rem;color:var(--text-muted);font-size:.78rem;}
+  footer a{color:var(--teal);text-decoration:none;}
+  footer a:hover{text-decoration:underline;}
+
+  @media(max-width:700px){
+    .header h1{font-size:1.35rem;}
+    .container{margin:1rem auto;padding:0 1rem;}
+    .card{padding:1.5rem 1.25rem;}
+    .link-grid{grid-template-columns:1fr;}
+    .nav-bar a{padding:.4rem .6rem;margin:.15rem;font-size:.8rem;}
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>About SimEngine</h1>
+  <div class="subtitle">A free suite of interactive chemistry simulations</div>
+</div>
+
+<div class="nav-bar">
+  <a href="SimEngine_Index.html">&larr; Simulation Launcher</a>
+  <a href="SimEngine_About.html" class="current">About</a>
+</div>
+
+<div class="container">
+
+  <div class="card intro-card">
+    <p>SimEngine is a free, open suite of 38 interactive chemistry simulations covering the full IB Chemistry 2025 syllabus. It was built as a teaching tool first, a student reference second, and a portfolio project third.</p>
+    <p>Everything runs in the browser. No accounts, no logins, no tracking, no student data leaves the device.</p>
+  </div>
+
+  <div class="card">
+    <h2>Who Built This</h2>
+    <p>SimEngine was built by <strong>Matthew Ignash</strong>, Head of Science at the American International School Chennai. Matthew teaches IB Chemistry and AP Chemistry and writes about AI, systems thinking, and curriculum design in international schools.</p>
+    <p>The first simulation was built in March 2026 for a lesson on electrochemistry. The full suite of 38 sims followed over the next six days, covering every subtopic of the IB Chemistry 2025 syllabus along with Lab Builder, Vernier Lab, and IA Scaffold modules for practical work and investigation design.</p>
+  </div>
+
+  <div class="card">
+    <h2>Connect</h2>
+    <p>If you're a teacher using SimEngine, a student finding it helpful, or a curriculum lead thinking about where this kind of tool fits in your school, I'd love to hear from you. The best places to reach me are below.</p>
+    <div class="link-grid">
+      <a class="link-card" href="https://www.linkedin.com/in/matthew-ignash-ba72332b6" target="_blank" rel="noopener">
+        <div class="link-card-label">Professional</div>
+        <div class="link-card-title">LinkedIn</div>
+        <div class="link-card-desc">Connect, message, or share how you're using SimEngine in your classroom.</div>
+      </a>
+      <a class="link-card" href="https://matthewignash.substack.com" target="_blank" rel="noopener">
+        <div class="link-card-label">Writing</div>
+        <div class="link-card-title">Substack</div>
+        <div class="link-card-desc">Weekly posts on AI, systems thinking, and chemistry teaching. Subscribe to follow the build story.</div>
+      </a>
+    </div>
+    <p style="margin-top:1.25rem;font-size:.85rem;color:var(--text-muted);">A structured feedback form for bug reports and feature requests is planned. For now, the two channels above are the best way to get in touch.</p>
+  </div>
+
+  <div class="card">
+    <h2>What's Inside</h2>
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-value">38</div>
+        <div class="stat-label">Simulations</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">100%</div>
+        <div class="stat-label">IB 2025 Coverage</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value">SL+HL</div>
+        <div class="stat-label">Level Support</div>
+      </div>
+    </div>
+    <h3>Core Simulations</h3>
+    <p>Content sims cover every topic in the IB Chemistry 2025 syllabus: atomic structure, bonding, stoichiometry, energetics, kinetics, equilibrium, acids and bases, electrochemistry, and organic chemistry. Each sim toggles between SL and HL content and includes a teacher view with model answers.</p>
+    <h3>Practical Work &amp; Investigation</h3>
+    <p>Lab Builder provides 10 guided assembly templates plus a sandbox mode for students to design their own virtual experiments. Vernier Lab simulates Go Direct sensors for data collection. IA Scaffold walks students through the full Internal Assessment investigation cycle.</p>
+    <h3>Skills Trainers</h3>
+    <p>Dedicated modules for graph skills, uncertainty calculations, equipment identification, and data processing. Built to be used as short warm-up activities or assessment prep.</p>
+  </div>
+
+  <div class="card">
+    <h2>Design Principles</h2>
+    <ul class="plain">
+      <li>Free to use, no accounts required, no data collection.</li>
+      <li>Single-file HTML so sims can be shared by link, embedded, or saved offline.</li>
+      <li>Accessibility baked in: ARIA labels, keyboard navigation, high-contrast visuals.</li>
+      <li>Teacher-first design: every sim has a built-in teacher view with model answers and common misconception notes.</li>
+      <li>SL and HL content toggled from a single interface so mixed-level classes can share the same link.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>Using SimEngine in Your Classroom</h2>
+    <p>You're welcome to share SimEngine with your students, link it from your class site, embed sims in your LMS, or use them in professional development with your department. Attribution is appreciated but not required.</p>
+    <p>If you build something on top of SimEngine, adapt a sim for a different curriculum, or translate a sim into another language, I'd love to see it. Reach out through LinkedIn or Substack.</p>
+  </div>
+
+</div>
+
+<footer>
+  SimEngine &middot; Built by <a href="https://www.linkedin.com/in/matthew-ignash-ba72332b6" target="_blank" rel="noopener">Matthew Ignash</a> &middot; <a href="https://matthewignash.substack.com" target="_blank" rel="noopener">Substack</a> &middot; <a href="SimEngine_Index.html">Simulation Launcher</a>
+</footer>
+
+</body>
+</html>

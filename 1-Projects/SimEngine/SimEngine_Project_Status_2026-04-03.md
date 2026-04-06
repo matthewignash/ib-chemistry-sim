@@ -185,10 +185,9 @@ All planned topic-level simulations from the architecture doc have been built, c
 - 5 analysis tools: Statistics, Linear Fit, Curve Fit, Tangent, Annotation
 - IB context calculations, experiment-specific teacher + HL panels
 
-### Phase 6: Advanced IA Workflow — NOT STARTED (IAScaffold is a partial MVP)
-- IAScaffold sim covers basic IA workflow (Research Design → Data Analysis → Conclusion → Evaluation)
-- No advanced rubric-aligned assessment integration
-- No query param deep linking from lab sims (?lab= parameter)
+### Phase 6: Advanced IA Workflow — COMPLETE
+- Shipped in commit `f3e4bcb` (April 5): rubric-aligned assessment integration in IAScaffold + `?lab=` deep linking from lab sims + `hlContent` metadata on Index
+- IAScaffold workflow: Research Design → Data Analysis → Conclusion → Evaluation, with lab-specific presets
 
 ### Phase 7: Math Skills Trainers — COMPLETE (3 of 3)
 - **Uncertainty/error propagation trainer** — **COMPLETE** (`SimEngine_UncertaintyTrainer.html`, 4 tabs: Reading Uncertainty, Propagation, % Error, Practice)
@@ -253,9 +252,9 @@ All planned topic-level simulations from the architecture doc have been built, c
 21. ~~Phase 5.1: Expanded Vernier Experiments~~ — **DONE** (April 5, added 6 experiments: combustion, dissolution, weak acid titrations ×2, diprotic titrations ×2; experiment-specific IB context, teacher notes, HL uncertainty analysis)
 
 ### Long-term (summer/next year):
-21. Phase 6: Advanced IA Workflow (rubric alignment, deep linking)
+21. ~~Phase 6: Advanced IA Workflow (rubric alignment, deep linking)~~ — **DONE** (April 5, commit f3e4bcb)
 22. Equipment photo library for LabBuilder
 
 ---
 
-*Last updated: April 5, 2026. 38 sims, 100% syllabus coverage, Phases 1–5 and 7 complete, comprehensive accessibility + visual polish applied.*
+*Last updated: April 6, 2026. 38 sims, 100% syllabus coverage, Phases 1–7 complete (Phase 6 Advanced IA Workflow shipped April 5). `SimEngine_About.html` published with project background, contact links, and design principles.*
