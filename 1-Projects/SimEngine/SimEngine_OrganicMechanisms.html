@@ -470,7 +470,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
             { from: 'c1', to: 'r2', order: 1, state: 'normal' }
           ],
           charges: [{ atom: 'nuc', text: '\u03B4\u207B' }, { atom: 'lg', text: '\u03B4\u207B' }],
-          arrows: [{ from: 'nuc', to: 'c1', type: 'full' }, { from: 'c1', to: 'lg', type: 'full' }]
+          arrows: [{ from: 'nuc', to: 'c1', type: 'full' }, { fromBond: ['c1','lg'], to: 'lg', type: 'full' }]
         },
         {
           desc: 'Products formed: the nucleophile is now bonded to carbon with inverted stereochemistry. {lg}\u207B departs as the leaving group. The configuration at the carbon centre has been inverted.',
@@ -522,7 +522,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
             { from: 'c1', to: 'r3', order: 1, state: 'normal' }
           ],
           charges: [{ atom: 'c1', text: '\u03B4+' }, { atom: 'lg', text: '\u03B4\u207B' }],
-          arrows: [{ from: 'c1', to: 'lg', type: 'full' }]
+          arrows: [{ fromBond: ['c1','lg'], to: 'lg', type: 'full' }]
         },
         {
           desc: 'Carbocation intermediate formed: The carbon is now sp\u00B2 hybridised and planar, with an empty p orbital above and below. {lg}\u207B has left. The carbocation can be attacked from either side.',
@@ -616,7 +616,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
             { from: 'ca', to: 'r2', order: 1, state: 'normal' }
           ],
           charges: [],
-          arrows: [{ from: 'base', to: 'hb', type: 'full' }, { from: 'cb', to: 'ca', type: 'full' }, { from: 'ca', to: 'lg', type: 'full' }]
+          arrows: [{ from: 'base', to: 'hb', type: 'full' }, { fromBond: ['cb','hb'], toBond: ['ca','cb'], type: 'full' }, { fromBond: ['ca','lg'], to: 'lg', type: 'full' }]
         },
         {
           desc: 'Products: an alkene is formed (C=C double bond), {lg}\u207B leaves, and the base is now protonated. Zaitsev\'s rule: the more substituted alkene is the major product.',
@@ -671,7 +671,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
             { from: 'cb', to: 'hb', order: 1, state: 'normal' }
           ],
           charges: [{ atom: 'ca', text: '\u03B4+' }, { atom: 'lg', text: '\u03B4\u207B' }],
-          arrows: [{ from: 'ca', to: 'lg', type: 'full' }]
+          arrows: [{ fromBond: ['ca','lg'], to: 'lg', type: 'full' }]
         },
         {
           desc: 'Step 2 \u2014 Elimination: A weak base (e.g., solvent) abstracts a \u03B2-hydrogen. The electrons from the C\u2013H bond form the C=C \u03C0 bond. Zaitsev product (most substituted alkene) is favoured.',
@@ -691,7 +691,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
             { from: 'cb', to: 'hb', order: 1, state: 'breaking' }
           ],
           charges: [{ atom: 'ca', text: '+' }],
-          arrows: [{ from: 'base', to: 'hb', type: 'full' }, { from: 'cb', to: 'ca', type: 'full' }]
+          arrows: [{ from: 'base', to: 'hb', type: 'full' }, { fromBond: ['cb','hb'], toBond: ['ca','cb'], type: 'full' }]
         },
         {
           desc: 'Products: an alkene (C=C) and {lg}\u207B. The more substituted alkene is the major product (Zaitsev\'s rule).',
@@ -742,7 +742,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
             { from: 'c2', to: 'r2', order: 1, state: 'normal' }
           ],
           charges: [{ atom: 'e1', text: '\u03B4+' }],
-          arrows: [{ from: 'c1', to: 'e1', type: 'full' }]
+          arrows: [{ fromBond: ['c1','c2'], to: 'e1', type: 'full' }]
         },
         {
           desc: 'Step 2 \u2014 Nucleophilic attack: {lg}\u207B (the counter-ion from the electrophile) attacks the carbocation intermediate from either side, completing the addition.',
@@ -1082,17 +1082,32 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     }
 
     // ── Curly Arrows (drawn after labels so they are visible on top) ──
+    // Arrows may anchor to atoms (lone-pair / fishhook origins) or to bond
+    // midpoints (heterolytic fission / π-bond electrons) via fromBond/toBond.
     if (prog > 0.1) {
+      var findAtomById = function(id) {
+        for (var i = 0; i < step.atoms.length; i++) {
+          if (step.atoms[i].id === id) return step.atoms[i];
+        }
+        return null;
+      };
+      var resolveArrowPoint = function(atomKey, bondKey) {
+        if (bondKey && bondKey.length === 2) {
+          var a = findAtomById(bondKey[0]);
+          var b = findAtomById(bondKey[1]);
+          if (!a || !b) return null;
+          return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+        }
+        var atom = findAtomById(atomKey);
+        return atom ? { x: atom.x, y: atom.y } : null;
+      };
       for (var ari = 0; ari < step.arrows.length; ari++) {
         var arr = step.arrows[ari];
-        var fromAtom = null, toAtom = null;
-        for (var fi = 0; fi < step.atoms.length; fi++) {
-          if (step.atoms[fi].id === arr.from) fromAtom = step.atoms[fi];
-          if (step.atoms[fi].id === arr.to) toAtom = step.atoms[fi];
-        }
-        if (!fromAtom || !toAtom) continue;
-        var fx = toX(fromAtom.x), fy = toY(fromAtom.y);
-        var tx = toX(toAtom.x), ty = toY(toAtom.y);
+        var fromPt = resolveArrowPoint(arr.from, arr.fromBond);
+        var toPt = resolveArrowPoint(arr.to, arr.toBond);
+        if (!fromPt || !toPt) continue;
+        var fx = toX(fromPt.x), fy = toY(fromPt.y);
+        var tx = toX(toPt.x), ty = toY(toPt.y);
         var arrowProg = Math.min(1, (prog - 0.1) / 0.7);
         drawCurlyArrow(ctx, fx, fy, tx, ty, arr.type, arrowProg);
       }
