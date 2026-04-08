@@ -815,7 +815,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
             { from: 'x1', to: 'x2', order: 1, state: 'normal' }
           ],
           charges: [],
-          arrows: [{ from: 'x1', to: 'x1out', type: 'fishhook' }, { from: 'x2', to: 'x2out', type: 'fishhook' }]
+          arrows: [{ fromBond: ['x1','x2'], to: 'x1out', type: 'fishhook' }, { fromBond: ['x1','x2'], to: 'x2out', type: 'fishhook' }]
         },
         {
           desc: 'Propagation step 1: A {nuc}\u2022 radical abstracts a hydrogen from {sub}, forming H\u2013{nuc} and a carbon radical ({sub}\u2022). Fishhook arrows show one-electron movement.',
