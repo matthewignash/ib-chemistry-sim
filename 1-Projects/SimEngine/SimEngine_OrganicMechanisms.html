@@ -808,14 +808,14 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
             { id: 'x1', role: 'nuc', x: 0.35, y: 0.45 },
             { id: 'x2', role: 'lg', x: 0.65, y: 0.45 },
             { id: 'uv', role: 'uv', x: 0.5, y: 0.15 },
-            { id: 'x1out', role: '', x: 0.18, y: 0.45 },
-            { id: 'x2out', role: '', x: 0.82, y: 0.45 }
+            { id: 'x1out', role: '', x: 0.32, y: 0.28 },
+            { id: 'x2out', role: '', x: 0.68, y: 0.28 }
           ],
           bonds: [
             { from: 'x1', to: 'x2', order: 1, state: 'normal' }
           ],
           charges: [],
-          arrows: [{ fromBond: ['x1','x2'], to: 'x1out', type: 'fishhook' }, { fromBond: ['x1','x2'], to: 'x2out', type: 'fishhook' }]
+          arrows: [{ fromBond: ['x1','x2'], fromBondOffset: -0.2, to: 'x1out', type: 'fishhook' }, { fromBond: ['x1','x2'], fromBondOffset: 0.2, to: 'x2out', type: 'fishhook' }]
         },
         {
           desc: 'Propagation step 1: A {nuc}\u2022 radical abstracts a hydrogen from {sub}, forming H\u2013{nuc} and a carbon radical ({sub}\u2022). Fishhook arrows show one-electron movement.',
@@ -1091,23 +1091,43 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
         }
         return null;
       };
-      var resolveArrowPoint = function(atomKey, bondKey) {
+      var resolveArrowPoint = function(atomKey, bondKey, bondOffset) {
         if (bondKey && bondKey.length === 2) {
           var a = findAtomById(bondKey[0]);
           var b = findAtomById(bondKey[1]);
           if (!a || !b) return null;
-          return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+          var t = 0.5 + (bondOffset || 0);
+          return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, isAtom: false };
         }
         var atom = findAtomById(atomKey);
-        return atom ? { x: atom.x, y: atom.y } : null;
+        // isAtom flag drives label-clearance: only true for atoms that actually
+        // render a label box (non-empty role). Helper anchor atoms (role:'') are
+        // treated like bond points and the arrowhead lands exactly on them.
+        return atom ? { x: atom.x, y: atom.y, isAtom: !!atom.role } : null;
+      };
+      // Back off an endpoint (in pixel space) so the arrowhead/start does not
+      // overlap an atom label box. Skips back-off for bond-anchored points.
+      var LABEL_CLEARANCE = 22;
+      var applyClearance = function(px, py, otherX, otherY, isAtom) {
+        if (!isAtom) return { x: px, y: py };
+        var ddx = otherX - px, ddy = otherY - py;
+        var len = Math.sqrt(ddx*ddx + ddy*ddy);
+        if (len <= LABEL_CLEARANCE * 1.2) return { x: px, y: py };
+        return { x: px + (ddx/len) * LABEL_CLEARANCE, y: py + (ddy/len) * LABEL_CLEARANCE };
       };
       for (var ari = 0; ari < step.arrows.length; ari++) {
         var arr = step.arrows[ari];
-        var fromPt = resolveArrowPoint(arr.from, arr.fromBond);
-        var toPt = resolveArrowPoint(arr.to, arr.toBond);
+        var fromPt = resolveArrowPoint(arr.from, arr.fromBond, arr.fromBondOffset);
+        var toPt = resolveArrowPoint(arr.to, arr.toBond, arr.toBondOffset);
         if (!fromPt || !toPt) continue;
         var fx = toX(fromPt.x), fy = toY(fromPt.y);
         var tx = toX(toPt.x), ty = toY(toPt.y);
+        // Apply label clearance: pull each atom-anchored endpoint toward the
+        // other end so the arrow visibly starts/ends just outside the label.
+        var fAdj = applyClearance(fx, fy, tx, ty, fromPt.isAtom);
+        var tAdj = applyClearance(tx, ty, fx, fy, toPt.isAtom);
+        fx = fAdj.x; fy = fAdj.y;
+        tx = tAdj.x; ty = tAdj.y;
         var arrowProg = Math.min(1, (prog - 0.1) / 0.7);
         drawCurlyArrow(ctx, fx, fy, tx, ty, arr.type, arrowProg);
       }
@@ -1177,8 +1197,11 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       ctx.beginPath();
       ctx.moveTo(ex, ey);
       if (type === 'fishhook') {
-        // Single barb
-        ctx.lineTo(ex - hl * Math.cos(angle - 0.5), ey - hl * Math.sin(angle - 0.5));
+        // Single barb — drawn on the inside of the curl so it visibly hooks
+        // toward the destination atom symbol. Side is determined from the
+        // sign of cross(perp, tangent) at the arrowhead.
+        var side = (perpX * tangY - perpY * tangX) > 0 ? -1 : 1;
+        ctx.lineTo(ex - hl * Math.cos(angle + side * 0.5), ey - hl * Math.sin(angle + side * 0.5));
         ctx.stroke();
       } else {
         // Double barb (filled)
