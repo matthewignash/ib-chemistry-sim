@@ -807,15 +807,20 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
           atoms: [
             { id: 'x1', role: 'nuc', x: 0.35, y: 0.45 },
             { id: 'x2', role: 'lg', x: 0.65, y: 0.45 },
-            { id: 'uv', role: 'uv', x: 0.5, y: 0.15 },
-            { id: 'x1out', role: '', x: 0.32, y: 0.28 },
-            { id: 'x2out', role: '', x: 0.68, y: 0.28 }
+            { id: 'uv', role: 'uv', x: 0.5, y: 0.15 }
           ],
           bonds: [
             { from: 'x1', to: 'x2', order: 1, state: 'normal' }
           ],
           charges: [],
-          arrows: [{ fromBond: ['x1','x2'], fromBondOffset: -0.2, to: 'x1out', type: 'fishhook' }, { fromBond: ['x1','x2'], fromBondOffset: 0.2, to: 'x2out', type: 'fishhook' }]
+          // Two fishhooks per IB Kognity convention: each starts on the bond
+          // (slightly toward its respective atom) and arcs UP and back DOWN
+          // to land on the destination atom. curlHeight gives an explicit
+          // tall arc; curlSide:-1 forces both bulges upward.
+          arrows: [
+            { fromBond: ['x1','x2'], fromBondOffset: -0.15, to: 'x1', type: 'fishhook', curlHeight: 38, curlSide: -1 },
+            { fromBond: ['x1','x2'], fromBondOffset:  0.15, to: 'x2', type: 'fishhook', curlHeight: 38, curlSide: -1 }
+          ]
         },
         {
           desc: 'Propagation step 1: A {nuc}\u2022 radical abstracts a hydrogen from {sub}, forming H\u2013{nuc} and a carbon radical ({sub}\u2022). Fishhook arrows show one-electron movement.',
@@ -1129,7 +1134,8 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
         fx = fAdj.x; fy = fAdj.y;
         tx = tAdj.x; ty = tAdj.y;
         var arrowProg = Math.min(1, (prog - 0.1) / 0.7);
-        drawCurlyArrow(ctx, fx, fy, tx, ty, arr.type, arrowProg);
+        var curlOpts = arr.curlHeight ? { height: arr.curlHeight, side: arr.curlSide || 1 } : null;
+        drawCurlyArrow(ctx, fx, fy, tx, ty, arr.type, arrowProg, curlOpts);
       }
     }
 
@@ -1158,10 +1164,25 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   // ═══════════════════════════════════════
   // Curly Arrow
   // ═══════════════════════════════════════
-  function drawCurlyArrow(ctx, fx, fy, tx, ty, type, prog) {
+  function drawCurlyArrow(ctx, fx, fy, tx, ty, type, prog, curlOpts) {
     var dx = tx - fx, dy = ty - fy;
     var mx = (fx + tx) / 2, my = (fy + ty) / 2;
-    var perpX = -dy * 0.35, perpY = dx * 0.35;
+    var perpX, perpY;
+    if (curlOpts && curlOpts.height) {
+      // Explicit perpendicular bulge in pixels — used for short arrows where
+      // the default proportional curl would be too flat (e.g., homolytic
+      // fission fishhooks landing back on the bond axis). curlSide acts in
+      // SCREEN space: +1 = bulge downward, -1 = bulge upward, regardless of
+      // arrow direction — so paired fishhooks on one bond both arc the same way.
+      var len = Math.sqrt(dx*dx + dy*dy) || 1;
+      var nx = -dy / len, ny = dx / len;
+      var side = curlOpts.side || 1;
+      if ((side < 0 && ny > 0) || (side > 0 && ny < 0)) { nx = -nx; ny = -ny; }
+      perpX = nx * curlOpts.height;
+      perpY = ny * curlOpts.height;
+    } else {
+      perpX = -dy * 0.35; perpY = dx * 0.35;
+    }
     var cpx = mx + perpX, cpy = my + perpY;
 
     var color = type === 'fishhook' ? '#DC2626' : '#2563EB';
