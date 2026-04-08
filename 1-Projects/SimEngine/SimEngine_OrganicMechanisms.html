@@ -833,7 +833,15 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
             { from: 'c1', to: 'h1', order: 1, state: 'breaking' }
           ],
           charges: [{ atom: 'x1', text: '\u2022' }],
-          arrows: [{ from: 'x1', to: 'h1', type: 'fishhook' }, { from: 'c1', to: 'h1', type: 'fishhook' }]
+          // Propagation 1 fishhooks (IB Kognity convention):
+          //   1) Cl• single electron → forms new H–Cl bond (atom origin is correct
+          //      for a radical's lone electron).
+          //   2) One electron of the breaking C–H bond → goes to C, forming C•.
+          //      Per Kognity, this arrow starts at the C–H BOND and points at C.
+          arrows: [
+            { from: 'x1', to: 'h1', type: 'fishhook' },
+            { fromBond: ['c1','h1'], to: 'c1', type: 'fishhook' }
+          ]
         },
         {
           desc: 'Propagation step 2: The {sub}\u2022 radical reacts with another {nuc}\u2082 molecule. This forms the substituted product ({sub}\u2013{nuc}) and regenerates a {nuc}\u2022 radical to continue the chain.',
@@ -847,7 +855,14 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
             { from: 'c1', to: 'x1', order: 1, state: 'forming' }
           ],
           charges: [{ atom: 'c1', text: '\u2022' }],
-          arrows: [{ from: 'c1', to: 'x1', type: 'fishhook' }, { from: 'x1', to: 'x2', type: 'fishhook' }]
+          // Propagation 2 fishhooks:
+          //   1) C• single electron → forms new C–X1 bond (atom origin for radical).
+          //   2) One electron of the breaking X1–X2 bond → goes to X2, forming X2•.
+          //      Starts at the X1–X2 bond and points at X2.
+          arrows: [
+            { from: 'c1', to: 'x1', type: 'fishhook' },
+            { fromBond: ['x1','x2'], to: 'x2', type: 'fishhook' }
+          ]
         },
         {
           desc: 'Termination: Two radicals combine, ending the chain. Possible termination products: {nuc}\u2013{nuc}, {sub}\u2013{sub}, or {sub}\u2013{nuc}. The chain reaction is now complete.',
