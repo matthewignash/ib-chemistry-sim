@@ -729,36 +729,33 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
       steps: [
         {
           desc: 'The \u03C0 electrons of the C=C double bond attack the electrophile {nuc}. This breaks the \u03C0 bond and forms a new \u03C3 bond to the more substituted carbon (Markovnikov). A carbocation intermediate forms on the less substituted carbon.',
+          // Note: r1/r2 explicit H substituents removed — the CH\u2082 label already
+          // encodes the 2 H's on each alkene carbon. Keeping them would double-count.
           atoms: [
-            { id: 'c1', role: 'sub', x: 0.3, y: 0.45 },
-            { id: 'c2', role: 'ca', x: 0.5, y: 0.45 },
-            { id: 'e1', role: 'nuc', x: 0.4, y: 0.15 },
-            { id: 'r1', role: 'r1', x: 0.15, y: 0.45 },
-            { id: 'r2', role: 'r2', x: 0.65, y: 0.45 }
+            { id: 'c1', role: 'sub', x: 0.35, y: 0.5 },
+            { id: 'c2', role: 'ca', x: 0.6, y: 0.5 },
+            { id: 'e1', role: 'nuc', x: 0.475, y: 0.18 }
           ],
           bonds: [
-            { from: 'c1', to: 'c2', order: 2, state: 'normal' },
-            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
-            { from: 'c2', to: 'r2', order: 1, state: 'normal' }
+            { from: 'c1', to: 'c2', order: 2, state: 'normal' }
           ],
           charges: [{ atom: 'e1', text: '\u03B4+' }],
           arrows: [{ fromBond: ['c1','c2'], to: 'e1', type: 'full' }]
         },
         {
-          desc: 'Step 2 \u2014 Nucleophilic attack: {lg}\u207B (the counter-ion from the electrophile) attacks the carbocation intermediate from either side, completing the addition.',
+          desc: 'Step 2 \u2014 Nucleophilic attack: {lg} (the counter-ion from the electrophile) attacks the carbocation intermediate from either side, completing the addition.',
+          // The electrophile has now bonded to c1 — it is no longer an ion, so use
+          // role 'nucN' (neutral form, e.g. H\u207A \u2192 H). The nucleophile is still
+          // approaching so keeps its charged 'lg' role (e.g. Br\u207B).
           atoms: [
-            { id: 'c1', role: 'sub', x: 0.3, y: 0.45 },
-            { id: 'c2', role: 'ca', x: 0.5, y: 0.45 },
-            { id: 'e1', role: 'nuc', x: 0.3, y: 0.15 },
-            { id: 'nu', role: 'lg', x: 0.5, y: 0.8 },
-            { id: 'r1', role: 'r1', x: 0.15, y: 0.45 },
-            { id: 'r2', role: 'r2', x: 0.65, y: 0.45 }
+            { id: 'c1', role: 'sub', x: 0.35, y: 0.5 },
+            { id: 'c2', role: 'ca', x: 0.6, y: 0.5 },
+            { id: 'e1', role: 'nucN', x: 0.35, y: 0.2 },
+            { id: 'nu', role: 'lg', x: 0.6, y: 0.82 }
           ],
           bonds: [
             { from: 'c1', to: 'c2', order: 1, state: 'normal' },
             { from: 'c1', to: 'e1', order: 1, state: 'normal' },
-            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
-            { from: 'c2', to: 'r2', order: 1, state: 'normal' },
             { from: 'c2', to: 'nu', order: 1, state: 'forming' }
           ],
           charges: [{ atom: 'c2', text: '+' }],
@@ -767,19 +764,15 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
         {
           desc: 'Product formed: both carbons are now sp\u00B3 hybridised. The electrophile adds to the more substituted carbon (Markovnikov) and the nucleophile to the less substituted carbon.',
           atoms: [
-            { id: 'c1', role: 'sub', x: 0.3, y: 0.45 },
-            { id: 'c2', role: 'ca', x: 0.55, y: 0.45 },
-            { id: 'e1', role: 'nuc', x: 0.3, y: 0.15 },
-            { id: 'nu', role: 'lg', x: 0.55, y: 0.75 },
-            { id: 'r1', role: 'r1', x: 0.12, y: 0.45 },
-            { id: 'r2', role: 'r2', x: 0.73, y: 0.45 }
+            { id: 'c1', role: 'sub', x: 0.35, y: 0.5 },
+            { id: 'c2', role: 'ca', x: 0.6, y: 0.5 },
+            { id: 'e1', role: 'nucN', x: 0.35, y: 0.2 },
+            { id: 'nu', role: 'lgN', x: 0.6, y: 0.82 }
           ],
           bonds: [
             { from: 'c1', to: 'c2', order: 1, state: 'normal' },
             { from: 'c1', to: 'e1', order: 1, state: 'normal' },
-            { from: 'c2', to: 'nu', order: 1, state: 'normal' },
-            { from: 'c1', to: 'r1', order: 1, state: 'normal' },
-            { from: 'c2', to: 'r2', order: 1, state: 'normal' }
+            { from: 'c2', to: 'nu', order: 1, state: 'normal' }
           ],
           charges: [],
           arrows: []
@@ -840,7 +833,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
           //      Per Kognity, this arrow starts at the C–H BOND and points at C.
           arrows: [
             { from: 'x1', to: 'h1', type: 'fishhook' },
-            { fromBond: ['c1','h1'], to: 'c1', type: 'fishhook' }
+            { fromBond: ['c1','h1'], to: 'c1', type: 'fishhook', curlHeight: 40, curlSide: 1 }
           ]
         },
         {
@@ -861,7 +854,7 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
           //      Starts at the X1–X2 bond and points at X2.
           arrows: [
             { from: 'c1', to: 'x1', type: 'fishhook' },
-            { fromBond: ['x1','x2'], to: 'x2', type: 'fishhook' }
+            { fromBond: ['x1','x2'], to: 'x2', type: 'fishhook', curlHeight: 40, curlSide: -1 }
           ]
         },
         {
@@ -1009,8 +1002,27 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
   // ═══════════════════════════════════════
   // Resolve template labels
   // ═══════════════════════════════════════
+  // Strip ⁺ / ⁻ superscripts and δ+/δ- marks from an ion label so once the ion
+  // has bonded it can be displayed as its neutral atom (e.g. Br⁻ → Br, H⁺ → H).
+  function stripIonCharge(s) {
+    if (!s) return s;
+    return s.replace(/[\u207A\u207B]/g, '').replace(/\u03B4[+\u207A\-\u207B]?/g, '');
+  }
+
   function resolveLabel(role, rxn) {
-    var map = { nuc: rxn.nuc || '', sub: rxn.sub || '', lg: rxn.lg || '', r1: rxn.r1 || 'R', r2: rxn.r2 || 'R', r3: rxn.r3 || 'R', hb: rxn.hb || 'H', ca: rxn.sub || 'C', uv: 'UV \u210E\u03BD' };
+    var map = {
+      nuc: rxn.nuc || '',
+      nucN: stripIonCharge(rxn.nuc || ''),  // neutral form — used after electrophile bonds
+      sub: rxn.sub || '',
+      lg: rxn.lg || '',
+      lgN: stripIonCharge(rxn.lg || ''),     // neutral form — used after nucleophile bonds
+      r1: rxn.r1 || 'R',
+      r2: rxn.r2 || 'R',
+      r3: rxn.r3 || 'R',
+      hb: rxn.hb || 'H',
+      ca: rxn.sub || 'C',
+      uv: 'UV \u210E\u03BD'
+    };
     return map[role] || role;
   }
 
@@ -1083,7 +1095,9 @@ if (typeof CanvasRenderingContext2D !== 'undefined' && !CanvasRenderingContext2D
     // ── Atom Labels (drawn before arrows so arrows appear on top) ──
     for (var li = 0; li < step.atoms.length; li++) {
       var atom = step.atoms[li];
-      var label = resolveLabel(atom.role, rxn);
+      // atom.label (if set) overrides role-based lookup — used for product-state
+      // relabels like H⁺→H and Br⁻→Br once the ion has bonded.
+      var label = atom.label || resolveLabel(atom.role, rxn);
       if (!label) continue;
       var ax = toX(atom.x), ay = toY(atom.y);
       var color = atomColor(label);
